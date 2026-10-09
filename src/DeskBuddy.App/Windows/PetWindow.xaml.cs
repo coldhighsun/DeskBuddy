@@ -1,14 +1,18 @@
 using System.Diagnostics;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
 using DeskBuddy.App.Interop;
+using DeskBuddy.App.Presentation;
 using DeskBuddy.App.Rendering;
+using DeskBuddy.App.Resources;
 using DeskBuddy.Application;
 using DeskBuddy.Domain;
 using DeskBuddy.Domain.Behavior;
+using DeskBuddy.Domain.Messages;
 using DeskBuddy.Domain.Skins;
 
 namespace DeskBuddy.App.Windows;
@@ -90,6 +94,11 @@ public partial class PetWindow : Window
     /// Number of movement ticks between refreshes of the cached work area (about one second).
     /// </summary>
     private const int WorkAreaRefreshEveryTicks = 30;
+
+    /// <summary>
+    /// The speech bubble, created the first time a message needs showing.
+    /// </summary>
+    private BubbleWindow? _bubble;
 
     /// <summary>
     /// Work area of the monitor the pet is on, cached while walking.
@@ -175,13 +184,31 @@ public partial class PetWindow : Window
             _animationTimer.Stop();
             _brainTimer.Stop();
             _moveTimer.Stop();
+            _brain.MessageChanged -= OnMessageChanged;
+            _bubble?.Close();
         };
 
         MouseLeftButtonDown += OnMouseLeftButtonDown;
         MouseMove += OnMouseMove;
         MouseLeftButtonUp += OnMouseLeftButtonUp;
 
+        _brain.MessageChanged += OnMessageChanged;
+        IsVisibleChanged += (_, _) => OnMessageChanged(this, EventArgs.Empty);
+        LocationChanged += (_, _) => RepositionBubble();
+
+        ContextMenu = new ContextMenu();
+        ContextMenuOpening += OnContextMenuOpening;
+
         PlaceAtBottomRight();
+    }
+
+    /// <summary>
+    /// Re-evaluates the pet's state right away and shows it. Call after anything that can change the state, such as a
+    /// pomodoro command, instead of waiting for the next timer tick.
+    /// </summary>
+    public void RefreshState()
+    {
+        ApplyState(_brain.Tick());
     }
 
     /// <summary>
@@ -341,7 +368,86 @@ public partial class PetWindow : Window
     /// </param>
     private void OnBrainTick(object? sender, EventArgs e)
     {
-        ApplyState(_brain.Tick());
+        RefreshState();
+    }
+
+    /// <summary>
+    /// Shows, updates or hides the speech bubble to match the brain's current message. The bubble stays hidden while
+    /// the pet itself is hidden.
+    /// </summary>
+    /// <param name="sender">
+    /// The event source.
+    /// </param>
+    /// <param name="e">
+    /// Event data.
+    /// </param>
+    private void OnMessageChanged(object? sender, EventArgs e)
+    {
+        var message = _brain.CurrentMessage;
+        if (message is null || !IsVisible)
+        {
+            _bubble?.Hide();
+            return;
+        }
+
+        if (_bubble is null)
+        {
+            _bubble = new BubbleWindow();
+            _bubble.ActionInvoked += OnBubbleActionInvoked;
+        }
+
+        _bubble.SetContent(MessagePresenter.Present(message));
+        _bubble.PositionAbove(this);
+        if (!_bubble.IsVisible)
+        {
+            _bubble.Show();
+        }
+    }
+
+    /// <summary>
+    /// Carries out the action the user chose in the speech bubble.
+    /// </summary>
+    /// <param name="sender">
+    /// The event source.
+    /// </param>
+    /// <param name="action">
+    /// The chosen action.
+    /// </param>
+    private void OnBubbleActionInvoked(object? sender, MessageAction action)
+    {
+        _brain.Invoke(action);
+        RefreshState();
+    }
+
+    /// <summary>
+    /// Keeps the speech bubble attached to the pet while the pet moves.
+    /// </summary>
+    private void RepositionBubble()
+    {
+        if (_bubble is { IsVisible: true })
+        {
+            _bubble.PositionAbove(this);
+        }
+    }
+
+    /// <summary>
+    /// Fills the right-click menu with the pomodoro commands that apply right now, plus hiding the pet.
+    /// </summary>
+    /// <param name="sender">
+    /// The event source.
+    /// </param>
+    /// <param name="e">
+    /// Event data.
+    /// </param>
+    private void OnContextMenuOpening(object sender, ContextMenuEventArgs e)
+    {
+        var items = ContextMenu.Items;
+        PomodoroMenu.Populate(items, _brain, RefreshState);
+
+        items.Add(new Separator());
+        var hide = new MenuItem { Header = Strings.TrayHidePet };
+        hide.Click += (_, _) => Hide();
+        items.Add(hide);
     }
 
     /// <summary>

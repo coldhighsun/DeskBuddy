@@ -1,0 +1,47 @@
+<Window x:Class="DeskBuddy.App.Windows.BubbleWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="DeskBuddy bubble"
+        WindowStyle="None"
+        AllowsTransparency="False"
+        Background="Transparent"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        ShowActivated="False"
+        Topmost="True"
+        SizeToContent="WidthAndHeight"
+        SnapsToDevicePixels="True"
+        UseLayoutRounding="True">
+    <!-- Same hardware-accelerated transparent window technique as PetWindow (see there). -->
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="0"
+                      ResizeBorderThickness="0"
+                      GlassFrameThickness="-1"
+                      CornerRadius="0"
+                      UseAeroCaptionButtons="False" />
+    </WindowChrome.WindowChrome>
+    <StackPanel>
+        <Border CornerRadius="12"
+                Background="#FFFDF6EC"
+                BorderBrush="#FFE0C8A8"
+                BorderThickness="1"
+                Padding="12,10,12,10"
+                MaxWidth="260">
+            <StackPanel>
+                <TextBlock x:Name="MessageText"
+                           TextWrapping="Wrap"
+                           FontSize="13"
+                           Foreground="#FF3C281E" />
+                <WrapPanel x:Name="ButtonPanel" Margin="0,2,0,0" />
+            </StackPanel>
+        </Border>
+        <!-- Little tail pointing down at the pet; its horizontal position is set in code. -->
+        <Path x:Name="Tail"
+              Data="M 0,0 L 14,0 L 7,9 Z"
+              Fill="#FFFDF6EC"
+              Stroke="#FFE0C8A8"
+              StrokeThickness="0"
+              HorizontalAlignment="Left"
+              Margin="0,-1,0,0" />
+    </StackPanel>
+</Window>

@@ -40,6 +40,11 @@ function New-Frame {
         'open'   { $g.FillEllipse($darkBrush, $e1, $ey, 9, 12); $g.FillEllipse($darkBrush, $e2, $ey, 9, 12) }
         'closed' { $g.DrawArc($darkPen, $e1 - 2, $ey, 14, 8, 0, 180); $g.DrawArc($darkPen, $e2 - 2, $ey, 14, 8, 0, 180) }
         'happy'  { $g.DrawArc($darkPen, $e1 - 2, $ey, 14, 10, 180, 180); $g.DrawArc($darkPen, $e2 - 2, $ey, 14, 10, 180, 180) }
+        'focus'  {
+            # Wide-open pupils under angled brows: concentrating.
+            $g.FillEllipse($darkBrush, $e1, $ey, 9, 12); $g.FillEllipse($darkBrush, $e2, $ey, 9, 12)
+            $g.DrawLine($darkPen, $e1 - 3, $ey - 7, $e1 + 11, $ey - 3); $g.DrawLine($darkPen, $e2 - 2, $ey - 3, $e2 + 12, $ey - 7)
+        }
         'tired'  {
             # Half-lidded: eyes squashed flat with a heavy lid line across the top.
             $g.FillEllipse($darkBrush, $e1, $ey + 4, 9, 7); $g.FillEllipse($darkBrush, $e2, $ey + 4, 9, 7)
@@ -89,6 +94,14 @@ New-Frame 'drag_1.png' -W 70 -H 94 -Lift 0 -Eyes open -Mouth oh -Feet -4
 New-Frame 'tired_0.png' -W 90 -H 72 -Eyes tired -Mouth flat -Feet 0 -Sweat
 New-Frame 'tired_1.png' -W 96 -H 68 -Eyes tired -Mouth flat -Feet 0 -Sweat
 
+# Alert: jumping to get attention, with an exclamation mark.
+New-Frame 'alert_0.png' -Lift 16 -Eyes open -Mouth oh -Feet 6 -Extra '!'
+New-Frame 'alert_1.png' -Lift 0 -H 76 -Eyes open -Mouth oh -Feet -6 -Extra '!'
+
+# Focus: quietly concentrating.
+New-Frame 'focus_0.png' -Eyes focus -Mouth flat -Feet 0
+New-Frame 'focus_1.png' -W 86 -H 78 -Eyes focus -Mouth flat -Feet 0
+
 # Happy: bounce with smiling eyes.
 New-Frame 'happy_0.png' -Lift 12 -Eyes happy -Mouth smile
 New-Frame 'happy_1.png' -Lift 0 -H 74 -W 90 -Eyes happy -Mouth smile
@@ -103,6 +116,8 @@ $manifest = @'
     "Sleep": { "fps": 1,  "frames": ["sleep_0.png", "sleep_1.png"] },
     "Drag":  { "fps": 6,  "frames": ["drag_0.png", "drag_1.png"] },
     "Tired": { "fps": 2,  "frames": ["tired_0.png", "tired_1.png"] },
+    "Alert": { "fps": 4,  "frames": ["alert_0.png", "alert_1.png"] },
+    "Focus": { "fps": 1,  "frames": ["focus_0.png", "focus_1.png"] },
     "Happy": { "fps": 5,  "frames": ["happy_0.png", "happy_1.png"] }
   }
 }

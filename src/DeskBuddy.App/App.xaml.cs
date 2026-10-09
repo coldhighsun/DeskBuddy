@@ -5,6 +5,8 @@ using DeskBuddy.App.Windows;
 using DeskBuddy.Application;
 using DeskBuddy.Application.Abstractions;
 using DeskBuddy.Domain.Behavior;
+using DeskBuddy.Domain.Messages;
+using DeskBuddy.Domain.Pomodoro;
 using DeskBuddy.Domain.SystemLoad;
 using DeskBuddy.Infrastructure.Sensors;
 using DeskBuddy.Infrastructure.Skins;
@@ -66,6 +68,9 @@ public partial class App : System.Windows.Application
         var loadOptions = new SystemLoadOptions();
         builder.Configuration.GetSection("SystemLoad").Bind(loadOptions);
 
+        var pomodoroOptions = new PomodoroOptions();
+        builder.Configuration.GetSection("Pomodoro").Bind(pomodoroOptions);
+
         builder.Services.AddSingleton(behaviorOptions);
         builder.Services.AddSingleton(loadOptions);
         builder.Services.AddSingleton(TimeProvider.System);
@@ -73,6 +78,12 @@ public partial class App : System.Windows.Application
         builder.Services.AddSingleton<IIdleDetector, Win32IdleDetector>();
         builder.Services.AddSingleton<ISystemLoadMonitor, WindowsSystemLoadMonitor>();
         builder.Services.AddSingleton<LoadReactionPolicy>();
+        builder.Services.AddSingleton<IFullscreenDetector, WindowsFullscreenDetector>();
+        builder.Services.AddSingleton(pomodoroOptions);
+        builder.Services.AddSingleton<PomodoroSession>();
+        builder.Services.AddSingleton(sp => new PetMessageQueue(
+            behaviorOptions.MessageDuration,
+            sp.GetRequiredService<TimeProvider>()));
         builder.Services.AddSingleton(sp => new PetBehaviorStateMachine(
             sp.GetRequiredService<PetBehaviorOptions>(),
             sp.GetRequiredService<TimeProvider>(),
@@ -87,13 +98,10 @@ public partial class App : System.Windows.Application
             var skinDirectory = Path.Combine(AppContext.BaseDirectory, "skins", DefaultSkinName);
             var skin = await _host.Services.GetRequiredService<ISkinLoader>().LoadAsync(skinDirectory);
 
-            var petWindow = new PetWindow(
-                skin,
-                new SkinFrameCache(skin),
-                _host.Services.GetRequiredService<PetBrain>(),
-                behaviorOptions);
+            var brain = _host.Services.GetRequiredService<PetBrain>();
+            var petWindow = new PetWindow(skin, new SkinFrameCache(skin), brain, behaviorOptions);
             petWindow.Show();
-            _tray = new TrayIconService(petWindow, Shutdown);
+            _tray = new TrayIconService(petWindow, brain, petWindow.RefreshState, Shutdown);
         }
         catch (InvalidDataException ex)
         {
