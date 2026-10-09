@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using DeskBuddy.App.Presentation;
 using DeskBuddy.App.Resources;
+using DeskBuddy.App.Windows;
 using DeskBuddy.Application;
 using DeskBuddy.Domain.Pomodoro;
 using H.NotifyIcon;
@@ -32,7 +33,7 @@ public sealed class TrayIconService : IDisposable
     /// <summary>
     /// Opens the panel window.
     /// </summary>
-    private readonly Action _openPanel;
+    private readonly Action<PanelTab?> _openPanel;
 
     /// <summary>
     /// Callback invoked when the user chooses Exit.
@@ -54,7 +55,7 @@ public sealed class TrayIconService : IDisposable
     /// <param name="onExit">
     /// Callback invoked when the user chooses Exit.
     /// </param>
-    public TrayIconService(PetBrain brain, Action afterCommand, Action openPanel, Action onExit)
+    public TrayIconService(PetBrain brain, Action afterCommand, Action<PanelTab?> openPanel, Action onExit)
     {
         _brain = brain;
         _afterCommand = afterCommand;
@@ -100,7 +101,7 @@ public sealed class TrayIconService : IDisposable
     /// </param>
     private void OnTrayDoubleClick(object sender, RoutedEventArgs e)
     {
-        _openPanel();
+        _openPanel(null);
     }
 
     /// <summary>
@@ -131,9 +132,13 @@ public sealed class TrayIconService : IDisposable
         PomodoroMenu.Populate(items, _brain, _afterCommand);
 
         var openPanel = new MenuItem { Header = Strings.OpenPanel };
-        openPanel.Click += (_, _) => _openPanel();
+        openPanel.Click += (_, _) => _openPanel(null);
         items.Insert(0, openPanel);
-        items.Insert(1, new Separator());
+
+        var settings = new MenuItem { Header = Strings.MenuSettings };
+        settings.Click += (_, _) => _openPanel(PanelTab.Settings);
+        items.Insert(1, settings);
+        items.Insert(2, new Separator());
 
         items.Add(new Separator());
 

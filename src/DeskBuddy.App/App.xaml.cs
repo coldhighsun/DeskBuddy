@@ -16,6 +16,7 @@ using DeskBuddy.Domain.Settings;
 using DeskBuddy.Domain.Visibility;
 using DeskBuddy.Domain.SystemLoad;
 using DeskBuddy.Infrastructure.Sensors;
+using DeskBuddy.Infrastructure.Startup;
 using DeskBuddy.Infrastructure.Skins;
 using DeskBuddy.Infrastructure.Storage;
 using Microsoft.Extensions.Configuration;
@@ -126,6 +127,7 @@ public partial class App : System.Windows.Application
         builder.Services.AddSingleton(loadOptions);
         builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddSingleton<ISkinLoader, FolderSkinLoader>();
+        builder.Services.AddSingleton<IAutoStartService>(_ => new RegistryAutoStartService());
         builder.Services.AddSingleton<ISkinCatalog>(_ => new FolderSkinCatalog(Path.Combine(AppContext.BaseDirectory, "skins")));
         builder.Services.AddSingleton<IIdleDetector, Win32IdleDetector>();
         builder.Services.AddSingleton<ISystemLoadMonitor, WindowsSystemLoadMonitor>();
@@ -257,19 +259,28 @@ public partial class App : System.Windows.Application
     /// <summary>
     /// Shows the panel window, creating it the first time.
     /// </summary>
-    private void OpenPanel()
+    /// <param name="tab">
+    /// The tab to show; <see langword="null"/> keeps the tab that was showing.
+    /// </param>
+    private void OpenPanel(PanelTab? tab)
     {
-        if (_panel is null && _host is not null && _petWindow is not null)
+        if (_panel is null && _host is not null && _petWindow is not null && _bossKey is not null && _skinSwitcher is not null)
         {
             var services = _host.Services;
             var viewModel = new PanelViewModel(
                 new PomodoroTabViewModel(services.GetRequiredService<PetBrain>(), _petWindow.RefreshState),
                 new TodoTabViewModel(services.GetRequiredService<TodoService>()),
-                new NoteTabViewModel(services.GetRequiredService<NoteService>()));
+                new NoteTabViewModel(services.GetRequiredService<NoteService>()),
+                new SettingsTabViewModel(
+                    services.GetRequiredService<SettingsService>(),
+                    _bossKey,
+                    services.GetRequiredService<IAutoStartService>(),
+                    services.GetRequiredService<ISkinCatalog>(),
+                    _skinSwitcher));
             _panel = new PanelWindow(viewModel, services.GetRequiredService<NoteService>());
         }
 
-        _panel?.ShowPanel();
+        _panel?.ShowPanel(tab);
     }
 
     /// <summary>

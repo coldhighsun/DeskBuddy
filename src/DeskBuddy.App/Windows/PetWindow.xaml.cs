@@ -99,7 +99,7 @@ public partial class PetWindow : Window
     /// <summary>
     /// Opens the panel window.
     /// </summary>
-    private readonly Action _openPanel;
+    private readonly Action<PanelTab?> _openPanel;
 
     /// <summary>
     /// Picks how the pet moves for the current disturbance mode.
@@ -177,7 +177,7 @@ public partial class PetWindow : Window
         SkinFrameCache frames,
         PetBrain brain,
         PetBehaviorOptions options,
-        Action openPanel,
+        Action<PanelTab?> openPanel,
         MovementSelector movement)
     {
         InitializeComponent();
@@ -617,9 +617,13 @@ public partial class PetWindow : Window
         PomodoroMenu.Populate(items, _brain, RefreshState);
 
         var openPanel = new MenuItem { Header = Strings.OpenPanel };
-        openPanel.Click += (_, _) => _openPanel();
+        openPanel.Click += (_, _) => _openPanel(null);
         items.Insert(0, openPanel);
-        items.Insert(1, new Separator());
+
+        var settings = new MenuItem { Header = Strings.MenuSettings };
+        settings.Click += (_, _) => _openPanel(PanelTab.Settings);
+        items.Insert(1, settings);
+        items.Insert(2, new Separator());
 
         items.Add(new Separator());
         var hide = new MenuItem { Header = Strings.TrayHidePet };
@@ -695,7 +699,7 @@ public partial class PetWindow : Window
     {
         if (e.ClickCount >= 2)
         {
-            _openPanel();
+            _openPanel(null);
             return;
         }
 

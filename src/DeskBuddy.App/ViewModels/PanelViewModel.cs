@@ -1,7 +1,7 @@
 namespace DeskBuddy.App.ViewModels;
 
 /// <summary>
-/// Groups the view models of the panel window's three tabs.
+/// Groups the view models of the panel window's tabs.
 /// </summary>
 /// <param name="Pomodoro">
 /// The pomodoro tab.
@@ -12,4 +12,11 @@ namespace DeskBuddy.App.ViewModels;
 /// <param name="Note">
 /// The note tab.
 /// </param>
-public sealed record PanelViewModel(PomodoroTabViewModel Pomodoro, TodoTabViewModel Todo, NoteTabViewModel Note);
+/// <param name="Settings">
+/// The settings tab.
+/// </param>
+public sealed record PanelViewModel(
+    PomodoroTabViewModel Pomodoro,
+    TodoTabViewModel Todo,
+    NoteTabViewModel Note,
+    SettingsTabViewModel Settings);

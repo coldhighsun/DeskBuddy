@@ -1,14 +1,18 @@
 using System.ComponentModel;
 using System.IO;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Input;
 using System.Windows.Threading;
+using DeskBuddy.App.Presentation;
 using DeskBuddy.App.ViewModels;
 using DeskBuddy.Application;
 
 namespace DeskBuddy.App.Windows;
 
 /// <summary>
-/// The panel window with the pomodoro, to-do and note tabs. Closing it only hides it, so it keeps its state and
+/// The panel window with the pomodoro, to-do, note and settings tabs. Closing it only hides it, so it keeps its state and
 /// opens instantly next time.
 /// </summary>
 public partial class PanelWindow : Window
@@ -62,8 +66,16 @@ public partial class PanelWindow : Window
     /// <summary>
     /// Brings the panel to the front, restoring it if it was hidden or minimized.
     /// </summary>
-    public void ShowPanel()
+    /// <param name="tab">
+    /// The tab to show; <see langword="null"/> keeps the tab that was showing.
+    /// </param>
+    public void ShowPanel(PanelTab? tab = null)
     {
+        if (tab is { } requested)
+        {
+            Tabs.SelectedIndex = (int)requested;
+        }
+
         if (WindowState == WindowState.Minimized)
         {
             WindowState = WindowState.Normal;
@@ -107,6 +119,7 @@ public partial class PanelWindow : Window
         if (IsVisible)
         {
             _viewModel.Pomodoro.Refresh();
+            _viewModel.Settings.RefreshExternalState();
             _refreshTimer.Start();
             return;
         }
@@ -119,6 +132,54 @@ public partial class PanelWindow : Window
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             _viewModel.Note.ReportSaveFailure(ex);
+        }
+    }
+
+    /// <summary>
+    /// Applies a number typed into a settings box when Enter is pressed, instead of waiting for the box to lose focus.
+    /// </summary>
+    /// <param name="sender">
+    /// The text box.
+    /// </param>
+    /// <param name="e">
+    /// Key event data.
+    /// </param>
+    private void OnSettingsTextBoxKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter && sender is TextBox box)
+        {
+            BindingOperations.GetBindingExpression(box, TextBox.TextProperty)?.UpdateSource();
+            e.Handled = true;
+        }
+    }
+
+    /// <summary>
+    /// Records the shortcut the user presses in the boss key box. Escape leaves the box without changing anything.
+    /// </summary>
+    /// <param name="sender">
+    /// The text box.
+    /// </param>
+    /// <param name="e">
+    /// Key event data.
+    /// </param>
+    private async void OnBossKeyPreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        e.Handled = true;
+
+        if (e.Key == Key.Escape && sender is TextBox box)
+        {
+            box.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
+            return;
+        }
+
+        switch (HotkeyCapture.TryCreate(e.Key, e.SystemKey, Keyboard.Modifiers, out var gesture))
+        {
+            case HotkeyCaptureResult.Accepted:
+                await _viewModel.Settings.ApplyBossKeyAsync(gesture);
+                break;
+            case HotkeyCaptureResult.Rejected:
+                _viewModel.Settings.ReportBossKeyRejected();
+                break;
         }
     }
 }

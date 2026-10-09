@@ -72,4 +72,33 @@
   <data name="ActionSnoozeReminder" xml:space="preserve"><value>稍后提醒</value></data>
   <data name="ActionSkipBreak" xml:space="preserve"><value>跳过休息</value></data>
   <data name="ActionStartPomodoro" xml:space="preserve"><value>开始下一轮</value></data>
+
+  <data name="TabSettings" xml:space="preserve"><value>设置</value></data>
+  <data name="MenuSettings" xml:space="preserve"><value>设置</value></data>
+  <data name="SettingsAppearance" xml:space="preserve"><value>外观</value></data>
+  <data name="SettingsSkin" xml:space="preserve"><value>皮肤</value></data>
+  <data name="SettingsMode" xml:space="preserve"><value>打扰模式</value></data>
+  <data name="ModeDocked" xml:space="preserve"><value>停靠在任务栏上</value></data>
+  <data name="ModeRoam" xml:space="preserve"><value>在桌面上自由活动</value></data>
+  <data name="SettingsTiming" xml:space="preserve"><value>计时（单位：分钟）</value></data>
+  <data name="SettingsPomodoroWork" xml:space="preserve"><value>番茄钟专注时长</value></data>
+  <data name="SettingsPomodoroShortBreak" xml:space="preserve"><value>短休息时长</value></data>
+  <data name="SettingsPomodoroLongBreak" xml:space="preserve"><value>长休息时长</value></data>
+  <data name="SettingsSedentary" xml:space="preserve"><value>久坐提醒间隔</value></data>
+  <data name="SettingsSleep" xml:space="preserve"><value>无操作多久后睡着</value></data>
+  <data name="SettingsBossKey" xml:space="preserve"><value>老板键（一键隐藏或显示宠物）</value></data>
+  <data name="BossKeyHint" xml:space="preserve"><value>点击输入框，然后按下新的组合键（需包含 Ctrl、Alt、Shift 或 Win）。</value></data>
+  <data name="BossKeyFailed" xml:space="preserve"><value>快捷键 {0} 无法使用：{1}</value></data>
+  <data name="BossKeyInvalid" xml:space="preserve"><value>这个组合键不能用作老板键：请带上 Ctrl、Alt、Shift 或 Win，并配合字母、数字或 F1–F24。</value></data>
+  <data name="SettingsFullscreen" xml:space="preserve"><value>全屏与会议</value></data>
+  <data name="AutoHide" xml:space="preserve"><value>全屏或演示时自动隐藏宠物</value></data>
+  <data name="CoveredMonitor" xml:space="preserve"><value>前台窗口铺满整个显示器时也算全屏</value></data>
+  <data name="BlacklistLabel" xml:space="preserve"><value>这些程序在前台时也算全屏（每行一个进程名，如 zoom）</value></data>
+  <data name="SettingsSystem" xml:space="preserve"><value>系统</value></data>
+  <data name="AutoStart" xml:space="preserve"><value>开机自动启动</value></data>
+  <data name="AutoStartFailed" xml:space="preserve"><value>无法更改开机自启：{0}</value></data>
+  <data name="MinutesRange" xml:space="preserve"><value>“{0}”需要 {1}–{2} 之间的整数分钟数。</value></data>
+  <data name="SettingsSaveFailed" xml:space="preserve"><value>设置保存失败：{0}</value></data>
+  <data name="SettingsLoadFailed" xml:space="preserve"><value>设置读取失败（{0}）。为避免覆盖原有设置，已暂停修改，请检查文件后重启。</value></data>
+  <data name="SkinSwitchFailed" xml:space="preserve"><value>无法切换皮肤：{0}</value></data>
 </root>

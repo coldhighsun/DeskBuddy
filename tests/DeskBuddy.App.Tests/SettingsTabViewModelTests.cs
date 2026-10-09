@@ -1,0 +1,624 @@
+using System.IO;
+using AwesomeAssertions;
+using DeskBuddy.App.Rendering;
+using DeskBuddy.App.ViewModels;
+using DeskBuddy.Application;
+using DeskBuddy.Domain.Settings;
+using Microsoft.Extensions.Logging.Abstractions;
+
+namespace DeskBuddy.App.Tests;
+
+/// <summary>
+/// Tests for <see cref="SettingsTabViewModel"/>.
+/// </summary>
+public class SettingsTabViewModelTests
+{
+    /// <summary>
+    /// A shortcut other than the default one.
+    /// </summary>
+    private static readonly HotkeyGesture OtherKey = new(HotkeyModifiers.Control | HotkeyModifiers.Shift, 0x7B);
+
+    /// <summary>
+    /// The storage behind the settings.
+    /// </summary>
+    private readonly FakeSettingsStore _store = new();
+
+    /// <summary>
+    /// The system hotkey registration.
+    /// </summary>
+    private readonly FakeHotkeyService _hotkeys = new();
+
+    /// <summary>
+    /// The start-at-sign-in switch.
+    /// </summary>
+    private readonly FakeAutoStartService _autoStart = new();
+
+    /// <summary>
+    /// The skin loader behind the skin switcher.
+    /// </summary>
+    private readonly FakeSkinLoader _loader = new();
+
+    /// <summary>
+    /// The settings service.
+    /// </summary>
+    private SettingsService _settings = null!;
+
+    /// <summary>
+    /// The view model under test, created by <see cref="CreateAsync"/>.
+    /// </summary>
+    private SettingsTabViewModel _viewModel = null!;
+
+    /// <summary>
+    /// Loads the settings and creates the view model over fakes.
+    /// </summary>
+    /// <param name="skins">
+    /// The skin names the catalog lists.
+    /// </param>
+    /// <returns>
+    /// A task that completes when the view model is ready.
+    /// </returns>
+    private async Task CreateAsync(params string[] skins)
+    {
+        _settings = new SettingsService(_store);
+        await _settings.InitializeAsync();
+
+        _loader.Available.Add("default");
+        _loader.Available.Add("cat");
+        var switcher = new SkinSwitcher(
+            _settings,
+            _loader,
+            "skins",
+            _settings.Current.SkinName,
+            _ => { },
+            NullLogger<SkinSwitcher>.Instance);
+        var bossKey = new BossKeyController(_settings, _hotkeys, TestBrain.Create());
+        _viewModel = new SettingsTabViewModel(
+            _settings,
+            bossKey,
+            _autoStart,
+            new FakeSkinCatalog(skins.Length > 0 ? skins : ["default", "cat"]),
+            switcher);
+    }
+
+    /// <summary>
+    /// Waits, briefly, for something that happens after a hand-off to another continuation.
+    /// </summary>
+    /// <param name="condition">
+    /// The condition to wait for.
+    /// </param>
+    /// <returns>
+    /// A task that completes when the condition holds, or after a timeout.
+    /// </returns>
+    private static async Task EventuallyAsync(Func<bool> condition)
+    {
+        for (var i = 0; i < 200 && !condition(); i++)
+        {
+            await Task.Delay(10);
+        }
+    }
+
+    /// <summary>
+    /// The tab starts out showing the saved settings.
+    /// </summary>
+    [Fact]
+    public async Task Constructor_ShowsCurrentSettings()
+    {
+        // Arrange
+        _store.Stored = PetSettings.Default with
+        {
+            Mode = DisturbanceMode.Roam,
+            PomodoroWork = TimeSpan.FromMinutes(50),
+            PomodoroShortBreak = TimeSpan.FromMinutes(10),
+            PomodoroLongBreak = TimeSpan.FromMinutes(30),
+            SedentaryReminderAfter = TimeSpan.FromMinutes(60),
+            SleepAfter = TimeSpan.FromMinutes(8),
+            AutoHideWhenFullscreen = false,
+            DetectCoveredMonitor = true,
+            BlacklistedProcesses = ["zoom", "teams"],
+        };
+
+        // Act
+        await CreateAsync();
+
+        // Assert
+        _viewModel.IsRoam.Should().BeTrue();
+        _viewModel.IsDocked.Should().BeFalse();
+        _viewModel.PomodoroWorkText.Should().Be("50");
+        _viewModel.ShortBreakText.Should().Be("10");
+        _viewModel.LongBreakText.Should().Be("30");
+        _viewModel.SedentaryText.Should().Be("60");
+        _viewModel.SleepText.Should().Be("8");
+        _viewModel.BossKeyText.Should().Be("Ctrl+Alt+H");
+        _viewModel.AutoHideWhenFullscreen.Should().BeFalse();
+        _viewModel.DetectCoveredMonitor.Should().BeTrue();
+        _viewModel.BlacklistText.Should().Be($"zoom{Environment.NewLine}teams");
+        _viewModel.IsEditable.Should().BeTrue();
+    }
+
+    /// <summary>
+    /// A valid number of minutes is applied and saved, and each entry changes its own setting.
+    /// </summary>
+    [Fact]
+    public async Task Minutes_ValidValues_AreAppliedAndSaved()
+    {
+        // Arrange
+        await CreateAsync();
+
+        // Act
+        _viewModel.PomodoroWorkText = "50";
+        _viewModel.ShortBreakText = "7";
+        _viewModel.LongBreakText = "20";
+        _viewModel.SedentaryText = "90";
+        _viewModel.SleepText = "12";
+
+        // Assert
+        _settings.Current.PomodoroWork.Should().Be(TimeSpan.FromMinutes(50));
+        _settings.Current.PomodoroShortBreak.Should().Be(TimeSpan.FromMinutes(7));
+        _settings.Current.PomodoroLongBreak.Should().Be(TimeSpan.FromMinutes(20));
+        _settings.Current.SedentaryReminderAfter.Should().Be(TimeSpan.FromMinutes(90));
+        _settings.Current.SleepAfter.Should().Be(TimeSpan.FromMinutes(12));
+        _store.Stored.Should().Be(_settings.Current);
+        _viewModel.TimingError.Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// Spaces around the number are ignored.
+    /// </summary>
+    [Fact]
+    public async Task Minutes_WithSurroundingSpaces_AreAccepted()
+    {
+        // Arrange
+        await CreateAsync();
+
+        // Act
+        _viewModel.PomodoroWorkText = "  30 ";
+
+        // Assert
+        _settings.Current.PomodoroWork.Should().Be(TimeSpan.FromMinutes(30));
+        _viewModel.PomodoroWorkText.Should().Be("30");
+    }
+
+    /// <summary>
+    /// A value that is not valid is not applied or saved, and the message says what is expected.
+    /// </summary>
+    [Theory]
+    [InlineData("abc")]
+    [InlineData("")]
+    [InlineData("0")]
+    [InlineData("-5")]
+    [InlineData("2.5")]
+    [InlineData("181")]
+    [InlineData("99999999999")]
+    public async Task Minutes_InvalidValue_IsNotAppliedAndExplained(string text)
+    {
+        // Arrange
+        await CreateAsync();
+
+        // Act
+        _viewModel.PomodoroWorkText = text;
+
+        // Assert
+        _settings.Current.PomodoroWork.Should().Be(PetSettings.Default.PomodoroWork);
+        _store.SaveCount.Should().Be(0);
+        _viewModel.TimingError.Should().Contain("1").And.Contain("180");
+        _viewModel.PomodoroWorkText.Should().Be(text);
+    }
+
+    /// <summary>
+    /// The upper limits of the entries are accepted and the next value up is not.
+    /// </summary>
+    [Theory]
+    [InlineData(nameof(SettingsTabViewModel.PomodoroWorkText), 180)]
+    [InlineData(nameof(SettingsTabViewModel.ShortBreakText), 60)]
+    [InlineData(nameof(SettingsTabViewModel.LongBreakText), 60)]
+    [InlineData(nameof(SettingsTabViewModel.SedentaryText), 480)]
+    [InlineData(nameof(SettingsTabViewModel.SleepText), 720)]
+    public async Task Minutes_AtUpperLimit_AcceptedAndAboveRejected(string property, int limit)
+    {
+        // Arrange
+        await CreateAsync();
+        var setter = typeof(SettingsTabViewModel).GetProperty(property)!;
+
+        // Act
+        setter.SetValue(_viewModel, limit.ToString());
+        var accepted = _viewModel.TimingError;
+        setter.SetValue(_viewModel, (limit + 1).ToString());
+
+        // Assert
+        accepted.Should().BeEmpty();
+        _viewModel.TimingError.Should().NotBeEmpty();
+        _store.SaveCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// A later valid entry clears the message left by an invalid one.
+    /// </summary>
+    [Fact]
+    public async Task Minutes_ValidAfterInvalid_ClearsError()
+    {
+        // Arrange
+        await CreateAsync();
+        _viewModel.SleepText = "abc";
+
+        // Act
+        _viewModel.SleepText = "10";
+
+        // Assert
+        _viewModel.TimingError.Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// Choosing a mode applies it; the radio button that is switched off does not change anything.
+    /// </summary>
+    [Fact]
+    public async Task Mode_ChoosingRoam_AppliesRoamOnly()
+    {
+        // Arrange
+        await CreateAsync();
+
+        // Act
+        _viewModel.IsRoam = true;
+
+        // Assert
+        _settings.Current.Mode.Should().Be(DisturbanceMode.Roam);
+        _viewModel.IsDocked.Should().BeFalse();
+        _store.SaveCount.Should().Be(1);
+    }
+
+    /// <summary>
+    /// Choosing the docked mode again applies it.
+    /// </summary>
+    [Fact]
+    public async Task Mode_ChoosingDockedAfterRoam_AppliesDocked()
+    {
+        // Arrange
+        _store.Stored = PetSettings.Default with { Mode = DisturbanceMode.Roam };
+        await CreateAsync();
+
+        // Act
+        _viewModel.IsDocked = true;
+
+        // Assert
+        _settings.Current.Mode.Should().Be(DisturbanceMode.Docked);
+    }
+
+    /// <summary>
+    /// The two full-screen choices are applied.
+    /// </summary>
+    [Fact]
+    public async Task FullscreenChoices_AreApplied()
+    {
+        // Arrange
+        await CreateAsync();
+
+        // Act
+        _viewModel.AutoHideWhenFullscreen = false;
+        _viewModel.DetectCoveredMonitor = true;
+
+        // Assert
+        _settings.Current.AutoHideWhenFullscreen.Should().BeFalse();
+        _settings.Current.DetectCoveredMonitor.Should().BeTrue();
+    }
+
+    /// <summary>
+    /// The process list is split into lines, cleaned up, and shown back in its cleaned-up form.
+    /// </summary>
+    [Fact]
+    public async Task Blacklist_Edited_IsCleanedAndShownBack()
+    {
+        // Arrange
+        await CreateAsync();
+
+        // Act
+        _viewModel.BlacklistText = $"Zoom.exe\r\n  teams \n\n zoom\r\n";
+
+        // Assert
+        _settings.Current.BlacklistedProcesses.Should().Equal("Zoom", "teams");
+        _viewModel.BlacklistText.Should().Be($"Zoom{Environment.NewLine}teams");
+    }
+
+    /// <summary>
+    /// The list of skins always includes the one in use, even if it is not installed any more.
+    /// </summary>
+    [Fact]
+    public async Task Skins_CurrentSkinNotInstalled_IsStillListed()
+    {
+        // Arrange
+        _store.Stored = PetSettings.Default with { SkinName = "gone" };
+
+        // Act
+        await CreateAsync("default", "cat");
+
+        // Assert
+        _viewModel.Skins.Should().Equal("default", "cat", "gone");
+        _viewModel.SelectedSkin.Should().Be("gone");
+    }
+
+    /// <summary>
+    /// Choosing a skin applies it to the settings.
+    /// </summary>
+    [Fact]
+    public async Task SelectedSkin_Chosen_IsApplied()
+    {
+        // Arrange
+        await CreateAsync();
+
+        // Act
+        _viewModel.SelectedSkin = "cat";
+
+        // Assert
+        _settings.Current.SkinName.Should().Be("cat");
+        await EventuallyAsync(() => _loader.Requested.Count > 0);
+        _loader.Requested.Should().Equal("cat");
+    }
+
+    /// <summary>
+    /// A skin that cannot be loaded goes back to the one in use, with a message.
+    /// </summary>
+    [Fact]
+    public async Task SelectedSkin_CannotBeLoaded_RevertsAndExplains()
+    {
+        // Arrange
+        await CreateAsync("default", "cat", "broken");
+
+        // Act
+        _viewModel.SelectedSkin = "broken";
+        await EventuallyAsync(() => _viewModel.SkinError.Length > 0 && _viewModel.SelectedSkin == "default");
+
+        // Assert
+        _viewModel.SelectedSkin.Should().Be("default");
+        _settings.Current.SkinName.Should().Be("default");
+        _viewModel.SkinError.Should().NotBeEmpty();
+    }
+
+    /// <summary>
+    /// Switching start at sign-in on is passed to the system.
+    /// </summary>
+    [Fact]
+    public async Task AutoStart_SwitchedOn_IsPassedToSystem()
+    {
+        // Arrange
+        await CreateAsync();
+
+        // Act
+        _viewModel.AutoStart = true;
+
+        // Assert
+        _autoStart.Enabled.Should().BeTrue();
+        _viewModel.AutoStartError.Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// If the system refuses, the switch goes back to off and the reason is shown.
+    /// </summary>
+    [Fact]
+    public async Task AutoStart_Refused_SwitchGoesBackWithMessage()
+    {
+        // Arrange
+        await CreateAsync();
+        _autoStart.Refusal = "policy forbids it";
+
+        // Act
+        _viewModel.AutoStart = true;
+
+        // Assert
+        _viewModel.AutoStart.Should().BeFalse();
+        _autoStart.Enabled.Should().BeFalse();
+        _viewModel.AutoStartError.Should().Contain("policy forbids it");
+    }
+
+    /// <summary>
+    /// A change made outside the application, such as disabling the entry in Task Manager, shows up when the tab is
+    /// refreshed.
+    /// </summary>
+    [Fact]
+    public async Task RefreshExternalState_AutoStartChangedElsewhere_IsShown()
+    {
+        // Arrange
+        await CreateAsync();
+        _autoStart.Enabled = true;
+
+        // Act
+        _viewModel.RefreshExternalState();
+
+        // Assert
+        _viewModel.AutoStart.Should().BeTrue();
+    }
+
+    /// <summary>
+    /// Refreshing from outside does not count as the user's edit and saves nothing.
+    /// </summary>
+    [Fact]
+    public async Task RefreshExternalState_DoesNotSave()
+    {
+        // Arrange
+        await CreateAsync();
+        _autoStart.Enabled = true;
+
+        // Act
+        _viewModel.RefreshExternalState();
+
+        // Assert
+        _store.SaveCount.Should().Be(0);
+    }
+
+    /// <summary>
+    /// A failed save is shown, and the change stays in effect in memory.
+    /// </summary>
+    [Fact]
+    public async Task Save_Fails_ShowsErrorAndKeepsChange()
+    {
+        // Arrange
+        await CreateAsync();
+        _store.SaveException = new IOException("disk full");
+
+        // Act
+        _viewModel.IsRoam = true;
+
+        // Assert
+        _viewModel.SaveError.Should().Contain("disk full");
+        _settings.Current.Mode.Should().Be(DisturbanceMode.Roam);
+    }
+
+    /// <summary>
+    /// A later successful save clears the message.
+    /// </summary>
+    [Fact]
+    public async Task Save_SucceedsAfterFailure_ClearsError()
+    {
+        // Arrange
+        await CreateAsync();
+        _store.SaveException = new IOException("disk full");
+        _viewModel.IsRoam = true;
+        _store.SaveException = null;
+
+        // Act
+        _viewModel.SleepText = "10";
+
+        // Assert
+        _viewModel.SaveError.Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// When the saved settings could not be read the tab cannot be edited and says why.
+    /// </summary>
+    [Fact]
+    public async Task Constructor_LoadFailed_IsNotEditableAndExplains()
+    {
+        // Arrange
+        _store.LoadException = new IOException("locked");
+
+        // Act
+        await CreateAsync();
+
+        // Assert
+        _viewModel.IsEditable.Should().BeFalse();
+        _viewModel.LoadFailureMessage.Should().Contain("locked");
+    }
+
+    /// <summary>
+    /// Nothing is saved when the settings could not be read, even if an edit sneaks through.
+    /// </summary>
+    [Fact]
+    public async Task Edit_AfterLoadFailure_NeverSaves()
+    {
+        // Arrange
+        _store.LoadException = new IOException("locked");
+        await CreateAsync();
+
+        // Act
+        _viewModel.IsRoam = true;
+
+        // Assert
+        _store.SaveCount.Should().Be(0);
+    }
+
+    /// <summary>
+    /// A new boss key that can be registered is applied and saved.
+    /// </summary>
+    [Fact]
+    public async Task ApplyBossKey_Registrable_IsAppliedAndSaved()
+    {
+        // Arrange
+        await CreateAsync();
+
+        // Act
+        await _viewModel.ApplyBossKeyAsync(OtherKey);
+
+        // Assert
+        _settings.Current.BossKey.Should().Be(OtherKey);
+        _viewModel.BossKeyText.Should().Be("Ctrl+Shift+F12");
+        _viewModel.BossKeyError.Should().BeEmpty();
+        _hotkeys.Registrations.Should().Contain(OtherKey);
+    }
+
+    /// <summary>
+    /// A boss key another program already uses is not kept: the setting goes back to the working shortcut and the
+    /// reason is shown.
+    /// </summary>
+    [Fact]
+    public async Task ApplyBossKey_Taken_RevertsToWorkingKeyAndExplains()
+    {
+        // Arrange
+        await CreateAsync();
+        _hotkeys.Taken.Add(OtherKey);
+
+        // Act
+        await _viewModel.ApplyBossKeyAsync(OtherKey);
+
+        // Assert
+        _settings.Current.BossKey.Should().Be(PetSettings.Default.BossKey);
+        _store.Stored.BossKey.Should().Be(PetSettings.Default.BossKey);
+        _viewModel.BossKeyText.Should().Be("Ctrl+Alt+H");
+        _viewModel.BossKeyError.Should().Contain("Ctrl+Shift+F12").And.Contain("already in use");
+    }
+
+    /// <summary>
+    /// A later working boss key clears the earlier message.
+    /// </summary>
+    [Fact]
+    public async Task ApplyBossKey_WorkingAfterTaken_ClearsMessage()
+    {
+        // Arrange
+        await CreateAsync();
+        _hotkeys.Taken.Add(OtherKey);
+        await _viewModel.ApplyBossKeyAsync(OtherKey);
+        var another = new HotkeyGesture(HotkeyModifiers.Alt, 0x71);
+
+        // Act
+        await _viewModel.ApplyBossKeyAsync(another);
+
+        // Assert
+        _viewModel.BossKeyError.Should().BeEmpty();
+        _settings.Current.BossKey.Should().Be(another);
+    }
+
+    /// <summary>
+    /// Entering the shortcut that is already set changes nothing.
+    /// </summary>
+    [Fact]
+    public async Task ApplyBossKey_SameKey_DoesNothing()
+    {
+        // Arrange
+        await CreateAsync();
+
+        // Act
+        await _viewModel.ApplyBossKeyAsync(PetSettings.Default.BossKey);
+
+        // Assert
+        _store.SaveCount.Should().Be(0);
+        _hotkeys.Registrations.Should().HaveCount(1);
+    }
+
+    /// <summary>
+    /// Keys that cannot be a boss key are explained.
+    /// </summary>
+    [Fact]
+    public async Task ReportBossKeyRejected_ShowsMessage()
+    {
+        // Arrange
+        await CreateAsync();
+
+        // Act
+        _viewModel.ReportBossKeyRejected();
+
+        // Assert
+        _viewModel.BossKeyError.Should().NotBeEmpty();
+    }
+
+    /// <summary>
+    /// If the boss key from the settings could not be registered at startup the tab says so at once.
+    /// </summary>
+    [Fact]
+    public async Task Constructor_BossKeyTakenAtStartup_ShowsMessage()
+    {
+        // Arrange
+        _hotkeys.Taken.Add(PetSettings.Default.BossKey);
+
+        // Act
+        await CreateAsync();
+
+        // Assert
+        _viewModel.BossKeyError.Should().Contain("Ctrl+Alt+H").And.Contain("already in use");
+    }
+}

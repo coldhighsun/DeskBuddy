@@ -202,6 +202,146 @@ internal static class Strings
     public static string ActionStartPomodoro => Get();
 
     /// <summary>
+    /// Gets the title of the settings tab.
+    /// </summary>
+    public static string TabSettings => Get();
+
+    /// <summary>
+    /// Gets the menu text that opens the settings tab.
+    /// </summary>
+    public static string MenuSettings => Get();
+
+    /// <summary>
+    /// Gets the heading of the appearance section.
+    /// </summary>
+    public static string SettingsAppearance => Get();
+
+    /// <summary>
+    /// Gets the label of the skin choice.
+    /// </summary>
+    public static string SettingsSkin => Get();
+
+    /// <summary>
+    /// Gets the label of the disturbance mode choice.
+    /// </summary>
+    public static string SettingsMode => Get();
+
+    /// <summary>
+    /// Gets the text of the docked mode.
+    /// </summary>
+    public static string ModeDocked => Get();
+
+    /// <summary>
+    /// Gets the text of the roaming mode.
+    /// </summary>
+    public static string ModeRoam => Get();
+
+    /// <summary>
+    /// Gets the heading of the timing section.
+    /// </summary>
+    public static string SettingsTiming => Get();
+
+    /// <summary>
+    /// Gets the label of the pomodoro work length.
+    /// </summary>
+    public static string SettingsPomodoroWork => Get();
+
+    /// <summary>
+    /// Gets the label of the short break length.
+    /// </summary>
+    public static string SettingsPomodoroShortBreak => Get();
+
+    /// <summary>
+    /// Gets the label of the long break length.
+    /// </summary>
+    public static string SettingsPomodoroLongBreak => Get();
+
+    /// <summary>
+    /// Gets the label of the sedentary reminder interval.
+    /// </summary>
+    public static string SettingsSedentary => Get();
+
+    /// <summary>
+    /// Gets the label of the time before the pet falls asleep.
+    /// </summary>
+    public static string SettingsSleep => Get();
+
+    /// <summary>
+    /// Gets the heading of the boss key section.
+    /// </summary>
+    public static string SettingsBossKey => Get();
+
+    /// <summary>
+    /// Gets the hint for entering the boss key.
+    /// </summary>
+    public static string BossKeyHint => Get();
+
+    /// <summary>
+    /// Gets the message for a boss key that could not be registered; <c>{0}</c> is the shortcut, <c>{1}</c> the reason.
+    /// </summary>
+    public static string BossKeyFailed => Get();
+
+    /// <summary>
+    /// Gets the message for keys that cannot be a boss key.
+    /// </summary>
+    public static string BossKeyInvalid => Get();
+
+    /// <summary>
+    /// Gets the heading of the full-screen section.
+    /// </summary>
+    public static string SettingsFullscreen => Get();
+
+    /// <summary>
+    /// Gets the text of the auto-hide switch.
+    /// </summary>
+    public static string AutoHide => Get();
+
+    /// <summary>
+    /// Gets the text of the monitor-cover switch.
+    /// </summary>
+    public static string CoveredMonitor => Get();
+
+    /// <summary>
+    /// Gets the label of the process list.
+    /// </summary>
+    public static string BlacklistLabel => Get();
+
+    /// <summary>
+    /// Gets the heading of the system section.
+    /// </summary>
+    public static string SettingsSystem => Get();
+
+    /// <summary>
+    /// Gets the text of the start-at-sign-in switch.
+    /// </summary>
+    public static string AutoStart => Get();
+
+    /// <summary>
+    /// Gets the message for a failed start-at-sign-in change; <c>{0}</c> is the reason.
+    /// </summary>
+    public static string AutoStartFailed => Get();
+
+    /// <summary>
+    /// Gets the message for a minutes value out of range; <c>{0}</c> is the entry, <c>{1}</c> and <c>{2}</c> the range.
+    /// </summary>
+    public static string MinutesRange => Get();
+
+    /// <summary>
+    /// Gets the message for a failed save; <c>{0}</c> is the reason.
+    /// </summary>
+    public static string SettingsSaveFailed => Get();
+
+    /// <summary>
+    /// Gets the message for settings that could not be read; <c>{0}</c> is the reason.
+    /// </summary>
+    public static string SettingsLoadFailed => Get();
+
+    /// <summary>
+    /// Gets the message for a skin that could not be switched to; <c>{0}</c> is the reason.
+    /// </summary>
+    public static string SkinSwitchFailed => Get();
+
+    /// <summary>
     /// Gets one of the pet's casual remarks.
     /// </summary>
     /// <param name="index">
