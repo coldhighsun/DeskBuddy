@@ -102,9 +102,19 @@ internal static class Strings
     public static string MessageBreakCompleted => Get();
 
     /// <summary>
+    /// Gets the bubble text reminding the user to take a break; <c>{0}</c> is how many minutes they have worked.
+    /// </summary>
+    public static string MessageSedentary => Get();
+
+    /// <summary>
     /// Gets the bubble button text that closes the bubble.
     /// </summary>
     public static string ActionDismiss => Get();
+
+    /// <summary>
+    /// Gets the bubble button text that postpones the reminder.
+    /// </summary>
+    public static string ActionSnoozeReminder => Get();
 
     /// <summary>
     /// Gets the bubble button text that skips the break.

@@ -52,6 +52,10 @@ public static class MessagePresenter
                 WholeMinutes(message.Duration ?? TimeSpan.Zero),
                 message.Count ?? 0),
             PetMessageKind.PomodoroBreakCompleted => Strings.MessageBreakCompleted,
+            PetMessageKind.SedentaryReminder => string.Format(
+                CultureInfo.CurrentCulture,
+                Strings.MessageSedentary,
+                WholeMinutes(message.Duration ?? TimeSpan.Zero)),
             _ => string.Empty,
         };
 
@@ -89,6 +93,7 @@ public static class MessagePresenter
             MessageAction.Dismiss => Strings.ActionDismiss,
             MessageAction.SkipBreak => Strings.ActionSkipBreak,
             MessageAction.StartPomodoro => Strings.ActionStartPomodoro,
+            MessageAction.SnoozeReminder => Strings.ActionSnoozeReminder,
             _ => string.Empty,
         };
     }

@@ -37,7 +37,10 @@
   <data name="MessageWorkCompleted" xml:space="preserve"><value>第 {1} 个番茄完成啦！休息 {0} 分钟吧～</value></data>
   <data name="MessageBreakCompleted" xml:space="preserve"><value>休息结束了，要开始下一个番茄吗？</value></data>
 
+  <data name="MessageSedentary" xml:space="preserve"><value>你已经连续工作 {0} 分钟了，起来活动一下、喝口水吧～</value></data>
+
   <data name="ActionDismiss" xml:space="preserve"><value>知道了</value></data>
+  <data name="ActionSnoozeReminder" xml:space="preserve"><value>稍后提醒</value></data>
   <data name="ActionSkipBreak" xml:space="preserve"><value>跳过休息</value></data>
   <data name="ActionStartPomodoro" xml:space="preserve"><value>开始下一轮</value></data>
 </root>

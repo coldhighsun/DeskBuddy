@@ -7,6 +7,7 @@ using DeskBuddy.Application.Abstractions;
 using DeskBuddy.Domain.Behavior;
 using DeskBuddy.Domain.Messages;
 using DeskBuddy.Domain.Pomodoro;
+using DeskBuddy.Domain.Sedentary;
 using DeskBuddy.Domain.SystemLoad;
 using DeskBuddy.Infrastructure.Sensors;
 using DeskBuddy.Infrastructure.Skins;
@@ -71,6 +72,9 @@ public partial class App : System.Windows.Application
         var pomodoroOptions = new PomodoroOptions();
         builder.Configuration.GetSection("Pomodoro").Bind(pomodoroOptions);
 
+        var sedentaryOptions = new SedentaryOptions();
+        builder.Configuration.GetSection("Sedentary").Bind(sedentaryOptions);
+
         builder.Services.AddSingleton(behaviorOptions);
         builder.Services.AddSingleton(loadOptions);
         builder.Services.AddSingleton(TimeProvider.System);
@@ -81,6 +85,8 @@ public partial class App : System.Windows.Application
         builder.Services.AddSingleton<IFullscreenDetector, WindowsFullscreenDetector>();
         builder.Services.AddSingleton(pomodoroOptions);
         builder.Services.AddSingleton<PomodoroSession>();
+        builder.Services.AddSingleton(sedentaryOptions);
+        builder.Services.AddSingleton<SedentaryReminderPolicy>();
         builder.Services.AddSingleton(sp => new PetMessageQueue(
             behaviorOptions.MessageDuration,
             sp.GetRequiredService<TimeProvider>()));
