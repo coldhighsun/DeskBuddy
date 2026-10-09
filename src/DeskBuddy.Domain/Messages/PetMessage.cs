@@ -14,6 +14,11 @@ public enum PetMessageKind
     /// A pomodoro break finished; the user can start the next round.
     /// </summary>
     PomodoroBreakCompleted,
+
+    /// <summary>
+    /// The user has been working for a long time without a break.
+    /// </summary>
+    SedentaryReminder,
 }
 
 /// <summary>
@@ -35,6 +40,11 @@ public enum MessageAction
     /// Start a new pomodoro round.
     /// </summary>
     StartPomodoro,
+
+    /// <summary>
+    /// Ask to be reminded again soon.
+    /// </summary>
+    SnoozeReminder,
 }
 
 /// <summary>
