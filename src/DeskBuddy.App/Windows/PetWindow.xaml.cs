@@ -96,6 +96,11 @@ public partial class PetWindow : Window
     private const int WorkAreaRefreshEveryTicks = 30;
 
     /// <summary>
+    /// Opens the panel window.
+    /// </summary>
+    private readonly Action _openPanel;
+
+    /// <summary>
     /// The speech bubble, created the first time a message needs showing.
     /// </summary>
     private BubbleWindow? _bubble;
@@ -155,7 +160,10 @@ public partial class PetWindow : Window
     /// <param name="options">
     /// Behavior tuning.
     /// </param>
-    public PetWindow(Skin skin, SkinFrameCache frames, PetBrain brain, PetBehaviorOptions options)
+    /// <param name="openPanel">
+    /// Opens the panel window; called on double-click and from the context menu.
+    /// </param>
+    public PetWindow(Skin skin, SkinFrameCache frames, PetBrain brain, PetBehaviorOptions options, Action openPanel)
     {
         InitializeComponent();
 
@@ -163,6 +171,7 @@ public partial class PetWindow : Window
         _frames = frames;
         _brain = brain;
         _options = options;
+        _openPanel = openPanel;
 
         Width = skin.FrameWidth;
         Height = skin.FrameHeight;
@@ -444,6 +453,11 @@ public partial class PetWindow : Window
         var items = ContextMenu.Items;
         PomodoroMenu.Populate(items, _brain, RefreshState);
 
+        var openPanel = new MenuItem { Header = Strings.OpenPanel };
+        openPanel.Click += (_, _) => _openPanel();
+        items.Insert(0, openPanel);
+        items.Insert(1, new Separator());
+
         items.Add(new Separator());
         var hide = new MenuItem { Header = Strings.TrayHidePet };
         hide.Click += (_, _) => Hide();
@@ -514,6 +528,12 @@ public partial class PetWindow : Window
     /// </param>
     private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
+        if (e.ClickCount >= 2)
+        {
+            _openPanel();
+            return;
+        }
+
         _pressed = true;
         _dragging = false;
         _pressPoint = MonitorHelper.GetCursorPositionDip(this);

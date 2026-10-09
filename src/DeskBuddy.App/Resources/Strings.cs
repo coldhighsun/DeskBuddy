@@ -36,6 +36,81 @@ internal static class Strings
     public static string TrayExit => Get();
 
     /// <summary>
+    /// Gets the menu text that opens the panel window.
+    /// </summary>
+    public static string OpenPanel => Get();
+
+    /// <summary>
+    /// Gets the title of the pomodoro tab.
+    /// </summary>
+    public static string TabPomodoro => Get();
+
+    /// <summary>
+    /// Gets the title of the to-do tab.
+    /// </summary>
+    public static string TabTodo => Get();
+
+    /// <summary>
+    /// Gets the title of the note tab.
+    /// </summary>
+    public static string TabNote => Get();
+
+    /// <summary>
+    /// Gets the text showing completed pomodoros; <c>{0}</c> is the count.
+    /// </summary>
+    public static string PomodoroCompleted => Get();
+
+    /// <summary>
+    /// Gets the label above the new to-do box.
+    /// </summary>
+    public static string TodoNewLabel => Get();
+
+    /// <summary>
+    /// Gets the text of the button that adds a to-do.
+    /// </summary>
+    public static string TodoAdd => Get();
+
+    /// <summary>
+    /// Gets the tooltip of the button that deletes a to-do.
+    /// </summary>
+    public static string TodoDelete => Get();
+
+    /// <summary>
+    /// Gets the text of the button that clears completed to-dos.
+    /// </summary>
+    public static string TodoClearCompleted => Get();
+
+    /// <summary>
+    /// Gets the hint shown when the to-do list is empty.
+    /// </summary>
+    public static string TodoEmpty => Get();
+
+    /// <summary>
+    /// Gets the warning shown when the to-do data could not be read; <c>{0}</c> is the reason.
+    /// </summary>
+    public static string TodoLoadFailed => Get();
+
+    /// <summary>
+    /// Gets the warning shown when saving the to-do list failed; <c>{0}</c> is the reason.
+    /// </summary>
+    public static string TodoSaveFailed => Get();
+
+    /// <summary>
+    /// Gets the hint shown above the note box.
+    /// </summary>
+    public static string NoteHint => Get();
+
+    /// <summary>
+    /// Gets the warning shown when the note could not be read; <c>{0}</c> is the reason.
+    /// </summary>
+    public static string NoteLoadFailed => Get();
+
+    /// <summary>
+    /// Gets the warning shown when saving the note failed; <c>{0}</c> is the reason.
+    /// </summary>
+    public static string NoteSaveFailed => Get();
+
+    /// <summary>
     /// Gets the menu text that starts a pomodoro.
     /// </summary>
     public static string PomodoroStart => Get();

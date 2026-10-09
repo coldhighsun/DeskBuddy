@@ -21,6 +21,26 @@
   <data name="TrayShowPet" xml:space="preserve"><value>显示宠物</value></data>
   <data name="TrayExit" xml:space="preserve"><value>退出</value></data>
 
+  <data name="OpenPanel" xml:space="preserve"><value>打开面板</value></data>
+
+  <data name="TabPomodoro" xml:space="preserve"><value>番茄钟</value></data>
+  <data name="TabTodo" xml:space="preserve"><value>待办</value></data>
+  <data name="TabNote" xml:space="preserve"><value>便签</value></data>
+
+  <data name="PomodoroCompleted" xml:space="preserve"><value>本轮已完成 {0} 个番茄</value></data>
+
+  <data name="TodoNewLabel" xml:space="preserve"><value>新的待办事项（回车添加）</value></data>
+  <data name="TodoAdd" xml:space="preserve"><value>添加</value></data>
+  <data name="TodoDelete" xml:space="preserve"><value>删除</value></data>
+  <data name="TodoClearCompleted" xml:space="preserve"><value>清除已完成</value></data>
+  <data name="TodoEmpty" xml:space="preserve"><value>还没有待办，添加一个吧～</value></data>
+  <data name="TodoLoadFailed" xml:space="preserve"><value>待办数据读取失败（{0}）。为避免覆盖原有数据，已暂停保存，请检查文件后重启。</value></data>
+  <data name="TodoSaveFailed" xml:space="preserve"><value>待办保存失败：{0}</value></data>
+
+  <data name="NoteHint" xml:space="preserve"><value>随手记点什么吧，内容会自动保存。</value></data>
+  <data name="NoteLoadFailed" xml:space="preserve"><value>便签读取失败（{0}）。为避免覆盖原有内容，已暂停编辑，请检查文件后重启。</value></data>
+  <data name="NoteSaveFailed" xml:space="preserve"><value>便签保存失败：{0}</value></data>
+
   <data name="PomodoroStart" xml:space="preserve"><value>开始专注（番茄钟）</value></data>
   <data name="PomodoroPause" xml:space="preserve"><value>暂停</value></data>
   <data name="PomodoroResume" xml:space="preserve"><value>继续</value></data>

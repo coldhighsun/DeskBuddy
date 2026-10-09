@@ -1,6 +1,7 @@
 using System.IO;
 using System.Windows;
 using DeskBuddy.App.Rendering;
+using DeskBuddy.App.ViewModels;
 using DeskBuddy.App.Windows;
 using DeskBuddy.Application;
 using DeskBuddy.Application.Abstractions;
@@ -11,6 +12,7 @@ using DeskBuddy.Domain.Sedentary;
 using DeskBuddy.Domain.SystemLoad;
 using DeskBuddy.Infrastructure.Sensors;
 using DeskBuddy.Infrastructure.Skins;
+using DeskBuddy.Infrastructure.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -34,9 +36,24 @@ public partial class App : System.Windows.Application
     private const string DefaultSkinName = "default";
 
     /// <summary>
+    /// How long after the last keystroke the note is saved.
+    /// </summary>
+    private static readonly TimeSpan NoteSaveDelay = TimeSpan.FromMilliseconds(800);
+
+    /// <summary>
     /// Guard holding the single-instance mutex; <see langword="null"/> until startup.
     /// </summary>
     private SingleInstanceGuard? _instanceGuard;
+
+    /// <summary>
+    /// The pet window; <see langword="null"/> until startup completes.
+    /// </summary>
+    private PetWindow? _petWindow;
+
+    /// <summary>
+    /// The panel window; <see langword="null"/> until it is first opened.
+    /// </summary>
+    private PanelWindow? _panel;
 
     /// <summary>
     /// The generic host providing DI and logging; <see langword="null"/> until startup.
@@ -95,19 +112,35 @@ public partial class App : System.Windows.Application
             sp.GetRequiredService<TimeProvider>(),
             Random.Shared));
         builder.Services.AddSingleton<PetBrain>();
+
+        // User data lives under LocalAppData so it is not synced by roaming profiles; DataDirectory overrides it.
+        var dataDirectory = builder.Configuration["DataDirectory"]
+            ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "DeskBuddy");
+        builder.Services.AddSingleton<ITodoRepository>(sp => new JsonTodoRepository(
+            dataDirectory,
+            sp.GetRequiredService<ILogger<JsonTodoRepository>>()));
+        builder.Services.AddSingleton<INoteStore>(_ => new FileNoteStore(dataDirectory));
+        builder.Services.AddSingleton<TodoService>();
+        builder.Services.AddSingleton(sp => new NoteService(
+            sp.GetRequiredService<INoteStore>(),
+            sp.GetRequiredService<TimeProvider>(),
+            NoteSaveDelay));
+
         _host = builder.Build();
         await _host.StartAsync();
 
         var logger = _host.Services.GetRequiredService<ILogger<App>>();
+        await InitializeUserDataAsync(logger);
+
         try
         {
             var skinDirectory = Path.Combine(AppContext.BaseDirectory, "skins", DefaultSkinName);
             var skin = await _host.Services.GetRequiredService<ISkinLoader>().LoadAsync(skinDirectory);
 
             var brain = _host.Services.GetRequiredService<PetBrain>();
-            var petWindow = new PetWindow(skin, new SkinFrameCache(skin), brain, behaviorOptions);
-            petWindow.Show();
-            _tray = new TrayIconService(petWindow, brain, petWindow.RefreshState, Shutdown);
+            _petWindow = new PetWindow(skin, new SkinFrameCache(skin), brain, behaviorOptions, OpenPanel);
+            _petWindow.Show();
+            _tray = new TrayIconService(_petWindow, brain, _petWindow.RefreshState, OpenPanel, ExitApplication);
         }
         catch (InvalidDataException ex)
         {
@@ -121,10 +154,90 @@ public partial class App : System.Windows.Application
     protected override void OnExit(ExitEventArgs e)
     {
         _tray?.Dispose();
-        _host?.StopAsync().GetAwaiter().GetResult();
-        _host?.Dispose();
+
+        if (_host is not null)
+        {
+            FlushNote(_host.Services.GetRequiredService<ILogger<App>>());
+            _host.StopAsync().GetAwaiter().GetResult();
+            _host.Dispose();
+        }
+
         _instanceGuard?.Dispose();
 
         base.OnExit(e);
+    }
+
+    /// <summary>
+    /// Shows the panel window, creating it the first time.
+    /// </summary>
+    private void OpenPanel()
+    {
+        if (_panel is null && _host is not null && _petWindow is not null)
+        {
+            var services = _host.Services;
+            var viewModel = new PanelViewModel(
+                new PomodoroTabViewModel(services.GetRequiredService<PetBrain>(), _petWindow.RefreshState),
+                new TodoTabViewModel(services.GetRequiredService<TodoService>()),
+                new NoteTabViewModel(services.GetRequiredService<NoteService>()));
+            _panel = new PanelWindow(viewModel, services.GetRequiredService<NoteService>());
+        }
+
+        _panel?.ShowPanel();
+    }
+
+    /// <summary>
+    /// Exits the application, letting the panel window really close instead of just hiding.
+    /// </summary>
+    private void ExitApplication()
+    {
+        _panel?.PrepareToExit();
+        Shutdown();
+    }
+
+    /// <summary>
+    /// Loads the saved to-do list and note. A storage problem does not stop the application; it is logged here and
+    /// shown in the panel, where editing is disabled so the unreadable data is never overwritten.
+    /// </summary>
+    /// <param name="logger">
+    /// Logger used to report storage problems.
+    /// </param>
+    /// <returns>
+    /// A task that completes when both have been loaded.
+    /// </returns>
+    private async Task InitializeUserDataAsync(ILogger logger)
+    {
+        var services = _host!.Services;
+
+        var todos = services.GetRequiredService<TodoService>();
+        await todos.InitializeAsync();
+        if (todos.LoadFailure is { } todoFailure)
+        {
+            logger.LogError(todoFailure, "The saved to-do list could not be read; changes are disabled.");
+        }
+
+        var note = services.GetRequiredService<NoteService>();
+        await note.InitializeAsync();
+        if (note.LoadFailure is { } noteFailure)
+        {
+            logger.LogError(noteFailure, "The saved note could not be read; edits are disabled.");
+        }
+    }
+
+    /// <summary>
+    /// Saves any note text typed in the last moments before exit.
+    /// </summary>
+    /// <param name="logger">
+    /// Logger used to report a failed save.
+    /// </param>
+    private void FlushNote(ILogger logger)
+    {
+        try
+        {
+            _host!.Services.GetRequiredService<NoteService>().FlushAsync().GetAwaiter().GetResult();
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            logger.LogError(ex, "The note could not be saved on exit.");
+        }
     }
 }

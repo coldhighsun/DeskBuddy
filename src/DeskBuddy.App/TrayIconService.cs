@@ -35,6 +35,11 @@ public sealed class TrayIconService : IDisposable
     private readonly Action _afterCommand;
 
     /// <summary>
+    /// Opens the panel window.
+    /// </summary>
+    private readonly Action _openPanel;
+
+    /// <summary>
     /// Callback invoked when the user chooses Exit.
     /// </summary>
     private readonly Action _onExit;
@@ -51,14 +56,18 @@ public sealed class TrayIconService : IDisposable
     /// <param name="afterCommand">
     /// Called after any pomodoro command so the pet reacts immediately.
     /// </param>
+    /// <param name="openPanel">
+    /// Opens the panel window; called from the menu and on double-click of the icon.
+    /// </param>
     /// <param name="onExit">
     /// Callback invoked when the user chooses Exit.
     /// </param>
-    public TrayIconService(Window petWindow, PetBrain brain, Action afterCommand, Action onExit)
+    public TrayIconService(Window petWindow, PetBrain brain, Action afterCommand, Action openPanel, Action onExit)
     {
         _petWindow = petWindow;
         _brain = brain;
         _afterCommand = afterCommand;
+        _openPanel = openPanel;
         _onExit = onExit;
 
         _icon = new TaskbarIcon
@@ -78,6 +87,7 @@ public sealed class TrayIconService : IDisposable
         // The menu and tooltip depend on pet visibility and on the pomodoro; rebuild them when either changes.
         _brain.PomodoroStatusChanged += OnStatusChanged;
         _petWindow.IsVisibleChanged += OnVisibleChanged;
+        _icon.TrayMouseDoubleClick += OnTrayDoubleClick;
     }
 
     /// <inheritdoc />
@@ -86,6 +96,20 @@ public sealed class TrayIconService : IDisposable
         _brain.PomodoroStatusChanged -= OnStatusChanged;
         _petWindow.IsVisibleChanged -= OnVisibleChanged;
         _icon.Dispose();
+    }
+
+    /// <summary>
+    /// Opens the panel when the tray icon is double-clicked.
+    /// </summary>
+    /// <param name="sender">
+    /// The event source.
+    /// </param>
+    /// <param name="e">
+    /// Event data.
+    /// </param>
+    private void OnTrayDoubleClick(object sender, RoutedEventArgs e)
+    {
+        _openPanel();
     }
 
     /// <summary>
@@ -128,6 +152,12 @@ public sealed class TrayIconService : IDisposable
 
         var items = _icon.ContextMenu!.Items;
         PomodoroMenu.Populate(items, _brain, _afterCommand);
+
+        var openPanel = new MenuItem { Header = Strings.OpenPanel };
+        openPanel.Click += (_, _) => _openPanel();
+        items.Insert(0, openPanel);
+        items.Insert(1, new Separator());
+
         items.Add(new Separator());
 
         var toggle = new MenuItem { Header = _petWindow.IsVisible ? Strings.TrayHidePet : Strings.TrayShowPet };
