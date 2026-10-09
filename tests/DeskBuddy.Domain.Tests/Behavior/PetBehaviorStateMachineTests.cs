@@ -1,0 +1,350 @@
+using AwesomeAssertions;
+using DeskBuddy.Domain.Behavior;
+using Microsoft.Extensions.Time.Testing;
+
+namespace DeskBuddy.Domain.Tests.Behavior;
+
+/// <summary>
+/// Tests for <see cref="PetBehaviorStateMachine"/>. Option ranges use equal min/max so timings are deterministic.
+/// </summary>
+public class PetBehaviorStateMachineTests
+{
+    /// <summary>
+    /// Fixed idle dwell used by the test options.
+    /// </summary>
+    private static readonly TimeSpan IdleDwell = TimeSpan.FromSeconds(10);
+
+    /// <summary>
+    /// Fixed walk duration used by the test options.
+    /// </summary>
+    private static readonly TimeSpan WalkDuration = TimeSpan.FromSeconds(5);
+
+    /// <summary>
+    /// Fixed happy duration used by the test options.
+    /// </summary>
+    private static readonly TimeSpan HappyDuration = TimeSpan.FromSeconds(2);
+
+    /// <summary>
+    /// Idle time after which the pet sleeps in the test options.
+    /// </summary>
+    private static readonly TimeSpan SleepAfter = TimeSpan.FromMinutes(5);
+
+    /// <summary>
+    /// The fake clock shared by the machine under test.
+    /// </summary>
+    private readonly FakeTimeProvider _clock = new();
+
+    /// <summary>
+    /// The machine under test.
+    /// </summary>
+    private readonly PetBehaviorStateMachine _machine;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PetBehaviorStateMachineTests"/> class.
+    /// </summary>
+    public PetBehaviorStateMachineTests()
+    {
+        var options = new PetBehaviorOptions
+        {
+            SleepAfter = SleepAfter,
+            IdleDwellMin = IdleDwell,
+            IdleDwellMax = IdleDwell,
+            WalkDurationMin = WalkDuration,
+            WalkDurationMax = WalkDuration,
+            HappyDuration = HappyDuration,
+        };
+        _machine = new PetBehaviorStateMachine(options, _clock, new Random(42));
+    }
+
+    /// <summary>
+    /// A new machine starts in Idle.
+    /// </summary>
+    [Fact]
+    public void Constructor_Default_StartsIdle()
+    {
+        // Assert
+        _machine.State.Should().Be(PetState.Idle);
+    }
+
+    /// <summary>
+    /// Before the idle dwell elapses the pet keeps standing.
+    /// </summary>
+    [Fact]
+    public void Update_BeforeDwellElapsed_StaysIdle()
+    {
+        // Arrange
+        _clock.Advance(IdleDwell - TimeSpan.FromMilliseconds(1));
+
+        // Act
+        var state = _machine.Update(TimeSpan.Zero);
+
+        // Assert
+        state.Should().Be(PetState.Idle);
+    }
+
+    /// <summary>
+    /// Once the idle dwell elapses the pet starts walking.
+    /// </summary>
+    [Fact]
+    public void Update_DwellElapsed_StartsWalking()
+    {
+        // Arrange
+        _clock.Advance(IdleDwell);
+
+        // Act
+        var state = _machine.Update(TimeSpan.Zero);
+
+        // Assert
+        state.Should().Be(PetState.Walk);
+        _machine.WalkDirection.Should().BeOneOf(-1, 1);
+    }
+
+    /// <summary>
+    /// A walk ends after its duration and the pet goes back to standing.
+    /// </summary>
+    [Fact]
+    public void Update_WalkDurationElapsed_ReturnsToIdle()
+    {
+        // Arrange
+        _clock.Advance(IdleDwell);
+        _machine.Update(TimeSpan.Zero);
+        _clock.Advance(WalkDuration);
+
+        // Act
+        var state = _machine.Update(TimeSpan.Zero);
+
+        // Assert
+        state.Should().Be(PetState.Idle);
+    }
+
+    /// <summary>
+    /// Long user inactivity puts the pet to sleep.
+    /// </summary>
+    [Fact]
+    public void Update_UserIdleReachesThreshold_Sleeps()
+    {
+        // Act
+        var state = _machine.Update(SleepAfter);
+
+        // Assert
+        state.Should().Be(PetState.Sleep);
+    }
+
+    /// <summary>
+    /// Sleeping takes precedence over walking.
+    /// </summary>
+    [Fact]
+    public void Update_WalkingAndUserGoesAway_Sleeps()
+    {
+        // Arrange
+        _clock.Advance(IdleDwell);
+        _machine.Update(TimeSpan.Zero);
+
+        // Act
+        var state = _machine.Update(SleepAfter);
+
+        // Assert
+        state.Should().Be(PetState.Sleep);
+    }
+
+    /// <summary>
+    /// The pet stays asleep, however much time passes, while the user remains away.
+    /// </summary>
+    [Fact]
+    public void Update_SleepingAndUserStillAway_StaysAsleep()
+    {
+        // Arrange
+        _machine.Update(SleepAfter);
+        _clock.Advance(TimeSpan.FromHours(1));
+
+        // Act
+        var state = _machine.Update(SleepAfter + TimeSpan.FromHours(1));
+
+        // Assert
+        state.Should().Be(PetState.Sleep);
+    }
+
+    /// <summary>
+    /// When the user returns the pet wakes up and stands before it may walk again.
+    /// </summary>
+    [Fact]
+    public void Update_SleepingAndUserReturns_WakesToIdle()
+    {
+        // Arrange
+        _machine.Update(SleepAfter);
+        _clock.Advance(TimeSpan.FromHours(1));
+
+        // Act
+        var state = _machine.Update(TimeSpan.Zero);
+
+        // Assert
+        state.Should().Be(PetState.Idle);
+    }
+
+    /// <summary>
+    /// Dragging overrides the current state.
+    /// </summary>
+    [Fact]
+    public void OnDragStarted_AnyState_EntersDrag()
+    {
+        // Act
+        _machine.OnDragStarted();
+
+        // Assert
+        _machine.State.Should().Be(PetState.Drag);
+    }
+
+    /// <summary>
+    /// While dragged the pet neither walks nor sleeps.
+    /// </summary>
+    [Fact]
+    public void Update_WhileDragging_StaysDrag()
+    {
+        // Arrange
+        _machine.OnDragStarted();
+        _clock.Advance(TimeSpan.FromHours(1));
+
+        // Act
+        var state = _machine.Update(SleepAfter);
+
+        // Assert
+        state.Should().Be(PetState.Drag);
+    }
+
+    /// <summary>
+    /// After being dropped the pet stands, and the dwell restarts rather than walking away immediately.
+    /// </summary>
+    [Fact]
+    public void OnDragEnded_AfterLongDrag_IdlesAndRestartsDwell()
+    {
+        // Arrange
+        _machine.OnDragStarted();
+        _clock.Advance(TimeSpan.FromMinutes(1));
+        _machine.OnDragEnded();
+
+        // Act
+        var state = _machine.Update(TimeSpan.Zero);
+
+        // Assert
+        state.Should().Be(PetState.Idle);
+    }
+
+    /// <summary>
+    /// Ending a drag that never started does nothing.
+    /// </summary>
+    [Fact]
+    public void OnDragEnded_NotDragging_DoesNotChangeState()
+    {
+        // Arrange
+        _clock.Advance(IdleDwell);
+        _machine.Update(TimeSpan.Zero);
+
+        // Act
+        _machine.OnDragEnded();
+
+        // Assert
+        _machine.State.Should().Be(PetState.Walk);
+    }
+
+    /// <summary>
+    /// A click makes the pet happy.
+    /// </summary>
+    [Fact]
+    public void OnClicked_Idle_EntersHappy()
+    {
+        // Act
+        _machine.OnClicked();
+
+        // Assert
+        _machine.State.Should().Be(PetState.Happy);
+    }
+
+    /// <summary>
+    /// A click wakes a sleeping pet.
+    /// </summary>
+    [Fact]
+    public void OnClicked_Sleeping_EntersHappy()
+    {
+        // Arrange
+        _machine.Update(SleepAfter);
+
+        // Act
+        _machine.OnClicked();
+
+        // Assert
+        _machine.State.Should().Be(PetState.Happy);
+    }
+
+    /// <summary>
+    /// A click during a drag is ignored.
+    /// </summary>
+    [Fact]
+    public void OnClicked_Dragging_IsIgnored()
+    {
+        // Arrange
+        _machine.OnDragStarted();
+
+        // Act
+        _machine.OnClicked();
+
+        // Assert
+        _machine.State.Should().Be(PetState.Drag);
+    }
+
+    /// <summary>
+    /// Happiness is short-lived: the pet returns to standing after the happy duration.
+    /// </summary>
+    [Fact]
+    public void Update_HappyDurationElapsed_ReturnsToIdle()
+    {
+        // Arrange
+        _machine.OnClicked();
+        _clock.Advance(HappyDuration);
+
+        // Act
+        var state = _machine.Update(TimeSpan.Zero);
+
+        // Assert
+        state.Should().Be(PetState.Idle);
+    }
+
+    /// <summary>
+    /// The pet stays happy until the happy duration elapses.
+    /// </summary>
+    [Fact]
+    public void Update_BeforeHappyDurationElapsed_StaysHappy()
+    {
+        // Arrange
+        _machine.OnClicked();
+        _clock.Advance(HappyDuration - TimeSpan.FromMilliseconds(1));
+
+        // Act
+        var state = _machine.Update(TimeSpan.Zero);
+
+        // Assert
+        state.Should().Be(PetState.Happy);
+    }
+
+    /// <summary>
+    /// Both walk directions occur across many walks.
+    /// </summary>
+    [Fact]
+    public void WalkDirection_ManyWalks_UsesBothDirections()
+    {
+        // Arrange
+        var directions = new HashSet<int>();
+
+        // Act
+        for (var i = 0; i < 40; i++)
+        {
+            _clock.Advance(IdleDwell);
+            _machine.Update(TimeSpan.Zero);
+            directions.Add(_machine.WalkDirection);
+            _clock.Advance(WalkDuration);
+            _machine.Update(TimeSpan.Zero);
+        }
+
+        // Assert
+        directions.Should().BeEquivalentTo([-1, 1]);
+    }
+}
