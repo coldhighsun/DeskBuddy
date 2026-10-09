@@ -280,6 +280,39 @@ public class PetBehaviorStateMachineTests
     }
 
     /// <summary>
+    /// Something pleasing the pet, such as reaching the pointer it chased, makes it happy.
+    /// </summary>
+    [Fact]
+    public void OnDelighted_Walking_EntersHappy()
+    {
+        // Arrange
+        _clock.Advance(TimeSpan.FromSeconds(30));
+        _machine.Update(new PetInputs(TimeSpan.Zero));
+
+        // Act
+        _machine.OnDelighted();
+
+        // Assert
+        _machine.State.Should().Be(PetState.Happy);
+    }
+
+    /// <summary>
+    /// Being delighted while dragged is ignored.
+    /// </summary>
+    [Fact]
+    public void OnDelighted_Dragging_IsIgnored()
+    {
+        // Arrange
+        _machine.OnDragStarted();
+
+        // Act
+        _machine.OnDelighted();
+
+        // Assert
+        _machine.State.Should().Be(PetState.Drag);
+    }
+
+    /// <summary>
     /// A click wakes a sleeping pet.
     /// </summary>
     [Fact]

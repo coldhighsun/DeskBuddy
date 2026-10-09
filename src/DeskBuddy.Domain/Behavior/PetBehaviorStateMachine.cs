@@ -182,6 +182,15 @@ public sealed class PetBehaviorStateMachine
     /// </summary>
     public void OnClicked()
     {
+        OnDelighted();
+    }
+
+    /// <summary>
+    /// Notifies the machine that something pleased the pet (a click, or reaching the mouse pointer it was chasing).
+    /// Ignored while the pet is being dragged.
+    /// </summary>
+    public void OnDelighted()
+    {
         if (State != PetState.Drag)
         {
             Enter(PetState.Happy);
