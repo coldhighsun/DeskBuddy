@@ -135,6 +135,50 @@ public class PetMessageQueueTests
     }
 
     /// <summary>
+    /// A message with its own lifetime fades after that lifetime rather than the queue's default.
+    /// </summary>
+    [Fact]
+    public void Update_MessageWithOwnLifetime_ExpiresEarly()
+    {
+        // Arrange
+        var lifetime = TimeSpan.FromSeconds(8);
+        _queue.Enqueue(new PetMessage(PetMessageKind.Chatter, [], Lifetime: lifetime));
+        _queue.Update(suppressed: false);
+        _clock.Advance(lifetime - TimeSpan.FromMilliseconds(1));
+        var before = _queue.Update(suppressed: false);
+
+        // Act
+        _clock.Advance(TimeSpan.FromMilliseconds(1));
+        var after = _queue.Update(suppressed: false);
+
+        // Assert
+        before.Should().BeFalse();
+        after.Should().BeTrue();
+        _queue.Current.Should().BeNull();
+    }
+
+    /// <summary>
+    /// A message without its own lifetime after one with a short lifetime still gets the default.
+    /// </summary>
+    [Fact]
+    public void Update_AfterShortLivedMessage_NextUsesDefaultLifetime()
+    {
+        // Arrange
+        _queue.Enqueue(new PetMessage(PetMessageKind.Chatter, [], Lifetime: TimeSpan.FromSeconds(8)));
+        _queue.Enqueue(Message(2));
+        _queue.Update(suppressed: false);
+        _clock.Advance(TimeSpan.FromSeconds(8));
+        _queue.Update(suppressed: false);
+
+        // Act
+        _clock.Advance(TimeSpan.FromSeconds(20));
+        _queue.Update(suppressed: false);
+
+        // Assert
+        _queue.Current.Should().NotBeNull();
+    }
+
+    /// <summary>
     /// When one message expires the next one takes its place in the same update.
     /// </summary>
     [Fact]

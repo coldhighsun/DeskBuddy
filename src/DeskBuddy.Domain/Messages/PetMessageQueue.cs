@@ -17,6 +17,11 @@ public sealed class PetMessageQueue
     private readonly TimeProvider _timeProvider;
 
     /// <summary>
+    /// How long <see cref="Current"/> stays up.
+    /// </summary>
+    private TimeSpan _currentLifetime;
+
+    /// <summary>
     /// Messages waiting to be shown, oldest first.
     /// </summary>
     private readonly LinkedList<PetMessage> _waiting = new();
@@ -90,7 +95,7 @@ public sealed class PetMessageQueue
                 return true;
             }
 
-            if (now - _shownAt >= _messageDuration)
+            if (now - _shownAt >= _currentLifetime)
             {
                 Current = null;
                 changed = true;
@@ -102,6 +107,7 @@ public sealed class PetMessageQueue
             _waiting.RemoveFirst();
             Current = next.Value;
             _shownAt = now;
+            _currentLifetime = next.Value.Lifetime ?? _messageDuration;
             changed = true;
         }
 

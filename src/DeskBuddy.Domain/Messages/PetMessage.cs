@@ -19,6 +19,12 @@ public enum PetMessageKind
     /// The user has been working for a long time without a break.
     /// </summary>
     SedentaryReminder,
+
+    /// <summary>
+    /// A casual remark from the pet, with nothing for the user to do. <see cref="PetMessage.Count"/> selects which
+    /// remark.
+    /// </summary>
+    Chatter,
 }
 
 /// <summary>
@@ -62,8 +68,12 @@ public enum MessageAction
 /// <param name="Count">
 /// A count the text refers to, for example the number of completed pomodoros.
 /// </param>
+/// <param name="Lifetime">
+/// How long the message stays up; <see langword="null"/> for the queue's default.
+/// </param>
 public sealed record PetMessage(
     PetMessageKind Kind,
     IReadOnlyList<MessageAction> Actions,
     TimeSpan? Duration = null,
-    int? Count = null);
+    int? Count = null,
+    TimeSpan? Lifetime = null);
