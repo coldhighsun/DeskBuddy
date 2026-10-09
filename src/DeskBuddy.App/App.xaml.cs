@@ -9,6 +9,7 @@ using DeskBuddy.Domain.Behavior;
 using DeskBuddy.Domain.Messages;
 using DeskBuddy.Domain.Pomodoro;
 using DeskBuddy.Domain.Sedentary;
+using DeskBuddy.Domain.Settings;
 using DeskBuddy.Domain.SystemLoad;
 using DeskBuddy.Infrastructure.Sensors;
 using DeskBuddy.Infrastructure.Skins;
@@ -29,11 +30,6 @@ public partial class App : System.Windows.Application
     /// Name of the per-session mutex that enforces a single running instance.
     /// </summary>
     private const string SingleInstanceMutexName = @"Local\DeskBuddy.SingleInstance";
-
-    /// <summary>
-    /// Directory name of the skin loaded at startup, under the <c>skins</c> folder.
-    /// </summary>
-    private const string DefaultSkinName = "default";
 
     /// <summary>
     /// How long after the last keystroke the note is saved.
@@ -79,18 +75,26 @@ public partial class App : System.Windows.Application
 
         var builder = Host.CreateApplicationBuilder(e.Args);
 
-        // Timings can be overridden through configuration, e.g. the environment variable Behavior__SleepAfter.
+        // User data lives under LocalAppData so it is not synced by roaming profiles; DataDirectory overrides it.
+        var dataDirectory = builder.Configuration["DataDirectory"]
+            ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "DeskBuddy");
+
         var behaviorOptions = new PetBehaviorOptions();
-        builder.Configuration.GetSection("Behavior").Bind(behaviorOptions);
-
         var loadOptions = new SystemLoadOptions();
-        builder.Configuration.GetSection("SystemLoad").Bind(loadOptions);
-
         var pomodoroOptions = new PomodoroOptions();
-        builder.Configuration.GetSection("Pomodoro").Bind(pomodoroOptions);
-
         var sedentaryOptions = new SedentaryOptions();
-        builder.Configuration.GetSection("Sedentary").Bind(sedentaryOptions);
+
+        // Timings can be forced through configuration, e.g. the environment variable Behavior__SleepAfter. These
+        // overrides are for diagnostics and win over the user's saved settings, so they are re-applied after each change.
+        void ApplyConfigurationOverrides()
+        {
+            builder.Configuration.GetSection("Behavior").Bind(behaviorOptions);
+            builder.Configuration.GetSection("SystemLoad").Bind(loadOptions);
+            builder.Configuration.GetSection("Pomodoro").Bind(pomodoroOptions);
+            builder.Configuration.GetSection("Sedentary").Bind(sedentaryOptions);
+        }
+
+        ApplyConfigurationOverrides();
 
         builder.Services.AddSingleton(behaviorOptions);
         builder.Services.AddSingleton(loadOptions);
@@ -113,9 +117,16 @@ public partial class App : System.Windows.Application
             Random.Shared));
         builder.Services.AddSingleton<PetBrain>();
 
-        // User data lives under LocalAppData so it is not synced by roaming profiles; DataDirectory overrides it.
-        var dataDirectory = builder.Configuration["DataDirectory"]
-            ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "DeskBuddy");
+        builder.Services.AddSingleton<ISettingsStore>(sp => new JsonSettingsStore(
+            dataDirectory,
+            sp.GetRequiredService<ILogger<JsonSettingsStore>>()));
+        builder.Services.AddSingleton<SettingsService>();
+        builder.Services.AddSingleton(sp => new SettingsApplier(
+            sp.GetRequiredService<SettingsService>(),
+            behaviorOptions,
+            pomodoroOptions,
+            sedentaryOptions,
+            ApplyConfigurationOverrides));
         builder.Services.AddSingleton<ITodoRepository>(sp => new JsonTodoRepository(
             dataDirectory,
             sp.GetRequiredService<ILogger<JsonTodoRepository>>()));
@@ -132,9 +143,20 @@ public partial class App : System.Windows.Application
         var logger = _host.Services.GetRequiredService<ILogger<App>>();
         await InitializeUserDataAsync(logger);
 
+        // Resolving the applier copies the loaded settings into the option objects the pet logic reads from.
+        _host.Services.GetRequiredService<SettingsApplier>();
+        var skinName = _host.Services.GetRequiredService<SettingsService>().Current.SkinName;
+
         try
         {
-            var skinDirectory = Path.Combine(AppContext.BaseDirectory, "skins", DefaultSkinName);
+            var skinDirectory = Path.Combine(AppContext.BaseDirectory, "skins", skinName);
+            if (!Directory.Exists(skinDirectory))
+            {
+                logger.LogWarning("The '{Skin}' skin was not found; using '{Default}'.", skinName, PetSettings.DefaultSkinName);
+                skinName = PetSettings.DefaultSkinName;
+                skinDirectory = Path.Combine(AppContext.BaseDirectory, "skins", skinName);
+            }
+
             var skin = await _host.Services.GetRequiredService<ISkinLoader>().LoadAsync(skinDirectory);
 
             var brain = _host.Services.GetRequiredService<PetBrain>();
@@ -144,7 +166,7 @@ public partial class App : System.Windows.Application
         }
         catch (InvalidDataException ex)
         {
-            logger.LogError(ex, "Failed to load the '{Skin}' skin.", DefaultSkinName);
+            logger.LogError(ex, "Failed to load the '{Skin}' skin.", skinName);
             MessageBox.Show(ex.Message, "DeskBuddy", MessageBoxButton.OK, MessageBoxImage.Error);
             Shutdown(1);
         }
@@ -195,18 +217,25 @@ public partial class App : System.Windows.Application
     }
 
     /// <summary>
-    /// Loads the saved to-do list and note. A storage problem does not stop the application; it is logged here and
+    /// Loads the saved settings, to-do list and note. A storage problem does not stop the application; it is logged here and
     /// shown in the panel, where editing is disabled so the unreadable data is never overwritten.
     /// </summary>
     /// <param name="logger">
     /// Logger used to report storage problems.
     /// </param>
     /// <returns>
-    /// A task that completes when both have been loaded.
+    /// A task that completes when all have been loaded.
     /// </returns>
     private async Task InitializeUserDataAsync(ILogger logger)
     {
         var services = _host!.Services;
+
+        var settings = services.GetRequiredService<SettingsService>();
+        await settings.InitializeAsync();
+        if (settings.LoadFailure is { } settingsFailure)
+        {
+            logger.LogError(settingsFailure, "The saved settings could not be read; defaults are used and changes are disabled.");
+        }
 
         var todos = services.GetRequiredService<TodoService>();
         await todos.InitializeAsync();
