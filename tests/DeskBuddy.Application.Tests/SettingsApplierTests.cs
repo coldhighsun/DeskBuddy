@@ -4,6 +4,8 @@ using DeskBuddy.Domain.Behavior;
 using DeskBuddy.Domain.Pomodoro;
 using DeskBuddy.Domain.Sedentary;
 using DeskBuddy.Domain.Settings;
+using DeskBuddy.Domain.Visibility;
+using Microsoft.Extensions.Time.Testing;
 
 namespace DeskBuddy.Application.Tests;
 
@@ -33,6 +35,11 @@ public class SettingsApplierTests
     private readonly SedentaryOptions _sedentary = new();
 
     /// <summary>
+    /// The visibility rules being updated.
+    /// </summary>
+    private readonly PetVisibility _visibility = new(new FakeTimeProvider(), TimeSpan.FromSeconds(2));
+
+    /// <summary>
     /// Creating the applier copies the current settings immediately.
     /// </summary>
     [Fact]
@@ -42,7 +49,7 @@ public class SettingsApplierTests
         await _settings.UpdateAsync(s => s with { PomodoroWork = TimeSpan.FromMinutes(50), SleepAfter = TimeSpan.FromMinutes(9) });
 
         // Act
-        _ = new SettingsApplier(_settings, _behavior, _pomodoro, _sedentary);
+        _ = new SettingsApplier(_settings, _behavior, _pomodoro, _sedentary, _visibility);
 
         // Assert
         _pomodoro.WorkDuration.Should().Be(TimeSpan.FromMinutes(50));
@@ -56,7 +63,7 @@ public class SettingsApplierTests
     public async Task Changed_NewSettings_UpdateAllOptions()
     {
         // Arrange
-        _ = new SettingsApplier(_settings, _behavior, _pomodoro, _sedentary);
+        _ = new SettingsApplier(_settings, _behavior, _pomodoro, _sedentary, _visibility);
 
         // Act
         await _settings.UpdateAsync(s => s with
@@ -77,6 +84,22 @@ public class SettingsApplierTests
     }
 
     /// <summary>
+    /// Turning auto-hide off in the settings reaches the visibility rules.
+    /// </summary>
+    [Fact]
+    public async Task Changed_AutoHideSetting_UpdatesVisibility()
+    {
+        // Arrange
+        _ = new SettingsApplier(_settings, _behavior, _pomodoro, _sedentary, _visibility);
+
+        // Act
+        await _settings.UpdateAsync(s => s with { AutoHideWhenFullscreen = false });
+
+        // Assert
+        _visibility.AutoHideEnabled.Should().BeFalse();
+    }
+
+    /// <summary>
     /// Forced overrides are put back after every application of the settings, so they keep winning.
     /// </summary>
     [Fact]
@@ -84,7 +107,7 @@ public class SettingsApplierTests
     {
         // Arrange
         void Override() => _behavior.SleepAfter = TimeSpan.FromSeconds(30);
-        _ = new SettingsApplier(_settings, _behavior, _pomodoro, _sedentary, Override);
+        _ = new SettingsApplier(_settings, _behavior, _pomodoro, _sedentary, _visibility, Override);
 
         // Act
         await _settings.UpdateAsync(s => s with { SleepAfter = TimeSpan.FromMinutes(10), PomodoroWork = TimeSpan.FromMinutes(40) });

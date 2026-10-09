@@ -6,6 +6,7 @@ using DeskBuddy.Domain.Messages;
 using DeskBuddy.Domain.Pomodoro;
 using DeskBuddy.Domain.Sedentary;
 using DeskBuddy.Domain.SystemLoad;
+using DeskBuddy.Domain.Visibility;
 using Microsoft.Extensions.Time.Testing;
 
 namespace DeskBuddy.Application.Tests;
@@ -31,6 +32,11 @@ public class PetBrainTests
     private static readonly TimeSpan ShortBreak = TimeSpan.FromMinutes(5);
 
     /// <summary>
+    /// How long a full-screen application must be gone before the pet comes back, in the tests.
+    /// </summary>
+    private static readonly TimeSpan RestoreDelay = TimeSpan.FromSeconds(2);
+
+    /// <summary>
     /// The fake idle sensor the brain reads.
     /// </summary>
     private readonly FakeIdleDetector _idle = new();
@@ -51,6 +57,11 @@ public class PetBrainTests
     private readonly FakeTimeProvider _clock = new();
 
     /// <summary>
+    /// The visibility rules the brain updates.
+    /// </summary>
+    private readonly PetVisibility _visibility;
+
+    /// <summary>
     /// The brain under test.
     /// </summary>
     private readonly PetBrain _brain;
@@ -67,6 +78,7 @@ public class PetBrainTests
             RestThreshold = TimeSpan.FromMinutes(5),
             SnoozeDuration = TimeSpan.FromMinutes(3),
         };
+        _visibility = new PetVisibility(_clock, RestoreDelay);
         _brain = new PetBrain(
             _idle,
             _load,
@@ -75,7 +87,8 @@ public class PetBrainTests
             new PomodoroSession(new PomodoroOptions(), _clock),
             new SedentaryReminderPolicy(sedentary, _clock),
             new PetMessageQueue(behavior.MessageDuration, _clock),
-            new PetBehaviorStateMachine(behavior, _clock, new Random(1)));
+            new PetBehaviorStateMachine(behavior, _clock, new Random(1)),
+            _visibility);
     }
 
     /// <summary>
@@ -502,6 +515,142 @@ public class PetBrainTests
     }
 
     /// <summary>
+    /// A full-screen application hides the pet at once and announces it.
+    /// </summary>
+    [Fact]
+    public void Tick_FullscreenStarts_HidesPetAndRaisesVisibilityChanged()
+    {
+        // Arrange
+        var raised = 0;
+        _brain.VisibilityChanged += (_, _) => raised++;
+        _fullscreen.Level = DoNotDisturbLevel.Fullscreen;
+
+        // Act
+        _brain.Tick();
+
+        // Assert
+        _brain.Visibility.IsVisible.Should().BeFalse();
+        raised.Should().Be(1);
+    }
+
+    /// <summary>
+    /// A quiet do-not-disturb (such as Focus Assist) holds messages back but does not hide the pet.
+    /// </summary>
+    [Fact]
+    public void Tick_QuietLevel_KeepsPetVisible()
+    {
+        // Arrange
+        _fullscreen.Level = DoNotDisturbLevel.Quiet;
+
+        // Act
+        _brain.Tick();
+
+        // Assert
+        _brain.Visibility.IsVisible.Should().BeTrue();
+    }
+
+    /// <summary>
+    /// The pet returns only after the full-screen application has been gone for the restore delay.
+    /// </summary>
+    [Fact]
+    public void Tick_FullscreenEnds_PetReturnsAfterRestoreDelay()
+    {
+        // Arrange
+        _fullscreen.Level = DoNotDisturbLevel.Fullscreen;
+        _brain.Tick();
+        _fullscreen.Level = DoNotDisturbLevel.None;
+        _brain.Tick();
+
+        // Act
+        var visibleTooSoon = _brain.Visibility.IsVisible;
+        _clock.Advance(RestoreDelay);
+        _brain.Tick();
+
+        // Assert
+        visibleTooSoon.Should().BeFalse();
+        _brain.Visibility.IsVisible.Should().BeTrue();
+    }
+
+    /// <summary>
+    /// A message that comes due while the pet is hidden by the user is shown once the pet is back.
+    /// </summary>
+    [Fact]
+    public void Tick_MessageDueWhilePetHidden_ShownWhenPetReturns()
+    {
+        // Arrange
+        _brain.SetManuallyHidden(true);
+        _brain.StartPomodoro();
+        _clock.Advance(Work);
+        _brain.Tick();
+        var shownWhileHidden = _brain.CurrentMessage;
+
+        // Act
+        _brain.SetManuallyHidden(false);
+        _brain.Tick();
+
+        // Assert
+        shownWhileHidden.Should().BeNull();
+        _brain.CurrentMessage.Should().NotBeNull();
+    }
+
+    /// <summary>
+    /// Hiding and showing at the user's request is announced, and toggling twice restores the pet.
+    /// </summary>
+    [Fact]
+    public void ToggleManuallyHidden_Twice_HidesThenShowsAndRaisesEachTime()
+    {
+        // Arrange
+        var raised = 0;
+        _brain.VisibilityChanged += (_, _) => raised++;
+
+        // Act
+        _brain.ToggleManuallyHidden();
+        var hidden = _brain.Visibility.IsVisible;
+        _brain.ToggleManuallyHidden();
+
+        // Assert
+        hidden.Should().BeFalse();
+        _brain.Visibility.IsVisible.Should().BeTrue();
+        raised.Should().Be(2);
+    }
+
+    /// <summary>
+    /// Hiding a pet that is already hidden does not announce anything.
+    /// </summary>
+    [Fact]
+    public void SetManuallyHidden_AlreadyHidden_DoesNotRaise()
+    {
+        // Arrange
+        _brain.SetManuallyHidden(true);
+        var raised = 0;
+        _brain.VisibilityChanged += (_, _) => raised++;
+
+        // Act
+        _brain.SetManuallyHidden(true);
+
+        // Assert
+        raised.Should().Be(0);
+    }
+
+    /// <summary>
+    /// The pomodoro keeps running while the pet is hidden.
+    /// </summary>
+    [Fact]
+    public void Tick_PetHidden_PomodoroKeepsRunning()
+    {
+        // Arrange
+        _brain.StartPomodoro();
+        _brain.SetManuallyHidden(true);
+
+        // Act
+        _clock.Advance(Work);
+        _brain.Tick();
+
+        // Assert
+        _brain.Pomodoro.Phase.Should().Be(PomodoroPhase.ShortBreak);
+    }
+
+    /// <summary>
     /// The skip-break action ends the break and closes the bubble.
     /// </summary>
     [Fact]
@@ -678,14 +827,22 @@ public class PetBrainTests
     private sealed class FakeFullscreenDetector : IFullscreenDetector
     {
         /// <summary>
-        /// Gets or sets whether the user should not be disturbed.
+        /// Gets or sets the level to report.
         /// </summary>
-        public bool DoNotDisturb { get; set; }
+        public DoNotDisturbLevel Level { get; set; }
+
+        /// <summary>
+        /// Sets a quiet do-not-disturb (messages held back, pet stays) or none.
+        /// </summary>
+        public bool DoNotDisturb
+        {
+            set => Level = value ? DoNotDisturbLevel.Quiet : DoNotDisturbLevel.None;
+        }
 
         /// <inheritdoc />
-        public bool IsDoNotDisturb()
+        public DoNotDisturbLevel GetLevel()
         {
-            return DoNotDisturb;
+            return Level;
         }
     }
 

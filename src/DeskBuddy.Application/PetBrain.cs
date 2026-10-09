@@ -5,6 +5,7 @@ using DeskBuddy.Domain.Messages;
 using DeskBuddy.Domain.Pomodoro;
 using DeskBuddy.Domain.Sedentary;
 using DeskBuddy.Domain.SystemLoad;
+using DeskBuddy.Domain.Visibility;
 
 namespace DeskBuddy.Application;
 
@@ -22,7 +23,7 @@ namespace DeskBuddy.Application;
 /// Smooths load readings into a stable "strained" flag.
 /// </param>
 /// <param name="fullscreenDetector">
-/// Tells when the user must not be disturbed, so messages are held back.
+/// Tells when the user must not be disturbed, so messages are held back and the pet may hide.
 /// </param>
 /// <param name="pomodoro">
 /// The pomodoro timer.
@@ -36,6 +37,9 @@ namespace DeskBuddy.Application;
 /// <param name="stateMachine">
 /// The behavior state machine to drive.
 /// </param>
+/// <param name="visibility">
+/// Decides whether the pet is on screen.
+/// </param>
 public sealed class PetBrain(
     IIdleDetector idleDetector,
     ISystemLoadMonitor loadMonitor,
@@ -44,7 +48,8 @@ public sealed class PetBrain(
     PomodoroSession pomodoro,
     SedentaryReminderPolicy sedentary,
     PetMessageQueue messages,
-    PetBehaviorStateMachine stateMachine)
+    PetBehaviorStateMachine stateMachine,
+    PetVisibility visibility)
 {
     /// <summary>
     /// The pomodoro status last announced through <see cref="PomodoroStatusChanged"/>, to detect changes. The
@@ -56,6 +61,11 @@ public sealed class PetBrain(
     /// Raised when the message on screen appears, changes or goes away. Read <see cref="CurrentMessage"/>.
     /// </summary>
     public event EventHandler? MessageChanged;
+
+    /// <summary>
+    /// Raised when <see cref="PetVisibility.IsVisible"/> changes. The window shows or hides itself in response.
+    /// </summary>
+    public event EventHandler? VisibilityChanged;
 
     /// <summary>
     /// Raised when the pomodoro phase, paused flag or remaining whole minutes change.
@@ -76,6 +86,12 @@ public sealed class PetBrain(
     /// Gets the pomodoro timer, for display. Change it through the brain's commands so the pet reacts.
     /// </summary>
     public PomodoroSession Pomodoro => pomodoro;
+
+    /// <summary>
+    /// Gets whether the pet is on screen and why not. Change it through <see cref="SetManuallyHidden"/> and
+    /// <see cref="ToggleManuallyHidden"/>.
+    /// </summary>
+    public PetVisibility Visibility => visibility;
 
     /// <summary>
     /// Gets the message to show in the speech bubble, or <see langword="null"/> if none.
@@ -105,7 +121,15 @@ public sealed class PetBrain(
                 sedentary.StreakDuration));
         }
 
-        if (messages.Update(fullscreenDetector.IsDoNotDisturb()))
+        // The pet hides for a full-screen application; its messages are held back for that and for quieter
+        // situations such as Focus Assist, and for as long as the pet is hidden, then shown once it is back.
+        var level = fullscreenDetector.GetLevel();
+        if (visibility.UpdateFullscreen(level == DoNotDisturbLevel.Fullscreen))
+        {
+            VisibilityChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        if (messages.Update(level != DoNotDisturbLevel.None || !visibility.IsVisible))
         {
             MessageChanged?.Invoke(this, EventArgs.Empty);
         }
@@ -194,6 +218,28 @@ public sealed class PetBrain(
         {
             MessageChanged?.Invoke(this, EventArgs.Empty);
         }
+    }
+
+    /// <summary>
+    /// Hides or shows the pet at the user's request.
+    /// </summary>
+    /// <param name="hidden">
+    /// <see langword="true"/> to hide the pet.
+    /// </param>
+    public void SetManuallyHidden(bool hidden)
+    {
+        if (visibility.SetManuallyHidden(hidden))
+        {
+            VisibilityChanged?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    /// <summary>
+    /// Switches the user's hide on or off.
+    /// </summary>
+    public void ToggleManuallyHidden()
+    {
+        SetManuallyHidden(!visibility.IsManuallyHidden);
     }
 
     /// <summary>

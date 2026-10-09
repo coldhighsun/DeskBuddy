@@ -10,6 +10,7 @@ using DeskBuddy.Domain.Messages;
 using DeskBuddy.Domain.Pomodoro;
 using DeskBuddy.Domain.Sedentary;
 using DeskBuddy.Domain.Settings;
+using DeskBuddy.Domain.Visibility;
 using DeskBuddy.Domain.SystemLoad;
 using DeskBuddy.Infrastructure.Sensors;
 using DeskBuddy.Infrastructure.Skins;
@@ -35,6 +36,11 @@ public partial class App : System.Windows.Application
     /// How long after the last keystroke the note is saved.
     /// </summary>
     private static readonly TimeSpan NoteSaveDelay = TimeSpan.FromMilliseconds(800);
+
+    /// <summary>
+    /// How long a full-screen application must be gone before the pet comes back.
+    /// </summary>
+    private static readonly TimeSpan PetRestoreDelay = TimeSpan.FromSeconds(2);
 
     /// <summary>
     /// Guard holding the single-instance mutex; <see langword="null"/> until startup.
@@ -104,6 +110,7 @@ public partial class App : System.Windows.Application
         builder.Services.AddSingleton<ISystemLoadMonitor, WindowsSystemLoadMonitor>();
         builder.Services.AddSingleton<LoadReactionPolicy>();
         builder.Services.AddSingleton<IFullscreenDetector, WindowsFullscreenDetector>();
+        builder.Services.AddSingleton(sp => new PetVisibility(sp.GetRequiredService<TimeProvider>(), PetRestoreDelay));
         builder.Services.AddSingleton(pomodoroOptions);
         builder.Services.AddSingleton<PomodoroSession>();
         builder.Services.AddSingleton(sedentaryOptions);
@@ -126,6 +133,7 @@ public partial class App : System.Windows.Application
             behaviorOptions,
             pomodoroOptions,
             sedentaryOptions,
+            sp.GetRequiredService<PetVisibility>(),
             ApplyConfigurationOverrides));
         builder.Services.AddSingleton<ITodoRepository>(sp => new JsonTodoRepository(
             dataDirectory,
