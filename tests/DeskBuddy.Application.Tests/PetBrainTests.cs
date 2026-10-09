@@ -4,6 +4,7 @@ using DeskBuddy.Domain;
 using DeskBuddy.Domain.Behavior;
 using DeskBuddy.Domain.Messages;
 using DeskBuddy.Domain.Pomodoro;
+using DeskBuddy.Domain.Sedentary;
 using DeskBuddy.Domain.SystemLoad;
 using Microsoft.Extensions.Time.Testing;
 
@@ -60,14 +61,138 @@ public class PetBrainTests
     public PetBrainTests()
     {
         var behavior = new PetBehaviorOptions { SleepAfter = SleepAfter, MessageDuration = TimeSpan.FromSeconds(30) };
+        var sedentary = new SedentaryOptions
+        {
+            ReminderAfter = TimeSpan.FromMinutes(10),
+            RestThreshold = TimeSpan.FromMinutes(5),
+            SnoozeDuration = TimeSpan.FromMinutes(3),
+        };
         _brain = new PetBrain(
             _idle,
             _load,
             new LoadReactionPolicy(new SystemLoadOptions(), _clock),
             _fullscreen,
             new PomodoroSession(new PomodoroOptions(), _clock),
+            new SedentaryReminderPolicy(sedentary, _clock),
             new PetMessageQueue(behavior.MessageDuration, _clock),
             new PetBehaviorStateMachine(behavior, _clock, new Random(1)));
+    }
+
+    /// <summary>
+    /// Ticks the brain once a minute for the given number of minutes and returns the message on screen right after
+    /// the tick that first showed one, or <see langword="null"/> if none appeared.
+    /// </summary>
+    /// <param name="minutes">
+    /// How many minutes to run.
+    /// </param>
+    /// <returns>
+    /// The first message that appeared, if any.
+    /// </returns>
+    private PetMessage? RunMinutesUntilMessage(int minutes)
+    {
+        for (var minute = 0; minute < minutes; minute++)
+        {
+            _brain.Tick();
+            if (_brain.CurrentMessage is { } message)
+            {
+                return message;
+            }
+
+            _clock.Advance(TimeSpan.FromMinutes(1));
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// A user who keeps working long enough is reminded to get up, and the pet calls for attention.
+    /// </summary>
+    [Fact]
+    public void Tick_WorkingLongEnough_ShowsSedentaryReminder()
+    {
+        // Act: the poll at minute 10 is the 11th.
+        var message = RunMinutesUntilMessage(12);
+
+        // Assert
+        message.Should().NotBeNull();
+        message!.Kind.Should().Be(PetMessageKind.SedentaryReminder);
+        message.Actions.Should().Equal(MessageAction.SnoozeReminder, MessageAction.Dismiss);
+        message.Duration.Should().Be(TimeSpan.FromMinutes(10));
+        _brain.State.Should().Be(PetState.Alert);
+    }
+
+    /// <summary>
+    /// A user who is away does not get reminded.
+    /// </summary>
+    [Fact]
+    public void Tick_UserAway_NoSedentaryReminder()
+    {
+        // Arrange
+        _idle.IdleTime = TimeSpan.FromMinutes(6);
+
+        // Act
+        var message = RunMinutesUntilMessage(60);
+
+        // Assert
+        message.Should().BeNull();
+    }
+
+    /// <summary>
+    /// While a pomodoro runs it paces the breaks, so no sedentary reminder appears.
+    /// </summary>
+    [Fact]
+    public void Tick_PomodoroRunning_NoSedentaryReminder()
+    {
+        // Arrange
+        _brain.StartPomodoro();
+
+        // Act: 20 minutes, which is past the sedentary threshold but before the 25-minute work phase ends.
+        var message = RunMinutesUntilMessage(20);
+
+        // Assert
+        message.Should().BeNull();
+    }
+
+    /// <summary>
+    /// Snoozing makes the reminder return after the short snooze rather than the full interval.
+    /// </summary>
+    [Fact]
+    public void Invoke_SnoozeReminder_RemindsAgainAfterSnooze()
+    {
+        // Arrange
+        RunMinutesUntilMessage(12);
+        _brain.Invoke(MessageAction.SnoozeReminder);
+
+        // Act: snooze is 3 minutes.
+        _clock.Advance(TimeSpan.FromMinutes(1));
+        var early = RunMinutesUntilMessage(2);
+        var message = RunMinutesUntilMessage(3);
+
+        // Assert
+        _brain.CurrentMessage.Should().BeSameAs(message);
+        early.Should().BeNull();
+        message.Should().NotBeNull();
+        message!.Kind.Should().Be(PetMessageKind.SedentaryReminder);
+    }
+
+    /// <summary>
+    /// Dismissing without snoozing waits the full interval before the next reminder.
+    /// </summary>
+    [Fact]
+    public void Invoke_DismissReminder_NextReminderAfterFullInterval()
+    {
+        // Arrange
+        RunMinutesUntilMessage(12);
+        _brain.Invoke(MessageAction.Dismiss);
+        _clock.Advance(TimeSpan.FromMinutes(1));
+
+        // Act: 9 more minutes is not enough, one or two more is.
+        var early = RunMinutesUntilMessage(9);
+        var message = RunMinutesUntilMessage(3);
+
+        // Assert
+        early.Should().BeNull();
+        message.Should().NotBeNull();
     }
 
     /// <summary>

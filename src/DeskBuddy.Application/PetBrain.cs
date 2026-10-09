@@ -3,6 +3,7 @@ using DeskBuddy.Domain;
 using DeskBuddy.Domain.Behavior;
 using DeskBuddy.Domain.Messages;
 using DeskBuddy.Domain.Pomodoro;
+using DeskBuddy.Domain.Sedentary;
 using DeskBuddy.Domain.SystemLoad;
 
 namespace DeskBuddy.Application;
@@ -26,6 +27,9 @@ namespace DeskBuddy.Application;
 /// <param name="pomodoro">
 /// The pomodoro timer.
 /// </param>
+/// <param name="sedentary">
+/// Decides when to remind the user to get up.
+/// </param>
 /// <param name="messages">
 /// The queue of messages for the speech bubble.
 /// </param>
@@ -38,6 +42,7 @@ public sealed class PetBrain(
     LoadReactionPolicy loadPolicy,
     IFullscreenDetector fullscreenDetector,
     PomodoroSession pomodoro,
+    SedentaryReminderPolicy sedentary,
     PetMessageQueue messages,
     PetBehaviorStateMachine stateMachine)
 {
@@ -86,9 +91,20 @@ public sealed class PetBrain(
     /// </returns>
     public PetState Tick()
     {
+        var userIdle = idleDetector.GetIdleTime();
         var isStrained = loadPolicy.Update(loadMonitor.GetSnapshot());
 
         EnqueueMessageFor(pomodoro.Update());
+
+        // A running pomodoro already paces the user's breaks, so it replaces the sedentary reminder.
+        if (sedentary.Update(userIdle, isCoveredElsewhere: pomodoro.Phase != PomodoroPhase.Stopped))
+        {
+            messages.Enqueue(new PetMessage(
+                PetMessageKind.SedentaryReminder,
+                [MessageAction.SnoozeReminder, MessageAction.Dismiss],
+                sedentary.StreakDuration));
+        }
+
         if (messages.Update(fullscreenDetector.IsDoNotDisturb()))
         {
             MessageChanged?.Invoke(this, EventArgs.Empty);
@@ -97,7 +113,7 @@ public sealed class PetBrain(
         AnnouncePomodoroStatusIfChanged();
 
         var inputs = new PetInputs(
-            idleDetector.GetIdleTime(),
+            userIdle,
             isStrained,
             IsFocusing: pomodoro.IsRunning && pomodoro.Phase == PomodoroPhase.Work,
             HasAlert: messages.Current is not null);
@@ -160,6 +176,9 @@ public sealed class PetBrain(
                 break;
             case MessageAction.StartPomodoro:
                 pomodoro.Start();
+                break;
+            case MessageAction.SnoozeReminder:
+                sedentary.Snooze();
                 break;
         }
 
