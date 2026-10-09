@@ -30,6 +30,16 @@ public class PetBehaviorStateMachineTests
     private static readonly TimeSpan SleepAfter = TimeSpan.FromMinutes(5);
 
     /// <summary>
+    /// Inputs for an active user on a healthy system.
+    /// </summary>
+    private static readonly PetInputs Active = new(TimeSpan.Zero);
+
+    /// <summary>
+    /// Inputs for an active user on a system under heavy load.
+    /// </summary>
+    private static readonly PetInputs Strained = new(TimeSpan.Zero, IsSystemStrained: true);
+
+    /// <summary>
     /// The fake clock shared by the machine under test.
     /// </summary>
     private readonly FakeTimeProvider _clock = new();
@@ -76,7 +86,7 @@ public class PetBehaviorStateMachineTests
         _clock.Advance(IdleDwell - TimeSpan.FromMilliseconds(1));
 
         // Act
-        var state = _machine.Update(TimeSpan.Zero);
+        var state = _machine.Update(Active);
 
         // Assert
         state.Should().Be(PetState.Idle);
@@ -92,7 +102,7 @@ public class PetBehaviorStateMachineTests
         _clock.Advance(IdleDwell);
 
         // Act
-        var state = _machine.Update(TimeSpan.Zero);
+        var state = _machine.Update(Active);
 
         // Assert
         state.Should().Be(PetState.Walk);
@@ -107,11 +117,11 @@ public class PetBehaviorStateMachineTests
     {
         // Arrange
         _clock.Advance(IdleDwell);
-        _machine.Update(TimeSpan.Zero);
+        _machine.Update(Active);
         _clock.Advance(WalkDuration);
 
         // Act
-        var state = _machine.Update(TimeSpan.Zero);
+        var state = _machine.Update(Active);
 
         // Assert
         state.Should().Be(PetState.Idle);
@@ -124,7 +134,7 @@ public class PetBehaviorStateMachineTests
     public void Update_UserIdleReachesThreshold_Sleeps()
     {
         // Act
-        var state = _machine.Update(SleepAfter);
+        var state = _machine.Update(new PetInputs(SleepAfter));
 
         // Assert
         state.Should().Be(PetState.Sleep);
@@ -138,10 +148,10 @@ public class PetBehaviorStateMachineTests
     {
         // Arrange
         _clock.Advance(IdleDwell);
-        _machine.Update(TimeSpan.Zero);
+        _machine.Update(Active);
 
         // Act
-        var state = _machine.Update(SleepAfter);
+        var state = _machine.Update(new PetInputs(SleepAfter));
 
         // Assert
         state.Should().Be(PetState.Sleep);
@@ -154,11 +164,11 @@ public class PetBehaviorStateMachineTests
     public void Update_SleepingAndUserStillAway_StaysAsleep()
     {
         // Arrange
-        _machine.Update(SleepAfter);
+        _machine.Update(new PetInputs(SleepAfter));
         _clock.Advance(TimeSpan.FromHours(1));
 
         // Act
-        var state = _machine.Update(SleepAfter + TimeSpan.FromHours(1));
+        var state = _machine.Update(new PetInputs(SleepAfter + TimeSpan.FromHours(1)));
 
         // Assert
         state.Should().Be(PetState.Sleep);
@@ -171,11 +181,11 @@ public class PetBehaviorStateMachineTests
     public void Update_SleepingAndUserReturns_WakesToIdle()
     {
         // Arrange
-        _machine.Update(SleepAfter);
+        _machine.Update(new PetInputs(SleepAfter));
         _clock.Advance(TimeSpan.FromHours(1));
 
         // Act
-        var state = _machine.Update(TimeSpan.Zero);
+        var state = _machine.Update(Active);
 
         // Assert
         state.Should().Be(PetState.Idle);
@@ -205,7 +215,7 @@ public class PetBehaviorStateMachineTests
         _clock.Advance(TimeSpan.FromHours(1));
 
         // Act
-        var state = _machine.Update(SleepAfter);
+        var state = _machine.Update(new PetInputs(SleepAfter));
 
         // Assert
         state.Should().Be(PetState.Drag);
@@ -223,7 +233,7 @@ public class PetBehaviorStateMachineTests
         _machine.OnDragEnded();
 
         // Act
-        var state = _machine.Update(TimeSpan.Zero);
+        var state = _machine.Update(Active);
 
         // Assert
         state.Should().Be(PetState.Idle);
@@ -237,7 +247,7 @@ public class PetBehaviorStateMachineTests
     {
         // Arrange
         _clock.Advance(IdleDwell);
-        _machine.Update(TimeSpan.Zero);
+        _machine.Update(Active);
 
         // Act
         _machine.OnDragEnded();
@@ -266,7 +276,7 @@ public class PetBehaviorStateMachineTests
     public void OnClicked_Sleeping_EntersHappy()
     {
         // Arrange
-        _machine.Update(SleepAfter);
+        _machine.Update(new PetInputs(SleepAfter));
 
         // Act
         _machine.OnClicked();
@@ -302,7 +312,7 @@ public class PetBehaviorStateMachineTests
         _clock.Advance(HappyDuration);
 
         // Act
-        var state = _machine.Update(TimeSpan.Zero);
+        var state = _machine.Update(Active);
 
         // Assert
         state.Should().Be(PetState.Idle);
@@ -319,7 +329,7 @@ public class PetBehaviorStateMachineTests
         _clock.Advance(HappyDuration - TimeSpan.FromMilliseconds(1));
 
         // Act
-        var state = _machine.Update(TimeSpan.Zero);
+        var state = _machine.Update(Active);
 
         // Assert
         state.Should().Be(PetState.Happy);
@@ -338,13 +348,157 @@ public class PetBehaviorStateMachineTests
         for (var i = 0; i < 40; i++)
         {
             _clock.Advance(IdleDwell);
-            _machine.Update(TimeSpan.Zero);
+            _machine.Update(Active);
             directions.Add(_machine.WalkDirection);
             _clock.Advance(WalkDuration);
-            _machine.Update(TimeSpan.Zero);
+            _machine.Update(Active);
         }
 
         // Assert
         directions.Should().BeEquivalentTo([-1, 1]);
+    }
+
+    /// <summary>
+    /// A strained system makes an idle pet tired right away, without waiting for the dwell.
+    /// </summary>
+    [Fact]
+    public void Update_SystemStrained_BecomesTired()
+    {
+        // Act
+        var state = _machine.Update(Strained);
+
+        // Assert
+        state.Should().Be(PetState.Tired);
+    }
+
+    /// <summary>
+    /// A strained system interrupts a walk.
+    /// </summary>
+    [Fact]
+    public void Update_WalkingAndSystemStrained_BecomesTired()
+    {
+        // Arrange
+        _clock.Advance(IdleDwell);
+        _machine.Update(Active);
+
+        // Act
+        var state = _machine.Update(Strained);
+
+        // Assert
+        state.Should().Be(PetState.Tired);
+    }
+
+    /// <summary>
+    /// A tired pet does not wander off, however much time passes.
+    /// </summary>
+    [Fact]
+    public void Update_TiredForLongTime_StaysTired()
+    {
+        // Arrange
+        _machine.Update(Strained);
+        _clock.Advance(TimeSpan.FromHours(1));
+
+        // Act
+        var state = _machine.Update(Strained);
+
+        // Assert
+        state.Should().Be(PetState.Tired);
+    }
+
+    /// <summary>
+    /// When the system recovers the pet stands again, and the dwell restarts rather than walking away immediately.
+    /// </summary>
+    [Fact]
+    public void Update_SystemRecovers_ReturnsToIdleAndRestartsDwell()
+    {
+        // Arrange
+        _machine.Update(Strained);
+        _clock.Advance(TimeSpan.FromMinutes(10));
+
+        // Act
+        var state = _machine.Update(Active);
+
+        // Assert
+        state.Should().Be(PetState.Idle);
+    }
+
+    /// <summary>
+    /// Falling asleep outranks being tired.
+    /// </summary>
+    [Fact]
+    public void Update_UserAwayAndSystemStrained_Sleeps()
+    {
+        // Act
+        var state = _machine.Update(new PetInputs(SleepAfter, IsSystemStrained: true));
+
+        // Assert
+        state.Should().Be(PetState.Sleep);
+    }
+
+    /// <summary>
+    /// A pet that wakes up while the system is still strained is tired on the next update.
+    /// </summary>
+    [Fact]
+    public void Update_WakesWhileSystemStrained_ThenBecomesTired()
+    {
+        // Arrange
+        _machine.Update(new PetInputs(SleepAfter, IsSystemStrained: true));
+        _machine.Update(Strained);
+
+        // Act
+        var state = _machine.Update(Strained);
+
+        // Assert
+        state.Should().Be(PetState.Tired);
+    }
+
+    /// <summary>
+    /// Being dragged outranks being tired.
+    /// </summary>
+    [Fact]
+    public void Update_DraggingAndSystemStrained_StaysDrag()
+    {
+        // Arrange
+        _machine.OnDragStarted();
+
+        // Act
+        var state = _machine.Update(Strained);
+
+        // Assert
+        state.Should().Be(PetState.Drag);
+    }
+
+    /// <summary>
+    /// A click cheers up a tired pet for the happy duration.
+    /// </summary>
+    [Fact]
+    public void OnClicked_Tired_EntersHappy()
+    {
+        // Arrange
+        _machine.Update(Strained);
+
+        // Act
+        _machine.OnClicked();
+
+        // Assert
+        _machine.State.Should().Be(PetState.Happy);
+        _machine.Update(Strained).Should().Be(PetState.Happy);
+    }
+
+    /// <summary>
+    /// After the happy moment passes, a still-strained system makes the pet tired again.
+    /// </summary>
+    [Fact]
+    public void Update_HappyEndsWhileSystemStrained_BecomesTiredAgain()
+    {
+        // Arrange
+        _machine.OnClicked();
+        _clock.Advance(HappyDuration);
+
+        // Act
+        var state = _machine.Update(Strained);
+
+        // Assert
+        state.Should().Be(PetState.Tired);
     }
 }

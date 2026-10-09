@@ -23,7 +23,8 @@ public sealed class PetBehaviorStateMachine
     private readonly Random _random;
 
     /// <summary>
-    /// The moment at which the current timed state (Idle, Walk, Happy) ends.
+    /// The moment at which the current timed state (Idle, Walk, Happy) ends. Sleep, Drag and Tired last until
+    /// their cause goes away, so they have no end time.
     /// </summary>
     private DateTimeOffset _stateEndsAt;
 
@@ -63,22 +64,23 @@ public sealed class PetBehaviorStateMachine
     public int WalkDirection { get; private set; } = 1;
 
     /// <summary>
-    /// Re-evaluates the state for the current time and user presence.
+    /// Re-evaluates the state for the current time and the given inputs. Priority, highest first:
+    /// Drag, Sleep, Happy, Tired, then the Idle/Walk cycle.
     /// </summary>
-    /// <param name="userIdle">
-    /// How long the user has had no keyboard or mouse input.
+    /// <param name="inputs">
+    /// The current user presence and system condition.
     /// </param>
     /// <returns>
     /// The state after the update.
     /// </returns>
-    public PetState Update(TimeSpan userIdle)
+    public PetState Update(PetInputs inputs)
     {
         if (State == PetState.Drag)
         {
             return State;
         }
 
-        if (userIdle >= _options.SleepAfter)
+        if (inputs.UserIdle >= _options.SleepAfter)
         {
             if (State != PetState.Sleep)
             {
@@ -94,7 +96,29 @@ public sealed class PetBehaviorStateMachine
             return State;
         }
 
-        if (_timeProvider.GetUtcNow() >= _stateEndsAt)
+        var now = _timeProvider.GetUtcNow();
+        if (State == PetState.Happy && now < _stateEndsAt)
+        {
+            return State;
+        }
+
+        if (inputs.IsSystemStrained)
+        {
+            if (State != PetState.Tired)
+            {
+                Enter(PetState.Tired);
+            }
+
+            return State;
+        }
+
+        if (State == PetState.Tired)
+        {
+            Enter(PetState.Idle);
+            return State;
+        }
+
+        if (now >= _stateEndsAt)
         {
             Enter(State == PetState.Idle ? PetState.Walk : PetState.Idle);
         }
