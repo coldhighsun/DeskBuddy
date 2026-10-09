@@ -66,6 +66,11 @@ public partial class App : System.Windows.Application
     private IHost? _host;
 
     /// <summary>
+    /// Switches the skin when the setting changes; <see langword="null"/> until startup completes.
+    /// </summary>
+    private SkinSwitcher? _skinSwitcher;
+
+    /// <summary>
     /// The global boss-key shortcut; <see langword="null"/> until startup completes.
     /// </summary>
     private BossKeyController? _bossKey;
@@ -121,6 +126,7 @@ public partial class App : System.Windows.Application
         builder.Services.AddSingleton(loadOptions);
         builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddSingleton<ISkinLoader, FolderSkinLoader>();
+        builder.Services.AddSingleton<ISkinCatalog>(_ => new FolderSkinCatalog(Path.Combine(AppContext.BaseDirectory, "skins")));
         builder.Services.AddSingleton<IIdleDetector, Win32IdleDetector>();
         builder.Services.AddSingleton<ISystemLoadMonitor, WindowsSystemLoadMonitor>();
         builder.Services.AddSingleton<LoadReactionPolicy>();
@@ -200,6 +206,14 @@ public partial class App : System.Windows.Application
                 OpenPanel,
                 _host.Services.GetRequiredService<MovementSelector>());
             _petWindow.Show();
+            var petWindow = _petWindow;
+            _skinSwitcher = new SkinSwitcher(
+                _host.Services.GetRequiredService<SettingsService>(),
+                _host.Services.GetRequiredService<ISkinLoader>(),
+                Path.Combine(AppContext.BaseDirectory, "skins"),
+                skinName,
+                newSkin => petWindow.SetSkin(newSkin, new SkinFrameCache(newSkin)),
+                _host.Services.GetRequiredService<ILogger<SkinSwitcher>>());
             _tray = new TrayIconService(brain, _petWindow.RefreshState, OpenPanel, ExitApplication);
 
             _hotkeys = new Win32HotkeyService();
@@ -223,6 +237,7 @@ public partial class App : System.Windows.Application
     /// <inheritdoc />
     protected override void OnExit(ExitEventArgs e)
     {
+        _skinSwitcher?.Dispose();
         _bossKey?.Dispose();
         _hotkeys?.Dispose();
         _tray?.Dispose();

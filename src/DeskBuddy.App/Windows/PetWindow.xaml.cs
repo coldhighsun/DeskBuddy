@@ -48,12 +48,12 @@ public partial class PetWindow : Window
     /// <summary>
     /// Plays the current animation of the skin.
     /// </summary>
-    private readonly AnimationPlayer _player;
+    private AnimationPlayer _player;
 
     /// <summary>
     /// Decoded frames of the skin.
     /// </summary>
-    private readonly SkinFrameCache _frames;
+    private SkinFrameCache _frames;
 
     /// <summary>
     /// Decides what the pet is doing.
@@ -238,6 +238,36 @@ public partial class PetWindow : Window
     public void RefreshState()
     {
         ApplyState(_brain.Tick());
+    }
+
+    /// <summary>
+    /// Replaces the skin while the window is showing. The pet keeps its feet where they were, so a skin of a different
+    /// size grows or shrinks upward, and is then kept inside the work area.
+    /// </summary>
+    /// <param name="skin">
+    /// The new skin.
+    /// </param>
+    /// <param name="frames">
+    /// Decoded frames of the new skin.
+    /// </param>
+    public void SetSkin(Skin skin, SkinFrameCache frames)
+    {
+        ArgumentNullException.ThrowIfNull(skin);
+        ArgumentNullException.ThrowIfNull(frames);
+
+        _player = new AnimationPlayer(skin);
+        _player.SetState(_shownState);
+        _frames = frames;
+
+        var bottom = Top + Height;
+        Width = skin.FrameWidth;
+        Height = skin.FrameHeight;
+        Top = bottom - Height;
+
+        ShowFrame();
+        _animationWatch.Restart();
+        _animationTimer.Interval = _player.Animation.FrameDuration;
+        SettleInWorkArea();
     }
 
     /// <summary>

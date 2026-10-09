@@ -1,0 +1,275 @@
+using System.IO;
+using DeskBuddy.Application;
+using DeskBuddy.Application.Abstractions;
+using DeskBuddy.Domain;
+using DeskBuddy.Domain.Behavior;
+using DeskBuddy.Domain.Chatter;
+using DeskBuddy.Domain.Messages;
+using DeskBuddy.Domain.Pomodoro;
+using DeskBuddy.Domain.Sedentary;
+using DeskBuddy.Domain.Settings;
+using DeskBuddy.Domain.Skins;
+using DeskBuddy.Domain.SystemLoad;
+using DeskBuddy.Domain.Visibility;
+using Microsoft.Extensions.Time.Testing;
+
+namespace DeskBuddy.App.Tests;
+
+/// <summary>
+/// In-memory settings storage that can be made to fail.
+/// </summary>
+internal sealed class FakeSettingsStore : ISettingsStore
+{
+    /// <summary>
+    /// Gets or sets the stored settings.
+    /// </summary>
+    public PetSettings Stored { get; set; } = PetSettings.Default;
+
+    /// <summary>
+    /// Gets or sets how many times <see cref="SaveAsync"/> succeeded.
+    /// </summary>
+    public int SaveCount { get; set; }
+
+    /// <summary>
+    /// Gets or sets an exception to throw from <see cref="LoadAsync"/>.
+    /// </summary>
+    public Exception? LoadException { get; set; }
+
+    /// <summary>
+    /// Gets or sets an exception to throw from <see cref="SaveAsync"/>.
+    /// </summary>
+    public Exception? SaveException { get; set; }
+
+    /// <inheritdoc />
+    public Task<PetSettings> LoadAsync(CancellationToken cancellationToken = default)
+    {
+        return LoadException is null ? Task.FromResult(Stored) : Task.FromException<PetSettings>(LoadException);
+    }
+
+    /// <inheritdoc />
+    public Task SaveAsync(PetSettings settings, CancellationToken cancellationToken = default)
+    {
+        if (SaveException is not null)
+        {
+            return Task.FromException(SaveException);
+        }
+
+        SaveCount++;
+        Stored = settings;
+        return Task.CompletedTask;
+    }
+}
+
+/// <summary>
+/// Hotkey registration stub that can be made to refuse shortcuts.
+/// </summary>
+internal sealed class FakeHotkeyService : IGlobalHotkeyService
+{
+    /// <inheritdoc />
+    public event EventHandler? Pressed
+    {
+        add { }
+        remove { }
+    }
+
+    /// <summary>
+    /// Gets the shortcuts that were registered successfully, in order.
+    /// </summary>
+    public List<HotkeyGesture> Registrations { get; } = [];
+
+    /// <summary>
+    /// Gets or sets the shortcuts another program is said to use, which cannot be registered.
+    /// </summary>
+    public HashSet<HotkeyGesture> Taken { get; } = [];
+
+    /// <inheritdoc />
+    public bool TryRegister(HotkeyGesture gesture, out string? error)
+    {
+        if (Taken.Contains(gesture))
+        {
+            error = "already in use";
+            return false;
+        }
+
+        Registrations.Add(gesture);
+        error = null;
+        return true;
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+    }
+}
+
+/// <summary>
+/// Start-at-sign-in stub backed by a flag.
+/// </summary>
+internal sealed class FakeAutoStartService : IAutoStartService
+{
+    /// <summary>
+    /// Gets or sets whether the application is registered to start at sign-in.
+    /// </summary>
+    public bool Enabled { get; set; }
+
+    /// <summary>
+    /// Gets or sets why a change is refused; <see langword="null"/> lets changes through.
+    /// </summary>
+    public string? Refusal { get; set; }
+
+    /// <inheritdoc />
+    public bool IsEnabled()
+    {
+        return Enabled;
+    }
+
+    /// <inheritdoc />
+    public bool TrySet(bool enabled, out string? error)
+    {
+        error = Refusal;
+        if (Refusal is not null)
+        {
+            return false;
+        }
+
+        Enabled = enabled;
+        return true;
+    }
+}
+
+/// <summary>
+/// Skin catalog stub with a fixed list.
+/// </summary>
+/// <param name="names">
+/// The skin names to report.
+/// </param>
+internal sealed class FakeSkinCatalog(params string[] names) : ISkinCatalog
+{
+    /// <inheritdoc />
+    public IReadOnlyList<string> GetSkinNames()
+    {
+        return names;
+    }
+}
+
+/// <summary>
+/// Skin loader stub that loads skins named in advance and fails for any other.
+/// </summary>
+internal sealed class FakeSkinLoader : ISkinLoader
+{
+    /// <summary>
+    /// Gets the names of the skin folders that were asked for, in order.
+    /// </summary>
+    public List<string> Requested { get; } = [];
+
+    /// <summary>
+    /// Gets the names of the skins that load successfully.
+    /// </summary>
+    public HashSet<string> Available { get; } = [];
+
+    /// <summary>
+    /// Gets or sets a gate each load waits on, to hold a load back; <see langword="null"/> loads at once.
+    /// </summary>
+    public Dictionary<string, TaskCompletionSource> Gates { get; } = [];
+
+    /// <inheritdoc />
+    public async Task<Skin> LoadAsync(string skinDirectory, CancellationToken cancellationToken = default)
+    {
+        var name = Path.GetFileName(skinDirectory);
+        Requested.Add(name);
+
+        if (Gates.TryGetValue(name, out var gate))
+        {
+            await gate.Task;
+        }
+
+        if (!Available.Contains(name))
+        {
+            throw new InvalidDataException($"Skin '{name}' is broken.");
+        }
+
+        return CreateSkin(name);
+    }
+
+    /// <summary>
+    /// Creates a minimal skin.
+    /// </summary>
+    /// <param name="name">
+    /// The skin name.
+    /// </param>
+    /// <returns>
+    /// A skin with a single idle frame.
+    /// </returns>
+    public static Skin CreateSkin(string name)
+    {
+        var animations = new Dictionary<PetState, SkinAnimation>
+        {
+            [PetState.Idle] = new SkinAnimation(4, ["idle.png"]),
+        };
+        return new Skin(name, 128, 128, animations);
+    }
+}
+
+/// <summary>
+/// Builds the objects the settings tests need.
+/// </summary>
+internal static class TestBrain
+{
+    /// <summary>
+    /// Creates a brain with quiet fake sensors.
+    /// </summary>
+    /// <returns>
+    /// The brain.
+    /// </returns>
+    public static PetBrain Create()
+    {
+        var clock = new FakeTimeProvider();
+        return new PetBrain(
+            new QuietIdle(),
+            new QuietLoad(),
+            new LoadReactionPolicy(new SystemLoadOptions(), clock),
+            new QuietDetector(),
+            new PomodoroSession(new PomodoroOptions(), clock),
+            new SedentaryReminderPolicy(new SedentaryOptions(), clock),
+            new PetMessageQueue(TimeSpan.FromSeconds(30), clock),
+            new PetBehaviorStateMachine(new PetBehaviorOptions(), clock, new Random(1)),
+            new PetVisibility(clock, TimeSpan.FromSeconds(2)),
+            new ChatterPolicy(clock, new Random(1)));
+    }
+
+    /// <summary>
+    /// Idle sensor stub reporting an active user.
+    /// </summary>
+    private sealed class QuietIdle : IIdleDetector
+    {
+        /// <inheritdoc />
+        public TimeSpan GetIdleTime()
+        {
+            return TimeSpan.Zero;
+        }
+    }
+
+    /// <summary>
+    /// Load sensor stub reporting an idle machine.
+    /// </summary>
+    private sealed class QuietLoad : ISystemLoadMonitor
+    {
+        /// <inheritdoc />
+        public SystemLoadSnapshot GetSnapshot()
+        {
+            return default;
+        }
+    }
+
+    /// <summary>
+    /// Detector stub reporting nothing special.
+    /// </summary>
+    private sealed class QuietDetector : IFullscreenDetector
+    {
+        /// <inheritdoc />
+        public DoNotDisturbLevel GetLevel()
+        {
+            return DoNotDisturbLevel.None;
+        }
+    }
+}
