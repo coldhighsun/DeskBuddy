@@ -1,0 +1,11 @@
+﻿{
+  "name": "default",
+  "frameSize": [128, 128],
+  "states": {
+    "Idle":  { "fps": 2,  "frames": ["idle_0.png", "idle_1.png"] },
+    "Walk":  { "fps": 8,  "frames": ["walk_0.png", "walk_1.png", "walk_2.png", "walk_3.png"] },
+    "Sleep": { "fps": 1,  "frames": ["sleep_0.png", "sleep_1.png"] },
+    "Drag":  { "fps": 6,  "frames": ["drag_0.png", "drag_1.png"] },
+    "Happy": { "fps": 5,  "frames": ["happy_0.png", "happy_1.png"] }
+  }
+}
