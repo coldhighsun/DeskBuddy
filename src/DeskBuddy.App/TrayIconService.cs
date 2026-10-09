@@ -25,11 +25,6 @@ public sealed class TrayIconService : IDisposable
     private readonly PetBrain _brain;
 
     /// <summary>
-    /// The pet window whose visibility is controlled from the tray.
-    /// </summary>
-    private readonly Window _petWindow;
-
-    /// <summary>
     /// Called after any pomodoro command so the pet reacts immediately.
     /// </summary>
     private readonly Action _afterCommand;
@@ -47,9 +42,6 @@ public sealed class TrayIconService : IDisposable
     /// <summary>
     /// Initializes a new instance of the <see cref="TrayIconService"/> class and shows the icon.
     /// </summary>
-    /// <param name="petWindow">
-    /// The pet window whose visibility is controlled from the tray.
-    /// </param>
     /// <param name="brain">
     /// The brain whose pomodoro the menu controls.
     /// </param>
@@ -62,9 +54,8 @@ public sealed class TrayIconService : IDisposable
     /// <param name="onExit">
     /// Callback invoked when the user chooses Exit.
     /// </param>
-    public TrayIconService(Window petWindow, PetBrain brain, Action afterCommand, Action openPanel, Action onExit)
+    public TrayIconService(PetBrain brain, Action afterCommand, Action openPanel, Action onExit)
     {
-        _petWindow = petWindow;
         _brain = brain;
         _afterCommand = afterCommand;
         _openPanel = openPanel;
@@ -86,7 +77,7 @@ public sealed class TrayIconService : IDisposable
 
         // The menu and tooltip depend on pet visibility and on the pomodoro; rebuild them when either changes.
         _brain.PomodoroStatusChanged += OnStatusChanged;
-        _petWindow.IsVisibleChanged += OnVisibleChanged;
+        _brain.VisibilityChanged += OnStatusChanged;
         _icon.TrayMouseDoubleClick += OnTrayDoubleClick;
     }
 
@@ -94,7 +85,7 @@ public sealed class TrayIconService : IDisposable
     public void Dispose()
     {
         _brain.PomodoroStatusChanged -= OnStatusChanged;
-        _petWindow.IsVisibleChanged -= OnVisibleChanged;
+        _brain.VisibilityChanged -= OnStatusChanged;
         _icon.Dispose();
     }
 
@@ -113,20 +104,6 @@ public sealed class TrayIconService : IDisposable
     }
 
     /// <summary>
-    /// Rebuilds the menu when the pet is shown or hidden, so the toggle item reads correctly.
-    /// </summary>
-    /// <param name="sender">
-    /// The event source.
-    /// </param>
-    /// <param name="e">
-    /// Event data.
-    /// </param>
-    private void OnVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
-    {
-        Refresh();
-    }
-
-    /// <summary>
     /// Rebuilds the menu and tooltip when something they show has changed.
     /// </summary>
     /// <param name="sender">
@@ -141,7 +118,7 @@ public sealed class TrayIconService : IDisposable
     }
 
     /// <summary>
-    /// Rebuilds the tooltip and the context menu from the current pomodoro status and pet visibility.
+    /// Rebuilds the tooltip and the context menu from the current pomodoro status and whether the user hid the pet.
     /// </summary>
     private void Refresh()
     {
@@ -160,7 +137,7 @@ public sealed class TrayIconService : IDisposable
 
         items.Add(new Separator());
 
-        var toggle = new MenuItem { Header = _petWindow.IsVisible ? Strings.TrayHidePet : Strings.TrayShowPet };
+        var toggle = new MenuItem { Header = _brain.Visibility.IsManuallyHidden ? Strings.TrayShowPet : Strings.TrayHidePet };
         toggle.Click += (_, _) => ToggleVisibility();
         items.Add(toggle);
 
@@ -170,17 +147,10 @@ public sealed class TrayIconService : IDisposable
     }
 
     /// <summary>
-    /// Shows the pet if hidden and hides it if shown.
+    /// Hides the pet if the user has not hidden it, and shows it again otherwise.
     /// </summary>
     private void ToggleVisibility()
     {
-        if (_petWindow.IsVisible)
-        {
-            _petWindow.Hide();
-        }
-        else
-        {
-            _petWindow.Show();
-        }
+        _brain.ToggleManuallyHidden();
     }
 }

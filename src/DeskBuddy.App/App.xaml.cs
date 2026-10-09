@@ -1,5 +1,6 @@
 using System.IO;
 using System.Windows;
+using DeskBuddy.App.Interop;
 using DeskBuddy.App.Rendering;
 using DeskBuddy.App.ViewModels;
 using DeskBuddy.App.Windows;
@@ -61,6 +62,16 @@ public partial class App : System.Windows.Application
     /// The generic host providing DI and logging; <see langword="null"/> until startup.
     /// </summary>
     private IHost? _host;
+
+    /// <summary>
+    /// The global boss-key shortcut; <see langword="null"/> until startup completes.
+    /// </summary>
+    private BossKeyController? _bossKey;
+
+    /// <summary>
+    /// Registers the boss-key shortcut with the system; <see langword="null"/> until startup completes.
+    /// </summary>
+    private Win32HotkeyService? _hotkeys;
 
     /// <summary>
     /// The tray icon; <see langword="null"/> until startup completes.
@@ -170,7 +181,17 @@ public partial class App : System.Windows.Application
             var brain = _host.Services.GetRequiredService<PetBrain>();
             _petWindow = new PetWindow(skin, new SkinFrameCache(skin), brain, behaviorOptions, OpenPanel);
             _petWindow.Show();
-            _tray = new TrayIconService(_petWindow, brain, _petWindow.RefreshState, OpenPanel, ExitApplication);
+            _tray = new TrayIconService(brain, _petWindow.RefreshState, OpenPanel, ExitApplication);
+
+            _hotkeys = new Win32HotkeyService();
+            _bossKey = new BossKeyController(_host.Services.GetRequiredService<SettingsService>(), _hotkeys, brain);
+            if (_bossKey.RegistrationError is { } hotkeyError)
+            {
+                logger.LogWarning(
+                    "The boss key {Gesture} could not be registered: {Error}",
+                    _host.Services.GetRequiredService<SettingsService>().Current.BossKey,
+                    hotkeyError);
+            }
         }
         catch (InvalidDataException ex)
         {
@@ -183,6 +204,8 @@ public partial class App : System.Windows.Application
     /// <inheritdoc />
     protected override void OnExit(ExitEventArgs e)
     {
+        _bossKey?.Dispose();
+        _hotkeys?.Dispose();
         _tray?.Dispose();
 
         if (_host is not null)

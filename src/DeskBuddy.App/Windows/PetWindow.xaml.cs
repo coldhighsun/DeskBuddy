@@ -194,6 +194,7 @@ public partial class PetWindow : Window
             _brainTimer.Stop();
             _moveTimer.Stop();
             _brain.MessageChanged -= OnMessageChanged;
+            _brain.VisibilityChanged -= OnVisibilityChanged;
             _bubble?.Close();
         };
 
@@ -202,6 +203,7 @@ public partial class PetWindow : Window
         MouseLeftButtonUp += OnMouseLeftButtonUp;
 
         _brain.MessageChanged += OnMessageChanged;
+        _brain.VisibilityChanged += OnVisibilityChanged;
         IsVisibleChanged += (_, _) => OnMessageChanged(this, EventArgs.Empty);
         LocationChanged += (_, _) => RepositionBubble();
 
@@ -329,12 +331,57 @@ public partial class PetWindow : Window
             _direction = _brain.WalkDirection;
             ApplyFacing();
             _moveTicksSinceWorkAreaRefresh = 0;
-            _moveWatch.Restart();
-            _moveTimer.Start();
+            StartMoveTimerIfVisible();
         }
         else
         {
             _moveTimer.Stop();
+        }
+    }
+
+    /// <summary>
+    /// Starts the walking timer, unless the pet is hidden; showing the pet again restarts it.
+    /// </summary>
+    private void StartMoveTimerIfVisible()
+    {
+        if (IsVisible)
+        {
+            _moveWatch.Restart();
+            _moveTimer.Start();
+        }
+    }
+
+    /// <summary>
+    /// Shows or hides the window to match the brain's visibility. While hidden the animation and walking timers are
+    /// stopped, so a hidden pet costs next to nothing; the brain timer keeps running because the pomodoro and the
+    /// check for the full-screen application going away depend on it.
+    /// </summary>
+    /// <param name="sender">
+    /// The event source.
+    /// </param>
+    /// <param name="e">
+    /// Event data.
+    /// </param>
+    private void OnVisibilityChanged(object? sender, EventArgs e)
+    {
+        if (_brain.Visibility.IsVisible)
+        {
+            if (!IsVisible)
+            {
+                Show();
+                _animationWatch.Restart();
+                _animationTimer.Start();
+                if (_shownState == PetState.Walk)
+                {
+                    StartMoveTimerIfVisible();
+                }
+            }
+        }
+        else if (IsVisible)
+        {
+            _animationTimer.Stop();
+            _moveTimer.Stop();
+            Hide();
         }
     }
 
@@ -460,7 +507,7 @@ public partial class PetWindow : Window
 
         items.Add(new Separator());
         var hide = new MenuItem { Header = Strings.TrayHidePet };
-        hide.Click += (_, _) => Hide();
+        hide.Click += (_, _) => _brain.SetManuallyHidden(true);
         items.Add(hide);
     }
 
