@@ -1,6 +1,7 @@
 using AwesomeAssertions;
 using DeskBuddy.Application.Abstractions;
 using DeskBuddy.Domain.Behavior;
+using DeskBuddy.Domain.Chatter;
 using DeskBuddy.Domain.Pomodoro;
 using DeskBuddy.Domain.Sedentary;
 using DeskBuddy.Domain.Messages;
@@ -51,7 +52,8 @@ public class BossKeyControllerTests
             new SedentaryReminderPolicy(new SedentaryOptions(), clock),
             new PetMessageQueue(TimeSpan.FromSeconds(30), clock),
             new PetBehaviorStateMachine(new PetBehaviorOptions(), clock, new Random(1)),
-            new PetVisibility(clock, TimeSpan.FromSeconds(2)));
+            new PetVisibility(clock, TimeSpan.FromSeconds(2)),
+            new ChatterPolicy(clock, new Random(1)));
     }
 
     /// <summary>

@@ -1,5 +1,6 @@
 using DeskBuddy.Application.Abstractions;
 using DeskBuddy.Domain;
+using DeskBuddy.Domain.Chatter;
 using DeskBuddy.Domain.Behavior;
 using DeskBuddy.Domain.Messages;
 using DeskBuddy.Domain.Pomodoro;
@@ -40,6 +41,9 @@ namespace DeskBuddy.Application;
 /// <param name="visibility">
 /// Decides whether the pet is on screen.
 /// </param>
+/// <param name="chatter">
+/// Decides when the pet says something unprompted.
+/// </param>
 public sealed class PetBrain(
     IIdleDetector idleDetector,
     ISystemLoadMonitor loadMonitor,
@@ -49,8 +53,19 @@ public sealed class PetBrain(
     SedentaryReminderPolicy sedentary,
     PetMessageQueue messages,
     PetBehaviorStateMachine stateMachine,
-    PetVisibility visibility)
+    PetVisibility visibility,
+    ChatterPolicy chatter)
 {
+    /// <summary>
+    /// How long the user may be away from keyboard and mouse and still count as present for casual remarks.
+    /// </summary>
+    private static readonly TimeSpan ChatterPresenceLimit = TimeSpan.FromMinutes(1);
+
+    /// <summary>
+    /// How long a casual remark stays up; much shorter than a reminder, since there is nothing to act on.
+    /// </summary>
+    private static readonly TimeSpan ChatterLifetime = TimeSpan.FromSeconds(8);
+
     /// <summary>
     /// The pomodoro status last announced through <see cref="PomodoroStatusChanged"/>, to detect changes. The
     /// remaining time is rounded up to whole minutes, so the event fires about once a minute while a phase runs.
@@ -129,6 +144,19 @@ public sealed class PetBrain(
             VisibilityChanged?.Invoke(this, EventArgs.Empty);
         }
 
+        // A casual remark is only worth making when nothing else is on screen or waiting and the user is at the desk
+        // and not in a focused pomodoro.
+        var canChat = visibility.IsVisible
+            && level == DoNotDisturbLevel.None
+            && userIdle < ChatterPresenceLimit
+            && !(pomodoro.IsRunning && pomodoro.Phase == PomodoroPhase.Work)
+            && messages.Current is null
+            && messages.WaitingCount == 0;
+        if (chatter.Update(canChat) is { } remark)
+        {
+            messages.Enqueue(new PetMessage(PetMessageKind.Chatter, [], Count: remark, Lifetime: ChatterLifetime));
+        }
+
         if (messages.Update(level != DoNotDisturbLevel.None || !visibility.IsVisible))
         {
             MessageChanged?.Invoke(this, EventArgs.Empty);
@@ -140,7 +168,7 @@ public sealed class PetBrain(
             userIdle,
             isStrained,
             IsFocusing: pomodoro.IsRunning && pomodoro.Phase == PomodoroPhase.Work,
-            HasAlert: messages.Current is not null);
+            HasAlert: messages.Current is { Kind: not PetMessageKind.Chatter });
         return stateMachine.Update(inputs);
     }
 
@@ -218,6 +246,14 @@ public sealed class PetBrain(
         {
             MessageChanged?.Invoke(this, EventArgs.Empty);
         }
+    }
+
+    /// <summary>
+    /// Notifies the brain that the pet reached the mouse pointer it was chasing, which makes it happy.
+    /// </summary>
+    public void OnReachedPointer()
+    {
+        stateMachine.OnDelighted();
     }
 
     /// <summary>

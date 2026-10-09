@@ -2,6 +2,7 @@ using AwesomeAssertions;
 using DeskBuddy.Application.Abstractions;
 using DeskBuddy.Domain;
 using DeskBuddy.Domain.Behavior;
+using DeskBuddy.Domain.Chatter;
 using DeskBuddy.Domain.Messages;
 using DeskBuddy.Domain.Pomodoro;
 using DeskBuddy.Domain.Sedentary;
@@ -62,6 +63,11 @@ public class PetBrainTests
     private readonly PetVisibility _visibility;
 
     /// <summary>
+    /// The chatter policy the brain consults.
+    /// </summary>
+    private readonly ChatterPolicy _chatter;
+
+    /// <summary>
     /// The brain under test.
     /// </summary>
     private readonly PetBrain _brain;
@@ -79,6 +85,7 @@ public class PetBrainTests
             SnoozeDuration = TimeSpan.FromMinutes(3),
         };
         _visibility = new PetVisibility(_clock, RestoreDelay);
+        _chatter = new ChatterPolicy(_clock, new Random(1));
         _brain = new PetBrain(
             _idle,
             _load,
@@ -88,7 +95,8 @@ public class PetBrainTests
             new SedentaryReminderPolicy(sedentary, _clock),
             new PetMessageQueue(behavior.MessageDuration, _clock),
             new PetBehaviorStateMachine(behavior, _clock, new Random(1)),
-            _visibility);
+            _visibility,
+            _chatter);
     }
 
     /// <summary>
@@ -648,6 +656,130 @@ public class PetBrainTests
 
         // Assert
         _brain.Pomodoro.Phase.Should().Be(PomodoroPhase.ShortBreak);
+    }
+
+    /// <summary>
+    /// Runs the brain once a minute, dismissing reminders on the way, until a casual remark appears or the time is up.
+    /// </summary>
+    /// <param name="minutes">
+    /// How many minutes to run at most.
+    /// </param>
+    /// <param name="chatterEnabled">
+    /// Whether the chatter policy is switched on.
+    /// </param>
+    /// <param name="idle">
+    /// How long the user has been away from keyboard and mouse during the run.
+    /// </param>
+    /// <returns>
+    /// The first casual remark that appeared, if any.
+    /// </returns>
+    private PetMessage? RunUntilChatter(int minutes, bool chatterEnabled = true, TimeSpan idle = default)
+    {
+        _chatter.IsEnabled = chatterEnabled;
+        for (var minute = 0; minute < minutes; minute++)
+        {
+            _idle.IdleTime = idle;
+            _brain.Tick();
+            if (_brain.CurrentMessage is { Kind: PetMessageKind.Chatter } remark)
+            {
+                return remark;
+            }
+
+            _brain.DismissMessage();
+            _clock.Advance(TimeSpan.FromMinutes(1));
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// A roaming pet says something now and then, and it is shown briefly without raising the alert.
+    /// </summary>
+    [Fact]
+    public void Tick_ChatterEnabled_ShowsShortRemarkWithoutAlert()
+    {
+        // Act
+        var message = RunUntilChatter(20);
+
+        // Assert
+        message.Should().NotBeNull();
+        message!.Kind.Should().Be(PetMessageKind.Chatter);
+        message.Actions.Should().BeEmpty();
+        message.Lifetime.Should().Be(TimeSpan.FromSeconds(8));
+        _brain.State.Should().NotBe(PetState.Alert);
+    }
+
+    /// <summary>
+    /// A casual remark fades on its own after its short lifetime.
+    /// </summary>
+    [Fact]
+    public void Tick_ChatterShown_DisappearsAfterLifetime()
+    {
+        // Arrange
+        RunUntilChatter(20);
+
+        // Act
+        _clock.Advance(TimeSpan.FromSeconds(9));
+        _idle.IdleTime = TimeSpan.Zero;
+        _brain.Tick();
+
+        // Assert
+        _brain.CurrentMessage.Should().BeNull();
+    }
+
+    /// <summary>
+    /// The pet stays quiet while the chatter policy is off, however long it waits.
+    /// </summary>
+    [Fact]
+    public void Tick_ChatterDisabled_NeverSpeaks()
+    {
+        // Act
+        var message = RunUntilChatter(60, chatterEnabled: false);
+
+        // Assert
+        message.Should().BeNull();
+    }
+
+    /// <summary>
+    /// A running pomodoro work phase silences the pet.
+    /// </summary>
+    [Fact]
+    public void Tick_PomodoroWorkRunning_NoChatter()
+    {
+        // Arrange
+        _brain.StartPomodoro();
+
+        // Act
+        var message = RunUntilChatter(20);
+
+        // Assert
+        message.Should().BeNull();
+    }
+
+    /// <summary>
+    /// A user who is away is not spoken to.
+    /// </summary>
+    [Fact]
+    public void Tick_UserAway_NoChatter()
+    {
+        // Act
+        var message = RunUntilChatter(60, idle: TimeSpan.FromMinutes(2));
+
+        // Assert
+        message.Should().BeNull();
+    }
+
+    /// <summary>
+    /// Reaching the pointer makes the pet happy.
+    /// </summary>
+    [Fact]
+    public void OnReachedPointer_Idle_ThenHappy()
+    {
+        // Act
+        _brain.OnReachedPointer();
+
+        // Assert
+        _brain.State.Should().Be(PetState.Happy);
     }
 
     /// <summary>

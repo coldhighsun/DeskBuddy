@@ -7,7 +7,9 @@ using DeskBuddy.App.Windows;
 using DeskBuddy.Application;
 using DeskBuddy.Application.Abstractions;
 using DeskBuddy.Domain.Behavior;
+using DeskBuddy.Domain.Chatter;
 using DeskBuddy.Domain.Messages;
+using DeskBuddy.Domain.Movement;
 using DeskBuddy.Domain.Pomodoro;
 using DeskBuddy.Domain.Sedentary;
 using DeskBuddy.Domain.Settings;
@@ -100,6 +102,7 @@ public partial class App : System.Windows.Application
         var loadOptions = new SystemLoadOptions();
         var pomodoroOptions = new PomodoroOptions();
         var sedentaryOptions = new SedentaryOptions();
+        var roamOptions = new RoamOptions();
 
         // Timings can be forced through configuration, e.g. the environment variable Behavior__SleepAfter. These
         // overrides are for diagnostics and win over the user's saved settings, so they are re-applied after each change.
@@ -109,6 +112,7 @@ public partial class App : System.Windows.Application
             builder.Configuration.GetSection("SystemLoad").Bind(loadOptions);
             builder.Configuration.GetSection("Pomodoro").Bind(pomodoroOptions);
             builder.Configuration.GetSection("Sedentary").Bind(sedentaryOptions);
+            builder.Configuration.GetSection("Roam").Bind(roamOptions);
         }
 
         ApplyConfigurationOverrides();
@@ -121,6 +125,14 @@ public partial class App : System.Windows.Application
         builder.Services.AddSingleton<ISystemLoadMonitor, WindowsSystemLoadMonitor>();
         builder.Services.AddSingleton<LoadReactionPolicy>();
         builder.Services.AddSingleton<IFullscreenDetector, WindowsFullscreenDetector>();
+        builder.Services.AddSingleton(roamOptions);
+        builder.Services.AddSingleton(sp => new ChatterPolicy(sp.GetRequiredService<TimeProvider>(), Random.Shared));
+        builder.Services.AddSingleton<DockedMovement>();
+        builder.Services.AddSingleton(sp => new RoamMovement(
+            sp.GetRequiredService<RoamOptions>(),
+            sp.GetRequiredService<TimeProvider>(),
+            Random.Shared));
+        builder.Services.AddSingleton<MovementSelector>();
         builder.Services.AddSingleton(sp => new PetVisibility(sp.GetRequiredService<TimeProvider>(), PetRestoreDelay));
         builder.Services.AddSingleton(pomodoroOptions);
         builder.Services.AddSingleton<PomodoroSession>();
@@ -145,6 +157,7 @@ public partial class App : System.Windows.Application
             pomodoroOptions,
             sedentaryOptions,
             sp.GetRequiredService<PetVisibility>(),
+            sp.GetRequiredService<ChatterPolicy>(),
             ApplyConfigurationOverrides));
         builder.Services.AddSingleton<ITodoRepository>(sp => new JsonTodoRepository(
             dataDirectory,

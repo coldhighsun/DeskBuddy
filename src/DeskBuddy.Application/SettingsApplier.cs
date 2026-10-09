@@ -1,4 +1,5 @@
 using DeskBuddy.Domain.Behavior;
+using DeskBuddy.Domain.Chatter;
 using DeskBuddy.Domain.Pomodoro;
 using DeskBuddy.Domain.Sedentary;
 using DeskBuddy.Domain.Settings;
@@ -7,7 +8,7 @@ using DeskBuddy.Domain.Visibility;
 namespace DeskBuddy.Application;
 
 /// <summary>
-/// Copies the user's settings into the shared option objects the behavior, pomodoro, sedentary and visibility logic read from, at
+/// Copies the user's settings into the shared option objects the behavior, pomodoro, sedentary, visibility and chatter logic read from, at
 /// startup and after every change. Those classes read their options each time they need a value, so a change takes
 /// effect without a restart; what is already running keeps its schedule (a pomodoro phase in progress keeps its end
 /// time) and the new value applies from the next one.
@@ -35,6 +36,11 @@ public sealed class SettingsApplier
     private readonly PetVisibility _visibility;
 
     /// <summary>
+    /// The policy for unprompted remarks to update.
+    /// </summary>
+    private readonly ChatterPolicy _chatter;
+
+    /// <summary>
     /// Runs after the settings were copied, to put back values that are forced from outside (such as configuration
     /// overrides used for diagnostics); <see langword="null"/> if there are none.
     /// </summary>
@@ -58,6 +64,9 @@ public sealed class SettingsApplier
     /// <param name="visibility">
     /// The visibility rules to update.
     /// </param>
+    /// <param name="chatter">
+    /// The policy for unprompted remarks to update.
+    /// </param>
     /// <param name="reapplyOverrides">
     /// Runs after each application of the settings; <see langword="null"/> if nothing overrides them.
     /// </param>
@@ -67,6 +76,7 @@ public sealed class SettingsApplier
         PomodoroOptions pomodoro,
         SedentaryOptions sedentary,
         PetVisibility visibility,
+        ChatterPolicy chatter,
         Action? reapplyOverrides = null)
     {
         ArgumentNullException.ThrowIfNull(settings);
@@ -74,11 +84,13 @@ public sealed class SettingsApplier
         ArgumentNullException.ThrowIfNull(pomodoro);
         ArgumentNullException.ThrowIfNull(sedentary);
         ArgumentNullException.ThrowIfNull(visibility);
+        ArgumentNullException.ThrowIfNull(chatter);
 
         _behavior = behavior;
         _pomodoro = pomodoro;
         _sedentary = sedentary;
         _visibility = visibility;
+        _chatter = chatter;
         _reapplyOverrides = reapplyOverrides;
 
         Apply(settings.Current);
@@ -99,6 +111,7 @@ public sealed class SettingsApplier
         _pomodoro.LongBreakDuration = settings.PomodoroLongBreak;
         _sedentary.ReminderAfter = settings.SedentaryReminderAfter;
         _visibility.AutoHideEnabled = settings.AutoHideWhenFullscreen;
+        _chatter.IsEnabled = settings.Mode == DisturbanceMode.Roam;
 
         _reapplyOverrides?.Invoke();
     }
