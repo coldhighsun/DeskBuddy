@@ -56,6 +56,7 @@ public static class MessagePresenter
                 CultureInfo.CurrentCulture,
                 Strings.MessageSedentary,
                 WholeMinutes(message.Duration ?? TimeSpan.Zero)),
+            PetMessageKind.Chatter => Strings.Chatter(message.Count ?? 0),
             _ => string.Empty,
         };
 

@@ -13,6 +13,7 @@ using DeskBuddy.Application;
 using DeskBuddy.Domain;
 using DeskBuddy.Domain.Behavior;
 using DeskBuddy.Domain.Messages;
+using DeskBuddy.Domain.Movement;
 using DeskBuddy.Domain.Skins;
 
 namespace DeskBuddy.App.Windows;
@@ -101,6 +102,11 @@ public partial class PetWindow : Window
     private readonly Action _openPanel;
 
     /// <summary>
+    /// Picks how the pet moves for the current disturbance mode.
+    /// </summary>
+    private readonly MovementSelector _movement;
+
+    /// <summary>
     /// The speech bubble, created the first time a message needs showing.
     /// </summary>
     private BubbleWindow? _bubble;
@@ -121,9 +127,9 @@ public partial class PetWindow : Window
     private PetState _shownState = PetState.Idle;
 
     /// <summary>
-    /// Walking direction: <c>-1</c> for left, <c>1</c> for right. Also determines which way the sprite faces.
+    /// Which way the sprite faces: <c>-1</c> for left, <c>1</c> for right.
     /// </summary>
-    private int _direction = 1;
+    private int _facing = 1;
 
     /// <summary>
     /// Whether the left mouse button is currently held on the pet.
@@ -163,7 +169,16 @@ public partial class PetWindow : Window
     /// <param name="openPanel">
     /// Opens the panel window; called on double-click and from the context menu.
     /// </param>
-    public PetWindow(Skin skin, SkinFrameCache frames, PetBrain brain, PetBehaviorOptions options, Action openPanel)
+    /// <param name="movement">
+    /// Picks how the pet moves for the current disturbance mode.
+    /// </param>
+    public PetWindow(
+        Skin skin,
+        SkinFrameCache frames,
+        PetBrain brain,
+        PetBehaviorOptions options,
+        Action openPanel,
+        MovementSelector movement)
     {
         InitializeComponent();
 
@@ -172,6 +187,7 @@ public partial class PetWindow : Window
         _brain = brain;
         _options = options;
         _openPanel = openPanel;
+        _movement = movement;
 
         Width = skin.FrameWidth;
         Height = skin.FrameHeight;
@@ -195,6 +211,7 @@ public partial class PetWindow : Window
             _moveTimer.Stop();
             _brain.MessageChanged -= OnMessageChanged;
             _brain.VisibilityChanged -= OnVisibilityChanged;
+            _movement.ModeChanged -= OnMovementModeChanged;
             _bubble?.Close();
         };
 
@@ -204,6 +221,7 @@ public partial class PetWindow : Window
 
         _brain.MessageChanged += OnMessageChanged;
         _brain.VisibilityChanged += OnVisibilityChanged;
+        _movement.ModeChanged += OnMovementModeChanged;
         IsVisibleChanged += (_, _) => OnMessageChanged(this, EventArgs.Empty);
         LocationChanged += (_, _) => RepositionBubble();
 
@@ -328,9 +346,7 @@ public partial class PetWindow : Window
 
         if (state == PetState.Walk)
         {
-            _direction = _brain.WalkDirection;
-            ApplyFacing();
-            _moveTicksSinceWorkAreaRefresh = 0;
+            BeginWalk();
             StartMoveTimerIfVisible();
         }
         else
@@ -390,7 +406,77 @@ public partial class PetWindow : Window
     /// </summary>
     private void ApplyFacing()
     {
-        FlipTransform.ScaleX = _direction < 0 ? -1 : 1;
+        FlipTransform.ScaleX = _facing < 0 ? -1 : 1;
+    }
+
+    /// <summary>
+    /// Describes where the pet is and where it may go, for the movement strategy.
+    /// </summary>
+    /// <returns>
+    /// The context, using the cached work area.
+    /// </returns>
+    private MovementContext CreateMovementContext()
+    {
+        var bounds = new MovementBounds(
+            _workArea.Left,
+            _workArea.Right - Width,
+            _workArea.Top,
+            _workArea.Bottom - Height);
+        return new MovementContext(
+            new Point2(Left, Top),
+            new Point2(Width, Height),
+            bounds,
+            ToPoint2(MonitorHelper.GetCursorPositionDip(this)),
+            _options.WalkSpeed);
+    }
+
+    /// <summary>
+    /// Converts a WPF point.
+    /// </summary>
+    /// <param name="point">
+    /// The point to convert.
+    /// </param>
+    /// <returns>
+    /// The same point as a <see cref="Point2"/>.
+    /// </returns>
+    private static Point2 ToPoint2(Point point)
+    {
+        return new Point2(point.X, point.Y);
+    }
+
+    /// <summary>
+    /// Lets the movement strategy prepare a new walk and turns the sprite the way it will go.
+    /// </summary>
+    private void BeginWalk()
+    {
+        _workArea = MonitorHelper.GetWorkAreaDip(this);
+        _moveTicksSinceWorkAreaRefresh = 0;
+        _facing = _movement.Current.BeginWalk(CreateMovementContext(), _brain.WalkDirection);
+        ApplyFacing();
+    }
+
+    /// <summary>
+    /// Puts the pet where the current mode wants it after the mode changed: back on the taskbar line when docked, and
+    /// into a fresh walk when it is mid-walk, so the new strategy takes over cleanly.
+    /// </summary>
+    /// <param name="sender">
+    /// The event source.
+    /// </param>
+    /// <param name="e">
+    /// Event data.
+    /// </param>
+    private void OnMovementModeChanged(object? sender, EventArgs e)
+    {
+        if (_dragging)
+        {
+            return;
+        }
+
+        SettleInWorkArea();
+        if (_shownState == PetState.Walk)
+        {
+            BeginWalk();
+        }
     }
 
     /// <summary>
@@ -512,7 +598,7 @@ public partial class PetWindow : Window
     }
 
     /// <summary>
-    /// Moves the pet along the bottom of the work area, turning around at its ends.
+    /// Moves the pet one step as the movement strategy of the current mode directs.
     /// </summary>
     /// <param name="sender">
     /// The event source.
@@ -532,27 +618,29 @@ public partial class PetWindow : Window
             _workArea = MonitorHelper.GetWorkAreaDip(this);
         }
 
-        var (x, direction) = WalkMovement.Step(
-            Left,
-            _direction,
-            _options.WalkSpeed,
-            delta,
-            _workArea.Left,
-            _workArea.Right - Width);
+        var step = _movement.Current.Step(CreateMovementContext(), delta);
 
-        // Each of Left/Top costs a SetWindowPos call, so only touch Top when it actually changed.
-        var top = _workArea.Bottom - Height;
-        if (Math.Abs(Top - top) > 0.5)
+        // Each of Left/Top costs a SetWindowPos call, so only touch a coordinate when it actually changed.
+        if (Math.Abs(Top - step.Position.Y) > 0.5)
         {
-            Top = top;
+            Top = step.Position.Y;
         }
 
-        Left = x;
-
-        if (direction != _direction)
+        if (Math.Abs(Left - step.Position.X) > 0.01)
         {
-            _direction = direction;
+            Left = step.Position.X;
+        }
+
+        if (step.Facing != _facing)
+        {
+            _facing = step.Facing;
             ApplyFacing();
+        }
+
+        if (step.Arrived)
+        {
+            _brain.OnReachedPointer();
+            ApplyState(_brain.State);
         }
     }
 
@@ -620,7 +708,7 @@ public partial class PetWindow : Window
     }
 
     /// <summary>
-    /// Ends a press: a drop snaps the pet back onto the taskbar line, a short press counts as a click.
+    /// Ends a press: a drop settles the pet where its mode lets it rest, a short press counts as a click.
     /// </summary>
     /// <param name="sender">
     /// The event source.
@@ -642,7 +730,7 @@ public partial class PetWindow : Window
         {
             _dragging = false;
             _brain.OnDragEnded();
-            SnapToTaskbar();
+            SettleInWorkArea();
         }
         else
         {
@@ -653,12 +741,14 @@ public partial class PetWindow : Window
     }
 
     /// <summary>
-    /// Places the pet on the taskbar line of the monitor it was dropped on, keeping it fully on that monitor.
+    /// Puts the pet where the current mode lets it rest, on the monitor it is on: on the taskbar line when docked,
+    /// anywhere inside the work area when roaming.
     /// </summary>
-    private void SnapToTaskbar()
+    private void SettleInWorkArea()
     {
-        var workArea = MonitorHelper.GetWorkAreaDip(this);
-        Left = Math.Clamp(Left, workArea.Left, Math.Max(workArea.Left, workArea.Right - Width));
-        Top = workArea.Bottom - Height;
+        _workArea = MonitorHelper.GetWorkAreaDip(this);
+        var rest = _movement.Current.Settle(new Point2(Left, Top), CreateMovementContext().Bounds);
+        Left = rest.X;
+        Top = rest.Y;
     }
 }

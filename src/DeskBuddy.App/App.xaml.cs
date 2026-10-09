@@ -192,7 +192,13 @@ public partial class App : System.Windows.Application
             var skin = await _host.Services.GetRequiredService<ISkinLoader>().LoadAsync(skinDirectory);
 
             var brain = _host.Services.GetRequiredService<PetBrain>();
-            _petWindow = new PetWindow(skin, new SkinFrameCache(skin), brain, behaviorOptions, OpenPanel);
+            _petWindow = new PetWindow(
+                skin,
+                new SkinFrameCache(skin),
+                brain,
+                behaviorOptions,
+                OpenPanel,
+                _host.Services.GetRequiredService<MovementSelector>());
             _petWindow.Show();
             _tray = new TrayIconService(brain, _petWindow.RefreshState, OpenPanel, ExitApplication);
 

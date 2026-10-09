@@ -59,6 +59,15 @@
 
   <data name="MessageSedentary" xml:space="preserve"><value>你已经连续工作 {0} 分钟了，起来活动一下、喝口水吧～</value></data>
 
+  <data name="Chatter0" xml:space="preserve"><value>今天也要加油哦～</value></data>
+  <data name="Chatter1" xml:space="preserve"><value>喝口水吧，我帮你看着屏幕～</value></data>
+  <data name="Chatter2" xml:space="preserve"><value>你敲键盘的样子真认真！</value></data>
+  <data name="Chatter3" xml:space="preserve"><value>我在桌面上巡逻，一切正常。</value></data>
+  <data name="Chatter4" xml:space="preserve"><value>坐直一点，挺胸抬头～</value></data>
+  <data name="Chatter5" xml:space="preserve"><value>眼睛累了就看看远处吧。</value></data>
+  <data name="Chatter6" xml:space="preserve"><value>不用理我，继续忙吧！</value></data>
+  <data name="Chatter7" xml:space="preserve"><value>有我陪着你，不孤单～</value></data>
+
   <data name="ActionDismiss" xml:space="preserve"><value>知道了</value></data>
   <data name="ActionSnoozeReminder" xml:space="preserve"><value>稍后提醒</value></data>
   <data name="ActionSkipBreak" xml:space="preserve"><value>跳过休息</value></data>

@@ -202,6 +202,22 @@ internal static class Strings
     public static string ActionStartPomodoro => Get();
 
     /// <summary>
+    /// Gets one of the pet's casual remarks.
+    /// </summary>
+    /// <param name="index">
+    /// Which remark, from 0 to <see cref="DeskBuddy.Domain.Chatter.ChatterPolicy.VariantCount"/> - 1; larger values
+    /// wrap around.
+    /// </param>
+    /// <returns>
+    /// The localized remark.
+    /// </returns>
+    public static string Chatter(int index)
+    {
+        var count = DeskBuddy.Domain.Chatter.ChatterPolicy.VariantCount;
+        return Get($"Chatter{((index % count) + count) % count}");
+    }
+
+    /// <summary>
     /// Looks up a string by the name of the calling property.
     /// </summary>
     /// <param name="key">
