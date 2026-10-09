@@ -5,6 +5,7 @@ using DeskBuddy.App.Windows;
 using DeskBuddy.Application;
 using DeskBuddy.Application.Abstractions;
 using DeskBuddy.Domain.Behavior;
+using DeskBuddy.Domain.SystemLoad;
 using DeskBuddy.Infrastructure.Sensors;
 using DeskBuddy.Infrastructure.Skins;
 using Microsoft.Extensions.Configuration;
@@ -62,10 +63,16 @@ public partial class App : System.Windows.Application
         var behaviorOptions = new PetBehaviorOptions();
         builder.Configuration.GetSection("Behavior").Bind(behaviorOptions);
 
+        var loadOptions = new SystemLoadOptions();
+        builder.Configuration.GetSection("SystemLoad").Bind(loadOptions);
+
         builder.Services.AddSingleton(behaviorOptions);
+        builder.Services.AddSingleton(loadOptions);
         builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddSingleton<ISkinLoader, FolderSkinLoader>();
         builder.Services.AddSingleton<IIdleDetector, Win32IdleDetector>();
+        builder.Services.AddSingleton<ISystemLoadMonitor, WindowsSystemLoadMonitor>();
+        builder.Services.AddSingleton<LoadReactionPolicy>();
         builder.Services.AddSingleton(sp => new PetBehaviorStateMachine(
             sp.GetRequiredService<PetBehaviorOptions>(),
             sp.GetRequiredService<TimeProvider>(),

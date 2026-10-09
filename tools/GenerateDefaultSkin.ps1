@@ -16,7 +16,7 @@ $textFont = New-Object System.Drawing.Font 'Segoe UI', 14, ([System.Drawing.Font
 function New-Frame {
     param(
         [string]$Name, [int]$W = 84, [int]$H = 80, [int]$Lift = 0,
-        [string]$Eyes = 'open', [string]$Mouth = 'none', [int]$Feet = 0, [string]$Extra = ''
+        [string]$Eyes = 'open', [string]$Mouth = 'none', [int]$Feet = 0, [string]$Extra = '', [switch]$Sweat
     )
     $bmp = New-Object System.Drawing.Bitmap 128, 128
     $g = [System.Drawing.Graphics]::FromImage($bmp)
@@ -40,12 +40,24 @@ function New-Frame {
         'open'   { $g.FillEllipse($darkBrush, $e1, $ey, 9, 12); $g.FillEllipse($darkBrush, $e2, $ey, 9, 12) }
         'closed' { $g.DrawArc($darkPen, $e1 - 2, $ey, 14, 8, 0, 180); $g.DrawArc($darkPen, $e2 - 2, $ey, 14, 8, 0, 180) }
         'happy'  { $g.DrawArc($darkPen, $e1 - 2, $ey, 14, 10, 180, 180); $g.DrawArc($darkPen, $e2 - 2, $ey, 14, 10, 180, 180) }
+        'tired'  {
+            # Half-lidded: eyes squashed flat with a heavy lid line across the top.
+            $g.FillEllipse($darkBrush, $e1, $ey + 4, 9, 7); $g.FillEllipse($darkBrush, $e2, $ey + 4, 9, 7)
+            $g.DrawLine($darkPen, $e1 - 2, $ey + 3, $e1 + 11, $ey + 3); $g.DrawLine($darkPen, $e2 - 2, $ey + 3, $e2 + 11, $ey + 3)
+        }
     }
 
     $my = $ey + 20
     switch ($Mouth) {
         'smile' { $g.DrawArc($darkPen, 64 - 4, $my - 6, 18, 12, 0, 180) }
         'oh'    { $g.FillEllipse($darkBrush, 64 + 2, $my - 2, 9, 11) }
+        'flat'  { $g.DrawLine($darkPen, 64 + 2, $my + 2, 64 + 16, $my + 2) }
+    }
+
+    if ($Sweat) {
+        $sweatBrush = New-Object System.Drawing.SolidBrush ([System.Drawing.Color]::FromArgb(255, 120, 190, 255))
+        $g.FillEllipse($sweatBrush, $x + $W - 16, $y + 8, 9, 14)
+        $sweatBrush.Dispose()
     }
 
     if ($Extra) { $g.DrawString($Extra, $textFont, $darkBrush, 86, [Math]::Max(0, $y - 14)) }
@@ -73,11 +85,15 @@ New-Frame 'sleep_1.png' -W 98 -H 70 -Eyes closed -Feet -1 -Extra 'z'
 New-Frame 'drag_0.png' -W 72 -H 92 -Lift 0 -Eyes open -Mouth oh -Feet 4
 New-Frame 'drag_1.png' -W 70 -H 94 -Lift 0 -Eyes open -Mouth oh -Feet -4
 
+# Tired: heavy breathing, droopy eyes, sweat drop.
+New-Frame 'tired_0.png' -W 90 -H 72 -Eyes tired -Mouth flat -Feet 0 -Sweat
+New-Frame 'tired_1.png' -W 96 -H 68 -Eyes tired -Mouth flat -Feet 0 -Sweat
+
 # Happy: bounce with smiling eyes.
 New-Frame 'happy_0.png' -Lift 12 -Eyes happy -Mouth smile
 New-Frame 'happy_1.png' -Lift 0 -H 74 -W 90 -Eyes happy -Mouth smile
 
-@'
+$manifest = @'
 {
   "name": "default",
   "frameSize": [128, 128],
@@ -86,9 +102,23 @@ New-Frame 'happy_1.png' -Lift 0 -H 74 -W 90 -Eyes happy -Mouth smile
     "Walk":  { "fps": 8,  "frames": ["walk_0.png", "walk_1.png", "walk_2.png", "walk_3.png"] },
     "Sleep": { "fps": 1,  "frames": ["sleep_0.png", "sleep_1.png"] },
     "Drag":  { "fps": 6,  "frames": ["drag_0.png", "drag_1.png"] },
+    "Tired": { "fps": 2,  "frames": ["tired_0.png", "tired_1.png"] },
     "Happy": { "fps": 5,  "frames": ["happy_0.png", "happy_1.png"] }
   }
 }
-'@ | Set-Content -Encoding UTF8 (Join-Path $outDir 'manifest.json')
+'@
+
+# Antivirus / indexers often hold freshly written files for a moment, so retry the manifest write.
+$manifestPath = Join-Path $outDir 'manifest.json'
+foreach ($attempt in 1..10) {
+    try {
+        Set-Content -Encoding UTF8 -Path $manifestPath -Value $manifest -ErrorAction Stop
+        break
+    }
+    catch [System.IO.IOException] {
+        if ($attempt -eq 10) { throw }
+        Start-Sleep -Milliseconds 500
+    }
+}
 
 Write-Host "Default skin written to $outDir"
