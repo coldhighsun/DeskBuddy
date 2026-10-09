@@ -9,4 +9,14 @@ namespace DeskBuddy.Domain.Behavior;
 /// <param name="IsSystemStrained">
 /// Whether the system is under sustained heavy load (see <see cref="SystemLoad.LoadReactionPolicy"/>).
 /// </param>
-public readonly record struct PetInputs(TimeSpan UserIdle, bool IsSystemStrained = false);
+/// <param name="IsFocusing">
+/// Whether a pomodoro work phase is running, so the pet should keep quietly still.
+/// </param>
+/// <param name="HasAlert">
+/// Whether a message is on screen and the pet should draw attention to it.
+/// </param>
+public readonly record struct PetInputs(
+    TimeSpan UserIdle,
+    bool IsSystemStrained = false,
+    bool IsFocusing = false,
+    bool HasAlert = false);

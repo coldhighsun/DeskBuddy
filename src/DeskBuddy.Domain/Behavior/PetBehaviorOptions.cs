@@ -36,6 +36,11 @@ public sealed class PetBehaviorOptions
     public TimeSpan HappyDuration { get; set; } = TimeSpan.FromSeconds(1.5);
 
     /// <summary>
+    /// Gets or sets how long a speech bubble stays up before it fades on its own.
+    /// </summary>
+    public TimeSpan MessageDuration { get; set; } = TimeSpan.FromSeconds(30);
+
+    /// <summary>
     /// Gets or sets the walking speed in device-independent pixels per second.
     /// </summary>
     public double WalkSpeed { get; set; } = 60;

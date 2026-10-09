@@ -23,8 +23,8 @@ public sealed class PetBehaviorStateMachine
     private readonly Random _random;
 
     /// <summary>
-    /// The moment at which the current timed state (Idle, Walk, Happy) ends. Sleep, Drag and Tired last until
-    /// their cause goes away, so they have no end time.
+    /// The moment at which the current timed state (Idle, Walk, Happy) ends. Sleep, Drag, Tired, Alert and Focus last
+    /// until their cause goes away, so they have no end time.
     /// </summary>
     private DateTimeOffset _stateEndsAt;
 
@@ -65,10 +65,10 @@ public sealed class PetBehaviorStateMachine
 
     /// <summary>
     /// Re-evaluates the state for the current time and the given inputs. Priority, highest first:
-    /// Drag, Sleep, Happy, Tired, then the Idle/Walk cycle.
+    /// Drag, Alert, Sleep, Happy, Tired, Focus, then the Idle/Walk cycle.
     /// </summary>
     /// <param name="inputs">
-    /// The current user presence and system condition.
+    /// The current user presence, system condition and pending notices.
     /// </param>
     /// <returns>
     /// The state after the update.
@@ -78,6 +78,22 @@ public sealed class PetBehaviorStateMachine
         if (State == PetState.Drag)
         {
             return State;
+        }
+
+        // An alert outranks sleep so that a user returning to the desk sees the pet already calling for attention.
+        if (inputs.HasAlert)
+        {
+            if (State != PetState.Alert)
+            {
+                Enter(PetState.Alert);
+            }
+
+            return State;
+        }
+
+        if (State == PetState.Alert)
+        {
+            Enter(PetState.Idle);
         }
 
         if (inputs.UserIdle >= _options.SleepAfter)
@@ -113,6 +129,22 @@ public sealed class PetBehaviorStateMachine
         }
 
         if (State == PetState.Tired)
+        {
+            Enter(PetState.Idle);
+            return State;
+        }
+
+        if (inputs.IsFocusing)
+        {
+            if (State != PetState.Focus)
+            {
+                Enter(PetState.Focus);
+            }
+
+            return State;
+        }
+
+        if (State == PetState.Focus)
         {
             Enter(PetState.Idle);
             return State;

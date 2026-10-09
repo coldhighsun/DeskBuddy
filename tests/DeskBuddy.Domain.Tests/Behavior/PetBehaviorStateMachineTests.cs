@@ -40,6 +40,16 @@ public class PetBehaviorStateMachineTests
     private static readonly PetInputs Strained = new(TimeSpan.Zero, IsSystemStrained: true);
 
     /// <summary>
+    /// Inputs for an active user while a message is on screen.
+    /// </summary>
+    private static readonly PetInputs Alerting = new(TimeSpan.Zero, HasAlert: true);
+
+    /// <summary>
+    /// Inputs for an active user during a pomodoro work phase.
+    /// </summary>
+    private static readonly PetInputs Focusing = new(TimeSpan.Zero, IsFocusing: true);
+
+    /// <summary>
     /// The fake clock shared by the machine under test.
     /// </summary>
     private readonly FakeTimeProvider _clock = new();
@@ -483,6 +493,204 @@ public class PetBehaviorStateMachineTests
         // Assert
         _machine.State.Should().Be(PetState.Happy);
         _machine.Update(Strained).Should().Be(PetState.Happy);
+    }
+
+    /// <summary>
+    /// A pending message makes the pet call for attention immediately.
+    /// </summary>
+    [Fact]
+    public void Update_HasAlert_EntersAlert()
+    {
+        // Act
+        var state = _machine.Update(Alerting);
+
+        // Assert
+        state.Should().Be(PetState.Alert);
+    }
+
+    /// <summary>
+    /// An alert interrupts a walk.
+    /// </summary>
+    [Fact]
+    public void Update_WalkingAndAlert_EntersAlert()
+    {
+        // Arrange
+        _clock.Advance(IdleDwell);
+        _machine.Update(Active);
+
+        // Act
+        var state = _machine.Update(Alerting);
+
+        // Assert
+        state.Should().Be(PetState.Alert);
+    }
+
+    /// <summary>
+    /// An alert outranks sleep, tiredness and focus.
+    /// </summary>
+    [Fact]
+    public void Update_AlertWithOtherConditions_AlertWins()
+    {
+        // Act
+        var state = _machine.Update(new PetInputs(SleepAfter, IsSystemStrained: true, IsFocusing: true, HasAlert: true));
+
+        // Assert
+        state.Should().Be(PetState.Alert);
+    }
+
+    /// <summary>
+    /// Being dragged outranks an alert, and the alert returns once the pet is dropped.
+    /// </summary>
+    [Fact]
+    public void Update_DraggingThenDroppedWhileAlerting_ReturnsToAlert()
+    {
+        // Arrange
+        _machine.OnDragStarted();
+
+        // Act & Assert
+        _machine.Update(Alerting).Should().Be(PetState.Drag);
+        _machine.OnDragEnded();
+        _machine.Update(Alerting).Should().Be(PetState.Alert);
+    }
+
+    /// <summary>
+    /// When the message goes away the pet settles back to standing.
+    /// </summary>
+    [Fact]
+    public void Update_AlertEnds_ReturnsToIdle()
+    {
+        // Arrange
+        _machine.Update(Alerting);
+
+        // Act
+        var state = _machine.Update(Active);
+
+        // Assert
+        state.Should().Be(PetState.Idle);
+    }
+
+    /// <summary>
+    /// If the user is still away when the alert ends, the pet goes straight back to sleep.
+    /// </summary>
+    [Fact]
+    public void Update_AlertEndsWhileUserAway_Sleeps()
+    {
+        // Arrange
+        _machine.Update(Alerting);
+
+        // Act
+        var state = _machine.Update(new PetInputs(SleepAfter));
+
+        // Assert
+        state.Should().Be(PetState.Sleep);
+    }
+
+    /// <summary>
+    /// A pomodoro work phase makes the pet focus.
+    /// </summary>
+    [Fact]
+    public void Update_Focusing_EntersFocus()
+    {
+        // Act
+        var state = _machine.Update(Focusing);
+
+        // Assert
+        state.Should().Be(PetState.Focus);
+    }
+
+    /// <summary>
+    /// A focused pet does not wander off, however much time passes.
+    /// </summary>
+    [Fact]
+    public void Update_FocusingForLongTime_NeverWalks()
+    {
+        // Arrange
+        _machine.Update(Focusing);
+        _clock.Advance(TimeSpan.FromHours(1));
+
+        // Act
+        var state = _machine.Update(Focusing);
+
+        // Assert
+        state.Should().Be(PetState.Focus);
+    }
+
+    /// <summary>
+    /// Focus interrupts a walk already under way.
+    /// </summary>
+    [Fact]
+    public void Update_WalkingThenFocusing_EntersFocus()
+    {
+        // Arrange
+        _clock.Advance(IdleDwell);
+        _machine.Update(Active);
+
+        // Act
+        var state = _machine.Update(Focusing);
+
+        // Assert
+        state.Should().Be(PetState.Focus);
+    }
+
+    /// <summary>
+    /// When the work phase ends the pet stands and restarts its dwell.
+    /// </summary>
+    [Fact]
+    public void Update_FocusEnds_ReturnsToIdle()
+    {
+        // Arrange
+        _machine.Update(Focusing);
+        _clock.Advance(TimeSpan.FromMinutes(25));
+
+        // Act
+        var state = _machine.Update(Active);
+
+        // Assert
+        state.Should().Be(PetState.Idle);
+    }
+
+    /// <summary>
+    /// A strained system outranks focus.
+    /// </summary>
+    [Fact]
+    public void Update_FocusingAndSystemStrained_BecomesTired()
+    {
+        // Act
+        var state = _machine.Update(new PetInputs(TimeSpan.Zero, IsSystemStrained: true, IsFocusing: true));
+
+        // Assert
+        state.Should().Be(PetState.Tired);
+    }
+
+    /// <summary>
+    /// Sleep outranks focus: a user who walks away mid-pomodoro sees the pet asleep.
+    /// </summary>
+    [Fact]
+    public void Update_FocusingAndUserAway_Sleeps()
+    {
+        // Act
+        var state = _machine.Update(new PetInputs(SleepAfter, IsFocusing: true));
+
+        // Assert
+        state.Should().Be(PetState.Sleep);
+    }
+
+    /// <summary>
+    /// A click cheers up a focused pet briefly, after which it focuses again.
+    /// </summary>
+    [Fact]
+    public void OnClicked_Focusing_HappyThenFocusAgain()
+    {
+        // Arrange
+        _machine.Update(Focusing);
+        _machine.OnClicked();
+        _clock.Advance(HappyDuration);
+
+        // Act
+        var state = _machine.Update(Focusing);
+
+        // Assert
+        state.Should().Be(PetState.Focus);
     }
 
     /// <summary>
