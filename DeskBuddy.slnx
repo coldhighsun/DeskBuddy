@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/DeskBuddy.App/DeskBuddy.App.csproj" />
+    <Project Path="src/DeskBuddy.Application/DeskBuddy.Application.csproj" />
+    <Project Path="src/DeskBuddy.Domain/DeskBuddy.Domain.csproj" />
+    <Project Path="src/DeskBuddy.Infrastructure/DeskBuddy.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/DeskBuddy.Application.Tests/DeskBuddy.Application.Tests.csproj" />
+    <Project Path="tests/DeskBuddy.Domain.Tests/DeskBuddy.Domain.Tests.csproj" />
+    <Project Path="tests/DeskBuddy.Infrastructure.Tests/DeskBuddy.Infrastructure.Tests.csproj" />
+  </Folder>
+</Solution>
