@@ -1,6 +1,7 @@
 using DeskBuddy.Application.Abstractions;
 using DeskBuddy.Domain;
 using DeskBuddy.Domain.Behavior;
+using DeskBuddy.Domain.SystemLoad;
 
 namespace DeskBuddy.Application;
 
@@ -11,10 +12,20 @@ namespace DeskBuddy.Application;
 /// <param name="idleDetector">
 /// Reports how long the user has been inactive.
 /// </param>
+/// <param name="loadMonitor">
+/// Reports how busy the machine is.
+/// </param>
+/// <param name="loadPolicy">
+/// Smooths load readings into a stable "strained" flag.
+/// </param>
 /// <param name="stateMachine">
 /// The behavior state machine to drive.
 /// </param>
-public sealed class PetBrain(IIdleDetector idleDetector, PetBehaviorStateMachine stateMachine)
+public sealed class PetBrain(
+    IIdleDetector idleDetector,
+    ISystemLoadMonitor loadMonitor,
+    LoadReactionPolicy loadPolicy,
+    PetBehaviorStateMachine stateMachine)
 {
     /// <summary>
     /// Gets the current state.
@@ -34,7 +45,8 @@ public sealed class PetBrain(IIdleDetector idleDetector, PetBehaviorStateMachine
     /// </returns>
     public PetState Tick()
     {
-        return stateMachine.Update(idleDetector.GetIdleTime());
+        var isStrained = loadPolicy.Update(loadMonitor.GetSnapshot());
+        return stateMachine.Update(new PetInputs(idleDetector.GetIdleTime(), isStrained));
     }
 
     /// <summary>
