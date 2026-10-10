@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using DeskBuddy.App.Rendering;
 using DeskBuddy.App.Resources;
 using DeskBuddy.Application;
@@ -40,6 +41,11 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     /// Lists the installed skins.
     /// </summary>
     private readonly ISkinCatalog _catalog;
+
+    /// <summary>
+    /// Opens the directory the log files are written to.
+    /// </summary>
+    private readonly Action _openLogDirectory;
 
     /// <summary>
     /// Whether the properties are being filled from the settings, in which case changing them must not be treated as
@@ -184,19 +190,25 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     /// <param name="skinSwitcher">
     /// Switches the skin, which reports when that fails.
     /// </param>
+    /// <param name="openLogDirectory">
+    /// Opens the log directory in the file manager.
+    /// </param>
     public SettingsTabViewModel(
         SettingsService settings,
         BossKeyController bossKey,
         IAutoStartService autoStart,
         ISkinCatalog catalog,
-        SkinSwitcher skinSwitcher)
+        SkinSwitcher skinSwitcher,
+        Action openLogDirectory)
     {
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(bossKey);
         ArgumentNullException.ThrowIfNull(autoStart);
         ArgumentNullException.ThrowIfNull(catalog);
         ArgumentNullException.ThrowIfNull(skinSwitcher);
+        ArgumentNullException.ThrowIfNull(openLogDirectory);
 
+        _openLogDirectory = openLogDirectory;
         _settings = settings;
         _bossKey = bossKey;
         _autoStartService = autoStart;
@@ -224,6 +236,15 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     /// Gets a value indicating whether settings can be changed (they cannot if loading failed at startup).
     /// </summary>
     public bool IsEditable => _settings.LoadFailure is null;
+
+    /// <summary>
+    /// Opens the log directory in the file manager.
+    /// </summary>
+    [RelayCommand]
+    private void OpenLogs()
+    {
+        _openLogDirectory();
+    }
 
     /// <summary>
     /// Gets why settings cannot be changed, or empty if they can.

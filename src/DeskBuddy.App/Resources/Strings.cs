@@ -31,6 +31,16 @@ internal static class Strings
     public static string CrashMessage => Get();
 
     /// <summary>
+    /// Gets the heading of the diagnostics section.
+    /// </summary>
+    public static string SettingsDiagnostics => Get();
+
+    /// <summary>
+    /// Gets the text of the button that opens the log directory.
+    /// </summary>
+    public static string OpenLogs => Get();
+
+    /// <summary>
     /// Gets the tray menu text that hides the pet.
     /// </summary>
     public static string TrayHidePet => Get();

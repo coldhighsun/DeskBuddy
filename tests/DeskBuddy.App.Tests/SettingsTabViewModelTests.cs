@@ -77,8 +77,30 @@ public class SettingsTabViewModelTests
             bossKey,
             _autoStart,
             new FakeSkinCatalog(skins.Length > 0 ? skins : ["default", "cat"]),
-            switcher);
+            switcher,
+            () => LogDirectoryOpened++);
     }
+
+    /// <summary>
+    /// The log button asks the host to open the log directory.
+    /// </summary>
+    [Fact]
+    public async Task OpenLogsCommand_Executed_OpensTheLogDirectory()
+    {
+        // Arrange
+        await CreateAsync();
+
+        // Act
+        _viewModel.OpenLogsCommand.Execute(null);
+
+        // Assert
+        LogDirectoryOpened.Should().Be(1);
+    }
+
+    /// <summary>
+    /// Gets how many times the log directory was opened.
+    /// </summary>
+    private int LogDirectoryOpened { get; set; }
 
     /// <summary>
     /// Waits, briefly, for something that happens after a hand-off to another continuation.

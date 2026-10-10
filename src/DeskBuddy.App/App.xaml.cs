@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using DeskBuddy.App.Diagnostics;
@@ -310,7 +311,8 @@ public partial class App : System.Windows.Application
                     _bossKey,
                     services.GetRequiredService<IAutoStartService>(),
                     services.GetRequiredService<ISkinCatalog>(),
-                    _skinSwitcher));
+                    _skinSwitcher,
+                    OpenLogDirectory));
             _panel = new PanelWindow(viewModel, services.GetRequiredService<NoteService>());
         }
 
@@ -338,6 +340,22 @@ public partial class App : System.Windows.Application
             _crashGuard.HandleUnobservedTask(args.Exception);
             args.SetObserved();
         };
+    }
+
+    /// <summary>
+    /// Opens the log directory in the file manager.
+    /// </summary>
+    private void OpenLogDirectory()
+    {
+        try
+        {
+            Directory.CreateDirectory(_logDirectory!);
+            Process.Start(new ProcessStartInfo(_logDirectory!) { UseShellExecute = true });
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.ComponentModel.Win32Exception)
+        {
+            _host?.Services.GetRequiredService<ILogger<App>>().LogWarning(ex, "The log directory could not be opened.");
+        }
     }
 
     /// <summary>

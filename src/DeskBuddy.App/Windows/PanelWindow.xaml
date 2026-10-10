@@ -298,6 +298,14 @@
                     <TextBlock Text="{Binding AutoStartError}"
                                Style="{StaticResource ErrorTextStyle}"
                                AutomationProperties.AutomationId="AutoStartError" />
+
+                    <!-- Diagnostics -->
+                    <TextBlock Text="{x:Static res:Strings.SettingsDiagnostics}" FontWeight="SemiBold" Margin="0,18,0,6" />
+                    <Button Content="{x:Static res:Strings.OpenLogs}"
+                            Command="{Binding OpenLogsCommand}"
+                            HorizontalAlignment="Left"
+                            Padding="12,4"
+                            AutomationProperties.AutomationId="OpenLogsButton" />
                 </StackPanel>
             </ScrollViewer>
         </TabItem>

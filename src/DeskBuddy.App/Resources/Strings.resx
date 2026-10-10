@@ -99,6 +99,8 @@
   <data name="AutoStartFailed" xml:space="preserve"><value>无法更改开机自启：{0}</value></data>
   <data name="CrashTitle" xml:space="preserve"><value>DeskBuddy 遇到了问题</value></data>
   <data name="CrashMessage" xml:space="preserve"><value>发生了一个未处理的错误，已记录到日志，程序会继续运行。如果反复出现，请到“设置”里打开日志目录。</value></data>
+  <data name="SettingsDiagnostics" xml:space="preserve"><value>诊断</value></data>
+  <data name="OpenLogs" xml:space="preserve"><value>打开日志目录</value></data>
   <data name="MinutesRange" xml:space="preserve"><value>“{0}”需要 {1}–{2} 之间的整数分钟数。</value></data>
   <data name="SettingsSaveFailed" xml:space="preserve"><value>设置保存失败：{0}</value></data>
   <data name="SettingsLoadFailed" xml:space="preserve"><value>设置读取失败（{0}）。为避免覆盖原有设置，已暂停修改，请检查文件后重启。</value></data>
