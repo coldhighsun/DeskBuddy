@@ -1,0 +1,7 @@
+# Text files are stored with LF and checked out with LF on every machine, so files written by tools do not trigger
+# line-ending warnings or show up as changed.
+* text=auto eol=lf
+
+# Binary files are never converted.
+*.png binary
+*.ico binary
