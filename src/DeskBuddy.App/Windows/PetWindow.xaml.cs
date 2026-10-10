@@ -654,16 +654,8 @@ public partial class PetWindow : Window
 
         var step = _movement.Current.Step(CreateMovementContext(), delta);
 
-        // Each of Left/Top costs a SetWindowPos call, so only touch a coordinate when it actually changed.
-        if (Math.Abs(Top - step.Position.Y) > 0.5)
-        {
-            Top = step.Position.Y;
-        }
-
-        if (Math.Abs(Left - step.Position.X) > 0.01)
-        {
-            Left = step.Position.X;
-        }
+        // One cheap move for both coordinates, and none at all when the step stays within the same device pixel.
+        WindowMover.MoveTo(this, step.Position.X, step.Position.Y);
 
         if (step.Facing != _facing)
         {
