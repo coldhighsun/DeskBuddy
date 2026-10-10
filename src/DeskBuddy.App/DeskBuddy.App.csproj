@@ -6,6 +6,12 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <!-- The single source of the version: the installer script reads it from here. -->
+    <Version>0.1.0</Version>
+    <!-- WPF ships its own texts in a dozen languages; keep only English and Chinese to keep the installer small. -->
+    <SatelliteResourceLanguages>en;zh-Hans</SatelliteResourceLanguages>
+    <Product>DeskBuddy</Product>
+    <Description>A desktop pet for work computers.</Description>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <!--
