@@ -1,7 +1,9 @@
 using System.IO;
 using System.Windows;
+using DeskBuddy.App.Diagnostics;
 using DeskBuddy.App.Interop;
 using DeskBuddy.App.Rendering;
+using DeskBuddy.App.Resources;
 using DeskBuddy.App.ViewModels;
 using DeskBuddy.App.Windows;
 using DeskBuddy.Application;
@@ -15,6 +17,7 @@ using DeskBuddy.Domain.Sedentary;
 using DeskBuddy.Domain.Settings;
 using DeskBuddy.Domain.Visibility;
 using DeskBuddy.Domain.SystemLoad;
+using DeskBuddy.Infrastructure.Logging;
 using DeskBuddy.Infrastructure.Sensors;
 using DeskBuddy.Infrastructure.Startup;
 using DeskBuddy.Infrastructure.Skins;
@@ -45,6 +48,31 @@ public partial class App : System.Windows.Application
     /// How long a full-screen application must be gone before the pet comes back.
     /// </summary>
     private static readonly TimeSpan PetRestoreDelay = TimeSpan.FromSeconds(2);
+
+    /// <summary>
+    /// How many days of log files are kept.
+    /// </summary>
+    private const int LogRetentionDays = 7;
+
+    /// <summary>
+    /// How long to wait for pending log entries to reach the disk when the process is about to die.
+    /// </summary>
+    private static readonly TimeSpan LogFlushTimeout = TimeSpan.FromSeconds(2);
+
+    /// <summary>
+    /// The directory the log files are written to; <see langword="null"/> until startup.
+    /// </summary>
+    private string? _logDirectory;
+
+    /// <summary>
+    /// Writes the log files; <see langword="null"/> until startup.
+    /// </summary>
+    private FileLoggerProvider? _fileLog;
+
+    /// <summary>
+    /// Handles errors nobody caught; <see langword="null"/> until startup.
+    /// </summary>
+    private CrashGuard? _crashGuard;
 
     /// <summary>
     /// Guard holding the single-instance mutex; <see langword="null"/> until startup.
@@ -103,6 +131,11 @@ public partial class App : System.Windows.Application
         // User data lives under LocalAppData so it is not synced by roaming profiles; DataDirectory overrides it.
         var dataDirectory = builder.Configuration["DataDirectory"]
             ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "DeskBuddy");
+
+        _logDirectory = Path.Combine(dataDirectory, "logs");
+        var logLevel = builder.Configuration.GetValue("FileLog:MinimumLevel", LogLevel.Information);
+        _fileLog = new FileLoggerProvider(_logDirectory, TimeProvider.System, logLevel, LogRetentionDays);
+        builder.Logging.AddProvider(_fileLog);
 
         var behaviorOptions = new PetBehaviorOptions();
         var loadOptions = new SystemLoadOptions();
@@ -178,6 +211,7 @@ public partial class App : System.Windows.Application
             NoteSaveDelay));
 
         _host = builder.Build();
+        InstallCrashGuard();
         await _host.StartAsync();
 
         var logger = _host.Services.GetRequiredService<ILogger<App>>();
@@ -281,6 +315,29 @@ public partial class App : System.Windows.Application
         }
 
         _panel?.ShowPanel(tab);
+    }
+
+    /// <summary>
+    /// Hooks the three places where an error can escape, so it is logged instead of vanishing.
+    /// </summary>
+    private void InstallCrashGuard()
+    {
+        _crashGuard = new CrashGuard(
+            _host!.Services.GetRequiredService<ILogger<App>>(),
+            TimeProvider.System,
+            () => _tray?.ShowErrorNotice(Strings.CrashTitle, Strings.CrashMessage),
+            () => _fileLog?.Flush(LogFlushTimeout));
+
+        DispatcherUnhandledException += (_, args) =>
+        {
+            args.Handled = _crashGuard.HandleUiException(args.Exception);
+        };
+        AppDomain.CurrentDomain.UnhandledException += (_, args) => _crashGuard.HandleFatal(args.ExceptionObject);
+        TaskScheduler.UnobservedTaskException += (_, args) =>
+        {
+            _crashGuard.HandleUnobservedTask(args.Exception);
+            args.SetObserved();
+        };
     }
 
     /// <summary>

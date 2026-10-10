@@ -21,6 +21,16 @@ internal static class Strings
     public static string AppName => Get();
 
     /// <summary>
+    /// Gets the title of the notice shown after an unhandled error.
+    /// </summary>
+    public static string CrashTitle => Get();
+
+    /// <summary>
+    /// Gets the body of the notice shown after an unhandled error.
+    /// </summary>
+    public static string CrashMessage => Get();
+
+    /// <summary>
     /// Gets the tray menu text that hides the pet.
     /// </summary>
     public static string TrayHidePet => Get();

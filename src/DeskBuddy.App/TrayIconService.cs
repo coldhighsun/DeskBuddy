@@ -7,6 +7,7 @@ using DeskBuddy.App.Windows;
 using DeskBuddy.Application;
 using DeskBuddy.Domain.Pomodoro;
 using H.NotifyIcon;
+using H.NotifyIcon.Core;
 
 namespace DeskBuddy.App;
 
@@ -88,6 +89,20 @@ public sealed class TrayIconService : IDisposable
         _brain.PomodoroStatusChanged -= OnStatusChanged;
         _brain.VisibilityChanged -= OnStatusChanged;
         _icon.Dispose();
+    }
+
+    /// <summary>
+    /// Shows a balloon notice from the tray icon, flagged as an error.
+    /// </summary>
+    /// <param name="title">
+    /// The notice title.
+    /// </param>
+    /// <param name="message">
+    /// The notice text.
+    /// </param>
+    public void ShowErrorNotice(string title, string message)
+    {
+        _icon.ShowNotification(title, message, NotificationIcon.Error);
     }
 
     /// <summary>
