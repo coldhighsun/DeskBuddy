@@ -142,14 +142,15 @@ public partial class PetWindow : Window
     private bool _dragging;
 
     /// <summary>
-    /// Cursor position, in DIPs, where the current press started.
+    /// Cursor position, in device pixels, where the current press started.
     /// </summary>
-    private Point _pressPoint;
+    private (int X, int Y) _pressPixel;
 
     /// <summary>
-    /// Offset, in DIPs, from the window's top-left corner to the cursor at the start of the press.
+    /// Keeps the grab point under the cursor while dragging, in device pixels so it holds across monitors of different
+    /// scaling.
     /// </summary>
-    private Vector _grabOffset;
+    private readonly DragTracker _dragTracker = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PetWindow"/> class.
@@ -697,8 +698,8 @@ public partial class PetWindow : Window
 
         _pressed = true;
         _dragging = false;
-        _pressPoint = MonitorHelper.GetCursorPositionDip(this);
-        _grabOffset = _pressPoint - new Point(Left, Top);
+        _pressPixel = MonitorHelper.GetCursorPositionPixels();
+        _dragTracker.Begin(_pressPixel.X, _pressPixel.Y, MonitorHelper.GetWindowBoundsPixels(this));
         CaptureMouse();
     }
 
@@ -718,8 +719,10 @@ public partial class PetWindow : Window
             return;
         }
 
-        var cursor = MonitorHelper.GetCursorPositionDip(this);
-        if (!_dragging && (cursor - _pressPoint).Length >= DragThreshold)
+        var cursor = MonitorHelper.GetCursorPositionPixels();
+        var scale = VisualTreeHelper.GetDpi(this).DpiScaleX;
+        var moved = Math.Sqrt(Math.Pow(cursor.X - _pressPixel.X, 2) + Math.Pow(cursor.Y - _pressPixel.Y, 2));
+        if (!_dragging && moved >= DragThreshold * scale)
         {
             _dragging = true;
             _brain.OnDragStarted();
@@ -728,8 +731,9 @@ public partial class PetWindow : Window
 
         if (_dragging)
         {
-            Left = cursor.X - _grabOffset.X;
-            Top = cursor.Y - _grabOffset.Y;
+            var bounds = MonitorHelper.GetWindowBoundsPixels(this);
+            var (x, y) = _dragTracker.Move(cursor.X, cursor.Y, bounds.Width, bounds.Height);
+            WindowMover.MoveToPixels(this, x, y);
         }
     }
 

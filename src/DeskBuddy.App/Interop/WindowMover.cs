@@ -119,6 +119,32 @@ public static partial class WindowMover
     }
 
     /// <summary>
+    /// Moves a window to a position given in device pixels of the virtual screen. Unlike <see cref="Window.Left"/> this
+    /// is exact on any monitor, whatever its scaling, and does not depend on which monitor the window thinks it is on.
+    /// </summary>
+    /// <param name="window">
+    /// The window to move; it must already have a handle.
+    /// </param>
+    /// <param name="x">
+    /// The wanted left edge in device pixels.
+    /// </param>
+    /// <param name="y">
+    /// The wanted top edge in device pixels.
+    /// </param>
+    public static void MoveToPixels(Window window, int x, int y)
+    {
+        var handle = new WindowInteropHelper(window).EnsureHandle();
+        SetWindowPos(
+            handle,
+            0,
+            x,
+            y,
+            0,
+            0,
+            SwpNoSize | SwpNoZOrder | SwpNoRedraw | SwpNoActivate | SwpNoOwnerZOrder);
+    }
+
+    /// <summary>
     /// Changes the position of a window.
     /// </summary>
     /// <param name="hwnd">

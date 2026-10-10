@@ -87,17 +87,18 @@ public partial class BubbleWindow : Window
         root.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
         var size = root.DesiredSize;
 
-        var workArea = MonitorHelper.GetWorkAreaDip(pet);
-        var petCenter = pet.Left + (pet.Width / 2);
+        // Everything is worked out in device pixels of the pet's monitor, where the bubble is going to be, and not in
+        // this window's own scale, which is still that of the monitor it was last shown on.
+        var petScale = VisualTreeHelper.GetDpi(pet).DpiScaleX;
+        var placement = BubblePlacement.Compute(
+            MonitorHelper.GetWindowBoundsPixels(pet),
+            (int)Math.Ceiling(size.Width * petScale),
+            (int)Math.Ceiling(size.Height * petScale),
+            (int)Math.Round(TailOverlap * petScale, MidpointRounding.AwayFromZero),
+            MonitorHelper.GetWorkAreaPixels(pet));
+        WindowMover.MoveToPixels(this, placement.Left, placement.Top);
 
-        var left = petCenter - (size.Width / 2);
-        left = Math.Clamp(left, workArea.Left, Math.Max(workArea.Left, workArea.Right - size.Width));
-        var top = Math.Max(workArea.Top, pet.Top + TailOverlap - size.Height);
-
-        Left = left;
-        Top = top;
-
-        var tailX = petCenter - left - (TailWidth / 2);
+        var tailX = ((placement.PetCenterX - placement.Left) / petScale) - (TailWidth / 2);
         var maxTailX = Math.Max(TailEdgeMargin, size.Width - TailEdgeMargin - TailWidth);
         Tail.Margin = new Thickness(Math.Clamp(tailX, TailEdgeMargin, maxTailX), -1, 0, 0);
     }

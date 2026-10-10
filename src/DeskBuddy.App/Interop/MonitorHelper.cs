@@ -1,6 +1,7 @@
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
+using DeskBuddy.App.Presentation;
 using System.Windows.Media;
 
 namespace DeskBuddy.App.Interop;
@@ -57,6 +58,62 @@ internal static partial class MonitorHelper
         GetCursorPos(out var point);
         var dpi = VisualTreeHelper.GetDpi(window);
         return new Point(point.X / dpi.DpiScaleX, point.Y / dpi.DpiScaleY);
+    }
+
+    /// <summary>
+    /// Gets the mouse cursor position on the screen in device pixels of the virtual screen, which mean the same on every
+    /// monitor whatever its scaling.
+    /// </summary>
+    /// <returns>
+    /// The cursor position in device pixels.
+    /// </returns>
+    public static (int X, int Y) GetCursorPositionPixels()
+    {
+        GetCursorPos(out var point);
+        return (point.X, point.Y);
+    }
+
+    /// <summary>
+    /// Gets the bounds of a window in device pixels of the virtual screen.
+    /// </summary>
+    /// <param name="window">
+    /// The window, which must already have a handle.
+    /// </param>
+    /// <returns>
+    /// The bounds, or an empty rectangle if they cannot be read.
+    /// </returns>
+    public static PixelRect GetWindowBoundsPixels(Window window)
+    {
+        var handle = new WindowInteropHelper(window).Handle;
+        return GetWindowRect(handle, out var rect) ? new PixelRect(rect.Left, rect.Top, rect.Right, rect.Bottom) : default;
+    }
+
+    /// <summary>
+    /// Gets the work area (screen minus taskbar) of the monitor a window is on, in device pixels of the virtual screen.
+    /// </summary>
+    /// <param name="window">
+    /// The window, which must already have a handle.
+    /// </param>
+    /// <returns>
+    /// The work area, or the primary monitor's if the monitor cannot be queried.
+    /// </returns>
+    public static PixelRect GetWorkAreaPixels(Window window)
+    {
+        var handle = new WindowInteropHelper(window).Handle;
+        var monitor = MonitorFromWindow(handle, MonitorDefaultToNearest);
+        var info = new MonitorInfo { Size = Marshal.SizeOf<MonitorInfo>() };
+        if (monitor == 0 || !GetMonitorInfo(monitor, ref info))
+        {
+            var primary = SystemParameters.WorkArea;
+            var scale = VisualTreeHelper.GetDpi(window);
+            return new PixelRect(
+                (int)(primary.Left * scale.DpiScaleX),
+                (int)(primary.Top * scale.DpiScaleY),
+                (int)(primary.Right * scale.DpiScaleX),
+                (int)(primary.Bottom * scale.DpiScaleY));
+        }
+
+        return new PixelRect(info.Work.Left, info.Work.Top, info.Work.Right, info.Work.Bottom);
     }
 
     /// <summary>
@@ -157,6 +214,22 @@ internal static partial class MonitorHelper
     [LibraryImport("user32.dll", EntryPoint = "GetMonitorInfoW")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool GetMonitorInfo(nint monitor, ref MonitorInfo info);
+
+    /// <summary>
+    /// Retrieves the bounds of a window in screen device pixels.
+    /// </summary>
+    /// <param name="hwnd">
+    /// Window handle.
+    /// </param>
+    /// <param name="rect">
+    /// Receives the bounds.
+    /// </param>
+    /// <returns>
+    /// <see langword="true"/> on success.
+    /// </returns>
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool GetWindowRect(nint hwnd, out NativeRect rect);
 
     /// <summary>
     /// Retrieves the cursor position in screen device pixels.
