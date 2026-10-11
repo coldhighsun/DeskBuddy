@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-test:
+    # The app and its tests target WPF, so they only build on Windows.
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # MinVer derives the version from git tags, which needs the full history.
+          fetch-depth: 0
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Build
+        run: dotnet build DeskBuddy.slnx -c Release
+
+      - name: Test
+        run: dotnet test DeskBuddy.slnx -c Release --no-build

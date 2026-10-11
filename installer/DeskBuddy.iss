@@ -1,5 +1,5 @@
 ; Inno Setup 7 script for DeskBuddy. Built by tools/Build-Installer.ps1, which passes:
-;   /DAppVersion=<version>   the version from DeskBuddy.App.csproj
+;   /DAppVersion=<version>   the version MinVer computes from git tags
 ;   /DPublishDir=<dir>       the self-contained publish output
 ;   /DOutputDir=<dir>        where the installer is written
 

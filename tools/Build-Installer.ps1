@@ -2,8 +2,8 @@
 .SYNOPSIS
     Publishes DeskBuddy and packs it into a setup program with Inno Setup 7.
 .DESCRIPTION
-    Publishes a self-contained win-x64 build (so the target computer needs no .NET installed), reads the version from
-    DeskBuddy.App.csproj, and runs ISCC on installer/DeskBuddy.iss. Output goes to artifacts/installer.
+    Publishes a self-contained win-x64 build (so the target computer needs no .NET installed), reads the version MinVer computes from
+    git tags (v1.2.3), and runs ISCC on installer/DeskBuddy.iss. Output goes to artifacts/installer.
 .PARAMETER IsccPath
     Path to ISCC.exe of Inno Setup 7. Defaults to the per-user winget install location.
 #>
@@ -21,7 +21,7 @@ if (-not (Test-Path $IsccPath)) {
     throw "ISCC.exe not found at '$IsccPath'. Install Inno Setup 7 or pass -IsccPath."
 }
 
-$version = (dotnet msbuild $project -getProperty:Version -nologo).Trim()
+$version = (dotnet msbuild $project -restore -t:MinVer -getProperty:Version -nologo).Trim()
 if (-not $version) {
     throw "Could not read the version from $project."
 }
