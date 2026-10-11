@@ -109,7 +109,7 @@ New-Frame 'happy_1.png' -Lift 0 -H 74 -W 90 -Eyes happy -Mouth smile
 $manifest = @'
 {
   "name": "default",
-  "frameSize": [128, 128],
+  "frameSize": [64, 64],
   "states": {
     "Idle":  { "fps": 2,  "frames": ["idle_0.png", "idle_1.png"] },
     "Walk":  { "fps": 8,  "frames": ["walk_0.png", "walk_1.png", "walk_2.png", "walk_3.png"] },
