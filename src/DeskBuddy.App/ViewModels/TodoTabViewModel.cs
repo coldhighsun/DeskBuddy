@@ -1,11 +1,10 @@
-using System.Collections.ObjectModel;
-using System.Globalization;
-using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DeskBuddy.App.Resources;
 using DeskBuddy.Application;
-using DeskBuddy.Domain.Todos;
+using System.Collections.ObjectModel;
+using System.Globalization;
+using System.IO;
 
 namespace DeskBuddy.App.ViewModels;
 
@@ -34,17 +33,17 @@ public sealed partial class TodoTabViewModel : ObservableObject
     private readonly TodoService _service;
 
     /// <summary>
-    /// The text of the box for a new to-do.
-    /// </summary>
-    [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(AddCommand))]
-    private string _newTitle = string.Empty;
-
-    /// <summary>
     /// A problem to show to the user, or empty if there is none.
     /// </summary>
     [ObservableProperty]
     private string _errorMessage = string.Empty;
+
+    /// <summary>
+    /// Whether any entry is completed, which enables the clear button.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(ClearCompletedCommand))]
+    private bool _hasCompleted;
 
     /// <summary>
     /// Whether the list currently has no entries, which shows the hint instead.
@@ -53,11 +52,11 @@ public sealed partial class TodoTabViewModel : ObservableObject
     private bool _isEmpty = true;
 
     /// <summary>
-    /// Whether any entry is completed, which enables the clear button.
+    /// The text of the box for a new to-do.
     /// </summary>
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(ClearCompletedCommand))]
-    private bool _hasCompleted;
+    [NotifyCanExecuteChangedFor(nameof(AddCommand))]
+    private string _newTitle = string.Empty;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TodoTabViewModel"/> class and shows the current list.
@@ -79,14 +78,14 @@ public sealed partial class TodoTabViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Gets the rows to display, in display order.
-    /// </summary>
-    public ObservableCollection<TodoRowViewModel> Rows { get; } = [];
-
-    /// <summary>
     /// Gets a value indicating whether the list can be changed (it cannot if loading failed at startup).
     /// </summary>
     public bool IsEditable => _service.LoadFailure is null;
+
+    /// <summary>
+    /// Gets the rows to display, in display order.
+    /// </summary>
+    public ObservableCollection<TodoRowViewModel> Rows { get; } = [];
 
     /// <summary>
     /// Adds the typed to-do.
@@ -103,33 +102,14 @@ public sealed partial class TodoTabViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Completes or reopens an entry.
+    /// Tells whether the typed text can be added.
     /// </summary>
-    /// <param name="row">
-    /// The row that was clicked.
-    /// </param>
     /// <returns>
-    /// A task that completes when the change has been saved.
+    /// <see langword="true"/> if the list is editable and the box holds something other than whitespace.
     /// </returns>
-    [RelayCommand]
-    private Task ToggleAsync(TodoRowViewModel row)
+    private bool CanAdd()
     {
-        return RunAsync(() => _service.ToggleAsync(row.Id));
-    }
-
-    /// <summary>
-    /// Deletes an entry.
-    /// </summary>
-    /// <param name="row">
-    /// The row to delete.
-    /// </param>
-    /// <returns>
-    /// A task that completes when the change has been saved.
-    /// </returns>
-    [RelayCommand]
-    private Task RemoveAsync(TodoRowViewModel row)
-    {
-        return RunAsync(() => _service.RemoveAsync(row.Id));
+        return IsEditable && !string.IsNullOrWhiteSpace(NewTitle);
     }
 
     /// <summary>
@@ -145,14 +125,33 @@ public sealed partial class TodoTabViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Tells whether the typed text can be added.
+    /// Rebuilds the rows from the service.
     /// </summary>
-    /// <returns>
-    /// <see langword="true"/> if the list is editable and the box holds something other than whitespace.
-    /// </returns>
-    private bool CanAdd()
+    private void Reload()
     {
-        return IsEditable && !string.IsNullOrWhiteSpace(NewTitle);
+        Rows.Clear();
+        foreach (var item in _service.Items)
+        {
+            Rows.Add(new TodoRowViewModel(item.Id, item.Title, item.IsDone));
+        }
+
+        IsEmpty = Rows.Count == 0;
+        HasCompleted = Rows.Any(row => row.IsDone);
+    }
+
+    /// <summary>
+    /// Deletes an entry.
+    /// </summary>
+    /// <param name="row">
+    /// The row to delete.
+    /// </param>
+    /// <returns>
+    /// A task that completes when the change has been saved.
+    /// </returns>
+    [RelayCommand]
+    private Task RemoveAsync(TodoRowViewModel row)
+    {
+        return RunAsync(() => _service.RemoveAsync(row.Id));
     }
 
     /// <summary>
@@ -181,17 +180,17 @@ public sealed partial class TodoTabViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Rebuilds the rows from the service.
+    /// Completes or reopens an entry.
     /// </summary>
-    private void Reload()
+    /// <param name="row">
+    /// The row that was clicked.
+    /// </param>
+    /// <returns>
+    /// A task that completes when the change has been saved.
+    /// </returns>
+    [RelayCommand]
+    private Task ToggleAsync(TodoRowViewModel row)
     {
-        Rows.Clear();
-        foreach (var item in _service.Items)
-        {
-            Rows.Add(new TodoRowViewModel(item.Id, item.Title, item.IsDone));
-        }
-
-        IsEmpty = Rows.Count == 0;
-        HasCompleted = Rows.Any(row => row.IsDone);
+        return RunAsync(() => _service.ToggleAsync(row.Id));
     }
 }

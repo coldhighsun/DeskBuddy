@@ -1,7 +1,6 @@
 using AwesomeAssertions;
 using DeskBuddy.App.Rendering;
 using DeskBuddy.Application;
-using DeskBuddy.Domain.Settings;
 using DeskBuddy.Domain.Skins;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -13,14 +12,14 @@ namespace DeskBuddy.App.Tests;
 public class SkinSwitcherTests
 {
     /// <summary>
-    /// The storage behind the settings.
+    /// The skins that were put on screen, in order.
     /// </summary>
-    private readonly FakeSettingsStore _store = new();
+    private readonly List<string> _applied = [];
 
     /// <summary>
-    /// The settings the switcher follows.
+    /// The reasons reported for failed switches.
     /// </summary>
-    private readonly SettingsService _settings;
+    private readonly List<string> _failures = [];
 
     /// <summary>
     /// The loader the switcher uses.
@@ -28,14 +27,14 @@ public class SkinSwitcherTests
     private readonly FakeSkinLoader _loader = new();
 
     /// <summary>
-    /// The skins that were put on screen, in order.
+    /// The settings the switcher follows.
     /// </summary>
-    private readonly List<string> _applied = [];
+    private readonly SettingsService _settings;
 
     /// <summary>
-    /// What the apply step does besides recording; may throw to simulate undecodable images.
+    /// The storage behind the settings.
     /// </summary>
-    private Action<Skin> _applyBehavior = _ => { };
+    private readonly FakeSettingsStore _store = new();
 
     /// <summary>
     /// The switcher under test.
@@ -43,9 +42,9 @@ public class SkinSwitcherTests
     private readonly SkinSwitcher _switcher;
 
     /// <summary>
-    /// The reasons reported for failed switches.
+    /// What the apply step does besides recording; may throw to simulate undecodable images.
     /// </summary>
-    private readonly List<string> _failures = [];
+    private Action<Skin> _applyBehavior = _ => { };
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SkinSwitcherTests"/> class.
@@ -70,49 +69,20 @@ public class SkinSwitcherTests
     }
 
     /// <summary>
-    /// Waits, briefly, for something that happens after a hand-off to another continuation.
-    /// </summary>
-    /// <param name="condition">
-    /// The condition to wait for.
-    /// </param>
-    /// <returns>
-    /// A task that completes when the condition holds, or after a timeout.
-    /// </returns>
-    private static async Task EventuallyAsync(Func<bool> condition)
-    {
-        for (var i = 0; i < 200 && !condition(); i++)
-        {
-            await Task.Delay(10);
-        }
-    }
-
-    /// <summary>
-    /// Asking for the skin that is already on screen does nothing.
+    /// After disposal the switcher no longer follows the settings.
     /// </summary>
     [Fact]
-    public async Task SwitchAsync_SameSkin_DoesNothing()
+    public async Task Dispose_ThenSettingsChanged_DoesNothing()
     {
+        // Arrange
+        _switcher.Dispose();
+
         // Act
-        await _switcher.SwitchAsync("default");
+        await _settings.UpdateAsync(s => s with { SkinName = "cat" });
+        await Task.Delay(50);
 
         // Assert
-        _loader.Requested.Should().BeEmpty();
         _applied.Should().BeEmpty();
-    }
-
-    /// <summary>
-    /// A different skin is loaded from its folder and put on screen.
-    /// </summary>
-    [Fact]
-    public async Task SwitchAsync_OtherSkin_LoadsAndApplies()
-    {
-        // Act
-        await _switcher.SwitchAsync("cat");
-
-        // Assert
-        _loader.Requested.Should().Equal("cat");
-        _applied.Should().Equal("cat");
-        _failures.Should().BeEmpty();
     }
 
     /// <summary>
@@ -130,20 +100,19 @@ public class SkinSwitcherTests
     }
 
     /// <summary>
-    /// A skin that cannot be loaded leaves the old one, reports why, and puts the setting back.
+    /// After a failure the previous skin can still be switched away from and back to normally.
     /// </summary>
     [Fact]
-    public async Task SwitchAsync_LoadFails_KeepsOldSkinReportsAndRestoresSetting()
+    public async Task SwitchAsync_AfterFailure_NextSwitchWorks()
     {
         // Arrange
-        await _settings.UpdateAsync(s => s with { SkinName = "broken" });
-        await EventuallyAsync(() => _failures.Count > 0);
+        await _switcher.SwitchAsync("broken");
+
+        // Act
+        await _switcher.SwitchAsync("cat");
 
         // Assert
-        _applied.Should().BeEmpty();
-        _failures.Should().ContainSingle();
-        await EventuallyAsync(() => _settings.Current.SkinName == "default");
-        _settings.Current.SkinName.Should().Be("default");
+        _applied.Should().Equal("cat");
     }
 
     /// <summary>
@@ -164,19 +133,35 @@ public class SkinSwitcherTests
     }
 
     /// <summary>
-    /// After a failure the previous skin can still be switched away from and back to normally.
+    /// A skin that cannot be loaded leaves the old one, reports why, and puts the setting back.
     /// </summary>
     [Fact]
-    public async Task SwitchAsync_AfterFailure_NextSwitchWorks()
+    public async Task SwitchAsync_LoadFails_KeepsOldSkinReportsAndRestoresSetting()
     {
         // Arrange
-        await _switcher.SwitchAsync("broken");
+        await _settings.UpdateAsync(s => s with { SkinName = "broken" });
+        await EventuallyAsync(() => _failures.Count > 0);
 
+        // Assert
+        _applied.Should().BeEmpty();
+        _failures.Should().ContainSingle();
+        await EventuallyAsync(() => _settings.Current.SkinName == "default");
+        _settings.Current.SkinName.Should().Be("default");
+    }
+
+    /// <summary>
+    /// A different skin is loaded from its folder and put on screen.
+    /// </summary>
+    [Fact]
+    public async Task SwitchAsync_OtherSkin_LoadsAndApplies()
+    {
         // Act
         await _switcher.SwitchAsync("cat");
 
         // Assert
+        _loader.Requested.Should().Equal("cat");
         _applied.Should().Equal("cat");
+        _failures.Should().BeEmpty();
     }
 
     /// <summary>
@@ -201,19 +186,33 @@ public class SkinSwitcherTests
     }
 
     /// <summary>
-    /// After disposal the switcher no longer follows the settings.
+    /// Asking for the skin that is already on screen does nothing.
     /// </summary>
     [Fact]
-    public async Task Dispose_ThenSettingsChanged_DoesNothing()
+    public async Task SwitchAsync_SameSkin_DoesNothing()
     {
-        // Arrange
-        _switcher.Dispose();
-
         // Act
-        await _settings.UpdateAsync(s => s with { SkinName = "cat" });
-        await Task.Delay(50);
+        await _switcher.SwitchAsync("default");
 
         // Assert
+        _loader.Requested.Should().BeEmpty();
         _applied.Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// Waits, briefly, for something that happens after a hand-off to another continuation.
+    /// </summary>
+    /// <param name="condition">
+    /// The condition to wait for.
+    /// </param>
+    /// <returns>
+    /// A task that completes when the condition holds, or after a timeout.
+    /// </returns>
+    private static async Task EventuallyAsync(Func<bool> condition)
+    {
+        for (var i = 0; i < 200 && !condition(); i++)
+        {
+            await Task.Delay(10);
+        }
     }
 }

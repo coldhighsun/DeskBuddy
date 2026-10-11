@@ -1,5 +1,4 @@
 using AwesomeAssertions;
-using DeskBuddy.Domain;
 using DeskBuddy.Domain.Skins;
 
 namespace DeskBuddy.Domain.Tests.Skins;
@@ -9,20 +8,6 @@ namespace DeskBuddy.Domain.Tests.Skins;
 /// </summary>
 public class SkinTests
 {
-    /// <summary>
-    /// Builds a single-frame animation for tests.
-    /// </summary>
-    /// <param name="name">
-    /// Frame file name.
-    /// </param>
-    /// <returns>
-    /// An animation at 4 fps with one frame.
-    /// </returns>
-    private static SkinAnimation Animation(string name)
-    {
-        return new SkinAnimation(4, [name]);
-    }
-
     /// <summary>
     /// A skin without Idle must be rejected because Idle is the fallback.
     /// </summary>
@@ -75,5 +60,19 @@ public class SkinTests
 
         // Assert
         result.Should().BeSameAs(idle);
+    }
+
+    /// <summary>
+    /// Builds a single-frame animation for tests.
+    /// </summary>
+    /// <param name="name">
+    /// Frame file name.
+    /// </param>
+    /// <returns>
+    /// An animation at 4 fps with one frame.
+    /// </returns>
+    private static SkinAnimation Animation(string name)
+    {
+        return new SkinAnimation(4, [name]);
     }
 }

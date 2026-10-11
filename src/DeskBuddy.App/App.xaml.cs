@@ -33,7 +33,7 @@ namespace DeskBuddy.App;
 /// <summary>
 /// Application entry point: wires up the generic host, the pet window and the tray icon.
 /// </summary>
-public partial class App : System.Windows.Application
+public partial class App
 {
     /// <summary>
     /// Name of the per-session mutex that enforces a single running instance.

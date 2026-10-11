@@ -7,7 +7,6 @@
         Height="560"
         MinWidth="380"
         MinHeight="420"
-        ThemeMode="System"
         WindowStartupLocation="CenterScreen">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisibility" />

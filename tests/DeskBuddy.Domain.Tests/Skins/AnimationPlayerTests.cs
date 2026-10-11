@@ -1,5 +1,4 @@
 using AwesomeAssertions;
-using DeskBuddy.Domain;
 using DeskBuddy.Domain.Skins;
 
 namespace DeskBuddy.Domain.Tests.Skins;
@@ -10,18 +9,21 @@ namespace DeskBuddy.Domain.Tests.Skins;
 public class AnimationPlayerTests
 {
     /// <summary>
-    /// Creates a skin with a 2-frame Idle at 2 fps (500 ms per frame) and a 1-frame Sleep.
+    /// Reaching the frame duration moves to the next frame.
     /// </summary>
-    /// <returns>
-    /// The test skin.
-    /// </returns>
-    private static Skin CreateSkin()
+    [Fact]
+    public void Advance_FrameDurationElapsed_MovesToNextFrame()
     {
-        return new Skin("test", 128, 128, new Dictionary<PetState, SkinAnimation>
-        {
-            [PetState.Idle] = new(2, ["idle_0.png", "idle_1.png"]),
-            [PetState.Sleep] = new(1, ["sleep_0.png"]),
-        });
+        // Arrange
+        var player = new AnimationPlayer(CreateSkin());
+
+        // Act
+        var changed = player.Advance(TimeSpan.FromMilliseconds(500));
+
+        // Assert
+        changed.Should().BeTrue();
+        player.FrameIndex.Should().Be(1);
+        player.CurrentFramePath.Should().Be("idle_1.png");
     }
 
     /// <summary>
@@ -42,37 +44,21 @@ public class AnimationPlayerTests
     }
 
     /// <summary>
-    /// Reaching the frame duration moves to the next frame.
+    /// Zero and negative deltas are ignored.
     /// </summary>
-    [Fact]
-    public void Advance_FrameDurationElapsed_MovesToNextFrame()
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-100)]
+    public void Advance_NonPositiveDelta_DoesNothing(int milliseconds)
     {
         // Arrange
         var player = new AnimationPlayer(CreateSkin());
 
         // Act
-        var changed = player.Advance(TimeSpan.FromMilliseconds(500));
+        var changed = player.Advance(TimeSpan.FromMilliseconds(milliseconds));
 
         // Assert
-        changed.Should().BeTrue();
-        player.FrameIndex.Should().Be(1);
-        player.CurrentFramePath.Should().Be("idle_1.png");
-    }
-
-    /// <summary>
-    /// Playback loops back to the first frame after the last one.
-    /// </summary>
-    [Fact]
-    public void Advance_PastLastFrame_LoopsToStart()
-    {
-        // Arrange
-        var player = new AnimationPlayer(CreateSkin());
-
-        // Act
-        player.Advance(TimeSpan.FromMilliseconds(500));
-        player.Advance(TimeSpan.FromMilliseconds(500));
-
-        // Assert
+        changed.Should().BeFalse();
         player.FrameIndex.Should().Be(0);
     }
 
@@ -95,21 +81,19 @@ public class AnimationPlayerTests
     }
 
     /// <summary>
-    /// Zero and negative deltas are ignored.
+    /// Playback loops back to the first frame after the last one.
     /// </summary>
-    [Theory]
-    [InlineData(0)]
-    [InlineData(-100)]
-    public void Advance_NonPositiveDelta_DoesNothing(int milliseconds)
+    [Fact]
+    public void Advance_PastLastFrame_LoopsToStart()
     {
         // Arrange
         var player = new AnimationPlayer(CreateSkin());
 
         // Act
-        var changed = player.Advance(TimeSpan.FromMilliseconds(milliseconds));
+        player.Advance(TimeSpan.FromMilliseconds(500));
+        player.Advance(TimeSpan.FromMilliseconds(500));
 
         // Assert
-        changed.Should().BeFalse();
         player.FrameIndex.Should().Be(0);
     }
 
@@ -167,5 +151,20 @@ public class AnimationPlayerTests
         changed.Should().BeFalse();
         player.FrameIndex.Should().Be(1);
         player.State.Should().Be(PetState.Walk);
+    }
+
+    /// <summary>
+    /// Creates a skin with a 2-frame Idle at 2 fps (500 ms per frame) and a 1-frame Sleep.
+    /// </summary>
+    /// <returns>
+    /// The test skin.
+    /// </returns>
+    private static Skin CreateSkin()
+    {
+        return new Skin("test", 128, 128, new Dictionary<PetState, SkinAnimation>
+        {
+            [PetState.Idle] = new(2, ["idle_0.png", "idle_1.png"]),
+            [PetState.Sleep] = new(1, ["sleep_0.png"]),
+        });
     }
 }

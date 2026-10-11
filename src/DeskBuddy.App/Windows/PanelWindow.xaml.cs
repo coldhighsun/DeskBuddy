@@ -15,17 +15,12 @@ namespace DeskBuddy.App.Windows;
 /// The panel window with the pomodoro, to-do, note and settings tabs. Closing it only hides it, so it keeps its state and
 /// opens instantly next time.
 /// </summary>
-public partial class PanelWindow : Window
+public partial class PanelWindow
 {
     /// <summary>
     /// How often the pomodoro countdown is refreshed while the panel is visible.
     /// </summary>
     private static readonly TimeSpan RefreshInterval = TimeSpan.FromSeconds(1);
-
-    /// <summary>
-    /// The view models behind the tabs.
-    /// </summary>
-    private readonly PanelViewModel _viewModel;
 
     /// <summary>
     /// The service that saves the note, flushed whenever the panel is hidden.
@@ -36,6 +31,11 @@ public partial class PanelWindow : Window
     /// Refreshes the pomodoro countdown. Runs only while the panel is visible, so a hidden panel costs no CPU.
     /// </summary>
     private readonly DispatcherTimer _refreshTimer = new() { Interval = RefreshInterval };
+
+    /// <summary>
+    /// The view models behind the tabs.
+    /// </summary>
+    private readonly PanelViewModel _viewModel;
 
     /// <summary>
     /// Whether the application is exiting, in which case closing really closes the window.
@@ -64,6 +64,14 @@ public partial class PanelWindow : Window
     }
 
     /// <summary>
+    /// Tells the window the application is exiting, so closing it no longer just hides it.
+    /// </summary>
+    public void PrepareToExit()
+    {
+        _isExiting = true;
+    }
+
+    /// <summary>
     /// Brings the panel to the front, restoring it if it was hidden or minimized.
     /// </summary>
     /// <param name="tab">
@@ -85,14 +93,6 @@ public partial class PanelWindow : Window
         Activate();
     }
 
-    /// <summary>
-    /// Tells the window the application is exiting, so closing it no longer just hides it.
-    /// </summary>
-    public void PrepareToExit()
-    {
-        _isExiting = true;
-    }
-
     /// <inheritdoc />
     protected override void OnClosing(CancelEventArgs e)
     {
@@ -103,6 +103,37 @@ public partial class PanelWindow : Window
         }
 
         base.OnClosing(e);
+    }
+
+    /// <summary>
+    /// Records the shortcut the user presses in the boss key box. Escape leaves the box without changing anything.
+    /// </summary>
+    /// <param name="sender">
+    /// The text box.
+    /// </param>
+    /// <param name="e">
+    /// Key event data.
+    /// </param>
+    private async void OnBossKeyPreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        e.Handled = true;
+
+        if (e.Key == Key.Escape && sender is TextBox box)
+        {
+            box.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
+            return;
+        }
+
+        switch (HotkeyCapture.TryCreate(e.Key, e.SystemKey, Keyboard.Modifiers, out var gesture))
+        {
+            case HotkeyCaptureResult.Accepted:
+                await _viewModel.Settings.ApplyBossKeyAsync(gesture);
+                break;
+
+            case HotkeyCaptureResult.Rejected:
+                _viewModel.Settings.ReportBossKeyRejected();
+                break;
+        }
     }
 
     /// <summary>
@@ -150,36 +181,6 @@ public partial class PanelWindow : Window
         {
             BindingOperations.GetBindingExpression(box, TextBox.TextProperty)?.UpdateSource();
             e.Handled = true;
-        }
-    }
-
-    /// <summary>
-    /// Records the shortcut the user presses in the boss key box. Escape leaves the box without changing anything.
-    /// </summary>
-    /// <param name="sender">
-    /// The text box.
-    /// </param>
-    /// <param name="e">
-    /// Key event data.
-    /// </param>
-    private async void OnBossKeyPreviewKeyDown(object sender, KeyEventArgs e)
-    {
-        e.Handled = true;
-
-        if (e.Key == Key.Escape && sender is TextBox box)
-        {
-            box.MoveFocus(new TraversalRequest(FocusNavigationDirection.Next));
-            return;
-        }
-
-        switch (HotkeyCapture.TryCreate(e.Key, e.SystemKey, Keyboard.Modifiers, out var gesture))
-        {
-            case HotkeyCaptureResult.Accepted:
-                await _viewModel.Settings.ApplyBossKeyAsync(gesture);
-                break;
-            case HotkeyCaptureResult.Rejected:
-                _viewModel.Settings.ReportBossKeyRejected();
-                break;
         }
     }
 }

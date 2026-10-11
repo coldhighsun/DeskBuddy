@@ -373,7 +373,7 @@ internal static class Strings
     /// </returns>
     public static string Chatter(int index)
     {
-        var count = DeskBuddy.Domain.Chatter.ChatterPolicy.VariantCount;
+        var count = Domain.Chatter.ChatterPolicy.VariantCount;
         return Get($"Chatter{((index % count) + count) % count}");
     }
 
