@@ -1,5 +1,6 @@
 using AwesomeAssertions;
 using DeskBuddy.Domain;
+using DeskBuddy.Domain.Gaze;
 using DeskBuddy.Infrastructure.Skins;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -75,6 +76,29 @@ public sealed class FolderSkinLoaderTests : IDisposable
         skin.GetAnimation(PetState.Idle).FramePaths.Should().Equal(
             Path.Combine(_directory, "a.png"),
             Path.Combine(_directory, "b.png"));
+    }
+
+    /// <summary>
+    /// Entries named Idle.Left and the like become looks of the Idle state, not states of their own.
+    /// </summary>
+    [Fact]
+    public async Task LoadAsync_IdleLookEntries_AreLoadedAsGazeAnimations()
+    {
+        // Arrange
+        WriteSkin(
+            """{"frameSize":[8,8],"states":{"Idle":{"fps":1,"frames":["i.png"]},"Idle.Left":{"fps":1,"frames":["l.png"]},"idle.up":{"fps":1,"frames":["u.png"]},"Idle.Sideways":{"fps":1,"frames":["s.png"]}}}""",
+            "i.png",
+            "l.png",
+            "u.png",
+            "s.png");
+
+        // Act
+        var skin = await _loader.LoadAsync(_directory);
+
+        // Assert
+        skin.GazeAnimations.Keys.Should().BeEquivalentTo([GazeDirection.Left, GazeDirection.Up]);
+        skin.GetAnimation(PetState.Idle, GazeDirection.Left).FramePaths.Should().Equal(Path.Combine(_directory, "l.png"));
+        skin.Animations.Keys.Should().BeEquivalentTo([PetState.Idle]);
     }
 
     /// <summary>

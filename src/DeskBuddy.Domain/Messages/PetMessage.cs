@@ -25,6 +25,12 @@ public enum PetMessageKind
     /// remark.
     /// </summary>
     Chatter,
+
+    /// <summary>
+    /// A short remark that goes with something the pet is acting out. <see cref="PetMessage.Count"/> holds the
+    /// <see cref="RemarkCode"/> of the <see cref="PetState"/> the remark belongs to and its wording.
+    /// </summary>
+    Remark,
 }
 
 /// <summary>

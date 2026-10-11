@@ -23,10 +23,21 @@ public sealed class PetBehaviorStateMachine
     private readonly Random _random;
 
     /// <summary>
-    /// The moment at which the current timed state (Idle, Walk, Happy) ends. Sleep, Drag, Tired, Alert and Focus last
-    /// until their cause goes away, so they have no end time.
+    /// The moment at which the current timed state (Idle, Walk, Happy) ends. Sleep, Drag, Tired, Alert, Focus and Coding
+    /// last until their cause goes away, so they have no end time.
     /// </summary>
     private DateTimeOffset _stateEndsAt;
+
+    /// <summary>
+    /// Whether the current state is a moment (see <see cref="OnMoment"/>), held until <see cref="_stateEndsAt"/>.
+    /// </summary>
+    private bool _momentActive;
+
+    /// <summary>
+    /// The ambient state the machine is in because of <see cref="PetInputs.Ambient"/>, or <see langword="null"/> if
+    /// it is not in one. Remembered so the pet gets up again once the ambient state goes away.
+    /// </summary>
+    private PetState? _ambientState;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PetBehaviorStateMachine"/> class in the Idle state.
@@ -65,7 +76,8 @@ public sealed class PetBehaviorStateMachine
 
     /// <summary>
     /// Re-evaluates the state for the current time and the given inputs. Priority, highest first:
-    /// Drag, Alert, Sleep, Happy, Tired, Focus, then the Idle/Walk cycle.
+    /// Drag, Alert, Sleep, moments (Happy and <see cref="OnMoment"/>), Ambient, Tired, Focus, Coding, then the
+    /// Idle/Walk cycle.
     /// </summary>
     /// <param name="inputs">
     /// The current user presence, system condition and pending notices.
@@ -113,9 +125,30 @@ public sealed class PetBehaviorStateMachine
         }
 
         var now = _timeProvider.GetUtcNow();
-        if (State == PetState.Happy && now < _stateEndsAt)
+        if ((State == PetState.Happy || _momentActive) && now < _stateEndsAt)
         {
             return State;
+        }
+
+        if (inputs.Ambient is { } ambient)
+        {
+            if (State != ambient)
+            {
+                Enter(ambient);
+            }
+
+            _ambientState = ambient;
+            return State;
+        }
+
+        if (_ambientState is { } previousAmbient)
+        {
+            _ambientState = null;
+            if (State == previousAmbient)
+            {
+                Enter(PetState.Idle);
+                return State;
+            }
         }
 
         if (inputs.IsSystemStrained)
@@ -145,6 +178,22 @@ public sealed class PetBehaviorStateMachine
         }
 
         if (State == PetState.Focus)
+        {
+            Enter(PetState.Idle);
+            return State;
+        }
+
+        if (inputs.IsDeveloping)
+        {
+            if (State != PetState.Coding)
+            {
+                Enter(PetState.Coding);
+            }
+
+            return State;
+        }
+
+        if (State == PetState.Coding)
         {
             Enter(PetState.Idle);
             return State;
@@ -198,6 +247,29 @@ public sealed class PetBehaviorStateMachine
     }
 
     /// <summary>
+    /// Notifies the machine that something short and one-off happened that the pet should act out for a while, such as
+    /// a finished build or the user coming back. The state is held for the given time, then the pet carries on as
+    /// usual. Ignored while the pet is being dragged; an alert, or the user being away, still takes over.
+    /// </summary>
+    /// <param name="state">
+    /// The state to act out.
+    /// </param>
+    /// <param name="duration">
+    /// How long to stay in it.
+    /// </param>
+    public void OnMoment(PetState state, TimeSpan duration)
+    {
+        if (State == PetState.Drag)
+        {
+            return;
+        }
+
+        Enter(state);
+        _stateEndsAt = _timeProvider.GetUtcNow() + duration;
+        _momentActive = true;
+    }
+
+    /// <summary>
     /// Switches to a state and schedules its end.
     /// </summary>
     /// <param name="state">
@@ -206,6 +278,7 @@ public sealed class PetBehaviorStateMachine
     private void Enter(PetState state)
     {
         State = state;
+        _momentActive = false;
 
         var now = _timeProvider.GetUtcNow();
         _stateEndsAt = state switch

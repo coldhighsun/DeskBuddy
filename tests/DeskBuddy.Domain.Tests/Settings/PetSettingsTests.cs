@@ -171,4 +171,169 @@ public class PetSettingsTests
         // Assert
         normalized.BlacklistedProcesses.Should().BeEmpty();
     }
+
+    /// <summary>
+    /// Development detection is on by default and recognizes common editors and terminals.
+    /// </summary>
+    [Fact]
+    public void Default_DevelopmentDetection_IsOnWithCommonTools()
+    {
+        // Assert
+        PetSettings.Default.DevModeEnabled.Should().BeTrue();
+        PetSettings.Default.DevProcesses.Should().Contain(["Code", "devenv", "rider64", "WindowsTerminal"]);
+    }
+
+    /// <summary>
+    /// Common meeting applications are recognized by default.
+    /// </summary>
+    [Fact]
+    public void Default_MeetingProcesses_ContainCommonApplications()
+    {
+        // Assert
+        PetSettings.Default.MeetingProcesses.Should().Contain(["Zoom", "wemeetapp"]);
+    }
+
+    /// <summary>
+    /// The list of meeting applications is cleaned up like the other process lists.
+    /// </summary>
+    [Fact]
+    public void Normalize_MeetingProcesses_AreCleanedUp()
+    {
+        // Arrange
+        var settings = PetSettings.Default with { MeetingProcesses = [" Zoom.exe ", "zoom", "", "Teams.EXE"] };
+
+        // Act
+        var normalized = settings.Normalize();
+
+        // Assert
+        normalized.MeetingProcesses.Should().Equal("Zoom", "Teams");
+    }
+
+    /// <summary>
+    /// Scenarios are on by default, except the chime on the hour, which would soon become annoying.
+    /// </summary>
+    [Fact]
+    public void Default_Scenarios_AreOnExceptTheChime()
+    {
+        // Assert
+        PetSettings.Default.ScenariosEnabled.Should().BeTrue();
+        PetSettings.Default.DisabledScenarios.Should().Equal("Chime");
+    }
+
+    /// <summary>
+    /// The interface follows the system language unless the user chooses one.
+    /// </summary>
+    [Fact]
+    public void Default_Language_FollowsTheSystem()
+    {
+        // Assert
+        PetSettings.Default.Language.Should().Be(AppLanguage.Auto);
+    }
+
+    /// <summary>
+    /// A language that does not exist falls back to following the system.
+    /// </summary>
+    [Fact]
+    public void Normalize_UnknownLanguage_FallsBackToAuto()
+    {
+        // Arrange
+        var settings = PetSettings.Default with { Language = (AppLanguage)42 };
+
+        // Act
+        var normalized = settings.Normalize();
+
+        // Assert
+        normalized.Language.Should().Be(AppLanguage.Auto);
+    }
+
+    /// <summary>
+    /// The working day ends at six in the evening unless the user says otherwise.
+    /// </summary>
+    [Fact]
+    public void Default_ClockOutTime_IsSixInTheEvening()
+    {
+        // Assert
+        PetSettings.Default.ClockOutTime.Should().Be(TimeSpan.FromHours(18));
+    }
+
+    /// <summary>
+    /// A clock-out time that is not a time of day falls back to the default; seconds are dropped.
+    /// </summary>
+    [Theory]
+    [InlineData(-1, 0, 18, 0)]
+    [InlineData(24, 0, 18, 0)]
+    [InlineData(17, 45, 17, 45)]
+    public void Normalize_ClockOutTime_StaysWithinTheDay(int hours, int minutes, int expectedHours, int expectedMinutes)
+    {
+        // Arrange
+        var settings = PetSettings.Default with { ClockOutTime = new TimeSpan(hours, minutes, 30) };
+
+        // Act
+        var normalized = settings.Normalize();
+
+        // Assert
+        normalized.ClockOutTime.Should().Be(new TimeSpan(expectedHours, expectedMinutes, 0));
+    }
+
+    /// <summary>
+    /// The list of switched-off scenarios keeps known names in their canonical spelling, without duplicates, and drops
+    /// the rest.
+    /// </summary>
+    [Fact]
+    public void Normalize_DisabledScenarios_KeepsOnlyKnownOnes()
+    {
+        // Arrange
+        var settings = PetSettings.Default with
+        {
+            DisabledScenarios = [" buildDone ", "BuildDone", "Nonsense", "", "Idle", "Reading"],
+        };
+
+        // Act
+        var normalized = settings.Normalize();
+
+        // Assert
+        normalized.DisabledScenarios.Should().Equal("BuildDone", "Reading");
+    }
+
+    /// <summary>
+    /// A missing list of switched-off scenarios becomes an empty one.
+    /// </summary>
+    [Fact]
+    public void Normalize_NullDisabledScenarios_BecomesEmpty()
+    {
+        // Act
+        var normalized = (PetSettings.Default with { DisabledScenarios = null! }).Normalize();
+
+        // Assert
+        normalized.DisabledScenarios.Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// The list of development tools is cleaned up like the full-screen process list.
+    /// </summary>
+    [Fact]
+    public void Normalize_DevProcesses_AreCleanedUp()
+    {
+        // Arrange
+        var settings = PetSettings.Default with { DevProcesses = ["  Code.exe ", "code", "", "Rider64.EXE"] };
+
+        // Act
+        var normalized = settings.Normalize();
+
+        // Assert
+        normalized.DevProcesses.Should().Equal("Code", "Rider64");
+    }
+
+    /// <summary>
+    /// A missing development tool list becomes an empty one.
+    /// </summary>
+    [Fact]
+    public void Normalize_NullDevProcesses_BecomesEmpty()
+    {
+        // Act
+        var normalized = (PetSettings.Default with { DevProcesses = null! }).Normalize();
+
+        // Assert
+        normalized.DevProcesses.Should().BeEmpty();
+    }
 }

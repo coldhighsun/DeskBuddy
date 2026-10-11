@@ -4,6 +4,7 @@ using DeskBuddy.Domain.Chatter;
 using DeskBuddy.Domain.Behavior;
 using DeskBuddy.Domain.Messages;
 using DeskBuddy.Domain.Pomodoro;
+using DeskBuddy.Domain.Scenarios;
 using DeskBuddy.Domain.Sedentary;
 using DeskBuddy.Domain.SystemLoad;
 using DeskBuddy.Domain.Visibility;
@@ -44,6 +45,13 @@ namespace DeskBuddy.Application;
 /// <param name="chatter">
 /// Decides when the pet says something unprompted.
 /// </param>
+/// <param name="devScenarios">
+/// Works out what the pet should do because of the user's development work: sitting down to code, builds, git, long
+/// nights, reading up.
+/// </param>
+/// <param name="systemScenarios">
+/// Works out what the pet should do because of things around the user: a meeting, coming back, the battery.
+/// </param>
 public sealed class PetBrain(
     IIdleDetector idleDetector,
     ISystemLoadMonitor loadMonitor,
@@ -54,7 +62,9 @@ public sealed class PetBrain(
     PetMessageQueue messages,
     PetBehaviorStateMachine stateMachine,
     PetVisibility visibility,
-    ChatterPolicy chatter)
+    ChatterPolicy chatter,
+    DevScenarios devScenarios,
+    SystemScenarios systemScenarios)
 {
     /// <summary>
     /// How long the user may be away from keyboard and mouse and still count as present for casual remarks.
@@ -65,6 +75,17 @@ public sealed class PetBrain(
     /// How long a casual remark stays up; much shorter than a reminder, since there is nothing to act on.
     /// </summary>
     private static readonly TimeSpan ChatterLifetime = TimeSpan.FromSeconds(8);
+
+    /// <summary>
+    /// How long a remark that goes with something the pet is acting out stays up.
+    /// </summary>
+    private static readonly TimeSpan RemarkLifetime = TimeSpan.FromSeconds(8);
+
+    /// <summary>
+    /// Whether, as of the last <see cref="Tick"/>, a remark may be shown: the pet is on screen and the user must not
+    /// be left undisturbed by nothing.
+    /// </summary>
+    private bool _canSpeak;
 
     /// <summary>
     /// The pomodoro status last announced through <see cref="PomodoroStatusChanged"/>, to detect changes. The
@@ -123,7 +144,8 @@ public sealed class PetBrain(
     public PetState Tick()
     {
         var userIdle = idleDetector.GetIdleTime();
-        var isStrained = loadPolicy.Update(loadMonitor.GetSnapshot());
+        var load = loadMonitor.GetSnapshot();
+        var isStrained = loadPolicy.Update(load);
 
         EnqueueMessageFor(pomodoro.Update());
 
@@ -144,10 +166,40 @@ public sealed class PetBrain(
             VisibilityChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        // A casual remark is only worth making when nothing else is on screen or waiting and the user is at the desk
-        // and not in a focused pomodoro.
+        _canSpeak = visibility.IsVisible && level == DoNotDisturbLevel.None;
+
+        // What the user is doing and what is going on around them: some of it is acted out once, some for as long
+        // as it lasts. A one-off from the system (a welcome) wins over one from development work.
+        var dev = devScenarios.Evaluate(userIdle, load);
+        var system = systemScenarios.Evaluate(
+            userIdle,
+            canDisturb: _canSpeak && stateMachine.State is not (PetState.Drag or PetState.Alert or PetState.Sleep));
+        if (dev.Moment is { } devMoment)
+        {
+            stateMachine.OnMoment(devMoment.State, devMoment.Duration);
+        }
+
+        if (system.Moment is { } systemMoment)
+        {
+            stateMachine.OnMoment(systemMoment.State, systemMoment.Duration);
+        }
+
+        if (system.Remark is { } systemRemark)
+        {
+            Say(systemRemark, system.RemarkVariant);
+        }
+        else if (dev.Remark is { } devRemark)
+        {
+            Say(devRemark);
+        }
+
+        var ambient = ScenarioCatalog.AmbientRanking.Pick([.. new[] { dev.Ambient, system.Ambient }.OfType<PetState>()]);
+
+        // A casual remark is only worth making when nothing else is on screen or waiting and the user is at the desk,
+        // not in a focused pomodoro and not in a meeting.
         var canChat = visibility.IsVisible
             && level == DoNotDisturbLevel.None
+            && ambient != PetState.Meeting
             && userIdle < ChatterPresenceLimit
             && !(pomodoro.IsRunning && pomodoro.Phase == PomodoroPhase.Work)
             && messages.Current is null
@@ -168,7 +220,9 @@ public sealed class PetBrain(
             userIdle,
             isStrained,
             IsFocusing: pomodoro.IsRunning && pomodoro.Phase == PomodoroPhase.Work,
-            HasAlert: messages.Current is { Kind: not PetMessageKind.Chatter });
+            HasAlert: messages.Current is { Kind: not (PetMessageKind.Chatter or PetMessageKind.Remark) },
+            IsDeveloping: dev.IsDeveloping,
+            Ambient: ambient);
         return stateMachine.Update(inputs);
     }
 
@@ -246,6 +300,47 @@ public sealed class PetBrain(
         {
             MessageChanged?.Invoke(this, EventArgs.Empty);
         }
+    }
+
+    /// <summary>
+    /// Makes the pet act out a state for a while, such as a finished build or a user who is back. Unlike a state that
+    /// follows from the sensors, this one is chosen by the caller and lasts a fixed time. Ignored while the pet is
+    /// being dragged.
+    /// </summary>
+    /// <param name="state">
+    /// The state to act out.
+    /// </param>
+    /// <param name="duration">
+    /// How long to stay in it.
+    /// </param>
+    public void ActOut(PetState state, TimeSpan duration)
+    {
+        stateMachine.OnMoment(state, duration);
+    }
+
+    /// <summary>
+    /// Shows a short remark that goes with a state the pet is acting out, unless the pet is hidden or the user must
+    /// not be disturbed. Unlike a reminder it is not queued for later: a remark that is no longer about what just
+    /// happened would be worse than none. Call from within a <see cref="Tick"/> or after one.
+    /// </summary>
+    /// <param name="state">
+    /// The state the remark belongs to; the UI finds the wording from it.
+    /// </param>
+    /// <param name="variant">
+    /// Which wording of the state's remark, for states that have several (see <see cref="RemarkCode"/>).
+    /// </param>
+    /// <returns>
+    /// <see langword="true"/> if the remark was queued.
+    /// </returns>
+    public bool Say(PetState state, int variant = 0)
+    {
+        if (!_canSpeak)
+        {
+            return false;
+        }
+
+        messages.Enqueue(new PetMessage(PetMessageKind.Remark, [], Count: RemarkCode.Encode(state, variant), Lifetime: RemarkLifetime));
+        return true;
     }
 
     /// <summary>

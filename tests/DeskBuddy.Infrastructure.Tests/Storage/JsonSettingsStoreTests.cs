@@ -91,6 +91,13 @@ public sealed class JsonSettingsStoreTests : IDisposable
             AutoHideWhenFullscreen = false,
             DetectCoveredMonitor = true,
             BlacklistedProcesses = ["Zoom", "Teams"],
+            DevModeEnabled = false,
+            DevProcesses = ["Code", "zed"],
+            ScenariosEnabled = false,
+            DisabledScenarios = ["BuildDone", "Reading"],
+            MeetingProcesses = ["Zoom", "Slack"],
+            ClockOutTime = new TimeSpan(17, 30, 0),
+            Language = AppLanguage.En,
         };
 
         // Act
