@@ -1,4 +1,5 @@
 using AwesomeAssertions;
+using DeskBuddy.Domain.Gaze;
 using DeskBuddy.Domain.Skins;
 
 namespace DeskBuddy.Domain.Tests.Skins;
@@ -60,6 +61,143 @@ public class SkinTests
 
         // Assert
         result.Should().BeSameAs(idle);
+    }
+
+    /// <summary>
+    /// A state the skin lacks shows its closest fallback if the skin has that.
+    /// </summary>
+    [Fact]
+    public void GetAnimation_MissingStateWithFallback_UsesTheFallback()
+    {
+        // Arrange
+        var coding = Animation("coding.png");
+        var skin = new Skin("test", 128, 128, new Dictionary<PetState, SkinAnimation>
+        {
+            [PetState.Idle] = Animation("idle.png"),
+            [PetState.Coding] = coding,
+        });
+
+        // Act
+        var result = skin.GetAnimation(PetState.NightCoding);
+
+        // Assert
+        result.Should().BeSameAs(coding);
+    }
+
+    /// <summary>
+    /// A state whose fallback is missing too ends up at Idle.
+    /// </summary>
+    [Fact]
+    public void GetAnimation_FallbackAlsoMissing_FallsBackToIdle()
+    {
+        // Arrange
+        var idle = Animation("idle.png");
+        var skin = new Skin("test", 128, 128, new Dictionary<PetState, SkinAnimation> { [PetState.Idle] = idle });
+
+        // Act
+        var result = skin.GetAnimation(PetState.NightCoding);
+
+        // Assert
+        result.Should().BeSameAs(idle);
+    }
+
+    /// <summary>
+    /// Following the fallbacks of any state always ends, and ends without a loop.
+    /// </summary>
+    [Fact]
+    public void PetStateFallback_ForEveryState_ChainEnds()
+    {
+        foreach (var state in Enum.GetValues<PetState>())
+        {
+            var steps = 0;
+            for (PetState? current = state; current is not null; current = PetStateFallback.Of(current.Value))
+            {
+                steps++;
+                steps.Should().BeLessThan(10, $"the fallbacks of {state} should not loop");
+            }
+        }
+    }
+
+    /// <summary>
+    /// An idle pet looks in the direction asked for if the skin has that look.
+    /// </summary>
+    [Fact]
+    public void GetAnimation_IdleWithGazeVariant_ReturnsTheVariant()
+    {
+        // Arrange
+        var left = Animation("left.png");
+        var skin = new Skin(
+            "test",
+            128,
+            128,
+            new Dictionary<PetState, SkinAnimation> { [PetState.Idle] = Animation("idle.png") },
+            new Dictionary<GazeDirection, SkinAnimation> { [GazeDirection.Left] = left });
+
+        // Act
+        var result = skin.GetAnimation(PetState.Idle, GazeDirection.Left);
+
+        // Assert
+        result.Should().BeSameAs(left);
+        skin.CanLookAround.Should().BeTrue();
+    }
+
+    /// <summary>
+    /// A look the skin lacks, or any look in another state, shows the plain animation.
+    /// </summary>
+    [Fact]
+    public void GetAnimation_GazeVariantMissingOrNotIdle_ReturnsThePlainAnimation()
+    {
+        // Arrange
+        var idle = Animation("idle.png");
+        var walk = Animation("walk.png");
+        var skin = new Skin(
+            "test",
+            128,
+            128,
+            new Dictionary<PetState, SkinAnimation> { [PetState.Idle] = idle, [PetState.Walk] = walk },
+            new Dictionary<GazeDirection, SkinAnimation> { [GazeDirection.Left] = Animation("left.png") });
+
+        // Act
+        var up = skin.GetAnimation(PetState.Idle, GazeDirection.Up);
+        var walking = skin.GetAnimation(PetState.Walk, GazeDirection.Left);
+
+        // Assert
+        up.Should().BeSameAs(idle);
+        walking.Should().BeSameAs(walk);
+    }
+
+    /// <summary>
+    /// A skin without looks cannot look around.
+    /// </summary>
+    [Fact]
+    public void CanLookAround_NoGazeVariants_IsFalse()
+    {
+        // Arrange
+        var skin = new Skin("test", 128, 128, new Dictionary<PetState, SkinAnimation> { [PetState.Idle] = Animation("idle.png") });
+
+        // Assert
+        skin.CanLookAround.Should().BeFalse();
+    }
+
+    /// <summary>
+    /// A dizzy pet without a dizzy animation looks tired.
+    /// </summary>
+    [Fact]
+    public void GetAnimation_DizzyMissing_UsesTired()
+    {
+        // Arrange
+        var tired = Animation("tired.png");
+        var skin = new Skin("test", 128, 128, new Dictionary<PetState, SkinAnimation>
+        {
+            [PetState.Idle] = Animation("idle.png"),
+            [PetState.Tired] = tired,
+        });
+
+        // Act
+        var result = skin.GetAnimation(PetState.Dizzy);
+
+        // Assert
+        result.Should().BeSameAs(tired);
     }
 
     /// <summary>

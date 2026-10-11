@@ -1,8 +1,11 @@
 using AwesomeAssertions;
 using DeskBuddy.Application.Abstractions;
+using DeskBuddy.Domain.Activity;
 using DeskBuddy.Domain.Behavior;
 using DeskBuddy.Domain.Chatter;
 using DeskBuddy.Domain.Pomodoro;
+using DeskBuddy.Domain.Scenarios;
+using DeskBuddy.Domain.Schedule;
 using DeskBuddy.Domain.Sedentary;
 using DeskBuddy.Domain.Messages;
 using DeskBuddy.Domain.Settings;
@@ -43,6 +46,7 @@ public class BossKeyControllerTests
     public BossKeyControllerTests()
     {
         var clock = new FakeTimeProvider();
+        var behavior = new PetBehaviorOptions();
         _brain = new PetBrain(
             new FakeIdle(),
             new FakeLoad(),
@@ -53,7 +57,24 @@ public class BossKeyControllerTests
             new PetMessageQueue(TimeSpan.FromSeconds(30), clock),
             new PetBehaviorStateMachine(new PetBehaviorOptions(), clock, new Random(1)),
             new PetVisibility(clock, TimeSpan.FromSeconds(2)),
-            new ChatterPolicy(clock, new Random(1)));
+            new ChatterPolicy(clock, new Random(1)),
+            new DevScenarios(
+                new FakeForegroundApp(),
+                new FakeProcessList(),
+                new DevActivityPolicy(behavior, clock),
+                new BuildActivityPolicy(behavior, clock),
+                new GitSyncPolicy(behavior, clock),
+                new LateNightPolicy(behavior, clock),
+                new ScenarioSwitches(),
+                behavior),
+            new SystemScenarios(
+                new FakeForegroundApp(),
+                new FakePowerStatusProvider(),
+                new MeetingPolicy(),
+                new WelcomeBackPolicy(behavior),
+                new PowerPolicy(behavior),
+                new ScheduleClock(behavior, clock, new ScenarioSwitches { IsEnabled = false }),
+                new ScenarioSwitches()));
     }
 
     /// <summary>

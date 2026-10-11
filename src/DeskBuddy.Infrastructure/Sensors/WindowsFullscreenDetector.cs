@@ -17,12 +17,6 @@ namespace DeskBuddy.Infrastructure.Sensors;
 public sealed unsafe partial class WindowsFullscreenDetector(SettingsService settings) : IFullscreenDetector
 {
     /// <summary>
-    /// <c>PROCESS_QUERY_LIMITED_INFORMATION</c>: enough to read a process's image name, and allowed even for
-    /// elevated processes.
-    /// </summary>
-    private const uint ProcessQueryLimitedInformation = 0x1000;
-
-    /// <summary>
     /// Window classes of the desktop and taskbar, which fill a monitor without being a full-screen application.
     /// </summary>
     private static readonly string[] ShellWindowClasses = ["Progman", "WorkerW", "Shell_TrayWnd", "Shell_SecondaryTrayWnd"];
@@ -37,10 +31,10 @@ public sealed unsafe partial class WindowsFullscreenDetector(SettingsService set
         var coversMonitor = false;
         if (current.BlacklistedProcesses.Count > 0 || current.DetectCoveredMonitor)
         {
-            var window = GetForegroundWindow();
+            var window = ForegroundWindow.GetHandle();
             if (window != 0)
             {
-                process = current.BlacklistedProcesses.Count > 0 ? GetProcessName(window) : null;
+                process = current.BlacklistedProcesses.Count > 0 ? ForegroundWindow.GetProcessName(window) : null;
                 coversMonitor = current.DetectCoveredMonitor && CoversMonitor(window);
             }
         }
@@ -110,42 +104,6 @@ public sealed unsafe partial class WindowsFullscreenDetector(SettingsService set
         }
 
         return IsSuppressing(shellState) ? DoNotDisturbLevel.Quiet : DoNotDisturbLevel.None;
-    }
-
-    /// <summary>
-    /// Gets the name of the process that owns a window, without the <c>.exe</c> extension.
-    /// </summary>
-    /// <param name="window">
-    /// The window handle.
-    /// </param>
-    /// <returns>
-    /// The process name, or <see langword="null"/> if it cannot be read (for example for protected system processes).
-    /// </returns>
-    private static string? GetProcessName(nint window)
-    {
-        if (GetWindowThreadProcessId(window, out var processId) == 0)
-        {
-            return null;
-        }
-
-        var process = OpenProcess(ProcessQueryLimitedInformation, false, processId);
-        if (process == 0)
-        {
-            return null;
-        }
-
-        try
-        {
-            var buffer = stackalloc char[1024];
-            var length = 1024;
-            return QueryFullProcessImageName(process, 0, buffer, ref length)
-                ? Path.GetFileNameWithoutExtension(new string(buffer, 0, length))
-                : null;
-        }
-        finally
-        {
-            CloseHandle(process);
-        }
     }
 
     /// <summary>
@@ -245,29 +203,7 @@ public sealed unsafe partial class WindowsFullscreenDetector(SettingsService set
     [LibraryImport("shell32.dll")]
     private static partial int SHQueryUserNotificationState(out int state);
 
-    /// <summary>
-    /// Gets the window the user is working in.
-    /// </summary>
-    /// <returns>
-    /// The window handle, or zero if there is none.
-    /// </returns>
-    [LibraryImport("user32.dll")]
-    private static partial nint GetForegroundWindow();
 
-    /// <summary>
-    /// Gets the thread and process that created a window.
-    /// </summary>
-    /// <param name="window">
-    /// The window handle.
-    /// </param>
-    /// <param name="processId">
-    /// Receives the process identifier.
-    /// </param>
-    /// <returns>
-    /// The thread identifier, or zero on failure.
-    /// </returns>
-    [LibraryImport("user32.dll")]
-    private static partial uint GetWindowThreadProcessId(nint window, out uint processId);
 
     /// <summary>
     /// Gets the class name of a window.
@@ -334,56 +270,6 @@ public sealed unsafe partial class WindowsFullscreenDetector(SettingsService set
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool GetMonitorInfo(nint monitor, ref MonitorInfo info);
 
-    /// <summary>
-    /// Opens a process.
-    /// </summary>
-    /// <param name="access">
-    /// The access rights requested.
-    /// </param>
-    /// <param name="inheritHandle">
-    /// Whether child processes inherit the handle.
-    /// </param>
-    /// <param name="processId">
-    /// The process identifier.
-    /// </param>
-    /// <returns>
-    /// The process handle, or zero on failure.
-    /// </returns>
-    [LibraryImport("kernel32.dll")]
-    private static partial nint OpenProcess(uint access, [MarshalAs(UnmanagedType.Bool)] bool inheritHandle, uint processId);
 
-    /// <summary>
-    /// Gets the full path of a process's executable.
-    /// </summary>
-    /// <param name="process">
-    /// The process handle.
-    /// </param>
-    /// <param name="flags">
-    /// Zero for a Win32 path.
-    /// </param>
-    /// <param name="exeName">
-    /// Receives the path.
-    /// </param>
-    /// <param name="size">
-    /// On input the capacity of <paramref name="exeName"/>, on output the length copied.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> on success.
-    /// </returns>
-    [LibraryImport("kernel32.dll", EntryPoint = "QueryFullProcessImageNameW")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool QueryFullProcessImageName(nint process, uint flags, char* exeName, ref int size);
 
-    /// <summary>
-    /// Closes a handle.
-    /// </summary>
-    /// <param name="handle">
-    /// The handle to close.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> on success.
-    /// </returns>
-    [LibraryImport("kernel32.dll")]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static partial bool CloseHandle(nint handle);
 }

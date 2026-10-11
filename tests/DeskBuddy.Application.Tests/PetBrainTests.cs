@@ -1,11 +1,16 @@
 using AwesomeAssertions;
 using DeskBuddy.Application.Abstractions;
 using DeskBuddy.Domain;
+using DeskBuddy.Domain.Activity;
 using DeskBuddy.Domain.Behavior;
 using DeskBuddy.Domain.Chatter;
 using DeskBuddy.Domain.Messages;
+using DeskBuddy.Domain.Scenarios;
+using DeskBuddy.Domain.Schedule;
 using DeskBuddy.Domain.Pomodoro;
+using DeskBuddy.Domain.Power;
 using DeskBuddy.Domain.Sedentary;
+using DeskBuddy.Domain.Settings;
 using DeskBuddy.Domain.SystemLoad;
 using DeskBuddy.Domain.Visibility;
 using Microsoft.Extensions.Time.Testing;
@@ -53,6 +58,41 @@ public class PetBrainTests
     private readonly FakeFullscreenDetector _fullscreen = new();
 
     /// <summary>
+    /// The fake foreground application detector the brain reads.
+    /// </summary>
+    private readonly FakeForegroundApp _foreground = new();
+
+    /// <summary>
+    /// The fake process list the brain reads.
+    /// </summary>
+    private readonly FakeProcessList _processes = new();
+
+    /// <summary>
+    /// The development detection the brain consults.
+    /// </summary>
+    private readonly DevActivityPolicy _devActivity;
+
+    /// <summary>
+    /// The scenario switches the brain follows.
+    /// </summary>
+    private readonly ScenarioSwitches _switches = new();
+
+    /// <summary>
+    /// The scenario switches of the clock; off, as the fake clock starts on New Year Day.
+    /// </summary>
+    private readonly ScenarioSwitches _clockSwitches = new() { IsEnabled = false };
+
+    /// <summary>
+    /// The fake power supply the brain reads.
+    /// </summary>
+    private readonly FakePowerStatusProvider _power = new();
+
+    /// <summary>
+    /// The meeting detection the brain consults.
+    /// </summary>
+    private readonly MeetingPolicy _meeting = new() { Processes = PetSettings.DefaultMeetingProcesses };
+
+    /// <summary>
     /// The clock shared by every time-dependent component.
     /// </summary>
     private readonly FakeTimeProvider _clock = new();
@@ -86,6 +126,24 @@ public class PetBrainTests
         };
         _visibility = new PetVisibility(_clock, RestoreDelay);
         _chatter = new ChatterPolicy(_clock, new Random(1));
+        _devActivity = new DevActivityPolicy(behavior, _clock) { Processes = PetSettings.DefaultDevProcesses };
+        var devScenarios = new DevScenarios(
+            _foreground,
+            _processes,
+            _devActivity,
+            new BuildActivityPolicy(behavior, _clock),
+            new GitSyncPolicy(behavior, _clock),
+            new LateNightPolicy(behavior, _clock),
+            _switches,
+            behavior);
+        var systemScenarios = new SystemScenarios(
+            _foreground,
+            _power,
+            _meeting,
+            new WelcomeBackPolicy(behavior),
+            new PowerPolicy(behavior),
+            new ScheduleClock(behavior, _clock, _clockSwitches),
+            _switches);
         _brain = new PetBrain(
             _idle,
             _load,
@@ -96,7 +154,9 @@ public class PetBrainTests
             new PetMessageQueue(behavior.MessageDuration, _clock),
             new PetBehaviorStateMachine(behavior, _clock, new Random(1)),
             _visibility,
-            _chatter);
+            _chatter,
+            devScenarios,
+            systemScenarios);
     }
 
     /// <summary>
@@ -937,6 +997,217 @@ public class PetBrainTests
     }
 
     /// <summary>
+    /// A development tool in front while the user is active makes the pet sit down to code.
+    /// </summary>
+    [Fact]
+    public void Tick_DevelopmentToolInFront_PetCodes()
+    {
+        // Arrange
+        _foreground.ProcessName = "Code";
+
+        // Act
+        var state = _brain.Tick();
+
+        // Assert
+        state.Should().Be(PetState.Coding);
+    }
+
+    /// <summary>
+    /// An application that is not a development tool does not make the pet code.
+    /// </summary>
+    [Fact]
+    public void Tick_OtherApplicationInFront_PetDoesNotCode()
+    {
+        // Arrange
+        _foreground.ProcessName = "chrome";
+
+        // Act
+        var state = _brain.Tick();
+
+        // Assert
+        state.Should().NotBe(PetState.Coding);
+    }
+
+    /// <summary>
+    /// With development detection and the meeting scenario both off the pet never codes and the foreground window is
+    /// not even looked at.
+    /// </summary>
+    [Fact]
+    public void Tick_DevelopmentDetectionOff_DoesNotLookAtForegroundWindow()
+    {
+        // Arrange
+        _devActivity.IsEnabled = false;
+        _switches.Disabled = [nameof(PetState.Meeting)];
+        _foreground.ProcessName = "Code";
+
+        // Act
+        var state = _brain.Tick();
+
+        // Assert
+        state.Should().NotBe(PetState.Coding);
+        _foreground.QueryCount.Should().Be(0);
+    }
+
+    /// <summary>
+    /// A meeting application in front makes the pet keep company in a headset.
+    /// </summary>
+    [Fact]
+    public void Tick_MeetingApplicationInFront_PetIsInMeeting()
+    {
+        // Arrange
+        _foreground.ProcessName = "Zoom";
+
+        // Act
+        var state = _brain.Tick();
+
+        // Assert
+        state.Should().Be(PetState.Meeting);
+    }
+
+    /// <summary>
+    /// The pet keeps quiet during a meeting, however long it waits.
+    /// </summary>
+    [Fact]
+    public void Tick_Meeting_NoChatter()
+    {
+        // Arrange
+        _foreground.ProcessName = "Zoom";
+
+        // Act
+        var message = RunUntilChatter(60);
+
+        // Assert
+        message.Should().BeNull();
+    }
+
+    /// <summary>
+    /// A meeting outranks a running build: the pet keeps still and quiet rather than showing the loading ring.
+    /// </summary>
+    [Fact]
+    public void Tick_MeetingWhileBuilding_MeetingWins()
+    {
+        // Arrange
+        _foreground.ProcessName = "Zoom";
+        _processes.Names = new HashSet<string>(["msbuild"], StringComparer.OrdinalIgnoreCase);
+        _load.Snapshot = new SystemLoadSnapshot(95, 40);
+        PetState state = default;
+
+        // Act
+        for (var second = 0; second < 8; second++)
+        {
+            state = _brain.Tick();
+            _clock.Advance(TimeSpan.FromSeconds(1));
+        }
+
+        // Assert
+        state.Should().Be(PetState.Meeting);
+    }
+
+    /// <summary>
+    /// The user coming back after a long absence is welcomed: the pet wakes up waving and says so.
+    /// </summary>
+    [Fact]
+    public void Tick_BackAfterLongAbsence_PetWelcomesTheUser()
+    {
+        // Arrange
+        _idle.IdleTime = TimeSpan.FromMinutes(45);
+        _brain.Tick().Should().Be(PetState.Sleep);
+        _clock.Advance(TimeSpan.FromSeconds(1));
+        _idle.IdleTime = TimeSpan.FromSeconds(1);
+
+        // Act
+        var state = _brain.Tick();
+        _clock.Advance(TimeSpan.FromSeconds(1));
+        _brain.Tick();
+
+        // Assert
+        state.Should().Be(PetState.Welcome);
+        _brain.CurrentMessage.Should().NotBeNull();
+        _brain.CurrentMessage!.Kind.Should().Be(PetMessageKind.Remark);
+        _brain.CurrentMessage.Count.Should().Be((int)PetState.Welcome);
+    }
+
+    /// <summary>
+    /// A low battery makes the pet show an empty battery, and plugging in makes it charge up.
+    /// </summary>
+    [Fact]
+    public void Tick_BatteryLowThenPluggedIn_PetShowsLowBatteryThenCharges()
+    {
+        // Arrange
+        _power.Status = new PowerStatus(true, 10, false);
+        var low = _brain.Tick();
+        _clock.Advance(TimeSpan.FromSeconds(1));
+        _power.Status = new PowerStatus(true, 10, true);
+
+        // Act
+        var charging = _brain.Tick();
+
+        // Assert
+        low.Should().Be(PetState.LowBattery);
+        charging.Should().Be(PetState.Charging);
+    }
+
+    /// <summary>
+    /// A state the pet is made to act out is shown for its duration.
+    /// </summary>
+    [Fact]
+    public void ActOut_State_PetShowsItThenCarriesOn()
+    {
+        // Arrange
+        _brain.ActOut(PetState.Focus, TimeSpan.FromSeconds(3));
+
+        // Act
+        var during = _brain.Tick();
+        _clock.Advance(TimeSpan.FromSeconds(3));
+        var after = _brain.Tick();
+
+        // Assert
+        during.Should().Be(PetState.Focus);
+        after.Should().Be(PetState.Idle);
+    }
+
+    /// <summary>
+    /// A remark appears in the speech bubble, and unlike a reminder it does not make the pet call for attention.
+    /// </summary>
+    [Fact]
+    public void Say_PetOnScreen_ShowsRemarkWithoutAlerting()
+    {
+        // Arrange
+        _brain.Tick();
+
+        // Act
+        var queued = _brain.Say(PetState.Coding);
+        var state = _brain.Tick();
+
+        // Assert
+        queued.Should().BeTrue();
+        _brain.CurrentMessage.Should().NotBeNull();
+        _brain.CurrentMessage!.Kind.Should().Be(PetMessageKind.Remark);
+        _brain.CurrentMessage.Count.Should().Be((int)PetState.Coding);
+        state.Should().NotBe(PetState.Alert);
+    }
+
+    /// <summary>
+    /// A remark is dropped, not saved for later, while the user must not be disturbed.
+    /// </summary>
+    [Fact]
+    public void Say_DoNotDisturb_IsDropped()
+    {
+        // Arrange
+        _fullscreen.DoNotDisturb = true;
+        _brain.Tick();
+
+        // Act
+        var queued = _brain.Say(PetState.Coding);
+        _fullscreen.DoNotDisturb = false;
+        _brain.Tick();
+
+        // Assert
+        queued.Should().BeFalse();
+        _brain.CurrentMessage.Should().BeNull();
+    }
+
+    /// <summary>
     /// Load sensor stub with a settable value.
     /// </summary>
     private sealed class FakeLoadMonitor : ISystemLoadMonitor
@@ -993,5 +1264,54 @@ public class PetBrainTests
         {
             return IdleTime;
         }
+    }
+
+    /// <summary>
+    /// At lunch time the pet acts out a meal and says the remark of lunch, not of dinner.
+    /// </summary>
+    [Fact]
+    public void Tick_LunchTime_ActsOutMealWithLunchRemark()
+    {
+        // Arrange
+        UseNoonOnAWeekday();
+
+        // Act
+        var state = _brain.Tick();
+
+        // Assert
+        state.Should().Be(PetState.Meal);
+        _brain.CurrentMessage!.Kind.Should().Be(PetMessageKind.Remark);
+        _brain.CurrentMessage.Count.Should().Be(RemarkCode.Encode(PetState.Meal, ScheduleClock.Lunch));
+    }
+
+    /// <summary>
+    /// A pet that is being dragged does not use up the occasion; it comes once the pet is put down.
+    /// </summary>
+    [Fact]
+    public void Tick_LunchTimeWhileDragging_MealComesAfterTheDrop()
+    {
+        // Arrange
+        UseNoonOnAWeekday();
+        _brain.OnDragStarted();
+
+        // Act
+        var whileDragging = _brain.Tick();
+        _brain.OnDragEnded();
+        var afterDrop = _brain.Tick();
+
+        // Assert
+        whileDragging.Should().Be(PetState.Drag);
+        afterDrop.Should().Be(PetState.Meal);
+    }
+
+    /// <summary>
+    /// Sets the clock to a Wednesday noon in UTC and switches the clock scenarios on.
+    /// </summary>
+    private void UseNoonOnAWeekday()
+    {
+        _clock.SetLocalTimeZone(TimeZoneInfo.Utc);
+        _clock.SetUtcNow(new DateTimeOffset(2026, 3, 11, 12, 0, 0, TimeSpan.Zero));
+        _clockSwitches.IsEnabled = true;
+        _clockSwitches.Disabled = [nameof(PetState.Chime)];
     }
 }

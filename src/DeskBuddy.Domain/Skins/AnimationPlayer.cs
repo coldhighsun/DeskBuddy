@@ -1,3 +1,5 @@
+using DeskBuddy.Domain.Gaze;
+
 namespace DeskBuddy.Domain.Skins;
 
 /// <summary>
@@ -55,14 +57,17 @@ public sealed class AnimationPlayer
     /// <param name="state">
     /// The state to show.
     /// </param>
+    /// <param name="gaze">
+    /// Where the pet looks while idle.
+    /// </param>
     /// <returns>
     /// <see langword="true"/> if the displayed frame changed; otherwise <see langword="false"/>.
     /// </returns>
-    public bool SetState(PetState state)
+    public bool SetState(PetState state, GazeDirection gaze = GazeDirection.None)
     {
         State = state;
 
-        var next = _skin.GetAnimation(state);
+        var next = _skin.GetAnimation(state, gaze);
         if (ReferenceEquals(next, Animation))
         {
             return false;

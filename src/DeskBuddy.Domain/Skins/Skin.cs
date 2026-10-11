@@ -1,3 +1,5 @@
+using DeskBuddy.Domain.Gaze;
+
 namespace DeskBuddy.Domain.Skins;
 
 /// <summary>
@@ -9,6 +11,11 @@ public sealed class Skin
     /// Animations keyed by the state they represent.
     /// </summary>
     private readonly IReadOnlyDictionary<PetState, SkinAnimation> _animations;
+
+    /// <summary>
+    /// The Idle animations for looking in a direction, if the skin has any.
+    /// </summary>
+    private readonly IReadOnlyDictionary<GazeDirection, SkinAnimation> _gazeAnimations;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Skin"/> class.
@@ -25,10 +32,19 @@ public sealed class Skin
     /// <param name="animations">
     /// Animations keyed by state. Must contain <see cref="PetState.Idle"/>, which is the fallback for missing states.
     /// </param>
+    /// <param name="gazeAnimations">
+    /// Variants of the Idle animation for looking left, right, up or down, or <see langword="null"/> if the skin has
+    /// none.
+    /// </param>
     /// <exception cref="ArgumentException">
     /// Thrown when <paramref name="animations"/> has no <see cref="PetState.Idle"/> entry.
     /// </exception>
-    public Skin(string name, int frameWidth, int frameHeight, IReadOnlyDictionary<PetState, SkinAnimation> animations)
+    public Skin(
+        string name,
+        int frameWidth,
+        int frameHeight,
+        IReadOnlyDictionary<PetState, SkinAnimation> animations,
+        IReadOnlyDictionary<GazeDirection, SkinAnimation>? gazeAnimations = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(frameWidth);
@@ -44,6 +60,7 @@ public sealed class Skin
         FrameWidth = frameWidth;
         FrameHeight = frameHeight;
         _animations = animations;
+        _gazeAnimations = gazeAnimations ?? new Dictionary<GazeDirection, SkinAnimation>();
     }
 
     /// <summary>
@@ -67,16 +84,43 @@ public sealed class Skin
     public IReadOnlyDictionary<PetState, SkinAnimation> Animations => _animations;
 
     /// <summary>
-    /// Gets the animation for a state, falling back to <see cref="PetState.Idle"/> when the skin does not define it.
+    /// Gets the Idle animations for looking in a direction.
+    /// </summary>
+    public IReadOnlyDictionary<GazeDirection, SkinAnimation> GazeAnimations => _gazeAnimations;
+
+    /// <summary>
+    /// Gets a value indicating whether the skin can look in directions, so the pet may follow the mouse pointer.
+    /// </summary>
+    public bool CanLookAround => _gazeAnimations.Count > 0;
+
+    /// <summary>
+    /// Gets the animation for a state. When the skin does not define it, the closest state it does define is used (see
+    /// <see cref="PetStateFallback"/>), and in the end Idle.
     /// </summary>
     /// <param name="state">
     /// The requested state.
     /// </param>
+    /// <param name="gaze">
+    /// Where the pet looks; only matters for <see cref="PetState.Idle"/>, and only if the skin has a variant for it.
+    /// </param>
     /// <returns>
-    /// The animation for <paramref name="state"/>, or the Idle animation if none is defined.
+    /// The animation for <paramref name="state"/>, or for the nearest fallback the skin defines, or the Idle animation.
     /// </returns>
-    public SkinAnimation GetAnimation(PetState state)
+    public SkinAnimation GetAnimation(PetState state, GazeDirection gaze = GazeDirection.None)
     {
-        return _animations.TryGetValue(state, out var animation) ? animation : _animations[PetState.Idle];
+        if (state == PetState.Idle && _gazeAnimations.TryGetValue(gaze, out var looking))
+        {
+            return looking;
+        }
+
+        for (PetState? candidate = state; candidate is { } current; candidate = PetStateFallback.Of(current))
+        {
+            if (_animations.TryGetValue(current, out var animation))
+            {
+                return animation;
+            }
+        }
+
+        return _animations[PetState.Idle];
     }
 }

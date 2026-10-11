@@ -50,6 +50,11 @@ public class PetBehaviorStateMachineTests
     private static readonly PetInputs Focusing = new(TimeSpan.Zero, IsFocusing: true);
 
     /// <summary>
+    /// Inputs for an active user while working in a development tool.
+    /// </summary>
+    private static readonly PetInputs Developing = new(TimeSpan.Zero, IsDeveloping: true);
+
+    /// <summary>
     /// The fake clock shared by the machine under test.
     /// </summary>
     private readonly FakeTimeProvider _clock = new();
@@ -741,5 +746,394 @@ public class PetBehaviorStateMachineTests
 
         // Assert
         state.Should().Be(PetState.Tired);
+    }
+
+    /// <summary>
+    /// A user working in a development tool makes the pet sit down to code.
+    /// </summary>
+    [Fact]
+    public void Update_Developing_EntersCoding()
+    {
+        // Act
+        var state = _machine.Update(Developing);
+
+        // Assert
+        state.Should().Be(PetState.Coding);
+    }
+
+    /// <summary>
+    /// A pet at its computer stays there instead of wandering off.
+    /// </summary>
+    [Fact]
+    public void Update_DevelopingForLongTime_NeverWalks()
+    {
+        // Arrange
+        _machine.Update(Developing);
+
+        // Act
+        _clock.Advance(IdleDwell + WalkDuration + IdleDwell);
+        var state = _machine.Update(Developing);
+
+        // Assert
+        state.Should().Be(PetState.Coding);
+    }
+
+    /// <summary>
+    /// Coding interrupts a walk already under way.
+    /// </summary>
+    [Fact]
+    public void Update_WalkingThenDeveloping_EntersCoding()
+    {
+        // Arrange
+        _clock.Advance(IdleDwell);
+        _machine.Update(Active).Should().Be(PetState.Walk);
+
+        // Act
+        var state = _machine.Update(Developing);
+
+        // Assert
+        state.Should().Be(PetState.Coding);
+    }
+
+    /// <summary>
+    /// When the user stops developing the pet gets up and returns to Idle.
+    /// </summary>
+    [Fact]
+    public void Update_DevelopingEnds_ReturnsToIdle()
+    {
+        // Arrange
+        _machine.Update(Developing);
+
+        // Act
+        var state = _machine.Update(Active);
+
+        // Assert
+        state.Should().Be(PetState.Idle);
+    }
+
+    /// <summary>
+    /// A user who walks away falls asleep even in front of a development tool.
+    /// </summary>
+    [Fact]
+    public void Update_DevelopingAndUserAway_Sleeps()
+    {
+        // Act
+        var state = _machine.Update(new PetInputs(SleepAfter, IsDeveloping: true));
+
+        // Assert
+        state.Should().Be(PetState.Sleep);
+    }
+
+    /// <summary>
+    /// A heavily loaded system (a build, say) makes a coding pet tired.
+    /// </summary>
+    [Fact]
+    public void Update_DevelopingAndSystemStrained_BecomesTired()
+    {
+        // Act
+        var state = _machine.Update(new PetInputs(TimeSpan.Zero, IsSystemStrained: true, IsDeveloping: true));
+
+        // Assert
+        state.Should().Be(PetState.Tired);
+    }
+
+    /// <summary>
+    /// A pomodoro work phase, which the user asked for, outranks coding.
+    /// </summary>
+    [Fact]
+    public void Update_DevelopingAndFocusing_Focuses()
+    {
+        // Act
+        var state = _machine.Update(new PetInputs(TimeSpan.Zero, IsFocusing: true, IsDeveloping: true));
+
+        // Assert
+        state.Should().Be(PetState.Focus);
+    }
+
+    /// <summary>
+    /// A message on screen calls for attention even while the user is developing.
+    /// </summary>
+    [Fact]
+    public void Update_DevelopingAndAlert_Alerts()
+    {
+        // Act
+        var state = _machine.Update(new PetInputs(TimeSpan.Zero, HasAlert: true, IsDeveloping: true));
+
+        // Assert
+        state.Should().Be(PetState.Alert);
+    }
+
+    /// <summary>
+    /// A click cheers up a coding pet briefly, after which it codes again.
+    /// </summary>
+    [Fact]
+    public void OnClicked_Developing_HappyThenCodingAgain()
+    {
+        // Arrange
+        _machine.Update(Developing);
+        _machine.OnClicked();
+        _machine.State.Should().Be(PetState.Happy);
+        _clock.Advance(HappyDuration);
+
+        // Act
+        var state = _machine.Update(Developing);
+
+        // Assert
+        state.Should().Be(PetState.Coding);
+    }
+
+    /// <summary>
+    /// A moment is acted out right away.
+    /// </summary>
+    [Fact]
+    public void OnMoment_Called_EntersTheState()
+    {
+        // Act
+        _machine.OnMoment(PetState.Alert, TimeSpan.FromSeconds(3));
+
+        // Assert
+        _machine.State.Should().Be(PetState.Alert);
+    }
+
+    /// <summary>
+    /// A moment lasts for its duration and the pet then returns to Idle.
+    /// </summary>
+    [Fact]
+    public void OnMoment_DurationPasses_ReturnsToIdle()
+    {
+        // Arrange
+        var duration = TimeSpan.FromSeconds(3);
+        _machine.OnMoment(PetState.Focus, duration);
+
+        // Act
+        _clock.Advance(duration - TimeSpan.FromSeconds(1));
+        var during = _machine.Update(Active);
+        _clock.Advance(TimeSpan.FromSeconds(1));
+        var after = _machine.Update(Active);
+
+        // Assert
+        during.Should().Be(PetState.Focus);
+        after.Should().Be(PetState.Idle);
+    }
+
+    /// <summary>
+    /// A moment holds even while the pet would otherwise be Tired, Focused or Coding.
+    /// </summary>
+    [Fact]
+    public void OnMoment_WhileLowerRankedInputsApply_StaysUntilItEnds()
+    {
+        // Arrange
+        _machine.OnMoment(PetState.Happy, TimeSpan.FromSeconds(3));
+
+        // Act
+        var state = _machine.Update(new PetInputs(TimeSpan.Zero, IsSystemStrained: true, IsFocusing: true, IsDeveloping: true));
+
+        // Assert
+        state.Should().Be(PetState.Happy);
+    }
+
+    /// <summary>
+    /// When a moment ends, what the pet was held back from takes over.
+    /// </summary>
+    [Fact]
+    public void OnMoment_Ends_LowerRankedStateTakesOver()
+    {
+        // Arrange
+        var duration = TimeSpan.FromSeconds(3);
+        _machine.OnMoment(PetState.Happy, duration);
+        _machine.Update(Developing);
+
+        // Act
+        _clock.Advance(duration);
+        var state = _machine.Update(Developing);
+
+        // Assert
+        state.Should().Be(PetState.Coding);
+    }
+
+    /// <summary>
+    /// A moment is ignored while the pet is being dragged.
+    /// </summary>
+    [Fact]
+    public void OnMoment_WhileDragging_IsIgnored()
+    {
+        // Arrange
+        _machine.OnDragStarted();
+
+        // Act
+        _machine.OnMoment(PetState.Focus, TimeSpan.FromSeconds(3));
+
+        // Assert
+        _machine.State.Should().Be(PetState.Drag);
+    }
+
+    /// <summary>
+    /// A user who is away still makes the pet sleep, moment or not.
+    /// </summary>
+    [Fact]
+    public void OnMoment_UserAway_Sleeps()
+    {
+        // Arrange
+        _machine.OnMoment(PetState.Focus, TimeSpan.FromSeconds(30));
+
+        // Act
+        var state = _machine.Update(new PetInputs(SleepAfter));
+
+        // Assert
+        state.Should().Be(PetState.Sleep);
+    }
+
+    /// <summary>
+    /// A message on screen takes over from a moment.
+    /// </summary>
+    [Fact]
+    public void OnMoment_AlertArrives_Alerts()
+    {
+        // Arrange
+        _machine.OnMoment(PetState.Focus, TimeSpan.FromSeconds(30));
+
+        // Act
+        var state = _machine.Update(Alerting);
+
+        // Assert
+        state.Should().Be(PetState.Alert);
+    }
+
+    /// <summary>
+    /// A moment that follows a sleep (the user coming back) is not undone by the wake-up.
+    /// </summary>
+    [Fact]
+    public void OnMoment_WhileSleeping_SurvivesWakingUp()
+    {
+        // Arrange
+        _machine.Update(new PetInputs(SleepAfter));
+        _machine.OnMoment(PetState.Focus, TimeSpan.FromSeconds(3));
+
+        // Act
+        var state = _machine.Update(Active);
+
+        // Assert
+        state.Should().Be(PetState.Focus);
+    }
+
+    /// <summary>
+    /// An ambient state is held for as long as it is set.
+    /// </summary>
+    [Fact]
+    public void Update_Ambient_EntersAndHoldsIt()
+    {
+        // Arrange
+        var inputs = new PetInputs(TimeSpan.Zero, Ambient: PetState.Focus);
+
+        // Act
+        _machine.Update(inputs);
+        _clock.Advance(IdleDwell + WalkDuration + IdleDwell);
+        var state = _machine.Update(inputs);
+
+        // Assert
+        state.Should().Be(PetState.Focus);
+    }
+
+    /// <summary>
+    /// When the ambient state goes away the pet returns to Idle.
+    /// </summary>
+    [Fact]
+    public void Update_AmbientEnds_ReturnsToIdle()
+    {
+        // Arrange
+        _machine.Update(new PetInputs(TimeSpan.Zero, Ambient: PetState.Focus));
+
+        // Act
+        var state = _machine.Update(Active);
+
+        // Assert
+        state.Should().Be(PetState.Idle);
+    }
+
+    /// <summary>
+    /// A change from one ambient state to another is followed at once.
+    /// </summary>
+    [Fact]
+    public void Update_AmbientChanges_FollowsTheNewOne()
+    {
+        // Arrange
+        _machine.Update(new PetInputs(TimeSpan.Zero, Ambient: PetState.Focus));
+
+        // Act
+        var state = _machine.Update(new PetInputs(TimeSpan.Zero, Ambient: PetState.Alert));
+
+        // Assert
+        state.Should().Be(PetState.Alert);
+    }
+
+    /// <summary>
+    /// An ambient state outranks a strained system, a pomodoro and development work.
+    /// </summary>
+    [Fact]
+    public void Update_Ambient_OutranksTiredFocusAndCoding()
+    {
+        // Act
+        var state = _machine.Update(new PetInputs(
+            TimeSpan.Zero,
+            IsSystemStrained: true,
+            IsFocusing: true,
+            IsDeveloping: true,
+            Ambient: PetState.Alert));
+
+        // Assert
+        state.Should().Be(PetState.Alert);
+    }
+
+    /// <summary>
+    /// A user who is away sleeps even while an ambient state applies.
+    /// </summary>
+    [Fact]
+    public void Update_AmbientAndUserAway_Sleeps()
+    {
+        // Act
+        var state = _machine.Update(new PetInputs(SleepAfter, Ambient: PetState.Focus));
+
+        // Assert
+        state.Should().Be(PetState.Sleep);
+    }
+
+    /// <summary>
+    /// After sleeping, an ambient state that still applies is acted out again.
+    /// </summary>
+    [Fact]
+    public void Update_AmbientAfterSleep_ResumesAmbient()
+    {
+        // Arrange
+        var ambient = new PetInputs(TimeSpan.Zero, Ambient: PetState.Focus);
+        _machine.Update(new PetInputs(SleepAfter, Ambient: PetState.Focus));
+        _machine.Update(ambient);
+
+        // Act
+        var state = _machine.Update(ambient);
+
+        // Assert
+        state.Should().Be(PetState.Focus);
+    }
+
+    /// <summary>
+    /// A moment outranks an ambient state, which resumes once the moment is over.
+    /// </summary>
+    [Fact]
+    public void OnMoment_WhileAmbient_AmbientResumesAfterwards()
+    {
+        // Arrange
+        var duration = TimeSpan.FromSeconds(3);
+        var ambient = new PetInputs(TimeSpan.Zero, Ambient: PetState.Focus);
+        _machine.Update(ambient);
+        _machine.OnMoment(PetState.Happy, duration);
+
+        // Act
+        var during = _machine.Update(ambient);
+        _clock.Advance(duration);
+        var after = _machine.Update(ambient);
+
+        // Assert
+        during.Should().Be(PetState.Happy);
+        after.Should().Be(PetState.Focus);
     }
 }

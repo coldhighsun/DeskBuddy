@@ -161,6 +161,41 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
         public List<string>? BlacklistedProcesses { get; init; }
 
         /// <summary>
+        /// Gets whether the pet sits down at its computer while the user is developing.
+        /// </summary>
+        public bool? DevModeEnabled { get; init; }
+
+        /// <summary>
+        /// Gets the process names that count as development tools.
+        /// </summary>
+        public List<string>? DevProcesses { get; init; }
+
+        /// <summary>
+        /// Gets whether the pet acts out situations by itself.
+        /// </summary>
+        public bool? ScenariosEnabled { get; init; }
+
+        /// <summary>
+        /// Gets the names of the scenarios that are switched off.
+        /// </summary>
+        public List<string>? DisabledScenarios { get; init; }
+
+        /// <summary>
+        /// Gets the process names that count as meeting applications.
+        /// </summary>
+        public List<string>? MeetingProcesses { get; init; }
+
+        /// <summary>
+        /// Gets the time of day at which the working day ends.
+        /// </summary>
+        public TimeSpan? ClockOutTime { get; init; }
+
+        /// <summary>
+        /// Gets the language of the user interface, as text so that an unknown name does not spoil the whole file.
+        /// </summary>
+        public string? Language { get; init; }
+
+        /// <summary>
         /// Creates the file shape from settings.
         /// </summary>
         /// <param name="settings">
@@ -184,6 +219,13 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
                 AutoHideWhenFullscreen = settings.AutoHideWhenFullscreen,
                 DetectCoveredMonitor = settings.DetectCoveredMonitor,
                 BlacklistedProcesses = [.. settings.BlacklistedProcesses],
+                DevModeEnabled = settings.DevModeEnabled,
+                DevProcesses = [.. settings.DevProcesses],
+                ScenariosEnabled = settings.ScenariosEnabled,
+                DisabledScenarios = [.. settings.DisabledScenarios],
+                MeetingProcesses = [.. settings.MeetingProcesses],
+                ClockOutTime = settings.ClockOutTime,
+                Language = settings.Language.ToString(),
             };
         }
 
@@ -209,6 +251,15 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
                 AutoHideWhenFullscreen = AutoHideWhenFullscreen ?? defaults.AutoHideWhenFullscreen,
                 DetectCoveredMonitor = DetectCoveredMonitor ?? defaults.DetectCoveredMonitor,
                 BlacklistedProcesses = BlacklistedProcesses ?? defaults.BlacklistedProcesses,
+                DevModeEnabled = DevModeEnabled ?? defaults.DevModeEnabled,
+                DevProcesses = DevProcesses ?? defaults.DevProcesses,
+                ScenariosEnabled = ScenariosEnabled ?? defaults.ScenariosEnabled,
+                DisabledScenarios = DisabledScenarios ?? defaults.DisabledScenarios,
+                MeetingProcesses = MeetingProcesses ?? defaults.MeetingProcesses,
+                ClockOutTime = ClockOutTime ?? defaults.ClockOutTime,
+                Language = Enum.TryParse<AppLanguage>(Language, ignoreCase: true, out var language) && Enum.IsDefined(language)
+                    ? language
+                    : defaults.Language,
             };
         }
     }

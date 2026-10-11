@@ -1,6 +1,7 @@
 using System.Text.Json;
 using DeskBuddy.Application.Abstractions;
 using DeskBuddy.Domain;
+using DeskBuddy.Domain.Gaze;
 using DeskBuddy.Domain.Skins;
 using Microsoft.Extensions.Logging;
 
@@ -18,6 +19,11 @@ public sealed class FolderSkinLoader(ILogger<FolderSkinLoader> logger) : ISkinLo
     /// File name of the manifest inside a skin directory.
     /// </summary>
     public const string ManifestFileName = "manifest.json";
+
+    /// <summary>
+    /// Start of the manifest keys that name the looks of the Idle state, such as <c>Idle.Left</c>.
+    /// </summary>
+    private const string IdlePrefix = "Idle.";
 
     /// <summary>
     /// Serializer options used to read the manifest.
@@ -53,8 +59,25 @@ public sealed class FolderSkinLoader(ILogger<FolderSkinLoader> logger) : ISkinLo
         }
 
         var animations = new Dictionary<PetState, SkinAnimation>();
+        var gazeAnimations = new Dictionary<GazeDirection, SkinAnimation>();
         foreach (var (stateName, animation) in manifest.States)
         {
+            // "Idle.Left" and the like are the variants of Idle for looking in a direction.
+            if (stateName.StartsWith(IdlePrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                if (Enum.TryParse<GazeDirection>(stateName[IdlePrefix.Length..], ignoreCase: true, out var gaze)
+                    && gaze != GazeDirection.None)
+                {
+                    gazeAnimations[gaze] = BuildAnimation(skinDirectory, stateName, animation);
+                }
+                else
+                {
+                    logger.LogWarning("Skin {Skin} defines unknown look '{State}'; ignoring it.", manifest.Name, stateName);
+                }
+
+                continue;
+            }
+
             if (!Enum.TryParse<PetState>(stateName, ignoreCase: true, out var state))
             {
                 logger.LogWarning("Skin {Skin} defines unknown state '{State}'; ignoring it.", manifest.Name, stateName);
@@ -66,7 +89,7 @@ public sealed class FolderSkinLoader(ILogger<FolderSkinLoader> logger) : ISkinLo
 
         try
         {
-            return new Skin(manifest.Name ?? Path.GetFileName(skinDirectory), size[0], size[1], animations);
+            return new Skin(manifest.Name ?? Path.GetFileName(skinDirectory), size[0], size[1], animations, gazeAnimations);
         }
         catch (ArgumentException ex)
         {

@@ -44,4 +44,84 @@ public enum PetState
     /// The pet is happy, for example after being clicked.
     /// </summary>
     Happy,
+
+    /// <summary>
+    /// The pet is sitting at a computer, keeping the user company while they develop.
+    /// </summary>
+    Coding,
+
+    /// <summary>
+    /// A build is running; the pet shows a loading indicator.
+    /// </summary>
+    Building,
+
+    /// <summary>
+    /// A build has just finished; the pet cheers (or wipes its brow, as it cannot tell whether it succeeded).
+    /// </summary>
+    BuildDone,
+
+    /// <summary>
+    /// Code is being sent to or fetched from a remote git repository; the pet ships a parcel.
+    /// </summary>
+    GitPush,
+
+    /// <summary>
+    /// The user has been developing for hours late at night; the pet keeps them company with coffee and heavy eyes.
+    /// </summary>
+    NightCoding,
+
+    /// <summary>
+    /// The user looked something up in a browser right after developing; the pet reads along with a magnifier.
+    /// </summary>
+    Reading,
+
+    /// <summary>
+    /// The user is back after a long absence; the pet waves hello.
+    /// </summary>
+    Welcome,
+
+    /// <summary>
+    /// A meeting application is in front; the pet puts on a headset and keeps quiet.
+    /// </summary>
+    Meeting,
+
+    /// <summary>
+    /// The battery is low and the computer is not plugged in; the pet shows an empty battery.
+    /// </summary>
+    LowBattery,
+
+    /// <summary>
+    /// The power cable has just been plugged in; the pet charges up happily.
+    /// </summary>
+    Charging,
+
+    /// <summary>
+    /// It is mealtime; the pet holds up a bowl and chopsticks.
+    /// </summary>
+    Meal,
+
+    /// <summary>
+    /// The working day is over; the pet checks its watch.
+    /// </summary>
+    ClockOut,
+
+    /// <summary>
+    /// A full hour has just begun; the pet strikes a little bell.
+    /// </summary>
+    Chime,
+
+    /// <summary>
+    /// It is a festival; the pet puts on a party hat.
+    /// </summary>
+    Festive,
+
+    /// <summary>
+    /// The mouse was shaken wildly; the pet is dizzy, with stars circling its head.
+    /// </summary>
+    Dizzy,
+
+    /// <summary>
+    /// The pet was dropped at the left or right edge of the screen and hangs on to it.
+    /// </summary>
+    Hang,
 }
