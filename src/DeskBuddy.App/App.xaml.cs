@@ -1,19 +1,24 @@
+using System.Globalization;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using DeskBuddy.App.Diagnostics;
 using DeskBuddy.App.Interop;
+using DeskBuddy.App.Presentation;
 using DeskBuddy.App.Rendering;
 using DeskBuddy.App.Resources;
 using DeskBuddy.App.ViewModels;
 using DeskBuddy.App.Windows;
 using DeskBuddy.Application;
 using DeskBuddy.Application.Abstractions;
+using DeskBuddy.Domain.Activity;
 using DeskBuddy.Domain.Behavior;
 using DeskBuddy.Domain.Chatter;
 using DeskBuddy.Domain.Messages;
 using DeskBuddy.Domain.Movement;
 using DeskBuddy.Domain.Pomodoro;
+using DeskBuddy.Domain.Scenarios;
+using DeskBuddy.Domain.Schedule;
 using DeskBuddy.Domain.Sedentary;
 using DeskBuddy.Domain.Settings;
 using DeskBuddy.Domain.Visibility;
@@ -96,6 +101,16 @@ public partial class App
     private IHost? _host;
 
     /// <summary>
+    /// How long the answer about the foreground application is reused, so the parts that ask in one tick share it.
+    /// </summary>
+    private static readonly TimeSpan ForegroundCacheLifetime = TimeSpan.FromMilliseconds(500);
+
+    /// <summary>
+    /// The shortest time between two walks over the running processes.
+    /// </summary>
+    private static readonly TimeSpan ProcessListInterval = TimeSpan.FromSeconds(3);
+
+    /// <summary>
     /// Switches the skin when the setting changes; <see langword="null"/> until startup completes.
     /// </summary>
     private SkinSwitcher? _skinSwitcher;
@@ -167,6 +182,39 @@ public partial class App
         builder.Services.AddSingleton<ISystemLoadMonitor, WindowsSystemLoadMonitor>();
         builder.Services.AddSingleton<LoadReactionPolicy>();
         builder.Services.AddSingleton<IFullscreenDetector, WindowsFullscreenDetector>();
+        builder.Services.AddSingleton<WindowsForegroundAppDetector>();
+        builder.Services.AddSingleton<IForegroundAppDetector>(sp => new CachedForegroundApp(
+            sp.GetRequiredService<WindowsForegroundAppDetector>(),
+            sp.GetRequiredService<TimeProvider>(),
+            ForegroundCacheLifetime));
+        builder.Services.AddSingleton<WindowsProcessList>();
+        builder.Services.AddSingleton<IProcessList>(sp => new ThrottledProcessList(
+            sp.GetRequiredService<WindowsProcessList>(),
+            sp.GetRequiredService<TimeProvider>(),
+            ProcessListInterval));
+        builder.Services.AddSingleton<IPowerStatusProvider, WindowsPowerStatusProvider>();
+        builder.Services.AddSingleton<MeetingPolicy>();
+        builder.Services.AddSingleton(sp => new WelcomeBackPolicy(sp.GetRequiredService<PetBehaviorOptions>()));
+        builder.Services.AddSingleton(sp => new PowerPolicy(sp.GetRequiredService<PetBehaviorOptions>()));
+        builder.Services.AddSingleton(sp => new ScheduleClock(
+            sp.GetRequiredService<PetBehaviorOptions>(),
+            sp.GetRequiredService<TimeProvider>(),
+            sp.GetRequiredService<ScenarioSwitches>()));
+        builder.Services.AddSingleton<SystemScenarios>();
+        builder.Services.AddSingleton<ScenarioSwitches>();
+        builder.Services.AddSingleton(sp => new DevActivityPolicy(
+            sp.GetRequiredService<PetBehaviorOptions>(),
+            sp.GetRequiredService<TimeProvider>()));
+        builder.Services.AddSingleton(sp => new BuildActivityPolicy(
+            sp.GetRequiredService<PetBehaviorOptions>(),
+            sp.GetRequiredService<TimeProvider>()));
+        builder.Services.AddSingleton(sp => new GitSyncPolicy(
+            sp.GetRequiredService<PetBehaviorOptions>(),
+            sp.GetRequiredService<TimeProvider>()));
+        builder.Services.AddSingleton(sp => new LateNightPolicy(
+            sp.GetRequiredService<PetBehaviorOptions>(),
+            sp.GetRequiredService<TimeProvider>()));
+        builder.Services.AddSingleton<DevScenarios>();
         builder.Services.AddSingleton(roamOptions);
         builder.Services.AddSingleton(sp => new ChatterPolicy(sp.GetRequiredService<TimeProvider>(), Random.Shared));
         builder.Services.AddSingleton<DockedMovement>();
@@ -200,6 +248,9 @@ public partial class App
             sedentaryOptions,
             sp.GetRequiredService<PetVisibility>(),
             sp.GetRequiredService<ChatterPolicy>(),
+            sp.GetRequiredService<DevActivityPolicy>(),
+            sp.GetRequiredService<ScenarioSwitches>(),
+            sp.GetRequiredService<MeetingPolicy>(),
             ApplyConfigurationOverrides));
         builder.Services.AddSingleton<ITodoRepository>(sp => new JsonTodoRepository(
             dataDirectory,
@@ -217,6 +268,14 @@ public partial class App
 
         var logger = _host.Services.GetRequiredService<ILogger<App>>();
         await InitializeUserDataAsync(logger);
+
+        // The language must be set before any window or the tray icon reads a string.
+        var culture = LanguageResolver.Resolve(
+            _host.Services.GetRequiredService<SettingsService>().Current.Language,
+            CultureInfo.CurrentUICulture);
+        CultureInfo.DefaultThreadCurrentUICulture = culture;
+        CultureInfo.CurrentUICulture = culture;
+        logger.LogInformation("Interface language: {Language}.", culture.Name);
 
         // Resolving the applier copies the loaded settings into the option objects the pet logic reads from.
         _host.Services.GetRequiredService<SettingsApplier>();
@@ -241,7 +300,9 @@ public partial class App
                 brain,
                 behaviorOptions,
                 OpenPanel,
-                _host.Services.GetRequiredService<MovementSelector>());
+                _host.Services.GetRequiredService<MovementSelector>(),
+                _host.Services.GetRequiredService<ScenarioSwitches>(),
+                _host.Services.GetRequiredService<IConfiguration>().GetValue("Preview", false));
             _petWindow.Show();
             var petWindow = _petWindow;
             _skinSwitcher = new SkinSwitcher(

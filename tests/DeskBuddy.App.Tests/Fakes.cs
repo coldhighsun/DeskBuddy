@@ -2,10 +2,14 @@ using System.IO;
 using DeskBuddy.Application;
 using DeskBuddy.Application.Abstractions;
 using DeskBuddy.Domain;
+using DeskBuddy.Domain.Activity;
 using DeskBuddy.Domain.Behavior;
 using DeskBuddy.Domain.Chatter;
 using DeskBuddy.Domain.Messages;
 using DeskBuddy.Domain.Pomodoro;
+using DeskBuddy.Domain.Power;
+using DeskBuddy.Domain.Scenarios;
+using DeskBuddy.Domain.Schedule;
 using DeskBuddy.Domain.Sedentary;
 using DeskBuddy.Domain.Settings;
 using DeskBuddy.Domain.Skins;
@@ -224,6 +228,7 @@ internal static class TestBrain
     public static PetBrain Create()
     {
         var clock = new FakeTimeProvider();
+        var behavior = new PetBehaviorOptions();
         return new PetBrain(
             new QuietIdle(),
             new QuietLoad(),
@@ -234,7 +239,60 @@ internal static class TestBrain
             new PetMessageQueue(TimeSpan.FromSeconds(30), clock),
             new PetBehaviorStateMachine(new PetBehaviorOptions(), clock, new Random(1)),
             new PetVisibility(clock, TimeSpan.FromSeconds(2)),
-            new ChatterPolicy(clock, new Random(1)));
+            new ChatterPolicy(clock, new Random(1)),
+            new DevScenarios(
+                new QuietForeground(),
+                new QuietProcesses(),
+                new DevActivityPolicy(behavior, clock),
+                new BuildActivityPolicy(behavior, clock),
+                new GitSyncPolicy(behavior, clock),
+                new LateNightPolicy(behavior, clock),
+                new ScenarioSwitches(),
+                behavior),
+            new SystemScenarios(
+                new QuietForeground(),
+                new QuietPower(),
+                new MeetingPolicy(),
+                new WelcomeBackPolicy(behavior),
+                new PowerPolicy(behavior),
+                new ScheduleClock(behavior, clock, new ScenarioSwitches { IsEnabled = false }),
+                new ScenarioSwitches()));
+    }
+
+    /// <summary>
+    /// Power stub reporting a computer without a battery.
+    /// </summary>
+    private sealed class QuietPower : IPowerStatusProvider
+    {
+        /// <inheritdoc />
+        public PowerStatus GetStatus()
+        {
+            return default;
+        }
+    }
+
+    /// <summary>
+    /// Process list stub reporting no processes.
+    /// </summary>
+    private sealed class QuietProcesses : IProcessList
+    {
+        /// <inheritdoc />
+        public IReadOnlySet<string> GetNames()
+        {
+            return new HashSet<string>();
+        }
+    }
+
+    /// <summary>
+    /// Foreground stub reporting no application.
+    /// </summary>
+    private sealed class QuietForeground : IForegroundAppDetector
+    {
+        /// <inheritdoc />
+        public string? GetForegroundProcessName()
+        {
+            return null;
+        }
     }
 
     /// <summary>

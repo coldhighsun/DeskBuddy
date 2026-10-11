@@ -12,8 +12,10 @@ using DeskBuddy.App.Resources;
 using DeskBuddy.Application;
 using DeskBuddy.Domain;
 using DeskBuddy.Domain.Behavior;
+using DeskBuddy.Domain.Gaze;
 using DeskBuddy.Domain.Messages;
 using DeskBuddy.Domain.Movement;
+using DeskBuddy.Domain.Scenarios;
 using DeskBuddy.Domain.Skins;
 
 namespace DeskBuddy.App.Windows;
@@ -36,6 +38,38 @@ public partial class PetWindow : Window
     private const double DragThreshold = 4;
 
     /// <summary>
+    /// How long an animation picked from the preview menu plays.
+    /// </summary>
+    private static readonly TimeSpan PreviewDuration = TimeSpan.FromSeconds(6);
+
+    /// <summary>
+    /// How long the pet is dizzy after the mouse was shaken.
+    /// </summary>
+    private static readonly TimeSpan DizzyDuration = TimeSpan.FromSeconds(2);
+
+    /// <summary>
+    /// How long the pet hangs on to the screen edge before it lets go.
+    /// </summary>
+    private static readonly TimeSpan HangDuration = TimeSpan.FromSeconds(30);
+
+    /// <summary>
+    /// How long the mouse must rest on the pet before it explains what it is doing, in milliseconds.
+    /// </summary>
+    private const int ToolTipDelayMilliseconds = 400;
+
+    /// <summary>
+    /// How often the mouse pointer is looked at, for shaking and for following it with the eyes.
+    /// </summary>
+    private static readonly TimeSpan PointerInterval = TimeSpan.FromMilliseconds(50);
+
+    /// <summary>
+    /// How close to the left or right edge of the work area, in device-independent pixels, a dropped pet clings to it.
+    /// Well below <see cref="StartupMargin"/>, so a pet nudged from its starting place does not count as dropped at the
+    /// edge.
+    /// </summary>
+    private const double EdgeSnapDistance = 8;
+
+    /// <summary>
     /// How often the pet's position is updated while walking. Only runs in the Walk state.
     /// </summary>
     private static readonly TimeSpan MoveInterval = TimeSpan.FromMilliseconds(33);
@@ -46,9 +80,55 @@ public partial class PetWindow : Window
     private static readonly TimeSpan BrainInterval = TimeSpan.FromSeconds(1);
 
     /// <summary>
+    /// The skin being shown.
+    /// </summary>
+    private Skin _skin;
+
+    /// <summary>
     /// Plays the current animation of the skin.
     /// </summary>
     private AnimationPlayer _player;
+
+    /// <summary>
+    /// Which scenarios the user has switched on.
+    /// </summary>
+    private readonly ScenarioSwitches _switches;
+
+    /// <summary>
+    /// Timer that reads the mouse pointer for shaking and gaze; runs only while the pet is on screen.
+    /// </summary>
+    private readonly DispatcherTimer _pointerTimer = new() { Interval = PointerInterval };
+
+    /// <summary>
+    /// Decides from the pointer whether the pet gets dizzy or turns its eyes.
+    /// </summary>
+    private readonly PointerWatcher _pointer = new(new MouseShakeDetector());
+
+    /// <summary>
+    /// Tells where the pet is for the pointer watcher.
+    /// </summary>
+    private readonly Func<PetBox> _petBox;
+
+    /// <summary>
+    /// Runs for as long as the pointer is watched; gives the shake detector its time.
+    /// </summary>
+    private readonly Stopwatch _pointerWatch = Stopwatch.StartNew();
+
+    /// <summary>
+    /// Where the pet looks, on the screen.
+    /// </summary>
+    private GazeDirection _gaze = GazeDirection.None;
+
+    /// <summary>
+    /// The window rectangle in device pixels, read once after each move; <see langword="null"/> when it must be read
+    /// again.
+    /// </summary>
+    private PixelRect? _pixelBounds;
+
+    /// <summary>
+    /// Whether the pet is clinging to the edge of the screen.
+    /// </summary>
+    private bool _hanging;
 
     /// <summary>
     /// Decoded frames of the skin.
@@ -132,6 +212,12 @@ public partial class PetWindow : Window
     private int _facing = 1;
 
     /// <summary>
+    /// Whether the context menu offers to preview every animation, for checking skins without waiting for the
+    /// situations that trigger them.
+    /// </summary>
+    private readonly bool _previewMenu;
+
+    /// <summary>
     /// Whether the left mouse button is currently held on the pet.
     /// </summary>
     private bool _pressed;
@@ -173,22 +259,35 @@ public partial class PetWindow : Window
     /// <param name="movement">
     /// Picks how the pet moves for the current disturbance mode.
     /// </param>
+    /// <param name="switches">
+    /// Which scenarios the user has switched on.
+    /// </param>
+    /// <param name="previewMenu">
+    /// Whether the context menu offers to preview every animation.
+    /// </param>
     public PetWindow(
         Skin skin,
         SkinFrameCache frames,
         PetBrain brain,
         PetBehaviorOptions options,
         Action<PanelTab?> openPanel,
-        MovementSelector movement)
+        MovementSelector movement,
+        ScenarioSwitches switches,
+        bool previewMenu = false)
     {
         InitializeComponent();
 
+        _skin = skin;
+        _switches = switches;
+        _petBox = GetPetBox;
+        ToolTipService.SetInitialShowDelay(SpriteImage, ToolTipDelayMilliseconds);
         _player = new AnimationPlayer(skin);
         _frames = frames;
         _brain = brain;
         _options = options;
         _openPanel = openPanel;
         _movement = movement;
+        _previewMenu = previewMenu;
 
         Width = skin.FrameWidth;
         Height = skin.FrameHeight;
@@ -199,14 +298,17 @@ public partial class PetWindow : Window
         _animationTimer.Tick += OnAnimationTick;
         _brainTimer.Tick += OnBrainTick;
         _moveTimer.Tick += OnMoveTick;
+        _pointerTimer.Tick += OnPointerTick;
         Loaded += (_, _) =>
         {
             _animationWatch.Restart();
             _animationTimer.Start();
             _brainTimer.Start();
+            UpdatePointerTimer();
         };
         Closed += (_, _) =>
         {
+            _pointerTimer.Stop();
             _animationTimer.Stop();
             _brainTimer.Stop();
             _moveTimer.Stop();
@@ -224,7 +326,13 @@ public partial class PetWindow : Window
         _brain.VisibilityChanged += OnVisibilityChanged;
         _movement.ModeChanged += OnMovementModeChanged;
         IsVisibleChanged += (_, _) => OnMessageChanged(this, EventArgs.Empty);
-        LocationChanged += (_, _) => RepositionBubble();
+        LocationChanged += (_, _) =>
+        {
+            _pixelBounds = null;
+            RepositionBubble();
+        };
+        SizeChanged += (_, _) => _pixelBounds = null;
+        DpiChanged += (_, _) => _pixelBounds = null;
 
         ContextMenu = new ContextMenu();
         ContextMenuOpening += OnContextMenuOpening;
@@ -256,8 +364,9 @@ public partial class PetWindow : Window
         ArgumentNullException.ThrowIfNull(skin);
         ArgumentNullException.ThrowIfNull(frames);
 
+        _skin = skin;
         _player = new AnimationPlayer(skin);
-        _player.SetState(_shownState);
+        _player.SetState(_shownState, CurrentLook());
         _frames = frames;
 
         var bottom = Top + Height;
@@ -283,7 +392,7 @@ public partial class PetWindow : Window
     /// </param>
     private void OnSourceInitialized(object? sender, EventArgs e)
     {
-        var source = (HwndSource)PresentationSource.FromVisual(this)!;
+        var source = HwndSource.FromHwnd(new WindowInteropHelper(this).Handle)!;
         source.CompositionTarget.BackgroundColor = Colors.Transparent;
         source.AddHook(WndProc);
 
@@ -367,7 +476,32 @@ public partial class PetWindow : Window
 
         _shownState = state;
 
-        if (_player.SetState(state))
+        // Letting go of the edge: the pet falls back to where its mode lets it rest. Being picked up from the edge is
+        // not letting go; the drop decides.
+        if (_hanging && state != PetState.Hang)
+        {
+            _hanging = false;
+            if (state != PetState.Drag)
+            {
+                _facing = 1;
+                ApplyFacing();
+                SettleInWorkArea();
+            }
+        }
+
+        // The scene of a pet at its computer, and the scenes that carry a written label, are drawn facing right and
+        // read wrongly mirrored. Walking sets the facing again, so nothing else needs to undo this. Hanging on to the
+        // right edge needs the mirrored picture, and has no label.
+        if (_facing != 1 && (state == PetState.Coding || (ScenarioCatalog.All.Contains(state) && state != PetState.Hang)))
+        {
+            _facing = 1;
+            ApplyFacing();
+        }
+
+        // What the pet is doing, said in words when the mouse rests on it; nothing for plain states.
+        SpriteImage.ToolTip = Strings.StateHint(state);
+
+        if (_player.SetState(state, CurrentLook()))
         {
             ShowFrame();
         }
@@ -418,6 +552,7 @@ public partial class PetWindow : Window
                 Show();
                 _animationWatch.Restart();
                 _animationTimer.Start();
+                UpdatePointerTimer();
                 if (_shownState == PetState.Walk)
                 {
                     StartMoveTimerIfVisible();
@@ -428,6 +563,7 @@ public partial class PetWindow : Window
         {
             _animationTimer.Stop();
             _moveTimer.Stop();
+            _pointerTimer.Stop();
             Hide();
         }
     }
@@ -511,6 +647,92 @@ public partial class PetWindow : Window
     }
 
     /// <summary>
+    /// Tells where to look in the Idle animation: towards the pointer, as the sprite is drawn.
+    /// </summary>
+    /// <returns>
+    /// The direction in the unmirrored drawing; <see cref="GazeDirection.None"/> unless the pet is idle.
+    /// </returns>
+    private GazeDirection CurrentLook()
+    {
+        if (_shownState != PetState.Idle)
+        {
+            return GazeDirection.None;
+        }
+
+        return FlipTransform.ScaleX < 0 ? GazeTracker.Mirror(_gaze) : _gaze;
+    }
+
+    /// <summary>
+    /// Reads the mouse pointer: a wild shake makes the pet dizzy, and while it stands around its eyes follow the
+    /// pointer.
+    /// </summary>
+    /// <param name="sender">
+    /// The event source.
+    /// </param>
+    /// <param name="e">
+    /// Event data.
+    /// </param>
+    private void OnPointerTick(object? sender, EventArgs e)
+    {
+        if (_pressed || !_switches.IsEnabled)
+        {
+            SetGaze(GazeDirection.None);
+            return;
+        }
+
+        var cursor = MonitorHelper.GetCursorPositionPixels();
+        var reaction = _pointer.Read(
+            _pointerWatch.Elapsed,
+            cursor.X,
+            cursor.Y,
+            _switches.Allows(PetState.Dizzy) && _brain.State != PetState.Drag,
+            _skin.CanLookAround && _shownState == PetState.Idle,
+            _petBox);
+        if (reaction.BecomeDizzy)
+        {
+            _brain.ActOut(PetState.Dizzy, DizzyDuration);
+            ApplyState(_brain.State);
+        }
+        else if (reaction.Gaze is { } gaze)
+        {
+            SetGaze(gaze);
+        }
+    }
+
+    /// <summary>
+    /// Tells where the pet is on the screen, from the window rectangle that is read again only after a move.
+    /// </summary>
+    /// <returns>
+    /// The centre and the width of the pet, in device pixels.
+    /// </returns>
+    private PetBox GetPetBox()
+    {
+        var bounds = _pixelBounds ??= MonitorHelper.GetWindowBoundsPixels(this);
+        return new PetBox((bounds.Left + bounds.Right) / 2.0, (bounds.Top + bounds.Bottom) / 2.0, bounds.Width);
+    }
+
+    /// <summary>
+    /// Turns the eyes, if they are not already looking that way.
+    /// </summary>
+    /// <param name="gaze">
+    /// The direction on the screen.
+    /// </param>
+    private void SetGaze(GazeDirection gaze)
+    {
+        if (gaze == _gaze)
+        {
+            return;
+        }
+
+        _gaze = gaze;
+        if (_player.SetState(_shownState, CurrentLook()))
+        {
+            ShowFrame();
+            _animationTimer.Interval = _player.Animation.FrameDuration;
+        }
+    }
+
+    /// <summary>
     /// Advances the animation by the real elapsed time and swaps the sprite when the frame changes.
     /// </summary>
     /// <param name="sender">
@@ -542,6 +764,25 @@ public partial class PetWindow : Window
     private void OnBrainTick(object? sender, EventArgs e)
     {
         RefreshState();
+        UpdatePointerTimer();
+    }
+
+    /// <summary>
+    /// Runs the pointer timer only while the pet is on screen and something needs the pointer: shaking can make it
+    /// dizzy, or its skin can look around. Checked every second, as the switches can change at any time.
+    /// </summary>
+    private void UpdatePointerTimer()
+    {
+        var wanted = IsVisible && _switches.IsEnabled && (_switches.Allows(PetState.Dizzy) || _skin.CanLookAround);
+        if (wanted && !_pointerTimer.IsEnabled)
+        {
+            _pointerTimer.Start();
+        }
+        else if (!wanted && _pointerTimer.IsEnabled)
+        {
+            _pointerTimer.Stop();
+            SetGaze(GazeDirection.None);
+        }
     }
 
     /// <summary>
@@ -625,6 +866,24 @@ public partial class PetWindow : Window
         settings.Click += (_, _) => _openPanel(PanelTab.Settings);
         items.Insert(1, settings);
         items.Insert(2, new Separator());
+
+        if (_previewMenu)
+        {
+            items.Add(new Separator());
+            var preview = new MenuItem { Header = Strings.MenuPreview };
+            foreach (var state in Enum.GetValues<PetState>().Where(state => state is not (PetState.Drag or PetState.Sleep or PetState.Alert)))
+            {
+                var item = new MenuItem { Header = Strings.StateName(state) };
+                item.Click += (_, _) =>
+                {
+                    _brain.ActOut(state, PreviewDuration);
+                    RefreshState();
+                };
+                preview.Items.Add(item);
+            }
+
+            items.Add(preview);
+        }
 
         items.Add(new Separator());
         var hide = new MenuItem { Header = Strings.TrayHidePet };
@@ -760,7 +1019,10 @@ public partial class PetWindow : Window
         {
             _dragging = false;
             _brain.OnDragEnded();
-            SettleInWorkArea();
+            if (!TryHangOnEdge())
+            {
+                SettleInWorkArea();
+            }
         }
         else
         {
@@ -768,6 +1030,43 @@ public partial class PetWindow : Window
         }
 
         ApplyState(_brain.State);
+    }
+
+    /// <summary>
+    /// Lets the pet cling to the left or right edge of the work area if it was dropped close to it, and the skin has a
+    /// way of showing that.
+    /// </summary>
+    /// <returns>
+    /// <see langword="true"/> if the pet now hangs on to an edge.
+    /// </returns>
+    private bool TryHangOnEdge()
+    {
+        if (!_skin.Animations.ContainsKey(PetState.Hang) || !_switches.Allows(PetState.Hang))
+        {
+            return false;
+        }
+
+        _workArea = MonitorHelper.GetWorkAreaDip(this);
+        var bounds = CreateMovementContext().Bounds;
+        var snapped = EdgeSnap.Find(
+            new Point2(Left, Top),
+            new Point2(Width, Height),
+            bounds,
+            EdgeSnapDistance,
+            allowLeft: !MonitorHelper.HasMonitorBeside(this, left: true),
+            allowRight: !MonitorHelper.HasMonitorBeside(this, left: false));
+        if (snapped is not { } snap)
+        {
+            return false;
+        }
+
+        Left = snap.Position.X;
+        Top = snap.Position.Y;
+        _facing = snap.Facing;
+        ApplyFacing();
+        _hanging = true;
+        _brain.ActOut(PetState.Hang, HangDuration);
+        return true;
     }
 
     /// <summary>

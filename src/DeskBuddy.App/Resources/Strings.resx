@@ -13,7 +13,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
 
-  <!-- Neutral resources are Simplified Chinese. To add a language, add Strings.en.resx with the same keys. -->
+  <!-- Neutral resources are Simplified Chinese; Strings.en.resx is the English translation. Keep both key sets identical (a test checks that). -->
 
   <data name="AppName" xml:space="preserve"><value>DeskBuddy</value></data>
 
@@ -94,6 +94,42 @@
   <data name="AutoHide" xml:space="preserve"><value>全屏或演示时自动隐藏宠物</value></data>
   <data name="CoveredMonitor" xml:space="preserve"><value>前台窗口铺满整个显示器时也算全屏</value></data>
   <data name="BlacklistLabel" xml:space="preserve"><value>这些程序在前台时也算全屏（每行一个进程名，如 zoom）</value></data>
+  <data name="SettingsScenarios" xml:space="preserve"><value>场景彩蛋</value></data>
+  <data name="ScenariosEnabled" xml:space="preserve"><value>让宠物按情境自己做动作（需要皮肤支持）</value></data>
+  <data name="ScenarioBuilding" xml:space="preserve"><value>编译器占满 CPU 时显示“加载中”</value></data>
+  <data name="ScenarioBuildDone" xml:space="preserve"><value>构建结束时欢呼（无法判断成败）</value></data>
+  <data name="ScenarioGitPush" xml:space="preserve"><value>git 与远程同步时寄快递</value></data>
+  <data name="ScenarioNightCoding" xml:space="preserve"><value>深夜连续开发好几个小时后喝咖啡（需开启“开发时让宠物坐到电脑前陪我”）</value></data>
+  <data name="ScenarioReading" xml:space="preserve"><value>刚开发完去浏览器查资料时戴眼镜（需开启“开发时让宠物坐到电脑前陪我”）</value></data>
+  <data name="ScenarioWelcome" xml:space="preserve"><value>久别归来时挥手欢迎</value></data>
+  <data name="ScenarioMeeting" xml:space="preserve"><value>会议软件在前台时戴耳机安静陪伴</value></data>
+  <data name="ScenarioLowBattery" xml:space="preserve"><value>电量低且未充电时举着空电池</value></data>
+  <data name="ScenarioCharging" xml:space="preserve"><value>插上电源时开心充电</value></data>
+  <data name="ScenarioMeal" xml:space="preserve"><value>饭点端起碗筷，午饭、晚饭各一次</value></data>
+  <data name="ScenarioClockOut" xml:space="preserve"><value>到下班时间看表，每天一次</value></data>
+  <data name="ScenarioChime" xml:space="preserve"><value>白天整点敲小钟报时（默认关闭）</value></data>
+  <data name="ScenarioFestive" xml:space="preserve"><value>元旦、春节、程序员节、圣诞节戴上派对帽</value></data>
+  <data name="ScenarioDizzy" xml:space="preserve"><value>用力晃鼠标时头晕转圈（宠物也会跟着鼠标转眼睛，需要皮肤支持）</value></data>
+  <data name="ScenarioHang" xml:space="preserve"><value>把宠物拖到屏幕左右边缘松手时，它会挂在边缘上</value></data>
+  <data name="ClockOutTimeLabel" xml:space="preserve"><value>下班时间（如 18:00）</value></data>
+  <data name="ClockOutTimeInvalid" xml:space="preserve"><value>下班时间需要是 00:00 到 23:59 之间的时刻，如 18:00。</value></data>
+  <data name="RemarkMeal1" xml:space="preserve"><value>午饭时间到～先吃饭再写代码吧！</value></data>
+  <data name="RemarkMeal2" xml:space="preserve"><value>晚饭时间到啦，别饿着肚子干活～</value></data>
+  <data name="RemarkClockOut1" xml:space="preserve"><value>下班时间到了，今天辛苦啦～</value></data>
+  <data name="RemarkClockOut2" xml:space="preserve"><value>周五下班啦！周末愉快～</value></data>
+  <data name="RemarkChime" xml:space="preserve"><value>{0} 点整啦～</value></data>
+  <data name="RemarkFestive1" xml:space="preserve"><value>元旦快乐！新的一年，代码无 bug～</value></data>
+  <data name="RemarkFestive2" xml:space="preserve"><value>程序员节快乐！1024～</value></data>
+  <data name="RemarkFestive3" xml:space="preserve"><value>圣诞快乐！</value></data>
+  <data name="RemarkFestive4" xml:space="preserve"><value>新年快乐！恭喜发财～</value></data>
+  <data name="MeetingProcessesLabel" xml:space="preserve"><value>这些程序在前台时算“开会”（每行一个进程名，如 Zoom）</value></data>
+  <data name="RemarkWelcome" xml:space="preserve"><value>欢迎回来～</value></data>
+  <data name="RemarkLowBattery" xml:space="preserve"><value>电量不多啦，快去充电～</value></data>
+  <data name="RemarkNightCoding" xml:space="preserve"><value>夜深了，别熬太晚，早点休息哦～</value></data>
+  <data name="MenuPreview" xml:space="preserve"><value>预览动作</value></data>
+  <data name="SettingsDev" xml:space="preserve"><value>开发</value></data>
+  <data name="DevMode" xml:space="preserve"><value>开发时让宠物坐到电脑前陪我（皮肤需支持）</value></data>
+  <data name="DevProcessesLabel" xml:space="preserve"><value>这些程序在前台且我在操作时算“正在开发”（每行一个进程名，如 Code）</value></data>
   <data name="SettingsSystem" xml:space="preserve"><value>系统</value></data>
   <data name="AutoStart" xml:space="preserve"><value>开机自动启动</value></data>
   <data name="AutoStartFailed" xml:space="preserve"><value>无法更改开机自启：{0}</value></data>
@@ -105,4 +141,48 @@
   <data name="SettingsSaveFailed" xml:space="preserve"><value>设置保存失败：{0}</value></data>
   <data name="SettingsLoadFailed" xml:space="preserve"><value>设置读取失败（{0}）。为避免覆盖原有设置，已暂停修改，请检查文件后重启。</value></data>
   <data name="SkinSwitchFailed" xml:space="preserve"><value>无法切换皮肤：{0}</value></data>
+
+  <data name="SettingsLanguage" xml:space="preserve"><value>语言 / Language</value></data>
+  <data name="LanguageAuto" xml:space="preserve"><value>跟随系统</value></data>
+  <data name="LanguageZhCN" xml:space="preserve"><value>简体中文</value></data>
+  <data name="LanguageEn" xml:space="preserve"><value>English</value></data>
+  <data name="LanguageRestartHint" xml:space="preserve"><value>更改语言后需要重启 DeskBuddy 才会完全生效。</value></data>
+
+  <data name="StateHintCoding" xml:space="preserve"><value>正在陪你写代码</value></data>
+  <data name="StateHintBuilding" xml:space="preserve"><value>正在构建（编译器占满 CPU）</value></data>
+  <data name="StateHintBuildDone" xml:space="preserve"><value>构建结束（无法判断成败）</value></data>
+  <data name="StateHintGitPush" xml:space="preserve"><value>git 正在与远程仓库同步</value></data>
+  <data name="StateHintNightCoding" xml:space="preserve"><value>深夜加班中，注意休息</value></data>
+  <data name="StateHintReading" xml:space="preserve"><value>正在查资料</value></data>
+  <data name="StateHintWelcome" xml:space="preserve"><value>欢迎回来</value></data>
+  <data name="StateHintMeeting" xml:space="preserve"><value>会议中，安静陪伴</value></data>
+  <data name="StateHintLowBattery" xml:space="preserve"><value>电量低，请充电</value></data>
+  <data name="StateHintCharging" xml:space="preserve"><value>已接通电源，正在充电</value></data>
+  <data name="StateHintMeal" xml:space="preserve"><value>饭点到了</value></data>
+  <data name="StateHintClockOut" xml:space="preserve"><value>下班时间到了</value></data>
+  <data name="StateHintChime" xml:space="preserve"><value>整点报时</value></data>
+  <data name="StateHintFestive" xml:space="preserve"><value>节日快乐</value></data>
+  <data name="StateHintDizzy" xml:space="preserve"><value>被晃晕了</value></data>
+  <data name="StateHintHang" xml:space="preserve"><value>挂在屏幕边缘</value></data>
+  <data name="StateNameIdle" xml:space="preserve"><value>待机</value></data>
+  <data name="StateNameWalk" xml:space="preserve"><value>走路</value></data>
+  <data name="StateNameTired" xml:space="preserve"><value>疲倦</value></data>
+  <data name="StateNameFocus" xml:space="preserve"><value>专注</value></data>
+  <data name="StateNameHappy" xml:space="preserve"><value>开心</value></data>
+  <data name="StateNameCoding" xml:space="preserve"><value>写代码</value></data>
+  <data name="StateNameBuilding" xml:space="preserve"><value>构建中</value></data>
+  <data name="StateNameBuildDone" xml:space="preserve"><value>构建结束</value></data>
+  <data name="StateNameGitPush" xml:space="preserve"><value>git 同步</value></data>
+  <data name="StateNameNightCoding" xml:space="preserve"><value>深夜加班</value></data>
+  <data name="StateNameReading" xml:space="preserve"><value>查资料</value></data>
+  <data name="StateNameWelcome" xml:space="preserve"><value>欢迎回来</value></data>
+  <data name="StateNameMeeting" xml:space="preserve"><value>会议中</value></data>
+  <data name="StateNameLowBattery" xml:space="preserve"><value>电量低</value></data>
+  <data name="StateNameCharging" xml:space="preserve"><value>充电</value></data>
+  <data name="StateNameMeal" xml:space="preserve"><value>饭点</value></data>
+  <data name="StateNameClockOut" xml:space="preserve"><value>下班</value></data>
+  <data name="StateNameChime" xml:space="preserve"><value>整点报时</value></data>
+  <data name="StateNameFestive" xml:space="preserve"><value>节日</value></data>
+  <data name="StateNameDizzy" xml:space="preserve"><value>晕眩</value></data>
+  <data name="StateNameHang" xml:space="preserve"><value>挂边缘</value></data>
 </root>

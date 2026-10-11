@@ -211,6 +211,20 @@
                     <TextBlock Text="{Binding SkinError}"
                                Style="{StaticResource ErrorTextStyle}"
                                AutomationProperties.AutomationId="SkinError" />
+                    <Grid Margin="0,8,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="150" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="{x:Static res:Strings.SettingsLanguage}" VerticalAlignment="Center" />
+                        <ComboBox Grid.Column="1"
+                                  ItemsSource="{Binding Languages}"
+                                  DisplayMemberPath="Label"
+                                  SelectedValuePath="Value"
+                                  SelectedValue="{Binding SelectedLanguage}"
+                                  AutomationProperties.AutomationId="LanguageBox" />
+                    </Grid>
+                    <TextBlock Text="{x:Static res:Strings.LanguageRestartHint}" Opacity="0.65" FontSize="11" TextWrapping="Wrap" Margin="0,2,0,0" />
                     <TextBlock Text="{x:Static res:Strings.SettingsMode}" Margin="0,10,0,4" />
                     <RadioButton GroupName="Mode"
                                  Content="{x:Static res:Strings.ModeDocked}"
@@ -288,6 +302,53 @@
                              VerticalScrollBarVisibility="Auto"
                              VerticalContentAlignment="Top"
                              AutomationProperties.AutomationId="BlacklistBox" />
+
+                    <!-- Development -->
+                    <TextBlock Text="{x:Static res:Strings.SettingsDev}" FontWeight="SemiBold" Margin="0,18,0,6" />
+                    <CheckBox Content="{x:Static res:Strings.DevMode}"
+                              IsChecked="{Binding DevModeEnabled}"
+                              AutomationProperties.AutomationId="DevModeCheck" />
+                    <TextBlock Text="{x:Static res:Strings.DevProcessesLabel}" Margin="0,10,0,4" TextWrapping="Wrap" />
+                    <TextBox Text="{Binding DevProcessesText}"
+                             AcceptsReturn="True"
+                             TextWrapping="Wrap"
+                             MinHeight="70"
+                             VerticalScrollBarVisibility="Auto"
+                             VerticalContentAlignment="Top"
+                             AutomationProperties.AutomationId="DevProcessesBox" />
+
+                    <!-- Scenarios -->
+                    <TextBlock Text="{x:Static res:Strings.SettingsScenarios}" FontWeight="SemiBold" Margin="0,18,0,6" />
+                    <CheckBox Content="{x:Static res:Strings.ScenariosEnabled}"
+                              IsChecked="{Binding ScenariosEnabled}"
+                              AutomationProperties.AutomationId="ScenariosEnabledCheck" />
+                    <ItemsControl ItemsSource="{Binding Scenarios}"
+                                  IsEnabled="{Binding ScenariosEnabled}"
+                                  Margin="20,4,0,0">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <CheckBox Content="{Binding Label}"
+                                          IsChecked="{Binding IsEnabled}"
+                                          Margin="0,2,0,0" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock Text="{x:Static res:Strings.MeetingProcessesLabel}" Margin="0,10,0,4" TextWrapping="Wrap" />
+                    <TextBox Text="{Binding MeetingProcessesText}"
+                             AcceptsReturn="True"
+                             TextWrapping="Wrap"
+                             MinHeight="70"
+                             VerticalScrollBarVisibility="Auto"
+                             VerticalContentAlignment="Top"
+                             AutomationProperties.AutomationId="MeetingProcessesBox" />
+                    <TextBlock Text="{x:Static res:Strings.ClockOutTimeLabel}" Margin="0,10,0,4" TextWrapping="Wrap" />
+                    <TextBox Text="{Binding ClockOutTimeText}"
+                             Width="70"
+                             HorizontalAlignment="Left"
+                             AutomationProperties.AutomationId="ClockOutTimeBox" />
+                    <TextBlock Text="{Binding ClockOutTimeError}"
+                               Style="{StaticResource ErrorTextStyle}"
+                               AutomationProperties.AutomationId="ClockOutTimeError" />
 
                     <!-- System -->
                     <TextBlock Text="{x:Static res:Strings.SettingsSystem}" FontWeight="SemiBold" Margin="0,18,0,6" />

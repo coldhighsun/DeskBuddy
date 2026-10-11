@@ -6,6 +6,8 @@ using DeskBuddy.App.Rendering;
 using DeskBuddy.App.Resources;
 using DeskBuddy.Application;
 using DeskBuddy.Application.Abstractions;
+using DeskBuddy.Domain;
+using DeskBuddy.Domain.Scenarios;
 using DeskBuddy.Domain.Settings;
 
 namespace DeskBuddy.App.ViewModels;
@@ -21,6 +23,11 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     /// Shortest value accepted for a pomodoro work phase, in minutes.
     /// </summary>
     private const int MinMinutes = 1;
+
+    /// <summary>
+    /// The ways a time of day may be written: <c>18:00</c> or <c>8:30</c>.
+    /// </summary>
+    private static readonly string[] ClockOutTimeFormats = [@"h\:mm", @"hh\:mm"];
 
     /// <summary>
     /// The settings being edited.
@@ -137,6 +144,48 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     private string _blacklistText = string.Empty;
 
     /// <summary>
+    /// Gets or sets a value indicating whether the pet sits down at its computer while the user is developing.
+    /// </summary>
+    [ObservableProperty]
+    private bool _devModeEnabled;
+
+    /// <summary>
+    /// Gets or sets the development tools, one process name per line.
+    /// </summary>
+    [ObservableProperty]
+    private string _devProcessesText = string.Empty;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the pet acts out situations by itself.
+    /// </summary>
+    [ObservableProperty]
+    private bool _scenariosEnabled;
+
+    /// <summary>
+    /// Gets or sets the meeting applications, one process name per line.
+    /// </summary>
+    [ObservableProperty]
+    private string _meetingProcessesText = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the explanation shown when the clock-out time is not a time of day; empty when it is fine.
+    /// </summary>
+    [ObservableProperty]
+    private string _clockOutTimeError = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the language of the user interface.
+    /// </summary>
+    [ObservableProperty]
+    private AppLanguage _selectedLanguage;
+
+    /// <summary>
+    /// Gets or sets the time of day the working day ends, as <c>HH:mm</c>.
+    /// </summary>
+    [ObservableProperty]
+    private string _clockOutTimeText = string.Empty;
+
+    /// <summary>
     /// Whether the application starts at sign-in.
     /// </summary>
     [ObservableProperty]
@@ -214,6 +263,11 @@ public sealed partial class SettingsTabViewModel : ObservableObject
         _autoStartService = autoStart;
         _catalog = catalog;
 
+        Scenarios =
+        [
+            .. ScenarioCatalog.All.Select(state => new ScenarioToggleViewModel(state, Strings.ScenarioLabel(state), OnScenarioToggled)),
+        ];
+
         Refresh(settings.Current);
         RefreshExternalState();
 
@@ -231,6 +285,11 @@ public sealed partial class SettingsTabViewModel : ObservableObject
             BossKeyError = string.Format(CultureInfo.CurrentCulture, Strings.BossKeyFailed, settings.Current.BossKey, reason);
         }
     }
+
+    /// <summary>
+    /// Gets the switches for the individual scenarios.
+    /// </summary>
+    public IReadOnlyList<ScenarioToggleViewModel> Scenarios { get; }
 
     /// <summary>
     /// Gets a value indicating whether settings can be changed (they cannot if loading failed at startup).
@@ -492,6 +551,144 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     }
 
     /// <summary>
+    /// Applies the development detection choice.
+    /// </summary>
+    /// <param name="value">
+    /// Whether the pet sits down at its computer while the user is developing.
+    /// </param>
+    partial void OnDevModeEnabledChanged(bool value)
+    {
+        if (!_refreshing)
+        {
+            _ = ApplyAsync(settings => settings with { DevModeEnabled = value });
+        }
+    }
+
+    /// <summary>
+    /// Applies the choice to let the pet act out situations by itself.
+    /// </summary>
+    /// <param name="value">
+    /// Whether scenarios are on.
+    /// </param>
+    partial void OnScenariosEnabledChanged(bool value)
+    {
+        if (!_refreshing)
+        {
+            _ = ApplyAsync(settings => settings with { ScenariosEnabled = value });
+        }
+    }
+
+    /// <summary>
+    /// Applies the edited list of meeting applications.
+    /// </summary>
+    /// <param name="value">
+    /// The text entered, one process name per line.
+    /// </param>
+    partial void OnMeetingProcessesTextChanged(string value)
+    {
+        if (_refreshing)
+        {
+            return;
+        }
+
+        var names = value.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
+        _ = ApplyAsync(settings => settings with { MeetingProcesses = names });
+    }
+
+    /// <summary>
+    /// Gets the languages to choose from.
+    /// </summary>
+    public IReadOnlyList<LanguageOption> Languages { get; } =
+    [
+        new(AppLanguage.Auto, Strings.LanguageAuto),
+        new(AppLanguage.ZhCN, Strings.LanguageZhCN),
+        new(AppLanguage.En, Strings.LanguageEn),
+    ];
+
+    /// <summary>
+    /// Applies the chosen language; it takes full effect after a restart.
+    /// </summary>
+    /// <param name="value">
+    /// The language.
+    /// </param>
+    partial void OnSelectedLanguageChanged(AppLanguage value)
+    {
+        if (!_refreshing)
+        {
+            _ = ApplyAsync(settings => settings with { Language = value });
+        }
+    }
+
+    /// <summary>
+    /// Applies the edited time at which the working day ends. Text that is not a time of day is not applied and is
+    /// explained until it becomes one.
+    /// </summary>
+    /// <param name="value">
+    /// The text entered, such as <c>18:00</c>.
+    /// </param>
+    partial void OnClockOutTimeTextChanged(string value)
+    {
+        if (_refreshing)
+        {
+            return;
+        }
+
+        if (!TimeSpan.TryParseExact(value.Trim(), ClockOutTimeFormats, CultureInfo.InvariantCulture, out var time)
+            || time >= TimeSpan.FromHours(24))
+        {
+            ClockOutTimeError = Strings.ClockOutTimeInvalid;
+            return;
+        }
+
+        ClockOutTimeError = string.Empty;
+        _ = ApplyAsync(settings => settings with { ClockOutTime = time });
+    }
+
+    /// <summary>
+    /// Applies the switch of a single scenario.
+    /// </summary>
+    /// <param name="state">
+    /// The scenario.
+    /// </param>
+    /// <param name="enabled">
+    /// Whether it is on.
+    /// </param>
+    private void OnScenarioToggled(PetState state, bool enabled)
+    {
+        if (_refreshing)
+        {
+            return;
+        }
+
+        var name = state.ToString();
+        _ = ApplyAsync(settings => settings with
+        {
+            DisabledScenarios =
+            [
+                .. settings.DisabledScenarios.Where(disabled => !string.Equals(disabled, name, StringComparison.OrdinalIgnoreCase)),
+                .. enabled ? [] : new[] { name },
+            ],
+        });
+    }
+
+    /// <summary>
+    /// Applies the edited list of development tools.
+    /// </summary>
+    /// <param name="value">
+    /// The text entered, one process name per line.
+    /// </param>
+    partial void OnDevProcessesTextChanged(string value)
+    {
+        if (_refreshing)
+        {
+            return;
+        }
+
+        var names = value.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
+        _ = ApplyAsync(settings => settings with { DevProcesses = names });
+    }
+
+    /// <summary>
     /// Switches start at sign-in on or off. If the system does not allow it the switch goes back and the reason is
     /// shown.
     /// </summary>
@@ -629,6 +826,18 @@ public sealed partial class SettingsTabViewModel : ObservableObject
             AutoHideWhenFullscreen = settings.AutoHideWhenFullscreen;
             DetectCoveredMonitor = settings.DetectCoveredMonitor;
             BlacklistText = string.Join(Environment.NewLine, settings.BlacklistedProcesses);
+            DevModeEnabled = settings.DevModeEnabled;
+            DevProcessesText = string.Join(Environment.NewLine, settings.DevProcesses);
+            ScenariosEnabled = settings.ScenariosEnabled;
+            MeetingProcessesText = string.Join(Environment.NewLine, settings.MeetingProcesses);
+            SelectedLanguage = settings.Language;
+            ClockOutTimeError = string.Empty;
+            ClockOutTimeText = settings.ClockOutTime.ToString(@"hh\:mm", CultureInfo.InvariantCulture);
+            foreach (var toggle in Scenarios)
+            {
+                toggle.Show(!settings.DisabledScenarios.Contains(toggle.State.ToString(), StringComparer.OrdinalIgnoreCase));
+            }
+
             TimingError = string.Empty;
         }
         finally
