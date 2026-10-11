@@ -16,6 +16,26 @@ A desktop pet for work computers. It lives on your desktop, reacts to what you a
 
 - A small animated pet that walks, sleeps, gets tired, and reacts when you drag it.
 - Skins made of plain PNG frames plus a `manifest.json` (see [skins/default](skins/default)).
+- A pixel-art robot skin for programmers ([skins/robot](skins/robot)): when a development tool (an IDE, an editor or a
+  terminal) is in front and you are typing, it sits down at a desk and codes. The tools are editable in settings, and
+  only the foreground process name is read, never window titles or keystrokes. Skins without a `Coding` state simply
+  keep standing; regenerate the robot with `tools/GenerateRobotSkin.ps1`.
+- The robot also reacts to what you do as a developer, each reaction switchable in settings: a loading ring while a
+  build runs and a cheer when it ends (it cannot tell whether the build succeeded), a parcel when git talks to a
+  remote, coffee and heavy eyes when you code for hours late at night, and glasses with a magnifier when you look
+  something up in a browser right after coding. It also puts on a headset and stays quiet while a meeting
+  application (Zoom and Tencent Meeting by default; the list is editable, add Teams or others there) is in front, waves when you come back after
+  half an hour away, shows an empty battery below 20% on battery power and charges up when you plug in. Only process
+  names are read, never command lines or window titles. The clock has its say too: a bowl of rice at lunch and
+  dinner time, a glance at the watch when the working day ends (18:00 by default, editable), a party hat on New Year's
+  Day, Chinese New Year, Programmers' Day and Christmas, and, if you switch it on, a bell on the hour.
+  Its eyes follow the mouse pointer while it stands around, it gets dizzy when you shake the mouse, and it hangs on
+  to the screen edge when you drop it within a few pixels of the left or right side. Each of these pictures carries a
+  small label (BLD, GIT, MTG, LOW...), and resting the mouse on the pet explains in words what it is doing.
+- English and Simplified Chinese: the interface follows the system language, or choose one in the settings (a change
+  takes full effect after a restart). Translations live in `src/DeskBuddy.App/Resources` (`Strings.resx` is Chinese,
+  `Strings.en.resx` is English).
+  Start the app with `--Preview true` to get a right-click menu that plays every animation.
 - Tray icon and single-instance protection.
 
 ## Build
