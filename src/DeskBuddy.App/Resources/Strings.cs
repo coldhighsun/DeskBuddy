@@ -1,6 +1,8 @@
 using System.Globalization;
 using System.Resources;
 using System.Runtime.CompilerServices;
+using DeskBuddy.Domain;
+using DeskBuddy.Domain.Messages;
 
 namespace DeskBuddy.App.Resources;
 
@@ -327,6 +329,21 @@ internal static class Strings
     public static string BlacklistLabel => Get();
 
     /// <summary>
+    /// Gets the heading of the development section.
+    /// </summary>
+    public static string SettingsDev => Get();
+
+    /// <summary>
+    /// Gets the text of the development detection switch.
+    /// </summary>
+    public static string DevMode => Get();
+
+    /// <summary>
+    /// Gets the label of the development tool list.
+    /// </summary>
+    public static string DevProcessesLabel => Get();
+
+    /// <summary>
     /// Gets the heading of the system section.
     /// </summary>
     public static string SettingsSystem => Get();
@@ -375,6 +392,121 @@ internal static class Strings
     {
         var count = Domain.Chatter.ChatterPolicy.VariantCount;
         return Get($"Chatter{((index % count) + count) % count}");
+    }
+
+    /// <summary>
+    /// Gets the heading of the menu that previews the pet's animations.
+    /// </summary>
+    public static string MenuPreview => Get();
+
+    /// <summary>
+    /// Gets the label of the language setting.
+    /// </summary>
+    public static string SettingsLanguage => Get();
+
+    /// <summary>
+    /// Gets the name of the choice that follows the system language.
+    /// </summary>
+    public static string LanguageAuto => Get();
+
+    /// <summary>
+    /// Gets the name of the Simplified Chinese choice.
+    /// </summary>
+    public static string LanguageZhCN => Get();
+
+    /// <summary>
+    /// Gets the name of the English choice.
+    /// </summary>
+    public static string LanguageEn => Get();
+
+    /// <summary>
+    /// Gets the note that a language change needs a restart.
+    /// </summary>
+    public static string LanguageRestartHint => Get();
+
+    /// <summary>
+    /// Gets the short name of a state, for menus.
+    /// </summary>
+    /// <param name="state">
+    /// The state.
+    /// </param>
+    /// <returns>
+    /// The localized name, or the name of the enum value if there is none.
+    /// </returns>
+    public static string StateName(PetState state)
+    {
+        return Manager.GetString($"StateName{state}", CultureInfo.CurrentUICulture) ?? state.ToString();
+    }
+
+    /// <summary>
+    /// Gets the short explanation of what the pet is doing in a state, shown when the mouse rests on it.
+    /// </summary>
+    /// <param name="state">
+    /// The state the pet is in.
+    /// </param>
+    /// <returns>
+    /// The localized explanation, or <see langword="null"/> if the state needs none.
+    /// </returns>
+    public static string? StateHint(PetState state)
+    {
+        return Manager.GetString($"StateHint{state}", CultureInfo.CurrentUICulture);
+    }
+
+    /// <summary>
+    /// Gets the heading of the scenarios section.
+    /// </summary>
+    public static string SettingsScenarios => Get();
+
+    /// <summary>
+    /// Gets the label of the meeting application list.
+    /// </summary>
+    public static string MeetingProcessesLabel => Get();
+
+    /// <summary>
+    /// Gets the label of the box for the time the working day ends.
+    /// </summary>
+    public static string ClockOutTimeLabel => Get();
+
+    /// <summary>
+    /// Gets the explanation shown when the clock-out time is not a time of day.
+    /// </summary>
+    public static string ClockOutTimeInvalid => Get();
+
+    /// <summary>
+    /// Gets the text of the switch for all scenarios.
+    /// </summary>
+    public static string ScenariosEnabled => Get();
+
+    /// <summary>
+    /// Gets the text of the switch for one scenario.
+    /// </summary>
+    /// <param name="state">
+    /// The scenario, identified by the state the pet shows for it.
+    /// </param>
+    /// <returns>
+    /// The localized text.
+    /// </returns>
+    public static string ScenarioLabel(PetState state)
+    {
+        return Manager.GetString($"Scenario{state}", CultureInfo.CurrentUICulture) ?? $"!Scenario{state}!";
+    }
+
+    /// <summary>
+    /// Gets the short remark that goes with a state the pet acts out.
+    /// </summary>
+    /// <param name="code">
+    /// The state the remark belongs to and its wording, packed by <see cref="RemarkCode"/>.
+    /// </param>
+    /// <returns>
+    /// The localized remark, or an empty string if that state has none.
+    /// </returns>
+    public static string Remark(int code)
+    {
+        var (state, variant) = RemarkCode.Decode(code);
+        var text = (variant > 0 ? Manager.GetString($"Remark{state}{variant}", CultureInfo.CurrentUICulture) : null)
+            ?? Manager.GetString($"Remark{state}", CultureInfo.CurrentUICulture)
+            ?? string.Empty;
+        return state == PetState.Chime ? string.Format(CultureInfo.CurrentCulture, text, variant) : text;
     }
 
     /// <summary>

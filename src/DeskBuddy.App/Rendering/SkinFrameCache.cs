@@ -30,6 +30,7 @@ public sealed class SkinFrameCache
         ArgumentNullException.ThrowIfNull(skin);
 
         var paths = skin.Animations.Values
+            .Concat(skin.GazeAnimations.Values)
             .SelectMany(animation => animation.FramePaths)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();

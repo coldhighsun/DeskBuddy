@@ -17,6 +17,11 @@ internal static partial class MonitorHelper
     private const uint MonitorDefaultToNearest = 2;
 
     /// <summary>
+    /// Flag for <c>MonitorFromPoint</c>: if the point is on no monitor, return nothing.
+    /// </summary>
+    private const uint MonitorDefaultToNull = 0;
+
+    /// <summary>
     /// Gets the work area (screen minus taskbar) of the monitor the window is on, in device-independent pixels.
     /// </summary>
     /// <param name="window">
@@ -41,6 +46,36 @@ internal static partial class MonitorHelper
             info.Work.Top / dpi.DpiScaleY,
             (info.Work.Right - info.Work.Left) / dpi.DpiScaleX,
             (info.Work.Bottom - info.Work.Top) / dpi.DpiScaleY);
+    }
+
+    /// <summary>
+    /// Tells whether another monitor lies right beside the one the window is on, at the height of the window.
+    /// </summary>
+    /// <param name="window">
+    /// The window, which must already have a handle.
+    /// </param>
+    /// <param name="left">
+    /// <see langword="true"/> to look beside the left edge, <see langword="false"/> for the right edge.
+    /// </param>
+    /// <returns>
+    /// <see langword="true"/> if there is a monitor there, so that the edge is only a seam between two monitors.
+    /// </returns>
+    public static bool HasMonitorBeside(Window window, bool left)
+    {
+        var handle = new WindowInteropHelper(window).Handle;
+        var monitor = MonitorFromWindow(handle, MonitorDefaultToNearest);
+        var info = new MonitorInfo { Size = Marshal.SizeOf<MonitorInfo>() };
+        if (monitor == 0 || !GetMonitorInfo(monitor, ref info) || !GetWindowRect(handle, out var bounds))
+        {
+            return false;
+        }
+
+        var beside = new NativePoint
+        {
+            X = left ? info.Monitor.Left - 1 : info.Monitor.Right,
+            Y = (bounds.Top + bounds.Bottom) / 2,
+        };
+        return MonitorFromPoint(beside, MonitorDefaultToNull) != 0;
     }
 
     /// <summary>
@@ -198,6 +233,21 @@ internal static partial class MonitorHelper
     /// </returns>
     [LibraryImport("user32.dll")]
     private static partial nint MonitorFromWindow(nint hwnd, uint flags);
+
+    /// <summary>
+    /// Gets the monitor that contains a point.
+    /// </summary>
+    /// <param name="point">
+    /// The point in screen device pixels.
+    /// </param>
+    /// <param name="flags">
+    /// Fallback behavior when the point is on no monitor.
+    /// </param>
+    /// <returns>
+    /// The monitor handle, or zero if there is none.
+    /// </returns>
+    [LibraryImport("user32.dll")]
+    private static partial nint MonitorFromPoint(NativePoint point, uint flags);
 
     /// <summary>
     /// Retrieves information about a monitor.

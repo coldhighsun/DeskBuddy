@@ -3,6 +3,8 @@ using AwesomeAssertions;
 using DeskBuddy.App.Rendering;
 using DeskBuddy.App.ViewModels;
 using DeskBuddy.Application;
+using DeskBuddy.Domain;
+using DeskBuddy.Domain.Scenarios;
 using DeskBuddy.Domain.Settings;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -337,6 +339,196 @@ public class SettingsTabViewModelTests
         // Assert
         _settings.Current.BlacklistedProcesses.Should().Equal("Zoom", "teams");
         _viewModel.BlacklistText.Should().Be($"Zoom{Environment.NewLine}teams");
+    }
+
+    /// <summary>
+    /// The tab shows the development detection switch and tool list from the saved settings.
+    /// </summary>
+    [Fact]
+    public async Task Constructor_ShowsDevelopmentSettings()
+    {
+        // Arrange
+        _store.Stored = PetSettings.Default with { DevModeEnabled = false, DevProcesses = ["Code", "zed"] };
+
+        // Act
+        await CreateAsync();
+
+        // Assert
+        _viewModel.DevModeEnabled.Should().BeFalse();
+        _viewModel.DevProcessesText.Should().Be($"Code{Environment.NewLine}zed");
+    }
+
+    /// <summary>
+    /// Switching development detection off is applied to the settings.
+    /// </summary>
+    [Fact]
+    public async Task DevMode_Toggled_IsApplied()
+    {
+        // Arrange
+        await CreateAsync();
+
+        // Act
+        _viewModel.DevModeEnabled = false;
+
+        // Assert
+        _settings.Current.DevModeEnabled.Should().BeFalse();
+    }
+
+    /// <summary>
+    /// The tool list is split into lines, cleaned up, and shown back in its cleaned-up form.
+    /// </summary>
+    [Fact]
+    public async Task DevProcesses_Edited_IsCleanedAndShownBack()
+    {
+        // Arrange
+        await CreateAsync();
+
+        // Act
+        _viewModel.DevProcessesText = $"Code.exe\r\n  zed \n\n code\r\n";
+
+        // Assert
+        _settings.Current.DevProcesses.Should().Equal("Code", "zed");
+        _viewModel.DevProcessesText.Should().Be($"Code{Environment.NewLine}zed");
+    }
+
+    /// <summary>
+    /// The tab lists every scenario and shows which ones are switched off.
+    /// </summary>
+    [Fact]
+    public async Task Constructor_ShowsScenarioSwitches()
+    {
+        // Arrange
+        _store.Stored = PetSettings.Default with { ScenariosEnabled = false, DisabledScenarios = ["BuildDone"] };
+
+        // Act
+        await CreateAsync();
+
+        // Assert
+        _viewModel.ScenariosEnabled.Should().BeFalse();
+        _viewModel.Scenarios.Select(toggle => toggle.State).Should().Equal(ScenarioCatalog.All);
+        _viewModel.Scenarios.Single(toggle => toggle.State == PetState.BuildDone).IsEnabled.Should().BeFalse();
+        _viewModel.Scenarios.Single(toggle => toggle.State == PetState.Building).IsEnabled.Should().BeTrue();
+    }
+
+    /// <summary>
+    /// Switching a scenario off adds it to the list of disabled ones, switching it on takes it off again.
+    /// </summary>
+    [Fact]
+    public async Task ScenarioToggle_Flipped_UpdatesDisabledList()
+    {
+        // Arrange
+        await CreateAsync();
+        var toggle = _viewModel.Scenarios.Single(item => item.State == PetState.GitPush);
+
+        // Act
+        toggle.IsEnabled = false;
+        var afterOff = _settings.Current.DisabledScenarios.ToArray();
+        toggle.IsEnabled = true;
+
+        // Assert
+        afterOff.Should().BeEquivalentTo("Chime", "GitPush");
+        _settings.Current.DisabledScenarios.Should().Equal("Chime");
+    }
+
+    /// <summary>
+    /// The chosen language is stored, and the settings are shown with the language they hold.
+    /// </summary>
+    [Fact]
+    public async Task SelectedLanguage_Changed_IsStored()
+    {
+        // Arrange
+        _store.Stored = PetSettings.Default with { Language = AppLanguage.ZhCN };
+        await CreateAsync();
+        var shownAtStart = _viewModel.SelectedLanguage;
+
+        // Act
+        _viewModel.SelectedLanguage = AppLanguage.En;
+
+        // Assert
+        shownAtStart.Should().Be(AppLanguage.ZhCN);
+        _settings.Current.Language.Should().Be(AppLanguage.En);
+        _viewModel.Languages.Select(option => option.Value).Should().Equal(AppLanguage.Auto, AppLanguage.ZhCN, AppLanguage.En);
+    }
+
+    /// <summary>
+    /// An edited end of the working day is applied; text that is no time of day is ignored.
+    /// </summary>
+    [Fact]
+    public async Task ClockOutTime_Edited_IsAppliedWhenValid()
+    {
+        // Arrange
+        await CreateAsync();
+        var shownAtStart = _viewModel.ClockOutTimeText;
+
+        // Act
+        _viewModel.ClockOutTimeText = "17:30";
+        var valid = _settings.Current.ClockOutTime;
+        _viewModel.ClockOutTimeText = "soon";
+        var afterGarbage = _settings.Current.ClockOutTime;
+        _viewModel.ClockOutTimeText = "25:00";
+        var afterOutOfRange = _settings.Current.ClockOutTime;
+
+        // Assert
+        shownAtStart.Should().Be("18:00");
+        valid.Should().Be(new TimeSpan(17, 30, 0));
+        afterGarbage.Should().Be(valid);
+        afterOutOfRange.Should().Be(valid);
+    }
+
+    /// <summary>
+    /// Text that is no time of day is explained, and the explanation goes away once the text is a time.
+    /// </summary>
+    [Fact]
+    public async Task ClockOutTime_Invalid_ShowsAnErrorUntilFixed()
+    {
+        // Arrange
+        await CreateAsync();
+
+        // Act
+        _viewModel.ClockOutTimeText = "6pm";
+        var afterGarbage = _viewModel.ClockOutTimeError;
+        _viewModel.ClockOutTimeText = "17:45";
+        var afterFix = _viewModel.ClockOutTimeError;
+
+        // Assert
+        afterGarbage.Should().NotBeEmpty();
+        afterFix.Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// The list of meeting applications is shown, and an edit is split into lines, cleaned up and shown back.
+    /// </summary>
+    [Fact]
+    public async Task MeetingProcesses_Edited_IsCleanedAndShownBack()
+    {
+        // Arrange
+        _store.Stored = PetSettings.Default with { MeetingProcesses = ["Zoom"] };
+        await CreateAsync();
+        var shownAtStart = _viewModel.MeetingProcessesText;
+
+        // Act
+        _viewModel.MeetingProcessesText = "Zoom.exe\r\n  Slack \n\n slack\r\n";
+
+        // Assert
+        shownAtStart.Should().Be("Zoom");
+        _settings.Current.MeetingProcesses.Should().Equal("Zoom", "Slack");
+        _viewModel.MeetingProcessesText.Should().Be($"Zoom{Environment.NewLine}Slack");
+    }
+
+    /// <summary>
+    /// The master switch for scenarios is applied to the settings.
+    /// </summary>
+    [Fact]
+    public async Task ScenariosEnabled_Toggled_IsApplied()
+    {
+        // Arrange
+        await CreateAsync();
+
+        // Act
+        _viewModel.ScenariosEnabled = false;
+
+        // Assert
+        _settings.Current.ScenariosEnabled.Should().BeFalse();
     }
 
     /// <summary>

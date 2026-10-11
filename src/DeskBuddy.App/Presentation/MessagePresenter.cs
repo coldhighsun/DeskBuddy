@@ -1,5 +1,6 @@
 using System.Globalization;
 using DeskBuddy.App.Resources;
+using DeskBuddy.Domain;
 using DeskBuddy.Domain.Messages;
 
 namespace DeskBuddy.App.Presentation;
@@ -57,6 +58,7 @@ public static class MessagePresenter
                 Strings.MessageSedentary,
                 WholeMinutes(message.Duration ?? TimeSpan.Zero)),
             PetMessageKind.Chatter => Strings.Chatter(message.Count ?? 0),
+            PetMessageKind.Remark => Strings.Remark(message.Count ?? 0),
             _ => string.Empty,
         };
 

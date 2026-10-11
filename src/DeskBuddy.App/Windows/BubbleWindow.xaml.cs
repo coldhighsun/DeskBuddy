@@ -114,7 +114,7 @@ public partial class BubbleWindow : Window
     /// </param>
     private void OnSourceInitialized(object? sender, EventArgs e)
     {
-        var source = (HwndSource)PresentationSource.FromVisual(this)!;
+        var source = HwndSource.FromHwnd(new WindowInteropHelper(this).Handle)!;
         source.CompositionTarget.BackgroundColor = Colors.Transparent;
 
         WindowStyleHelper.MakeToolWindowNoActivate(this);
