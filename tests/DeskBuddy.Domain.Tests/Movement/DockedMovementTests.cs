@@ -52,6 +52,16 @@ public class DockedMovementTests
     }
 
     /// <summary>
+    /// A pet dropped high above the taskbar line falls down to it.
+    /// </summary>
+    [Fact]
+    public void FallsWhenDropped_Docked_IsTrue()
+    {
+        // Act & Assert
+        _movement.FallsWhenDropped.Should().BeTrue();
+    }
+
+    /// <summary>
     /// Walking moves horizontally at the given speed and stays on the taskbar line.
     /// </summary>
     [Fact]

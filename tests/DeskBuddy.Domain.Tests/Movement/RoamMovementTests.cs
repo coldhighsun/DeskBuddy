@@ -321,6 +321,16 @@ public class RoamMovementTests
     }
 
     /// <summary>
+    /// A roaming pet rests wherever it is put, so it does not fall.
+    /// </summary>
+    [Fact]
+    public void FallsWhenDropped_Roaming_IsFalse()
+    {
+        // Act & Assert
+        _movement.FallsWhenDropped.Should().BeFalse();
+    }
+
+    /// <summary>
     /// Settling keeps the pet where it was dropped, inside the area.
     /// </summary>
     [Fact]

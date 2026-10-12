@@ -123,4 +123,32 @@ public sealed class PetBehaviorOptions
     /// Gets or sets the walking speed in device-independent pixels per second.
     /// </summary>
     public double WalkSpeed { get; set; } = 36;
+
+    /// <summary>
+    /// Gets or sets the smallest height, in device-independent pixels, a dropped pet must be above where it would
+    /// settle to fall instead of settling at once.
+    /// </summary>
+    public double FallMinHeight { get; set; } = 160;
+
+    /// <summary>
+    /// Gets or sets the downward acceleration of a falling pet in device-independent pixels per second squared.
+    /// </summary>
+    public double FallGravity { get; set; } = 900;
+
+    /// <summary>
+    /// Gets or sets the fastest speed, in device-independent pixels per second, a falling pet reaches once its umbrella
+    /// or parachute is open.
+    /// </summary>
+    public double FallTerminalVelocity { get; set; } = 100;
+
+    /// <summary>
+    /// Gets or sets the speed, in device-independent pixels per second, at which the umbrella or parachute opens.
+    /// </summary>
+    public double FallOpenSpeed { get; set; } = 240;
+
+    /// <summary>
+    /// Gets or sets how fast, in device-independent pixels per second squared, the open umbrella or parachute slows
+    /// the pet down to <see cref="FallTerminalVelocity"/>.
+    /// </summary>
+    public double FallBrake { get; set; } = 500;
 }

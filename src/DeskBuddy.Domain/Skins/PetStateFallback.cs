@@ -32,6 +32,7 @@ public static class PetStateFallback
             PetState.Dizzy => PetState.Tired,
             PetState.Meeting => PetState.Focus,
             PetState.LowBattery => PetState.Tired,
+            PetState.Fall => PetState.Drag,
             _ => null,
         };
     }

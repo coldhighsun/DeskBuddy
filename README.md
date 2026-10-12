@@ -30,7 +30,9 @@ A desktop pet for work computers. It lives on your desktop, reacts to what you a
   dinner time, a glance at the watch when the working day ends (18:00 by default, editable), a party hat on New Year's
   Day, Chinese New Year, Programmers' Day and Christmas, and, if you switch it on, a bell on the hour.
   Its eyes follow the mouse pointer while it stands around, it gets dizzy when you shake the mouse, and it hangs on
-  to the screen edge when you drop it within a few pixels of the left or right side. Each of these pictures carries a
+  to the screen edge when you drop it within a few pixels of the left or right side. Drop it from high above the
+  taskbar and it floats down under an umbrella or a parachute, which folds away when it lands (docked mode only; a
+  roaming pet stays where you put it). Each of these pictures carries a
   small label (BLD, GIT, MTG, LOW...), and resting the mouse on the pet explains in words what it is doing.
 - English and Simplified Chinese: the interface follows the system language, or choose one in the settings (a change
   takes full effect after a restart). Translations live in `src/DeskBuddy.App/Resources` (`Strings.resx` is Chinese,

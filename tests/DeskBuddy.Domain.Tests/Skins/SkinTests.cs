@@ -201,6 +201,27 @@ public class SkinTests
     }
 
     /// <summary>
+    /// A falling pet without a falling animation looks dragged.
+    /// </summary>
+    [Fact]
+    public void GetAnimation_FallMissing_UsesDrag()
+    {
+        // Arrange
+        var drag = Animation("drag.png");
+        var skin = new Skin("test", 128, 128, new Dictionary<PetState, SkinAnimation>
+        {
+            [PetState.Idle] = Animation("idle.png"),
+            [PetState.Drag] = drag,
+        });
+
+        // Act
+        var result = skin.GetAnimation(PetState.Fall);
+
+        // Assert
+        result.Should().BeSameAs(drag);
+    }
+
+    /// <summary>
     /// Builds a single-frame animation for tests.
     /// </summary>
     /// <param name="name">

@@ -20,6 +20,9 @@ public sealed class DockedMovement : IMovementStrategy
     }
 
     /// <inheritdoc />
+    public bool FallsWhenDropped => true;
+
+    /// <inheritdoc />
     public MovementStep Step(MovementContext context, TimeSpan delta)
     {
         var (x, direction) = WalkMovement.Step(

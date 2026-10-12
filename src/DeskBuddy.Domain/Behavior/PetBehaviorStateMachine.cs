@@ -23,7 +23,7 @@ public sealed class PetBehaviorStateMachine
     private readonly Random _random;
 
     /// <summary>
-    /// The moment at which the current timed state (Idle, Walk, Happy) ends. Sleep, Drag, Tired, Alert, Focus and Coding
+    /// The moment at which the current timed state (Idle, Walk, Happy) ends. Sleep, Drag, Fall, Tired, Alert, Focus and Coding
     /// last until their cause goes away, so they have no end time.
     /// </summary>
     private DateTimeOffset _stateEndsAt;
@@ -76,7 +76,7 @@ public sealed class PetBehaviorStateMachine
 
     /// <summary>
     /// Re-evaluates the state for the current time and the given inputs. Priority, highest first:
-    /// Drag, Alert, Sleep, moments (Happy and <see cref="OnMoment"/>), Ambient, Tired, Focus, Coding, then the
+    /// Drag and Fall (which nothing interrupts), Alert, Sleep, moments (Happy and <see cref="OnMoment"/>), Ambient, Tired, Focus, Coding, then the
     /// Idle/Walk cycle.
     /// </summary>
     /// <param name="inputs">
@@ -87,7 +87,7 @@ public sealed class PetBehaviorStateMachine
     /// </returns>
     public PetState Update(PetInputs inputs)
     {
-        if (State == PetState.Drag)
+        if (State is PetState.Drag or PetState.Fall)
         {
             return State;
         }
@@ -227,7 +227,27 @@ public sealed class PetBehaviorStateMachine
     }
 
     /// <summary>
-    /// Notifies the machine that the user clicked the pet. Ignored while the pet is being dragged.
+    /// Notifies the machine that the pet was dropped from a height and started to fall. The state is held until
+    /// <see cref="OnFallEnded"/>; grabbing the pet again (<see cref="OnDragStarted"/>) interrupts it.
+    /// </summary>
+    public void OnFallStarted()
+    {
+        Enter(PetState.Fall);
+    }
+
+    /// <summary>
+    /// Notifies the machine that the falling pet has landed. Ignored if the pet is not falling.
+    /// </summary>
+    public void OnFallEnded()
+    {
+        if (State == PetState.Fall)
+        {
+            Enter(PetState.Idle);
+        }
+    }
+
+    /// <summary>
+    /// Notifies the machine that the user clicked the pet. Ignored while the pet is being dragged or is falling.
     /// </summary>
     public void OnClicked()
     {
@@ -236,11 +256,11 @@ public sealed class PetBehaviorStateMachine
 
     /// <summary>
     /// Notifies the machine that something pleased the pet (a click, or reaching the mouse pointer it was chasing).
-    /// Ignored while the pet is being dragged.
+    /// Ignored while the pet is being dragged or is falling.
     /// </summary>
     public void OnDelighted()
     {
-        if (State != PetState.Drag)
+        if (State is not (PetState.Drag or PetState.Fall))
         {
             Enter(PetState.Happy);
         }
@@ -249,7 +269,7 @@ public sealed class PetBehaviorStateMachine
     /// <summary>
     /// Notifies the machine that something short and one-off happened that the pet should act out for a while, such as
     /// a finished build or the user coming back. The state is held for the given time, then the pet carries on as
-    /// usual. Ignored while the pet is being dragged; an alert, or the user being away, still takes over.
+    /// usual. Ignored while the pet is being dragged or is falling; an alert, or the user being away, still takes over.
     /// </summary>
     /// <param name="state">
     /// The state to act out.
@@ -259,7 +279,7 @@ public sealed class PetBehaviorStateMachine
     /// </param>
     public void OnMoment(PetState state, TimeSpan duration)
     {
-        if (State == PetState.Drag)
+        if (State is PetState.Drag or PetState.Fall)
         {
             return;
         }

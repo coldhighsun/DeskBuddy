@@ -37,8 +37,8 @@ public class ShippedSkinsTests
     }
 
     /// <summary>
-    /// The robot skin loads, with every frame file present, and has its own animation for every state, including
-    /// sitting at the computer.
+    /// The robot skin loads, with every frame file present, and has its own animation for every state but falling, which
+    /// borrows the dragged one, including sitting at the computer.
     /// </summary>
     [Fact]
     public async Task Robot_Loads_WithAnimationForEveryState()
@@ -48,7 +48,7 @@ public class ShippedSkinsTests
 
         // Assert
         skin.Name.Should().Be("robot");
-        skin.Animations.Keys.Should().BeEquivalentTo(Enum.GetValues<PetState>());
+        skin.Animations.Keys.Should().BeEquivalentTo(Enum.GetValues<PetState>().Where(state => state != PetState.Fall));
         skin.Animations[PetState.Coding].FramePaths.Should().HaveCountGreaterThan(1);
         skin.GazeAnimations.Keys.Should().BeEquivalentTo(
             [GazeDirection.Left, GazeDirection.Right, GazeDirection.Up, GazeDirection.Down]);
