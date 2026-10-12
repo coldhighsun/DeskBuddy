@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
@@ -20,6 +21,16 @@ internal static partial class MonitorHelper
     /// Flag for <c>MonitorFromPoint</c>: if the point is on no monitor, return nothing.
     /// </summary>
     private const uint MonitorDefaultToNull = 0;
+
+    /// <summary>
+    /// The kind of resolution <c>GetDpiForMonitor</c> reports that is the one the user has chosen in the settings.
+    /// </summary>
+    private const int EffectiveDpi = 0;
+
+    /// <summary>
+    /// The resolution of a monitor at 100% scaling.
+    /// </summary>
+    private const double DefaultDpi = 96;
 
     /// <summary>
     /// Gets the work area (screen minus taskbar) of the monitor the window is on, in device-independent pixels.
@@ -62,10 +73,7 @@ internal static partial class MonitorHelper
     /// </returns>
     public static bool HasMonitorBeside(Window window, bool left)
     {
-        var handle = new WindowInteropHelper(window).Handle;
-        var monitor = MonitorFromWindow(handle, MonitorDefaultToNearest);
-        var info = new MonitorInfo { Size = Marshal.SizeOf<MonitorInfo>() };
-        if (monitor == 0 || !GetMonitorInfo(monitor, ref info) || !GetWindowRect(handle, out var bounds))
+        if (!TryGetPlacement(window, out var info, out var bounds))
         {
             return false;
         }
@@ -76,6 +84,113 @@ internal static partial class MonitorHelper
             Y = (bounds.Top + bounds.Bottom) / 2,
         };
         return MonitorFromPoint(beside, MonitorDefaultToNull) != 0;
+    }
+
+    /// <summary>
+    /// Tells whether another monitor lies right above the one the window is on, at the horizontal position of the window.
+    /// </summary>
+    /// <param name="window">
+    /// The window, which must already have a handle.
+    /// </param>
+    /// <returns>
+    /// <see langword="true"/> if there is a monitor there, so that the top edge is only a seam between two monitors.
+    /// </returns>
+    public static bool HasMonitorAbove(Window window)
+    {
+        if (!TryGetPlacement(window, out var info, out var bounds))
+        {
+            return false;
+        }
+
+        var above = new NativePoint
+        {
+            X = (bounds.Left + bounds.Right) / 2,
+            Y = info.Monitor.Top - 1,
+        };
+        return MonitorFromPoint(above, MonitorDefaultToNull) != 0;
+    }
+
+    /// <summary>
+    /// Gets the work area (screen minus taskbar) and the scaling of every monitor.
+    /// </summary>
+    /// <returns>
+    /// One entry per monitor; empty if the monitors cannot be listed completely.
+    /// </returns>
+    public static unsafe IReadOnlyList<MonitorArea> GetAllMonitors()
+    {
+        var areas = new List<MonitorArea>();
+        var handle = GCHandle.Alloc(areas);
+        try
+        {
+            // A list that is not complete is worse than none: the caller then falls back to the monitor it is on.
+            if (!EnumDisplayMonitors(0, 0, &CollectWorkArea, GCHandle.ToIntPtr(handle)))
+            {
+                areas.Clear();
+            }
+        }
+        finally
+        {
+            handle.Free();
+        }
+
+        return areas;
+    }
+
+    /// <summary>
+    /// Looks up the monitor a window is on and the window's bounds.
+    /// </summary>
+    /// <param name="window">
+    /// The window, which must already have a handle.
+    /// </param>
+    /// <param name="info">
+    /// Receives the information about the monitor.
+    /// </param>
+    /// <param name="bounds">
+    /// Receives the bounds of the window in device pixels.
+    /// </param>
+    /// <returns>
+    /// <see langword="true"/> if both could be read.
+    /// </returns>
+    private static bool TryGetPlacement(Window window, out MonitorInfo info, out NativeRect bounds)
+    {
+        var handle = new WindowInteropHelper(window).Handle;
+        var monitor = MonitorFromWindow(handle, MonitorDefaultToNearest);
+        info = new MonitorInfo { Size = Marshal.SizeOf<MonitorInfo>() };
+        bounds = default;
+        return monitor != 0 && GetMonitorInfo(monitor, ref info) && GetWindowRect(handle, out bounds);
+    }
+
+    /// <summary>
+    /// Called by <c>EnumDisplayMonitors</c> for every monitor: adds its work area and scaling to the list the caller passed
+    /// in.
+    /// </summary>
+    /// <param name="monitor">
+    /// The monitor handle.
+    /// </param>
+    /// <param name="deviceContext">
+    /// Unused.
+    /// </param>
+    /// <param name="bounds">
+    /// Unused.
+    /// </param>
+    /// <param name="data">
+    /// The handle of the <see cref="List{T}"/> of <see cref="MonitorArea"/> to add to.
+    /// </param>
+    /// <returns>
+    /// Nonzero to carry on with the next monitor.
+    /// </returns>
+    [UnmanagedCallersOnly(CallConvs = [typeof(CallConvStdcall)])]
+    private static unsafe int CollectWorkArea(nint monitor, nint deviceContext, NativeRect* bounds, nint data)
+    {
+        var info = new MonitorInfo { Size = Marshal.SizeOf<MonitorInfo>() };
+        if (GetMonitorInfo(monitor, ref info) && GCHandle.FromIntPtr(data).Target is List<MonitorArea> areas)
+        {
+            // Without the scaling of the monitor (the call fails) it is taken as 100%.
+            var scale = GetDpiForMonitor(monitor, EffectiveDpi, out var dpiX, out _) == 0 ? dpiX / DefaultDpi : 1;
+            areas.Add(new MonitorArea(new PixelRect(info.Work.Left, info.Work.Top, info.Work.Right, info.Work.Bottom), scale));
+        }
+
+        return 1;
     }
 
     /// <summary>
@@ -293,4 +408,51 @@ internal static partial class MonitorHelper
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool GetCursorPos(out NativePoint point);
+
+    /// <summary>
+    /// Gets the resolution of a monitor.
+    /// </summary>
+    /// <param name="monitor">
+    /// The monitor handle.
+    /// </param>
+    /// <param name="type">
+    /// The kind of resolution to get.
+    /// </param>
+    /// <param name="dpiX">
+    /// Receives the horizontal resolution in dots per inch.
+    /// </param>
+    /// <param name="dpiY">
+    /// Receives the vertical resolution in dots per inch.
+    /// </param>
+    /// <returns>
+    /// Zero (<c>S_OK</c>) on success.
+    /// </returns>
+    [LibraryImport("shcore.dll")]
+    private static partial int GetDpiForMonitor(nint monitor, int type, out uint dpiX, out uint dpiY);
+
+    /// <summary>
+    /// Calls a function for every monitor.
+    /// </summary>
+    /// <param name="deviceContext">
+    /// Zero, for all monitors of the virtual screen.
+    /// </param>
+    /// <param name="clip">
+    /// Zero, for no clipping.
+    /// </param>
+    /// <param name="callback">
+    /// The function to call for every monitor.
+    /// </param>
+    /// <param name="data">
+    /// A value handed to the function on every call.
+    /// </param>
+    /// <returns>
+    /// <see langword="true"/> on success.
+    /// </returns>
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static unsafe partial bool EnumDisplayMonitors(
+        nint deviceContext,
+        nint clip,
+        delegate* unmanaged[Stdcall]<nint, nint, NativeRect*, nint, int> callback,
+        nint data);
 }
