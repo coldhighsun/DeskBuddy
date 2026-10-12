@@ -25,13 +25,8 @@ namespace DeskBuddy.App.Windows;
 /// Transparent, always-on-top window that renders the pet sprite, reacts to the mouse and walks along the bottom of
 /// the work area.
 /// </summary>
-public partial class PetWindow : Window
+public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
 {
-    /// <summary>
-    /// Margin, in device-independent pixels, kept between the pet and the screen edge at startup.
-    /// </summary>
-    private const double StartupMargin = 24;
-
     /// <summary>
     /// Distance, in device-independent pixels, the mouse must travel with the button held before a press becomes a
     /// drag instead of a click.
@@ -65,10 +60,17 @@ public partial class PetWindow : Window
 
     /// <summary>
     /// How close to the left or right edge of the work area, in device-independent pixels, a dropped pet clings to it.
-    /// Well below <see cref="StartupMargin"/>, so a pet nudged from its starting place does not count as dropped at the
-    /// edge.
+    /// Kept small, so a pet that merely walked to the edge is not mistaken for one dropped there. A new pet starts further
+    /// from the edges than this.
     /// </summary>
     private const double EdgeSnapDistance = 8;
+
+    /// <summary>
+    /// How far from the left and right edges of the work area, in device-independent pixels, a new pet starts. Twice
+    /// <see cref="EdgeSnapDistance"/>, so that a new pet is well outside the zone in which a dropped pet clings to the edge
+    /// and a nudge does not make it climb or hang.
+    /// </summary>
+    private const double StartMargin = 2 * EdgeSnapDistance;
 
     /// <summary>
     /// How often the pet's position is updated while walking. Only runs in the Walk state.
@@ -135,6 +137,16 @@ public partial class PetWindow : Window
     /// Whether the pet is clinging to the edge of the screen.
     /// </summary>
     private bool _hanging;
+
+    /// <summary>
+    /// Whether the user allows the pet to climb along the edges of the screen.
+    /// </summary>
+    private bool _climbEdges;
+
+    /// <summary>
+    /// Moves the pet along the sides and the top edge of the screen.
+    /// </summary>
+    private readonly EdgeCrawl _crawl;
 
     /// <summary>
     /// The motion of the fall in progress, or <see langword="null"/> when the pet is not falling.
@@ -303,6 +315,7 @@ public partial class PetWindow : Window
         _frames = frames;
         _brain = brain;
         _options = options;
+        _crawl = new EdgeCrawl(options, Random.Shared);
         _openPanel = openPanel;
         _movement = movement;
         _previewMenu = previewMenu;
@@ -319,6 +332,10 @@ public partial class PetWindow : Window
         _pointerTimer.Tick += OnPointerTick;
         Loaded += (_, _) =>
         {
+            // The window was created at a spot worked out before it existed, perhaps on a monitor of another scaling: settle
+            // now that it knows the scaling of the monitor it is on.
+            SettleInWorkArea();
+
             _animationWatch.Restart();
             _animationTimer.Start();
             _brainTimer.Start();
@@ -357,7 +374,8 @@ public partial class PetWindow : Window
         ContextMenu = new ContextMenu();
         ContextMenuOpening += OnContextMenuOpening;
 
-        PlaceAtBottomRight();
+        // The pet starts at a random spot. WPF places the window by Left and Top when it creates it, so they are set here.
+        PetPlacement.Place(PickRandomSpot(), this);
     }
 
     /// <summary>
@@ -370,8 +388,8 @@ public partial class PetWindow : Window
     }
 
     /// <summary>
-    /// Replaces the skin while the window is showing. The pet keeps its feet where they were, so a skin of a different
-    /// size grows or shrinks upward, and is then kept inside the work area.
+    /// Replaces the skin while the window is showing. A new skin is a new pet: whatever the old one was doing is over,
+    /// and the new one starts on the ground at a random spot of a monitor picked at random.
     /// </summary>
     /// <param name="skin">
     /// The new skin.
@@ -385,16 +403,33 @@ public partial class PetWindow : Window
         ArgumentNullException.ThrowIfNull(frames);
 
         _skin = skin;
-        _player = new AnimationPlayer(skin);
-        _player.SetState(_shownState, CurrentLook());
         _frames = frames;
 
+        if (_fall is not null)
+        {
+            EndFall(snapToLanding: false);
+        }
+
+        _hanging = false;
+        _moveTimer.Stop();
+        _brain.ResetState();
+        _shownState = _brain.State;
+        _facing = 1;
+        ApplyFacing();
+
+        _player = new AnimationPlayer(skin);
+        _player.SetState(_shownState, CurrentLook());
+        SpriteImage.ToolTip = Strings.StateHint(_shownState);
+
         ApplyFrameSize();
+        PetPlacement.Place(PickRandomSpot(), this);
+
+        // Settle on the monitor the window is on now, whose scaling the window knows once it is shown.
+        SettleInWorkArea();
 
         ShowFrame();
         _animationWatch.Restart();
         _animationTimer.Interval = _player.Animation.FrameDuration;
-        SettleInWorkArea();
     }
 
     /// <summary>
@@ -414,6 +449,22 @@ public partial class PetWindow : Window
         ApplyFrameSize();
         SettleInWorkArea();
         RepositionBubble();
+    }
+
+    /// <summary>
+    /// Switches climbing along the edges of the screen on or off. Switching it off puts a crawling pet back on the
+    /// ground.
+    /// </summary>
+    /// <param name="enabled">
+    /// Whether the pet may climb along the edges.
+    /// </param>
+    public void SetClimbEdges(bool enabled)
+    {
+        _climbEdges = enabled;
+        if (!enabled && IsCrawling)
+        {
+            EndCrawl();
+        }
     }
 
     /// <summary>
@@ -498,14 +549,35 @@ public partial class PetWindow : Window
         return hit ? WindowStyleHelper.HtClient : WindowStyleHelper.HtTransparent;
     }
 
-    /// <summary>
-    /// Positions the window in the bottom-right corner of the primary work area (above the taskbar).
-    /// </summary>
-    private void PlaceAtBottomRight()
+    /// <inheritdoc />
+    double IPlacementTarget.ScaleX => VisualTreeHelper.GetDpi(this).DpiScaleX;
+
+    /// <inheritdoc />
+    double IPlacementTarget.ScaleY => VisualTreeHelper.GetDpi(this).DpiScaleY;
+
+    /// <inheritdoc />
+    void IPlacementTarget.MoveToPixels(int x, int y)
     {
-        var workArea = SystemParameters.WorkArea;
-        Left = workArea.Right - Width - StartupMargin;
-        Top = workArea.Bottom - Height;
+        WindowMover.MoveToPixels(this, x, y);
+    }
+
+    /// <summary>
+    /// Picks a random spot on the bottom edge of the work area of a monitor picked at random (above the taskbar), away
+    /// from the left and right edges. The spot is worked out with the scaling of that monitor, so it is right once the
+    /// window is there.
+    /// </summary>
+    /// <returns>
+    /// The spot, in device pixels, with the scaling of the monitor it is on.
+    /// </returns>
+    private PetSpot PickRandomSpot()
+    {
+        var monitors = MonitorHelper.GetAllMonitors();
+        if (monitors.Count == 0)
+        {
+            monitors = [new MonitorArea(MonitorHelper.GetWorkAreaPixels(this), VisualTreeHelper.GetDpi(this).DpiScaleX)];
+        }
+
+        return PetPlacement.PickOnGround(monitors, Width, Height, StartMargin, Random.Shared);
     }
 
     /// <summary>
@@ -521,6 +593,14 @@ public partial class PetWindow : Window
             return;
         }
 
+        // A crawl that ends high above the ground (an alert, sleep, letting go, switching climbing off) ends in a fall under
+        // the umbrella, not in a jump to the ground. Being picked up is not an end; the drop decides.
+        if (_shownState.EndsCrawlInFall(state) && TryStartFall())
+        {
+            ApplyState(_brain.State);
+            return;
+        }
+
         var previousState = _shownState;
         _shownState = state;
 
@@ -528,6 +608,18 @@ public partial class PetWindow : Window
         if (previousState == PetState.Fall && state != PetState.Fall)
         {
             EndFall(snapToLanding: false);
+        }
+
+        // Interrupted while crawling along the edges (an alert, sleep, hiding): the pet goes back to the ground. Being
+        // picked up is not an interruption; the drop decides.
+        if (previousState.IsCrawl() && !state.IsCrawl())
+        {
+            if (state != PetState.Drag)
+            {
+                _facing = 1;
+                ApplyFacing();
+                SettleInWorkArea();
+            }
         }
 
         // Letting go of the edge: the pet falls back to where its mode lets it rest. Being picked up from the edge is
@@ -568,7 +660,7 @@ public partial class PetWindow : Window
             BeginWalk();
             StartMoveTimerIfVisible();
         }
-        else if (state == PetState.Fall)
+        else if (state == PetState.Fall || state.IsCrawl())
         {
             StartMoveTimerIfVisible();
         }
@@ -611,7 +703,7 @@ public partial class PetWindow : Window
                 _animationWatch.Restart();
                 _animationTimer.Start();
                 UpdatePointerTimer();
-                if (_shownState is PetState.Walk or PetState.Fall)
+                if (_shownState is PetState.Walk or PetState.Fall || _shownState.IsCrawl())
                 {
                     StartMoveTimerIfVisible();
                 }
@@ -628,6 +720,14 @@ public partial class PetWindow : Window
             {
                 EndFall(snapToLanding: true);
                 _brain.OnFallEnded();
+                ApplyState(_brain.State);
+            }
+
+            // A pet that is hidden while crawling goes back to the ground.
+            if (IsCrawling)
+            {
+                _brain.OnCrawlEnded();
+                Top = CreateMovementContext().Bounds.MaxY;
                 ApplyState(_brain.State);
             }
 
@@ -711,6 +811,12 @@ public partial class PetWindow : Window
         {
             _brain.OnFallEnded();
             ApplyState(_brain.State);
+        }
+
+        // A mode in which the pet does not walk along the taskbar has no edges to crawl along.
+        if (IsCrawling && !CanCrawl)
+        {
+            EndCrawl();
         }
 
         SettleInWorkArea();
@@ -945,7 +1051,7 @@ public partial class PetWindow : Window
         {
             items.Add(new Separator());
             var preview = new MenuItem { Header = Strings.MenuPreview };
-            foreach (var state in Enum.GetValues<PetState>().Where(state => state is not (PetState.Drag or PetState.Sleep or PetState.Alert or PetState.Fall)))
+            foreach (var state in Enum.GetValues<PetState>().Where(state => state is not (PetState.Drag or PetState.Sleep or PetState.Alert or PetState.Fall) && !state.IsCrawl()))
             {
                 var item = new MenuItem { Header = Strings.StateName(state) };
                 item.Click += (_, _) =>
@@ -985,9 +1091,16 @@ public partial class PetWindow : Window
             return;
         }
 
+        if (IsCrawling)
+        {
+            OnCrawlTick(delta);
+            return;
+        }
+
         RefreshWorkAreaPeriodically();
 
-        var step = _movement.Current.Step(CreateMovementContext(), delta);
+        var context = CreateMovementContext();
+        var step = _movement.Current.Step(context, delta);
 
         // One cheap move for both coordinates, and none at all when the step stays within the same device pixel.
         WindowMover.MoveTo(this, step.Position.X, step.Position.Y);
@@ -1003,6 +1116,149 @@ public partial class PetWindow : Window
             _brain.OnReachedPointer();
             ApplyState(_brain.State);
         }
+        else if (TryStartCrawlAtEnd(step.Position, context.Bounds))
+        {
+            ApplyState(_brain.State);
+        }
+    }
+
+    /// <inheritdoc />
+    bool IScreenEdges.HasMonitorBeside(bool left)
+    {
+        return MonitorHelper.HasMonitorBeside(this, left);
+    }
+
+    /// <inheritdoc />
+    bool IScreenEdges.HasMonitorAbove()
+    {
+        return MonitorHelper.HasMonitorAbove(this);
+    }
+
+    /// <summary>
+    /// Gets a value indicating whether the pet is crawling along the edges of the screen.
+    /// </summary>
+    private bool IsCrawling => _shownState.IsCrawl();
+
+    /// <summary>
+    /// Gets a value indicating whether the pet may crawl along the edges of the screen now: the user allows it, the pet
+    /// walks along the taskbar, and the skin has the pictures for it.
+    /// </summary>
+    private bool CanCrawl =>
+        _climbEdges
+        && _movement.Current.FallsWhenDropped
+        && _skin.Animations.ContainsKey(PetState.Climb)
+        && _skin.Animations.ContainsKey(PetState.Ceiling);
+
+    /// <summary>
+    /// Lets a pet that has just walked into the left or right end of the screen start to climb it, by chance.
+    /// </summary>
+    /// <param name="position">
+    /// Where the walk step put the pet.
+    /// </param>
+    /// <param name="bounds">
+    /// The range the pet may take.
+    /// </param>
+    /// <returns>
+    /// <see langword="true"/> if the pet now climbs; the state then needs showing.
+    /// </returns>
+    private bool TryStartCrawlAtEnd(Point2 position, MovementBounds bounds)
+    {
+        if (!CanCrawl || _dragging)
+        {
+            return false;
+        }
+
+        var start = CrawlStarter.AtWalkEnd(
+            position,
+            bounds,
+            _options.ClimbChance,
+            Random.Shared,
+            this);
+        if (start is not { } crawlStart)
+        {
+            return false;
+        }
+
+        StartCrawl(crawlStart);
+        return true;
+    }
+
+    /// <summary>
+    /// Starts to crawl along an edge of the screen.
+    /// </summary>
+    /// <param name="start">
+    /// Where and how the pet starts.
+    /// </param>
+    private void StartCrawl(CrawlStart start)
+    {
+        _workArea = MonitorHelper.GetWorkAreaDip(this);
+        _moveTicksSinceWorkAreaRefresh = 0;
+        var bounds = CreateMovementContext().Bounds;
+
+        if (start.Phase == CrawlPhase.Ceiling)
+        {
+            _facing = _crawl.StartOnCeiling(start.Direction);
+            Left = bounds.Clamp(new Point2(Left, Top)).X;
+            Top = bounds.MinY;
+            _brain.OnCrawlStarted(PetState.Ceiling);
+        }
+        else
+        {
+            _facing = _crawl.StartOnWall(start.OnRightEdge, start.ClimbingUp);
+            Left = start.OnRightEdge ? Math.Max(bounds.MinX, bounds.MaxX) : bounds.MinX;
+            Top = start.Y;
+            _brain.OnCrawlStarted(PetState.Climb);
+        }
+
+        ApplyFacing();
+    }
+
+    /// <summary>
+    /// Moves the crawling pet one step, and ends the crawl when it reaches the ground or lets go.
+    /// </summary>
+    /// <param name="delta">
+    /// The time since the previous step.
+    /// </param>
+    private void OnCrawlTick(TimeSpan delta)
+    {
+        if (!IsCrawling)
+        {
+            return;
+        }
+
+        RefreshWorkAreaPeriodically();
+
+        var step = _crawl.Step(new Point2(Left, Top), CreateMovementContext().Bounds, delta);
+        WindowMover.MoveTo(this, step.Position.X, step.Position.Y);
+
+        if (step.Outcome != CrawlOutcome.Continue)
+        {
+            EndCrawl();
+            return;
+        }
+
+        if (step.Facing != _facing)
+        {
+            _facing = step.Facing;
+            ApplyFacing();
+        }
+
+        var state = step.Phase == CrawlPhase.Wall ? PetState.Climb : PetState.Ceiling;
+        if (state != _shownState)
+        {
+            _brain.OnCrawlStarted(state);
+            ApplyState(_brain.State);
+        }
+    }
+
+    /// <summary>
+    /// Ends the crawl along the edges of the screen. Showing the new state puts the pet back on the ground, with a fall
+    /// under the umbrella if it is high enough above it.
+    /// </summary>
+    private void EndCrawl()
+    {
+        _brain.OnCrawlEnded();
+        ApplyState(_brain.State);
     }
 
     /// <summary>
@@ -1106,7 +1362,7 @@ public partial class PetWindow : Window
         {
             _dragging = false;
             _brain.OnDragEnded();
-            if (!TryHangOnEdge() && !TryStartFall())
+            if (!TryCrawlOnEdge() && !TryHangOnEdge() && !TryStartFall())
             {
                 SettleInWorkArea();
             }
@@ -1117,6 +1373,36 @@ public partial class PetWindow : Window
         }
 
         ApplyState(_brain.State);
+    }
+
+    /// <summary>
+    /// Lets a pet that was dropped at the top or at a side of the work area crawl along that edge, if it may.
+    /// </summary>
+    /// <returns>
+    /// <see langword="true"/> if the pet now crawls along an edge.
+    /// </returns>
+    private bool TryCrawlOnEdge()
+    {
+        if (!CanCrawl)
+        {
+            return false;
+        }
+
+        _workArea = MonitorHelper.GetWorkAreaDip(this);
+        var start = CrawlStarter.OnDrop(
+            new Point2(Left, Top),
+            new Point2(Width, Height),
+            CreateMovementContext().Bounds,
+            EdgeSnapDistance,
+            Random.Shared,
+            this);
+        if (start is not { } crawlStart)
+        {
+            return false;
+        }
+
+        StartCrawl(crawlStart);
+        return true;
     }
 
     /// <summary>
@@ -1260,6 +1546,15 @@ public partial class PetWindow : Window
         if (_fall is not null)
         {
             Left = CreateMovementContext().Bounds.Clamp(new Point2(Left, Top)).X;
+            return;
+        }
+
+        // A pet crawling along the edges stays where it is, inside the work area; the crawl puts it right again.
+        if (IsCrawling)
+        {
+            var kept = CreateMovementContext().Bounds.Clamp(new Point2(Left, Top));
+            Left = kept.X;
+            Top = kept.Y;
             return;
         }
 

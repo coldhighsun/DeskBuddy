@@ -224,6 +224,12 @@
                                   SelectedValue="{Binding SelectedSize}"
                                   AutomationProperties.AutomationId="PetSizeBox" />
                     </Grid>
+                    <CheckBox IsChecked="{Binding ClimbEdges}"
+                              Margin="0,8,0,0"
+                              AutomationProperties.Name="{x:Static res:Strings.SettingsClimbEdges}"
+                              AutomationProperties.AutomationId="ClimbEdgesCheck">
+                        <TextBlock Text="{x:Static res:Strings.SettingsClimbEdges}" TextWrapping="Wrap" />
+                    </CheckBox>
                     <Grid Margin="0,8,0,0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="150" />

@@ -32,7 +32,10 @@ A desktop pet for work computers. It lives on your desktop, reacts to what you a
   Its eyes follow the mouse pointer while it stands around, it gets dizzy when you shake the mouse, and it hangs on
   to the screen edge when you drop it within a few pixels of the left or right side. Drop it from high above the
   taskbar and it floats down under an umbrella or a parachute, which folds away when it lands (docked mode only; a
-  roaming pet stays where you put it). Each of these pictures carries a
+  roaming pet stays where you put it). With "climb the screen edges" switched on in the settings (off by default,
+  and only for skins that have the pictures, such as the robot), the pet also climbs up and down the sides of the
+  screen by chance, hangs from the top edge and crawls along it, then lets go and floats down or climbs back to the
+  ground; dropping it at the top or a side makes it start right away. Each of these pictures carries a
   small label (BLD, GIT, MTG, LOW...), and resting the mouse on the pet explains in words what it is doing.
 - English and Simplified Chinese: the interface follows the system language, or choose one in the settings (a change
   takes full effect after a restart). Translations live in `src/DeskBuddy.App/Resources` (`Strings.resx` is Chinese,

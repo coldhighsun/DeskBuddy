@@ -471,6 +471,24 @@ public class SettingsTabViewModelTests
     }
 
     /// <summary>
+    /// The choice to let the pet climb along the edges of the screen is stored, and shown from the stored settings.
+    /// </summary>
+    [Fact]
+    public async Task ClimbEdges_Changed_IsStored()
+    {
+        // Arrange
+        await CreateAsync();
+        var shownAtStart = _viewModel.ClimbEdges;
+
+        // Act
+        _viewModel.ClimbEdges = true;
+
+        // Assert
+        shownAtStart.Should().BeFalse();
+        _settings.Current.ClimbEdges.Should().BeTrue();
+    }
+
+    /// <summary>
     /// An edited end of the working day is applied; text that is no time of day is ignored.
     /// </summary>
     [Fact]
