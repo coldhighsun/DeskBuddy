@@ -304,10 +304,15 @@ public partial class App
                 _host.Services.GetRequiredService<ScenarioSwitches>(),
                 _host.Services.GetRequiredService<SettingsService>().Current.Size,
                 _host.Services.GetRequiredService<IConfiguration>().GetValue("Preview", false));
+            _petWindow.SetClimbEdges(_host.Services.GetRequiredService<SettingsService>().Current.ClimbEdges);
             _petWindow.Show();
             var petWindow = _petWindow;
             _host.Services.GetRequiredService<SettingsService>().Changed +=
-                (_, settings) => petWindow.Dispatcher.BeginInvoke(() => petWindow.SetSize(settings.Size));
+                (_, settings) => petWindow.Dispatcher.BeginInvoke(() =>
+                {
+                    petWindow.SetSize(settings.Size);
+                    petWindow.SetClimbEdges(settings.ClimbEdges);
+                });
             _skinSwitcher = new SkinSwitcher(
                 _host.Services.GetRequiredService<SettingsService>(),
                 _host.Services.GetRequiredService<ISkinLoader>(),

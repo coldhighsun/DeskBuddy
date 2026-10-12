@@ -186,6 +186,12 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     private PetSize _selectedSize;
 
     /// <summary>
+    /// Gets or sets a value indicating whether the pet may climb the sides of the screen and hang from its top edge.
+    /// </summary>
+    [ObservableProperty]
+    private bool _climbEdges;
+
+    /// <summary>
     /// Gets or sets the time of day the working day ends, as <c>HH:mm</c>.
     /// </summary>
     [ObservableProperty]
@@ -636,6 +642,20 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     }
 
     /// <summary>
+    /// Applies the choice to let the pet climb along the edges of the screen.
+    /// </summary>
+    /// <param name="value">
+    /// Whether the pet may climb along the edges.
+    /// </param>
+    partial void OnClimbEdgesChanged(bool value)
+    {
+        if (!_refreshing)
+        {
+            _ = ApplyAsync(settings => settings with { ClimbEdges = value });
+        }
+    }
+
+    /// <summary>
     /// Applies the chosen language; it takes full effect after a restart.
     /// </summary>
     /// <param name="value">
@@ -862,6 +882,7 @@ public sealed partial class SettingsTabViewModel : ObservableObject
             MeetingProcessesText = string.Join(Environment.NewLine, settings.MeetingProcesses);
             SelectedLanguage = settings.Language;
             SelectedSize = settings.Size;
+            ClimbEdges = settings.ClimbEdges;
             ClockOutTimeError = string.Empty;
             ClockOutTimeText = settings.ClockOutTime.ToString(@"hh\:mm", CultureInfo.InvariantCulture);
             foreach (var toggle in Scenarios)
