@@ -409,6 +409,22 @@ public class PetBrainTests
     }
 
     /// <summary>
+    /// The opening of the umbrella reaches the state machine.
+    /// </summary>
+    [Fact]
+    public void OnFallOpened_Forwarded_ToStateMachine()
+    {
+        // Arrange
+        _brain.OnFallStarted();
+
+        // Act
+        _brain.OnFallOpened();
+
+        // Assert
+        _brain.State.Should().Be(PetState.Glide);
+    }
+
+    /// <summary>
     /// Crawl notifications reach the state machine.
     /// </summary>
     [Fact]
@@ -1365,6 +1381,27 @@ public class PetBrainTests
 
         // Assert
         whileFalling.Should().Be(PetState.Fall);
+        afterLanding.Should().Be(PetState.Meal);
+    }
+
+    /// <summary>
+    /// A pet gliding down under its umbrella is not disturbed either: the occasion comes once the pet has landed.
+    /// </summary>
+    [Fact]
+    public void Tick_LunchTimeWhileGliding_MealComesAfterTheLanding()
+    {
+        // Arrange
+        UseNoonOnAWeekday();
+        _brain.OnFallStarted();
+        _brain.OnFallOpened();
+
+        // Act
+        var whileGliding = _brain.Tick();
+        _brain.OnFallEnded();
+        var afterLanding = _brain.Tick();
+
+        // Assert
+        whileGliding.Should().Be(PetState.Glide);
         afterLanding.Should().Be(PetState.Meal);
     }
 

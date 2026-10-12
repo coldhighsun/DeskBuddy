@@ -173,7 +173,7 @@ public sealed class PetBrain(
         var dev = devScenarios.Evaluate(userIdle, load);
         var system = systemScenarios.Evaluate(
             userIdle,
-            canDisturb: _canSpeak && stateMachine.State is not (PetState.Drag or PetState.Fall or PetState.Alert or PetState.Sleep));
+            canDisturb: _canSpeak && stateMachine.State is not (PetState.Drag or PetState.Alert or PetState.Sleep) && !stateMachine.State.IsFalling());
         if (dev.Moment is { } devMoment)
         {
             stateMachine.OnMoment(devMoment.State, devMoment.Duration);
@@ -398,6 +398,14 @@ public sealed class PetBrain(
     }
 
     /// <summary>
+    /// Notifies the brain that the falling pet has opened its umbrella or parachute.
+    /// </summary>
+    public void OnFallOpened()
+    {
+        stateMachine.OnFallOpened();
+    }
+
+    /// <summary>
     /// Notifies the brain that the falling pet has landed.
     /// </summary>
     public void OnFallEnded()
@@ -417,7 +425,8 @@ public sealed class PetBrain(
     /// Notifies the brain that the pet started to crawl along an edge of the screen.
     /// </summary>
     /// <param name="state">
-    /// <see cref="PetState.Climb"/> on a side of the screen, <see cref="PetState.Ceiling"/> on the top edge.
+    /// <see cref="PetState.Climb"/> or <see cref="PetState.ClimbDown"/> on a side of the screen, <see cref="PetState.Ceiling"/> on
+    /// the top edge.
     /// </param>
     public void OnCrawlStarted(PetState state)
     {

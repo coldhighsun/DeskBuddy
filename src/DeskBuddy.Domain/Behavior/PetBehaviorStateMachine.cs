@@ -87,7 +87,8 @@ public sealed class PetBehaviorStateMachine
     /// </returns>
     public PetState Update(PetInputs inputs)
     {
-        if (State is PetState.Drag or PetState.Fall)
+        // A real fall lasts until it is over; a glide that is only being acted out (previewed) ends like any moment.
+        if (State == PetState.Drag || (State.IsFalling() && !_momentActive))
         {
             return State;
         }
@@ -242,11 +243,22 @@ public sealed class PetBehaviorStateMachine
     }
 
     /// <summary>
+    /// Notifies the machine that the falling pet has opened its umbrella or parachute. Ignored if the pet is not falling.
+    /// </summary>
+    public void OnFallOpened()
+    {
+        if (State == PetState.Fall)
+        {
+            Enter(PetState.Glide);
+        }
+    }
+
+    /// <summary>
     /// Notifies the machine that the falling pet has landed. Ignored if the pet is not falling.
     /// </summary>
     public void OnFallEnded()
     {
-        if (State == PetState.Fall)
+        if (State.IsFalling())
         {
             Enter(PetState.Idle);
         }
@@ -258,11 +270,12 @@ public sealed class PetBehaviorStateMachine
     /// is being dragged or is falling.
     /// </summary>
     /// <param name="state">
-    /// <see cref="PetState.Climb"/> on a side of the screen, <see cref="PetState.Ceiling"/> on the top edge.
+    /// <see cref="PetState.Climb"/> or <see cref="PetState.ClimbDown"/> on a side of the screen, <see cref="PetState.Ceiling"/> on
+    /// the top edge.
     /// </param>
     public void OnCrawlStarted(PetState state)
     {
-        if (!state.IsCrawl() || State is PetState.Drag or PetState.Fall)
+        if (!state.IsCrawl() || State == PetState.Drag || State.IsFalling())
         {
             return;
         }
@@ -303,7 +316,7 @@ public sealed class PetBehaviorStateMachine
     /// </summary>
     public void OnDelighted()
     {
-        if (State is not (PetState.Drag or PetState.Fall) && !State.IsCrawl())
+        if (State != PetState.Drag && !State.IsFalling() && !State.IsCrawl())
         {
             Enter(PetState.Happy);
         }
@@ -322,7 +335,7 @@ public sealed class PetBehaviorStateMachine
     /// </param>
     public void OnMoment(PetState state, TimeSpan duration)
     {
-        if (State is PetState.Drag or PetState.Fall || State.IsCrawl())
+        if (State == PetState.Drag || State.IsFalling() || State.IsCrawl())
         {
             return;
         }

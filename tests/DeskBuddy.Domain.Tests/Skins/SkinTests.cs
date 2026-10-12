@@ -248,6 +248,59 @@ public class SkinTests
     }
 
     /// <summary>
+    /// A pet climbing down with a skin that has only the climbing up pictures shows those.
+    /// </summary>
+    [Fact]
+    public void GetAnimation_ClimbDownMissing_UsesClimb()
+    {
+        // Arrange
+        var climb = Animation("climb.png");
+        var skin = new Skin("test", 128, 128, new Dictionary<PetState, SkinAnimation>
+        {
+            [PetState.Idle] = Animation("idle.png"),
+            [PetState.Walk] = Animation("walk.png"),
+            [PetState.Climb] = climb,
+        });
+
+        // Act
+        var result = skin.GetAnimation(PetState.ClimbDown);
+
+        // Assert
+        result.Should().BeSameAs(climb);
+    }
+
+    /// <summary>
+    /// A pet holding an open umbrella with a skin that has no picture for it shows the falling one, or the dragged one if
+    /// that is missing too.
+    /// </summary>
+    [Fact]
+    public void GetAnimation_GlideMissing_UsesFallThenDrag()
+    {
+        // Arrange
+        var fall = Animation("fall.png");
+        var drag = Animation("drag.png");
+        var withFall = new Skin("test", 128, 128, new Dictionary<PetState, SkinAnimation>
+        {
+            [PetState.Idle] = Animation("idle.png"),
+            [PetState.Drag] = drag,
+            [PetState.Fall] = fall,
+        });
+        var withoutFall = new Skin("test", 128, 128, new Dictionary<PetState, SkinAnimation>
+        {
+            [PetState.Idle] = Animation("idle.png"),
+            [PetState.Drag] = drag,
+        });
+
+        // Act
+        var first = withFall.GetAnimation(PetState.Glide);
+        var second = withoutFall.GetAnimation(PetState.Glide);
+
+        // Assert
+        first.Should().BeSameAs(fall);
+        second.Should().BeSameAs(drag);
+    }
+
+    /// <summary>
     /// Builds a single-frame animation for tests.
     /// </summary>
     /// <param name="name">

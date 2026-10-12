@@ -126,14 +126,26 @@ public enum PetState
     Hang,
 
     /// <summary>
-    /// The pet was dropped from a high place and is falling, holding an umbrella or a parachute.
+    /// The pet was dropped from a high place and is falling, before its umbrella or parachute has opened.
     /// </summary>
     Fall,
 
     /// <summary>
-    /// The pet climbs up or down along the left or right edge of the screen.
+    /// The falling pet has opened its umbrella or parachute and floats down holding it. A skin without pictures for it
+    /// shows the falling ones instead.
+    /// </summary>
+    Glide,
+
+    /// <summary>
+    /// The pet climbs up along the left or right edge of the screen, head first.
     /// </summary>
     Climb,
+
+    /// <summary>
+    /// The pet climbs down along the left or right edge of the screen, head first. A skin without pictures for it shows
+    /// the climbing ones instead.
+    /// </summary>
+    ClimbDown,
 
     /// <summary>
     /// The pet hangs from the top edge of the screen and moves along it.
