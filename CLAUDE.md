@@ -13,6 +13,7 @@ dotnet test tests/DeskBuddy.Domain.Tests --filter "FullyQualifiedName~PetSetting
 dotnet run --project src/DeskBuddy.App                  # 加 `--Preview true` 可在右键菜单中播放所有动画
 powershell -NoProfile -File tools/Build-Installer.ps1   # 发布并用 Inno Setup 7 打包安装程序（输出到 artifacts/installer）
 powershell -NoProfile -File tools/GenerateRobotSkin.ps1 # 重新生成 robot 皮肤的 PNG 帧
+powershell -NoProfile -File tools/GenerateCatSkin.ps1   # 重新生成 cat 皮肤的 PNG 帧（两个生成脚本共用 tools/SkinDrawing.ps1）
 ```
 
 - 构建产物统一在 `artifacts/`（`UseArtifactsOutput`），不要提交。
