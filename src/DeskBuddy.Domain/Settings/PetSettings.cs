@@ -167,6 +167,12 @@ public sealed record PetSettings
     public PetSize Size { get; init; } = PetSize.Medium;
 
     /// <summary>
+    /// Gets a value indicating whether the pet may climb along the sides of the screen and hang from its top edge. It
+    /// only does so when the skin has pictures for it and the pet walks along the taskbar.
+    /// </summary>
+    public bool ClimbEdges { get; init; }
+
+    /// <summary>
     /// Gets the time of day, by the local clock, at which the working day ends and the pet looks at its watch.
     /// </summary>
     public TimeSpan ClockOutTime { get; init; } = TimeSpan.FromHours(18);

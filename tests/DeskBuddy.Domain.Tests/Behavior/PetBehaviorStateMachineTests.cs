@@ -337,6 +337,189 @@ public class PetBehaviorStateMachineTests
     }
 
     /// <summary>
+    /// A pet crawling along the edges of the screen keeps at it, however long it takes.
+    /// </summary>
+    /// <param name="state">
+    /// The crawling state.
+    /// </param>
+    [Theory]
+    [InlineData(PetState.Climb)]
+    [InlineData(PetState.Ceiling)]
+    public void Update_WhileCrawling_StaysInState(PetState state)
+    {
+        // Arrange
+        _machine.OnCrawlStarted(state);
+        _clock.Advance(TimeSpan.FromHours(1));
+
+        // Act
+        var result = _machine.Update(Active);
+
+        // Assert
+        result.Should().Be(state);
+    }
+
+    /// <summary>
+    /// A state that is not a way of crawling does not start a crawl.
+    /// </summary>
+    [Fact]
+    public void OnCrawlStarted_OtherState_IsIgnored()
+    {
+        // Act
+        _machine.OnCrawlStarted(PetState.Happy);
+
+        // Assert
+        _machine.State.Should().Be(PetState.Idle);
+    }
+
+    /// <summary>
+    /// A falling or dragged pet does not start crawling.
+    /// </summary>
+    [Fact]
+    public void OnCrawlStarted_WhileFalling_IsIgnored()
+    {
+        // Arrange
+        _machine.OnFallStarted();
+
+        // Act
+        _machine.OnCrawlStarted(PetState.Climb);
+
+        // Assert
+        _machine.State.Should().Be(PetState.Fall);
+    }
+
+    /// <summary>
+    /// The end of the crawl leaves the pet standing.
+    /// </summary>
+    [Fact]
+    public void OnCrawlEnded_WhileCrawling_EntersIdle()
+    {
+        // Arrange
+        _machine.OnCrawlStarted(PetState.Ceiling);
+
+        // Act
+        _machine.OnCrawlEnded();
+
+        // Assert
+        _machine.State.Should().Be(PetState.Idle);
+    }
+
+    /// <summary>
+    /// Ending a crawl that never started does nothing.
+    /// </summary>
+    [Fact]
+    public void OnCrawlEnded_NotCrawling_DoesNotChangeState()
+    {
+        // Arrange
+        _machine.OnDragStarted();
+
+        // Act
+        _machine.OnCrawlEnded();
+
+        // Assert
+        _machine.State.Should().Be(PetState.Drag);
+    }
+
+    /// <summary>
+    /// Grabbing a crawling pet drags it.
+    /// </summary>
+    [Fact]
+    public void OnDragStarted_WhileCrawling_EntersDrag()
+    {
+        // Arrange
+        _machine.OnCrawlStarted(PetState.Climb);
+
+        // Act
+        _machine.OnDragStarted();
+
+        // Assert
+        _machine.State.Should().Be(PetState.Drag);
+    }
+
+    /// <summary>
+    /// Clicks and short scenes do not interrupt a crawl.
+    /// </summary>
+    [Fact]
+    public void OnMoment_WhileCrawling_IsIgnored()
+    {
+        // Arrange
+        _machine.OnCrawlStarted(PetState.Climb);
+
+        // Act
+        _machine.OnMoment(PetState.Dizzy, TimeSpan.FromSeconds(2));
+        _machine.OnClicked();
+
+        // Assert
+        _machine.State.Should().Be(PetState.Climb);
+    }
+
+    /// <summary>
+    /// An alert still takes the pet's attention away from crawling.
+    /// </summary>
+    [Fact]
+    public void Update_AlertWhileCrawling_EntersAlert()
+    {
+        // Arrange
+        _machine.OnCrawlStarted(PetState.Climb);
+
+        // Act
+        var state = _machine.Update(Alerting);
+
+        // Assert
+        state.Should().Be(PetState.Alert);
+    }
+
+    /// <summary>
+    /// A reset puts the pet back to standing, whatever it was doing.
+    /// </summary>
+    /// <param name="state">
+    /// The state the pet was in.
+    /// </param>
+    [Theory]
+    [InlineData(PetState.Climb)]
+    [InlineData(PetState.Ceiling)]
+    [InlineData(PetState.Fall)]
+    [InlineData(PetState.Drag)]
+    public void Reset_InAnyState_EntersIdle(PetState state)
+    {
+        // Arrange
+        if (state == PetState.Fall)
+        {
+            _machine.OnFallStarted();
+        }
+        else if (state == PetState.Drag)
+        {
+            _machine.OnDragStarted();
+        }
+        else
+        {
+            _machine.OnCrawlStarted(state);
+        }
+
+        // Act
+        _machine.Reset();
+
+        // Assert
+        _machine.State.Should().Be(PetState.Idle);
+    }
+
+    /// <summary>
+    /// A moment that was acted out is over after a reset.
+    /// </summary>
+    [Fact]
+    public void Reset_WhileActingOutMoment_EndsTheMoment()
+    {
+        // Arrange
+        _machine.OnMoment(PetState.Hang, TimeSpan.FromMinutes(5));
+
+        // Act
+        _machine.Reset();
+        var state = _machine.Update(Active);
+
+        // Assert
+        state.Should().Be(PetState.Idle);
+    }
+
+    /// <summary>
     /// Ending a drag that never started does nothing.
     /// </summary>
     [Fact]

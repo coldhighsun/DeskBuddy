@@ -409,6 +409,36 @@ public class PetBrainTests
     }
 
     /// <summary>
+    /// Crawl notifications reach the state machine.
+    /// </summary>
+    [Fact]
+    public void OnCrawlStartedAndEnded_Forwarded_ToStateMachine()
+    {
+        // Act & Assert
+        _brain.OnCrawlStarted(PetState.Ceiling);
+        _brain.State.Should().Be(PetState.Ceiling);
+
+        _brain.OnCrawlEnded();
+        _brain.State.Should().Be(PetState.Idle);
+    }
+
+    /// <summary>
+    /// A reset reaches the state machine and ends whatever the pet was doing.
+    /// </summary>
+    [Fact]
+    public void ResetState_WhileFalling_PetStandsAgain()
+    {
+        // Arrange
+        _brain.OnFallStarted();
+
+        // Act
+        _brain.ResetState();
+
+        // Assert
+        _brain.State.Should().Be(PetState.Idle);
+    }
+
+    /// <summary>
     /// Click notifications reach the state machine.
     /// </summary>
     [Fact]

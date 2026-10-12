@@ -247,6 +247,16 @@ public class PetSettingsTests
     }
 
     /// <summary>
+    /// Climbing along the edges of the screen is off until the user switches it on.
+    /// </summary>
+    [Fact]
+    public void Default_ClimbEdges_IsOff()
+    {
+        // Assert
+        PetSettings.Default.ClimbEdges.Should().BeFalse();
+    }
+
+    /// <summary>
     /// The pet is shown at the medium size unless the user chooses another.
     /// </summary>
     [Fact]

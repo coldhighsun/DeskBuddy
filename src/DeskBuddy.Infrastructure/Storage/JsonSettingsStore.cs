@@ -201,6 +201,12 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
         public string? Size { get; init; }
 
         /// <summary>
+        /// Gets whether the pet may climb along the edges of the screen; <see langword="null"/> in files from before the
+        /// option existed.
+        /// </summary>
+        public bool? ClimbEdges { get; init; }
+
+        /// <summary>
         /// Creates the file shape from settings.
         /// </summary>
         /// <param name="settings">
@@ -232,6 +238,7 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
                 ClockOutTime = settings.ClockOutTime,
                 Language = settings.Language.ToString(),
                 Size = settings.Size.ToString(),
+                ClimbEdges = settings.ClimbEdges,
             };
         }
 
@@ -269,6 +276,7 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
                 Size = Enum.TryParse<PetSize>(Size, ignoreCase: true, out var size) && Enum.IsDefined(size)
                     ? size
                     : defaults.Size,
+                ClimbEdges = ClimbEdges ?? defaults.ClimbEdges,
             };
         }
     }

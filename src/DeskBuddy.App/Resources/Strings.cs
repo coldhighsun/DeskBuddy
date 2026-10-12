@@ -410,6 +410,11 @@ internal static class Strings
     public static string SettingsPetSize => Get();
 
     /// <summary>
+    /// Gets the label of the setting that lets the pet climb the edges of the screen.
+    /// </summary>
+    public static string SettingsClimbEdges => Get();
+
+    /// <summary>
     /// Gets the name of the small pet size.
     /// </summary>
     public static string PetSizeSmall => Get();

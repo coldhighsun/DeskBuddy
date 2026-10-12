@@ -406,6 +406,33 @@ public sealed class PetBrain(
     }
 
     /// <summary>
+    /// Puts the pet back to standing, whatever it was doing, as when it is replaced by a new one.
+    /// </summary>
+    public void ResetState()
+    {
+        stateMachine.Reset();
+    }
+
+    /// <summary>
+    /// Notifies the brain that the pet started to crawl along an edge of the screen.
+    /// </summary>
+    /// <param name="state">
+    /// <see cref="PetState.Climb"/> on a side of the screen, <see cref="PetState.Ceiling"/> on the top edge.
+    /// </param>
+    public void OnCrawlStarted(PetState state)
+    {
+        stateMachine.OnCrawlStarted(state);
+    }
+
+    /// <summary>
+    /// Notifies the brain that the pet stopped crawling along the edges of the screen.
+    /// </summary>
+    public void OnCrawlEnded()
+    {
+        stateMachine.OnCrawlEnded();
+    }
+
+    /// <summary>
     /// Notifies the brain that the user clicked the pet. Counts as acknowledging the message on screen.
     /// </summary>
     public void OnClicked()
