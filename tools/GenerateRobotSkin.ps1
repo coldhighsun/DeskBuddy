@@ -244,17 +244,32 @@ function Add-Robot {
 # neck, head in profile with the screen at the front and a single eye, ear cup at the back, antenna. EyeY is the top of
 # the eye (9 looks up, 10 looks ahead).
 function Add-SideBody {
-    param([string]$Lamp = 'Orange', [int]$EyeY = 9)
+    param([string]$Lamp = 'Orange', [int]$EyeY = 9, [switch]$HeadUp, [int]$HeadShiftX = 0)
 
     Px Outline 18 18 3 7; Px SteelDark 19 19 1 5
     Px Outline 9 17 9 10; Px Steel 10 18 7 8
     Px Screen 10 20 2 4; Px Cyan 10 21 1 2
 
     Px Outline 12 16 2 1
-    Px Outline 8 6 10 10; Px Steel 9 7 8 8
-    Px Screen 9 8 5 6; Px Cyan 10 $EyeY 2 3
-    Px SteelDark 15 9 2 4
-    Px SteelDark 12 3 2 3; Px $Lamp 11 1 4 2
+
+    # With HeadUp the head is turned a quarter turn clockwise around its centre (13, 11), so the face looks up. A rectangle
+    # (x, y, w, h) of the head then lands at (24 - y - h, x - 2, h, w). HeadShiftX moves the head sideways by that many
+    # pixels.
+    $headPx = {
+        param([string]$Color, [int]$X, [int]$Y, [int]$W = 1, [int]$H = 1)
+
+        if ($HeadUp) {
+            Px $Color (24 - $Y - $H + $HeadShiftX) ($X - 2) $H $W
+        }
+        else {
+            Px $Color ($X + $HeadShiftX) $Y $W $H
+        }
+    }
+
+    & $headPx Outline 8 6 10 10; & $headPx Steel 9 7 8 8
+    & $headPx Screen 9 8 5 6; & $headPx Cyan 10 $EyeY 2 3
+    & $headPx SteelDark 15 9 2 4
+    & $headPx SteelDark 12 3 2 3; & $headPx $Lamp 11 1 4 2
 }
 
 # The robot seen from the side, facing left, walking: the arms swing and the tread rolls under the body. Hand is where
@@ -282,8 +297,8 @@ function Add-RobotSideWalk {
     Px Orange ($NearHandX - 1) 25 3 3
 }
 
-# The robot seen from the side, facing left, climbing a wall at the left edge of the frame: the face looks up and
-# forward, and the near and far arm and leg reach for the edge of the frame at the given heights: the hands and the feet
+# The robot seen from the side, facing left, climbing a wall at the left edge of the frame: the head is turned a quarter turn so the face looks straight up and is moved
+# away from the wall, and and the near and far arm and leg reach for the edge of the frame at the given heights: the hands and the feet
 # touch it. The edge of the screen is the wall, so none is drawn; the picture is shifted left to put the hands and feet
 # on the edge.
 function Add-RobotSide {
@@ -297,7 +312,7 @@ function Add-RobotSide {
     Add-Limb 12 26 4 $FarFootY Outline SteelDark
     Px Gray 3 ($FarFootY - 1) 3 3
 
-    Add-SideBody -Lamp $Lamp
+    Add-SideBody -Lamp $Lamp -HeadUp -HeadShiftX 3
 
     # Near leg and arm, in front of the body.
     Add-Limb 11 26 4 $NearFootY Outline Steel
@@ -498,11 +513,11 @@ Save-Frame 'climb_1.png' -Air -Dy -1 { Add-RobotSide -NearHandY 9 -FarHandY 11 -
 Save-Frame 'climb_2.png' -Air { Add-RobotSide -NearHandY 14 -FarHandY 5 -NearFootY 24 -FarFootY 29 }
 Save-Frame 'climb_3.png' -Air -Dy -1 { Add-RobotSide -NearHandY 11 -FarHandY 9 -NearFootY 26 -FarFootY 27 -Lamp SteelDark }
 
-# ClimbDown: the same climb turned upside down, so the robot climbs down head first.
-Save-Frame 'climbdown_0.png' -Air -Flip { Add-RobotSide -NearHandY 5 -FarHandY 14 -NearFootY 29 -FarFootY 24 }
-Save-Frame 'climbdown_1.png' -Air -Flip -Dy -1 { Add-RobotSide -NearHandY 9 -FarHandY 11 -NearFootY 27 -FarFootY 26 -Lamp SteelDark }
-Save-Frame 'climbdown_2.png' -Air -Flip { Add-RobotSide -NearHandY 14 -FarHandY 5 -NearFootY 24 -FarFootY 29 }
-Save-Frame 'climbdown_3.png' -Air -Flip -Dy -1 { Add-RobotSide -NearHandY 11 -FarHandY 9 -NearFootY 26 -FarFootY 27 -Lamp SteelDark }
+# ClimbDown: the climb played backwards, so the robot goes down the wall with its head still up.
+Save-Frame 'climbdown_0.png' -Air -Dy -1 { Add-RobotSide -NearHandY 11 -FarHandY 9 -NearFootY 26 -FarFootY 27 -Lamp SteelDark }
+Save-Frame 'climbdown_1.png' -Air { Add-RobotSide -NearHandY 14 -FarHandY 5 -NearFootY 24 -FarFootY 29 }
+Save-Frame 'climbdown_2.png' -Air -Dy -1 { Add-RobotSide -NearHandY 9 -FarHandY 11 -NearFootY 27 -FarFootY 26 -Lamp SteelDark }
+Save-Frame 'climbdown_3.png' -Air { Add-RobotSide -NearHandY 5 -FarHandY 14 -NearFootY 29 -FarFootY 24 }
 
 # Ceiling: walks along the top of the screen upside down, in the same side view as walking on the ground.
 Save-Frame 'ceiling_0.png' -Flip -Mirror { Add-RobotSideWalk -NearHandX 5 -FarHandX 15 -Roll 0 }
