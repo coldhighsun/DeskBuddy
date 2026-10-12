@@ -145,6 +145,113 @@ public static partial class WindowMover
     }
 
     /// <summary>
+    /// Moves two windows to positions given in device pixels in a single batch, so the window manager applies both
+    /// together and they are drawn in the same frame.
+    /// </summary>
+    /// <param name="first">
+    /// The first window to move.
+    /// </param>
+    /// <param name="firstX">
+    /// The first window's wanted left edge in device pixels.
+    /// </param>
+    /// <param name="firstY">
+    /// The first window's wanted top edge in device pixels.
+    /// </param>
+    /// <param name="second">
+    /// The second window to move.
+    /// </param>
+    /// <param name="secondX">
+    /// The second window's wanted left edge in device pixels.
+    /// </param>
+    /// <param name="secondY">
+    /// The second window's wanted top edge in device pixels.
+    /// </param>
+    public static void MoveTogetherToPixels(Window first, int firstX, int firstY, Window second, int secondX, int secondY)
+    {
+        const uint flags = SwpNoSize | SwpNoZOrder | SwpNoRedraw | SwpNoActivate | SwpNoOwnerZOrder;
+        var firstHandle = new WindowInteropHelper(first).EnsureHandle();
+        var secondHandle = new WindowInteropHelper(second).EnsureHandle();
+
+        var batch = BeginDeferWindowPos(2);
+        if (batch != 0)
+        {
+            batch = DeferWindowPos(batch, firstHandle, 0, firstX, firstY, 0, 0, flags);
+        }
+
+        if (batch != 0)
+        {
+            batch = DeferWindowPos(batch, secondHandle, 0, secondX, secondY, 0, 0, flags);
+        }
+
+        if (batch != 0 && EndDeferWindowPos(batch))
+        {
+            return;
+        }
+
+        // The batch could not be built or applied (a failed call frees it); move the windows one by one instead.
+        MoveToPixels(first, firstX, firstY);
+        MoveToPixels(second, secondX, secondY);
+    }
+
+    /// <summary>
+    /// Starts a batch of window moves.
+    /// </summary>
+    /// <param name="windowCount">
+    /// How many windows the batch is sized for.
+    /// </param>
+    /// <returns>
+    /// The batch handle, or zero on failure.
+    /// </returns>
+    [LibraryImport("user32.dll", SetLastError = true)]
+    private static partial nint BeginDeferWindowPos(int windowCount);
+
+    /// <summary>
+    /// Adds one window move to a batch.
+    /// </summary>
+    /// <param name="batch">
+    /// The batch handle.
+    /// </param>
+    /// <param name="hwnd">
+    /// Window handle.
+    /// </param>
+    /// <param name="insertAfter">
+    /// Z-order neighbour; unused with <c>SWP_NOZORDER</c>.
+    /// </param>
+    /// <param name="x">
+    /// New left edge in device pixels.
+    /// </param>
+    /// <param name="y">
+    /// New top edge in device pixels.
+    /// </param>
+    /// <param name="width">
+    /// New width; unused with <c>SWP_NOSIZE</c>.
+    /// </param>
+    /// <param name="height">
+    /// New height; unused with <c>SWP_NOSIZE</c>.
+    /// </param>
+    /// <param name="flags">
+    /// <c>SWP_*</c> flags.
+    /// </param>
+    /// <returns>
+    /// The handle of the batch to use from now on, or zero on failure.
+    /// </returns>
+    [LibraryImport("user32.dll", SetLastError = true)]
+    private static partial nint DeferWindowPos(nint batch, nint hwnd, nint insertAfter, int x, int y, int width, int height, uint flags);
+
+    /// <summary>
+    /// Applies a batch of window moves.
+    /// </summary>
+    /// <param name="batch">
+    /// The batch handle.
+    /// </param>
+    /// <returns>
+    /// <see langword="true"/> on success.
+    /// </returns>
+    [LibraryImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool EndDeferWindowPos(nint batch);
+
+    /// <summary>
     /// Changes the position of a window.
     /// </summary>
     /// <param name="hwnd">

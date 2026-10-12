@@ -154,9 +154,9 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     private FallState? _fall;
 
     /// <summary>
-    /// The umbrella or parachute, created the first time a fall needs one.
+    /// The umbrella or parachute the pet holds while it falls.
     /// </summary>
-    private UmbrellaWindow? _umbrella;
+    private readonly UmbrellaFollower _umbrella;
 
     /// <summary>
     /// Decoded frames of the skin.
@@ -306,6 +306,8 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     {
         InitializeComponent();
 
+        _umbrella = new UmbrellaFollower(this);
+
         _skin = skin;
         _size = size;
         _switches = switches;
@@ -351,7 +353,7 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
             _brain.VisibilityChanged -= OnVisibilityChanged;
             _movement.ModeChanged -= OnMovementModeChanged;
             _bubble?.Close();
-            _umbrella?.Close();
+            _umbrella.Close();
         };
 
         MouseLeftButtonDown += OnMouseLeftButtonDown;
@@ -366,10 +368,18 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
         {
             _pixelBounds = null;
             RepositionBubble();
-            RepositionUmbrella();
+            _umbrella.OnPetLocationChanged();
         };
-        SizeChanged += (_, _) => _pixelBounds = null;
-        DpiChanged += (_, _) => _pixelBounds = null;
+        SizeChanged += (_, _) =>
+        {
+            _pixelBounds = null;
+            _umbrella.OnPetResized();
+        };
+        DpiChanged += (_, _) =>
+        {
+            _pixelBounds = null;
+            _umbrella.OnPetResized();
+        };
 
         ContextMenu = new ContextMenu();
         ContextMenuOpening += OnContextMenuOpening;
@@ -605,7 +615,7 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
         _shownState = state;
 
         // Grabbed again or otherwise interrupted in mid-air: the umbrella folds, and the fall is over.
-        if (previousState == PetState.Fall && state != PetState.Fall)
+        if (previousState.IsFalling() && !state.IsFalling())
         {
             EndFall(snapToLanding: false);
         }
@@ -660,7 +670,7 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
             BeginWalk();
             StartMoveTimerIfVisible();
         }
-        else if (state == PetState.Fall || state.IsCrawl())
+        else if (state.IsFalling() || state.IsCrawl())
         {
             StartMoveTimerIfVisible();
         }
@@ -703,7 +713,7 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
                 _animationWatch.Restart();
                 _animationTimer.Start();
                 UpdatePointerTimer();
-                if (_shownState is PetState.Walk or PetState.Fall || _shownState.IsCrawl())
+                if (_shownState == PetState.Walk || _shownState.IsFalling() || _shownState.IsCrawl())
                 {
                     StartMoveTimerIfVisible();
                 }
@@ -865,7 +875,7 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
             _pointerWatch.Elapsed,
             cursor.X,
             cursor.Y,
-            _switches.Allows(PetState.Dizzy) && _brain.State is not (PetState.Drag or PetState.Fall),
+            _switches.Allows(PetState.Dizzy) && _brain.State != PetState.Drag && !_brain.State.IsFalling(),
             _skin.CanLookAround && _shownState == PetState.Idle,
             _petBox);
         if (reaction.BecomeDizzy)
@@ -1057,6 +1067,13 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
                 item.Click += (_, _) =>
                 {
                     _brain.ActOut(state, PreviewDuration);
+
+                    // A pet previewed gliding holds a canopy, which folds away when the preview ends.
+                    if (state == PetState.Glide && _brain.State == PetState.Glide)
+                    {
+                        _umbrella.Open();
+                    }
+
                     RefreshState();
                 };
                 preview.Items.Add(item);
@@ -1085,7 +1102,7 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
         var delta = _moveWatch.Elapsed;
         _moveWatch.Restart();
 
-        if (_shownState == PetState.Fall)
+        if (_shownState.IsFalling())
         {
             OnFallTick(delta);
             return;
@@ -1207,7 +1224,7 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
             _facing = _crawl.StartOnWall(start.OnRightEdge, start.ClimbingUp);
             Left = start.OnRightEdge ? Math.Max(bounds.MinX, bounds.MaxX) : bounds.MinX;
             Top = start.Y;
-            _brain.OnCrawlStarted(PetState.Climb);
+            _brain.OnCrawlStarted(_crawl.CrawlState);
         }
 
         ApplyFacing();
@@ -1243,7 +1260,7 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
             ApplyFacing();
         }
 
-        var state = step.Phase == CrawlPhase.Wall ? PetState.Climb : PetState.Ceiling;
+        var state = _crawl.CrawlState;
         if (state != _shownState)
         {
             _brain.OnCrawlStarted(state);
@@ -1490,12 +1507,15 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
         var bounds = CreateMovementContext().Bounds;
         var next = FreeFall.Step(current, bounds.MaxY, elapsed, _options);
         _fall = next;
-        WindowMover.MoveTo(this, Math.Clamp(Left, bounds.MinX, Math.Max(bounds.MinX, bounds.MaxX)), next.Y);
+        _umbrella.MovePet(Math.Clamp(Left, bounds.MinX, Math.Max(bounds.MinX, bounds.MaxX)), next.Y);
 
         if (next.Opened && !current.Opened)
         {
-            _umbrella ??= new UmbrellaWindow();
-            _umbrella.Open(Random.Shared.Next(2) == 0 ? UmbrellaKind.Umbrella : UmbrellaKind.Parachute, this);
+            _umbrella.Open();
+
+            // The pet takes hold of the handle as the canopy opens.
+            _brain.OnFallOpened();
+            ApplyState(_brain.State);
         }
 
         if (next.Landed)
@@ -1520,18 +1540,7 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
         }
 
         _fall = null;
-        _umbrella?.Fold();
-    }
-
-    /// <summary>
-    /// Keeps the umbrella or parachute over the pet's head while the pet moves.
-    /// </summary>
-    private void RepositionUmbrella()
-    {
-        if (_umbrella is { IsVisible: true })
-        {
-            _umbrella.PositionAbove(this);
-        }
+        _umbrella.Fold();
     }
 
     /// <summary>

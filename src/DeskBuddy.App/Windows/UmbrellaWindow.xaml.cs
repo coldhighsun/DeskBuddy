@@ -3,6 +3,7 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using DeskBuddy.App.Interop;
+using DeskBuddy.App.Presentation;
 
 namespace DeskBuddy.App.Windows;
 
@@ -28,27 +29,6 @@ public enum UmbrellaKind
 /// </summary>
 public partial class UmbrellaWindow : Window
 {
-    /// <summary>
-    /// Width of the canopy relative to the width of the pet.
-    /// </summary>
-    private const double WidthRatio = 1.5;
-
-    /// <summary>
-    /// Smallest width of the window in device-independent pixels, so a small pet still gets a visible canopy.
-    /// </summary>
-    private const double MinCanopyWidth = 90;
-
-    /// <summary>
-    /// Height of the window relative to its width, matching the 140 x 112 drawing.
-    /// </summary>
-    private const double AspectRatio = 112.0 / 140.0;
-
-    /// <summary>
-    /// How far down the pet window, relative to its height, the bottom of the handle or strings reaches, so they meet
-    /// the pet's head rather than the empty space above it.
-    /// </summary>
-    private const double HeadOverlapRatio = 0.12;
-
     /// <summary>
     /// How long the umbrella takes to open or fold.
     /// </summary>
@@ -144,14 +124,63 @@ public partial class UmbrellaWindow : Window
     {
         ArgumentNullException.ThrowIfNull(pet);
 
-        var petScale = VisualTreeHelper.GetDpi(pet).DpiScaleX;
-        var petBounds = MonitorHelper.GetWindowBoundsPixels(pet);
-        var width = Math.Max(MinCanopyWidth, pet.Width * WidthRatio);
-        var height = width * AspectRatio;
-        var widthPixels = (int)Math.Round(width * petScale, MidpointRounding.AwayFromZero);
-        var heightPixels = (int)Math.Round(height * petScale, MidpointRounding.AwayFromZero);
-        var x = petBounds.Left + ((petBounds.Width - widthPixels) / 2);
-        var y = petBounds.Top + (int)Math.Round(petBounds.Height * HeadOverlapRatio, MidpointRounding.AwayFromZero) - heightPixels;
+        var placement = PrepareFor(pet, MonitorHelper.GetWindowBoundsPixels(pet), VisualTreeHelper.GetDpi(pet).DpiScaleX);
+        if (IsAt(placement))
+        {
+            return;
+        }
+
+        WindowMover.MoveToPixels(this, placement.X, placement.Y);
+        _lastPosition = (placement.X, placement.Y);
+    }
+
+    /// <summary>
+    /// Moves the pet to a new place and the canopy over it to its new place, in one call to the window manager, so the two
+    /// are drawn in the same frame instead of the canopy lagging a step behind a fast-falling pet.
+    /// </summary>
+    /// <param name="pet">
+    /// The pet window to move and anchor to.
+    /// </param>
+    /// <param name="petTarget">
+    /// Where the pet window is to be, in device pixels.
+    /// </param>
+    /// <param name="petScale">
+    /// Device pixels per device-independent pixel on the pet's monitor.
+    /// </param>
+    public void MoveWithPet(Window pet, PixelRect petTarget, double petScale)
+    {
+        ArgumentNullException.ThrowIfNull(pet);
+
+        var placement = PrepareFor(pet, petTarget, petScale);
+        if (IsAt(placement))
+        {
+            WindowMover.MoveToPixels(pet, petTarget.Left, petTarget.Top);
+            return;
+        }
+
+        WindowMover.MoveTogetherToPixels(pet, petTarget.Left, petTarget.Top, this, placement.X, placement.Y);
+        _lastPosition = (placement.X, placement.Y);
+    }
+
+    /// <summary>
+    /// Works out where the canopy goes for a pet at the given place, after bringing the window onto the pet's monitor
+    /// when its scaling differs and giving it the size that goes with the pet.
+    /// </summary>
+    /// <param name="pet">
+    /// The pet window to anchor to.
+    /// </param>
+    /// <param name="petBounds">
+    /// Where the pet window is, or is about to be, in device pixels.
+    /// </param>
+    /// <param name="petScale">
+    /// Device pixels per device-independent pixel on the pet's monitor.
+    /// </param>
+    /// <returns>
+    /// The size and position of the canopy window.
+    /// </returns>
+    private CanopyPlacement PrepareFor(Window pet, PixelRect petBounds, double petScale)
+    {
+        var placement = CanopyPlacement.For(petBounds, pet.Width, petScale);
 
         // Sizes are set in device-independent units at the scale of the monitor the window is on, so bring it onto the
         // pet's monitor first when the scaling differs; the size then comes out right.
@@ -161,17 +190,27 @@ public partial class UmbrellaWindow : Window
             _lastPosition = null;
         }
 
-        if (Width != width || Height != height)
+        if (Width != placement.Width || Height != placement.Height)
         {
-            Width = width;
-            Height = height;
+            Width = placement.Width;
+            Height = placement.Height;
         }
 
-        if (_lastPosition != (x, y))
-        {
-            WindowMover.MoveToPixels(this, x, y);
-            _lastPosition = (x, y);
-        }
+        return placement;
+    }
+
+    /// <summary>
+    /// Tells whether the canopy window is already at the place a placement asks for.
+    /// </summary>
+    /// <param name="placement">
+    /// The placement.
+    /// </param>
+    /// <returns>
+    /// <see langword="true"/> if the window was last moved to that place.
+    /// </returns>
+    private bool IsAt(CanopyPlacement placement)
+    {
+        return _lastPosition == (placement.X, placement.Y);
     }
 
     /// <summary>
