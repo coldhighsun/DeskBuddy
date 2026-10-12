@@ -34,9 +34,12 @@ $pal = @{
 }
 $textFont = New-Object System.Drawing.Font 'Consolas', 16, ([System.Drawing.FontStyle]::Bold)
 
-# Fills a rectangle given in art pixels; $script:dy lifts or lowers everything drawn in the current frame.
+# Fills a rectangle given in art pixels; $script:dy lifts or lowers everything drawn in the current frame, and
+# $script:offsetX shifts it sideways (only the side view uses that).
+$script:offsetX = 0
+$script:sink = 0
 function Px([string]$Color, [int]$X, [int]$Y, [int]$W = 1, [int]$H = 1) {
-    $script:g.FillRectangle($pal[$Color], ($X * $S), (($Y + $script:dy) * $S), ($W * $S), ($H * $S))
+    $script:g.FillRectangle($pal[$Color], (($X + $script:offsetX) * $S), (($Y + $script:dy) * $S), ($W * $S), ($H * $S))
 }
 
 function Add-Text([string]$Text, [string]$Color, [int]$X, [int]$Y) {
@@ -99,16 +102,30 @@ function Add-Tag([string]$Text, [string]$Color, [string]$Side) {
 }
 
 # Renders one frame by running $Draw with a fresh canvas, then saves it. A label is drawn on top when Tag is given.
-function Save-Frame([string]$Name, [scriptblock]$Draw, [int]$Dy = 0, [string]$Tag = '', [string]$TagColor = 'White', [string]$TagSide = 'Left') {
+# The robot's tread ends two art pixels above the bottom of the frame, so every frame is lowered by two to stand on the
+# bottom edge, which rests on the taskbar. A negative Dy is a jump; a positive one sinks the body into the tread, which
+# stays on the ground (a slouch). Air is for the frames in which the robot is not on the ground: hanging, dragged,
+# climbing, on the ceiling.
+# Flip turns the finished picture upside down, for a robot hanging from the top of the screen. Mirror turns it left to
+# right, for a side view drawn facing left that has to face right.
+function Save-Frame([string]$Name, [scriptblock]$Draw, [int]$Dy = 0, [string]$Tag = '', [string]$TagColor = 'White', [string]$TagSide = 'Left', [switch]$Flip, [switch]$Mirror, [switch]$Air) {
     $bmp = New-Object System.Drawing.Bitmap 128, 128
     $script:g = [System.Drawing.Graphics]::FromImage($bmp)
     $script:g.SmoothingMode = 'None'
     $script:g.PixelOffsetMode = 'Half'
     $script:g.TextRenderingHint = 'SingleBitPerPixelGridFit'
     $script:g.Clear([System.Drawing.Color]::Transparent)
-    $script:dy = $Dy
+    if ($Air) {
+        $script:sink = 0
+        $script:dy = $Dy
+    } else {
+        $script:sink = [Math]::Max($Dy, 0)
+        $script:dy = [Math]::Min($Dy, 0) + 2 + $script:sink
+    }
     & $Draw
     if ($Tag) { Add-Tag $Tag $TagColor $TagSide }
+    if ($Flip) { $bmp.RotateFlip([System.Drawing.RotateFlipType]::RotateNoneFlipY) }
+    if ($Mirror) { $bmp.RotateFlip([System.Drawing.RotateFlipType]::RotateNoneFlipX) }
     $bmp.Save((Join-Path $outDir $Name), [System.Drawing.Imaging.ImageFormat]::Png)
     $script:g.Dispose()
     $bmp.Dispose()
@@ -166,19 +183,21 @@ function Add-Robot {
         [int]$EyeShift = 0, [int]$Spinner = -1, [int]$Progress = -1,
         [switch]$RightArmUp, [int]$RightArmDx = 0, [switch]$Mic,
         [switch]$Battery, [int]$BatteryBars = 0, [string]$BatteryColor = 'Red',
-        [int]$EyeDy = 0, [switch]$LeftArmReach
+        [int]$EyeDy = 0, [switch]$LeftArmReach, [int]$ReachY = 12
     )
 
-    # Treads.
+    # Treads, which stay on the ground when the rest of the robot sinks into a slouch.
+    $script:dy -= $script:sink
     Px Outline (9 + $Feet) 27 6 3;  Px SteelDark (10 + $Feet) 28 4 1
     Px Outline (17 - $Feet) 27 6 3; Px SteelDark (18 - $Feet) 28 4 1
+    $script:dy += $script:sink
 
     # Arms.
     $ayLeft = if ($ArmsUp) { 12 } else { 18 }
     $ayRight = if ($ArmsUp -or $RightArmUp) { 12 } else { 18 }
     if ($LeftArmReach) {
         # The left arm stretches out sideways to hold on to the edge of the screen.
-        Px Outline 0 12 10 3; Px Steel 1 13 8 1; Px Orange 0 12 2 3
+        Px Outline 0 $ReachY 10 3; Px Steel 1 ($ReachY + 1) 8 1; Px Orange 0 $ReachY 2 3
     } else {
         Px Outline 7 $ayLeft 3 7;  Px Steel 8 ($ayLeft + 1) 1 5
     }
@@ -245,25 +264,106 @@ function Add-Robot {
     }
 }
 
+# A limb three art pixels thick, drawn as a line between two points: an outline with a one-pixel core.
+function Add-Limb([int]$X0, [int]$Y0, [int]$X1, [int]$Y1, [string]$Edge, [string]$Fill) {
+    $steps = [Math]::Max([Math]::Max([Math]::Abs($X1 - $X0), [Math]::Abs($Y1 - $Y0)), 1)
+    foreach ($pass in 0, 1) {
+        foreach ($i in 0..$steps) {
+            $x = [int][Math]::Round($X0 + ($X1 - $X0) * $i / $steps)
+            $y = [int][Math]::Round($Y0 + ($Y1 - $Y0) * $i / $steps)
+            if ($pass -eq 0) { Px $Edge ($x - 1) ($y - 1) 3 3 } else { Px $Fill $x $y 1 1 }
+        }
+    }
+}
+
+# The body of the robot seen from the side, facing left: backpack at the back, torso with the chest panel at the front,
+# neck, head in profile with the screen at the front and a single eye, ear cup at the back, antenna. EyeY is the top of
+# the eye (9 looks up, 10 looks ahead).
+function Add-SideBody {
+    param([string]$Lamp = 'Orange', [int]$EyeY = 9)
+
+    Px Outline 18 18 3 7; Px SteelDark 19 19 1 5
+    Px Outline 9 17 9 10; Px Steel 10 18 7 8
+    Px Screen 10 20 2 4; Px Cyan 10 21 1 2
+
+    Px Outline 12 16 2 1
+    Px Outline 8 6 10 10; Px Steel 9 7 8 8
+    Px Screen 9 8 5 6; Px Cyan 10 $EyeY 2 3
+    Px SteelDark 15 9 2 4
+    Px SteelDark 12 3 2 3; Px $Lamp 11 1 4 2
+}
+
+# The robot seen from the side, facing left, walking: the arms swing and the tread rolls under the body. Hand is where
+# the near hand is, and the far hand is on the other side of the swing; Roll (0 to 3) moves the light and dark blocks of
+# the tread, a pixel further each frame, so the tread seems to roll backward along the ground.
+function Add-RobotSideWalk {
+    param([int]$NearHandX, [int]$FarHandX, [int]$Roll, [string]$Lamp = 'Orange')
+
+    # Far arm, behind the body.
+    Add-Limb 12 19 $FarHandX 26 Outline SteelDark
+    Px Orange ($FarHandX - 1) 25 3 3
+
+    Add-SideBody -Lamp $Lamp -EyeY 10
+
+    # Tread under the body: a dark belt with light blocks two pixels wide every four, shifted by Roll.
+    Px Outline 6 26 12 4; Px SteelDark 7 27 10 2
+    foreach ($n in -1..3) {
+        $x1 = [Math]::Max(7 + $n * 4 + $Roll, 7)
+        $x2 = [Math]::Min(7 + $n * 4 + $Roll + 2, 17)
+        if ($x2 -gt $x1) { Px SteelLight $x1 27 ($x2 - $x1) 2 }
+    }
+
+    # The near arm, in front of the tread.
+    Add-Limb 12 19 $NearHandX 26 Outline Steel
+    Px Orange ($NearHandX - 1) 25 3 3
+}
+
+# The robot seen from the side, facing left, climbing a wall at the left edge of the frame: the face looks up and
+# forward, and the near and far arm and leg reach for the edge of the frame at the given heights: the hands and the feet
+# touch it. The edge of the screen is the wall, so none is drawn; the picture is shifted left to put the hands and feet
+# on the edge.
+function Add-RobotSide {
+    param([int]$NearHandY, [int]$FarHandY, [int]$NearFootY, [int]$FarFootY, [string]$Lamp = 'Orange')
+
+    $script:offsetX = -3
+
+    # Far arm and far leg, behind the body.
+    Add-Limb 10 19 4 $FarHandY Outline SteelDark
+    Px Orange 3 ($FarHandY - 1) 3 3
+    Add-Limb 12 26 4 $FarFootY Outline SteelDark
+    Px Gray 3 ($FarFootY - 1) 3 3
+
+    Add-SideBody -Lamp $Lamp
+
+    # Near leg and arm, in front of the body.
+    Add-Limb 11 26 4 $NearFootY Outline Steel
+    Px Gray 3 ($NearFootY - 1) 3 3
+    Add-Limb 9 19 4 $NearHandY Outline Steel
+    Px Orange 3 ($NearHandY - 1) 3 3
+
+    $script:offsetX = 0
+}
+
 # Idle: stands and blinks now and then.
 Save-Frame 'idle_0.png' { Add-Robot }
 Save-Frame 'idle_1.png' { Add-Robot -Lamp SteelDark }
 Save-Frame 'idle_2.png' { Add-Robot }
 Save-Frame 'idle_3.png' { Add-Robot -Eyes closed -Lamp SteelDark }
 
-# Walk: rolls along with alternating tread offsets and a little bounce.
-Save-Frame 'walk_0.png' { Add-Robot -Feet 2 }
-Save-Frame 'walk_1.png' -Dy -1 { Add-Robot -Feet 0 -Lamp SteelDark }
-Save-Frame 'walk_2.png' { Add-Robot -Feet -2 }
-Save-Frame 'walk_3.png' -Dy -1 { Add-Robot -Feet 0 -Lamp SteelDark }
+# Walk: seen from the side, rolls along on its tread with swinging arms and a little bounce. Drawn facing left and
+# mirrored, as the art faces right.
+Save-Frame 'walk_0.png' -Mirror { Add-RobotSideWalk -NearHandX 5 -FarHandX 15 -Roll 0 }
+Save-Frame 'walk_1.png' -Mirror { Add-RobotSideWalk -NearHandX 10 -FarHandX 11 -Roll 1 -Lamp SteelDark }
+Save-Frame 'walk_2.png' -Mirror { Add-RobotSideWalk -NearHandX 15 -FarHandX 5 -Roll 2 }
+Save-Frame 'walk_3.png' -Mirror { Add-RobotSideWalk -NearHandX 11 -FarHandX 10 -Roll 3 -Lamp SteelDark }
 
 # Sleep: standby mode, dim lights, floating z.
 Save-Frame 'sleep_0.png' -Dy 1 { Add-Robot -Eyes closed -Lamp SteelDark -Light CyanDim }
 Save-Frame 'sleep_1.png' -Dy 1 { Add-Robot -Eyes closed -Lamp SteelDark -Light CyanDim; Add-Text 'z' 'White' 98 18; Add-Text 'Z' 'White' 106 4 }
 
 # Drag: lifted by the antenna, arms up, treads dangling.
-Save-Frame 'drag_0.png' { Add-Robot -Eyes surprised -ArmsUp -Feet 1 }
-Save-Frame 'drag_1.png' { Add-Robot -Eyes surprised -ArmsUp -Feet -1 -Lamp SteelDark }
+Save-Frame 'drag_0.png' -Air { Add-Robot -Eyes surprised -ArmsUp -Feet 1 }
+Save-Frame 'drag_1.png' -Air { Add-Robot -Eyes surprised -ArmsUp -Feet -1 -Lamp SteelDark }
 
 # Tired: overheating, low battery eyes, steam.
 Save-Frame 'tired_0.png' -Dy 1 { Add-Robot -Eyes tired -Lamp Red -Light CyanDim; Add-Steam 0 }
@@ -419,8 +519,21 @@ foreach ($f in 0..3) {
 }
 
 # Hang: clings to the left edge of the screen by one outstretched arm, legs swinging. Mirrored for the right edge.
-Save-Frame 'hang_0.png' { Add-Robot -Eyes open -LeftArmReach -Feet 1 }
-Save-Frame 'hang_1.png' { Add-Robot -Eyes open -LeftArmReach -Feet -1 -Lamp SteelDark }
+Save-Frame 'hang_0.png' -Air { Add-Robot -Eyes open -LeftArmReach -Feet 1 }
+Save-Frame 'hang_1.png' -Air { Add-Robot -Eyes open -LeftArmReach -Feet -1 -Lamp SteelDark }
+
+# Climb: the robot seen from the side climbs the left edge of the screen, which is the wall: hands and feet on the edge of
+# the frame, hand over hand with the opposite foot, the body pulled up a little between grips. Mirrored for the right edge.
+Save-Frame 'climb_0.png' -Air { Add-RobotSide -NearHandY 5 -FarHandY 14 -NearFootY 29 -FarFootY 24 }
+Save-Frame 'climb_1.png' -Air -Dy -1 { Add-RobotSide -NearHandY 9 -FarHandY 11 -NearFootY 27 -FarFootY 26 -Lamp SteelDark }
+Save-Frame 'climb_2.png' -Air { Add-RobotSide -NearHandY 14 -FarHandY 5 -NearFootY 24 -FarFootY 29 }
+Save-Frame 'climb_3.png' -Air -Dy -1 { Add-RobotSide -NearHandY 11 -FarHandY 9 -NearFootY 26 -FarFootY 27 -Lamp SteelDark }
+
+# Ceiling: hangs upside down from the top of the screen on its treads, swinging a little as it moves along.
+Save-Frame 'ceiling_0.png' -Air -Flip -Dy 2 { Add-Robot -Eyes open -Feet 2 }
+Save-Frame 'ceiling_1.png' -Air -Flip -Dy 1 { Add-Robot -Eyes open -Feet 0 -Lamp SteelDark }
+Save-Frame 'ceiling_2.png' -Air -Flip -Dy 2 { Add-Robot -Eyes open -Feet -2 }
+Save-Frame 'ceiling_3.png' -Air -Flip -Dy 1 { Add-Robot -Eyes open -Feet 0 -Lamp SteelDark }
 
 # Idle looks: the eyes follow the mouse pointer.
 Save-Frame 'idle_left.png'  { Add-Robot -Eyes open -EyeShift -2 }
@@ -544,6 +657,8 @@ $manifest = @'
     "Festive":     { "fps": 4, "frames": ["festive_0.png", "festive_1.png", "festive_2.png", "festive_3.png"] },
     "Dizzy":       { "fps": 6, "frames": ["dizzy_0.png", "dizzy_1.png", "dizzy_2.png", "dizzy_3.png"] },
     "Hang":        { "fps": 2, "frames": ["hang_0.png", "hang_1.png"] },
+    "Climb":       { "fps": 6, "frames": ["climb_0.png", "climb_1.png", "climb_2.png", "climb_3.png"] },
+    "Ceiling":     { "fps": 6, "frames": ["ceiling_0.png", "ceiling_1.png", "ceiling_2.png", "ceiling_3.png"] },
     "Idle.Left":   { "fps": 1, "frames": ["idle_left.png"] },
     "Idle.Right":  { "fps": 1, "frames": ["idle_right.png"] },
     "Idle.Up":     { "fps": 1, "frames": ["idle_up.png"] },

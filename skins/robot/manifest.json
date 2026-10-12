@@ -26,6 +26,8 @@
     "Festive":     { "fps": 4, "frames": ["festive_0.png", "festive_1.png", "festive_2.png", "festive_3.png"] },
     "Dizzy":       { "fps": 6, "frames": ["dizzy_0.png", "dizzy_1.png", "dizzy_2.png", "dizzy_3.png"] },
     "Hang":        { "fps": 2, "frames": ["hang_0.png", "hang_1.png"] },
+    "Climb":       { "fps": 6, "frames": ["climb_0.png", "climb_1.png", "climb_2.png", "climb_3.png"] },
+    "Ceiling":     { "fps": 6, "frames": ["ceiling_0.png", "ceiling_1.png", "ceiling_2.png", "ceiling_3.png"] },
     "Idle.Left":   { "fps": 1, "frames": ["idle_left.png"] },
     "Idle.Right":  { "fps": 1, "frames": ["idle_right.png"] },
     "Idle.Up":     { "fps": 1, "frames": ["idle_up.png"] },
