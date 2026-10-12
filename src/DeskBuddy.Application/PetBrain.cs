@@ -173,7 +173,7 @@ public sealed class PetBrain(
         var dev = devScenarios.Evaluate(userIdle, load);
         var system = systemScenarios.Evaluate(
             userIdle,
-            canDisturb: _canSpeak && stateMachine.State is not (PetState.Drag or PetState.Alert or PetState.Sleep));
+            canDisturb: _canSpeak && stateMachine.State is not (PetState.Drag or PetState.Fall or PetState.Alert or PetState.Sleep));
         if (dev.Moment is { } devMoment)
         {
             stateMachine.OnMoment(devMoment.State, devMoment.Duration);
@@ -387,6 +387,22 @@ public sealed class PetBrain(
     public void OnDragEnded()
     {
         stateMachine.OnDragEnded();
+    }
+
+    /// <summary>
+    /// Notifies the brain that the pet was dropped from a height and started to fall.
+    /// </summary>
+    public void OnFallStarted()
+    {
+        stateMachine.OnFallStarted();
+    }
+
+    /// <summary>
+    /// Notifies the brain that the falling pet has landed.
+    /// </summary>
+    public void OnFallEnded()
+    {
+        stateMachine.OnFallEnded();
     }
 
     /// <summary>

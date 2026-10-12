@@ -168,6 +168,7 @@
   <data name="StateHintFestive" xml:space="preserve"><value>节日快乐</value></data>
   <data name="StateHintDizzy" xml:space="preserve"><value>被晃晕了</value></data>
   <data name="StateHintHang" xml:space="preserve"><value>挂在屏幕边缘</value></data>
+  <data name="StateHintFall" xml:space="preserve"><value>从高处落下，撑着伞慢慢飘落</value></data>
   <data name="StateNameIdle" xml:space="preserve"><value>待机</value></data>
   <data name="StateNameWalk" xml:space="preserve"><value>走路</value></data>
   <data name="StateNameTired" xml:space="preserve"><value>疲倦</value></data>
@@ -189,4 +190,5 @@
   <data name="StateNameFestive" xml:space="preserve"><value>节日</value></data>
   <data name="StateNameDizzy" xml:space="preserve"><value>晕眩</value></data>
   <data name="StateNameHang" xml:space="preserve"><value>挂边缘</value></data>
+  <data name="StateNameFall" xml:space="preserve"><value>飘落</value></data>
 </root>

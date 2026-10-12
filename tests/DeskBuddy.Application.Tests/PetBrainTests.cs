@@ -395,6 +395,20 @@ public class PetBrainTests
     }
 
     /// <summary>
+    /// Fall notifications reach the state machine.
+    /// </summary>
+    [Fact]
+    public void OnFallStartedAndEnded_Forwarded_ToStateMachine()
+    {
+        // Act & Assert
+        _brain.OnFallStarted();
+        _brain.State.Should().Be(PetState.Fall);
+
+        _brain.OnFallEnded();
+        _brain.State.Should().Be(PetState.Idle);
+    }
+
+    /// <summary>
     /// Click notifications reach the state machine.
     /// </summary>
     [Fact]
@@ -1302,6 +1316,26 @@ public class PetBrainTests
         // Assert
         whileDragging.Should().Be(PetState.Drag);
         afterDrop.Should().Be(PetState.Meal);
+    }
+
+    /// <summary>
+    /// A pet that is falling does not use up the occasion either; it comes once the pet has landed.
+    /// </summary>
+    [Fact]
+    public void Tick_LunchTimeWhileFalling_MealComesAfterTheLanding()
+    {
+        // Arrange
+        UseNoonOnAWeekday();
+        _brain.OnFallStarted();
+
+        // Act
+        var whileFalling = _brain.Tick();
+        _brain.OnFallEnded();
+        var afterLanding = _brain.Tick();
+
+        // Assert
+        whileFalling.Should().Be(PetState.Fall);
+        afterLanding.Should().Be(PetState.Meal);
     }
 
     /// <summary>

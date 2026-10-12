@@ -255,6 +255,88 @@ public class PetBehaviorStateMachineTests
     }
 
     /// <summary>
+    /// A pet dropped from a height falls, and keeps falling however long it takes.
+    /// </summary>
+    [Fact]
+    public void Update_WhileFalling_StaysFall()
+    {
+        // Arrange
+        _machine.OnFallStarted();
+        _clock.Advance(TimeSpan.FromHours(1));
+
+        // Act
+        var state = _machine.Update(new PetInputs(SleepAfter));
+
+        // Assert
+        state.Should().Be(PetState.Fall);
+    }
+
+    /// <summary>
+    /// Landing ends the fall and the pet stands again.
+    /// </summary>
+    [Fact]
+    public void OnFallEnded_WhileFalling_EntersIdle()
+    {
+        // Arrange
+        _machine.OnFallStarted();
+
+        // Act
+        _machine.OnFallEnded();
+
+        // Assert
+        _machine.State.Should().Be(PetState.Idle);
+    }
+
+    /// <summary>
+    /// Landing when the pet is not falling does nothing.
+    /// </summary>
+    [Fact]
+    public void OnFallEnded_NotFalling_DoesNotChangeState()
+    {
+        // Arrange
+        _machine.OnDragStarted();
+
+        // Act
+        _machine.OnFallEnded();
+
+        // Assert
+        _machine.State.Should().Be(PetState.Drag);
+    }
+
+    /// <summary>
+    /// Grabbing the pet in mid-air interrupts the fall.
+    /// </summary>
+    [Fact]
+    public void OnDragStarted_WhileFalling_EntersDrag()
+    {
+        // Arrange
+        _machine.OnFallStarted();
+
+        // Act
+        _machine.OnDragStarted();
+
+        // Assert
+        _machine.State.Should().Be(PetState.Drag);
+    }
+
+    /// <summary>
+    /// Clicks and short scenes do not interrupt a fall.
+    /// </summary>
+    [Fact]
+    public void OnMoment_WhileFalling_IsIgnored()
+    {
+        // Arrange
+        _machine.OnFallStarted();
+
+        // Act
+        _machine.OnMoment(PetState.Dizzy, TimeSpan.FromSeconds(2));
+        _machine.OnClicked();
+
+        // Assert
+        _machine.State.Should().Be(PetState.Fall);
+    }
+
+    /// <summary>
     /// Ending a drag that never started does nothing.
     /// </summary>
     [Fact]

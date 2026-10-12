@@ -124,4 +124,9 @@ public enum PetState
     /// The pet was dropped at the left or right edge of the screen and hangs on to it.
     /// </summary>
     Hang,
+
+    /// <summary>
+    /// The pet was dropped from a high place and is falling, holding an umbrella or a parachute.
+    /// </summary>
+    Fall,
 }

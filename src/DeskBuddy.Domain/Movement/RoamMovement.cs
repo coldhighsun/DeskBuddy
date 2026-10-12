@@ -63,6 +63,9 @@ public sealed class RoamMovement(RoamOptions options, TimeProvider timeProvider,
     }
 
     /// <inheritdoc />
+    public bool FallsWhenDropped => false;
+
+    /// <inheritdoc />
     public MovementStep Step(MovementContext context, TimeSpan delta)
     {
         return _chasing && context.Cursor is { } cursor

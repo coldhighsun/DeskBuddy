@@ -168,6 +168,7 @@
   <data name="StateHintFestive" xml:space="preserve"><value>Happy holiday</value></data>
   <data name="StateHintDizzy" xml:space="preserve"><value>Dizzy from all the shaking</value></data>
   <data name="StateHintHang" xml:space="preserve"><value>Hanging on to the screen edge</value></data>
+  <data name="StateHintFall" xml:space="preserve"><value>Floating down with an umbrella</value></data>
   <data name="StateNameIdle" xml:space="preserve"><value>Idle</value></data>
   <data name="StateNameWalk" xml:space="preserve"><value>Walking</value></data>
   <data name="StateNameTired" xml:space="preserve"><value>Tired</value></data>
@@ -189,4 +190,5 @@
   <data name="StateNameFestive" xml:space="preserve"><value>Festive</value></data>
   <data name="StateNameDizzy" xml:space="preserve"><value>Dizzy</value></data>
   <data name="StateNameHang" xml:space="preserve"><value>Hanging on</value></data>
+  <data name="StateNameFall" xml:space="preserve"><value>Falling</value></data>
 </root>

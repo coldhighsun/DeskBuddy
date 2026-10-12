@@ -7,6 +7,12 @@ namespace DeskBuddy.Domain.Movement;
 public interface IMovementStrategy
 {
     /// <summary>
+    /// Gets a value indicating whether a pet dropped high above its resting place falls down to it. A mode in which the
+    /// pet rests wherever it is put has no resting place to fall to.
+    /// </summary>
+    bool FallsWhenDropped { get; }
+
+    /// <summary>
     /// Prepares for a new walk.
     /// </summary>
     /// <param name="context">
