@@ -222,6 +222,32 @@ public class SkinTests
     }
 
     /// <summary>
+    /// A pet climbing or hanging from the top with a skin that lacks those pictures looks like it walks.
+    /// </summary>
+    /// <param name="state">
+    /// The state the skin lacks.
+    /// </param>
+    [Theory]
+    [InlineData(PetState.Climb)]
+    [InlineData(PetState.Ceiling)]
+    public void GetAnimation_CrawlStateMissing_UsesWalk(PetState state)
+    {
+        // Arrange
+        var walk = Animation("walk.png");
+        var skin = new Skin("test", 128, 128, new Dictionary<PetState, SkinAnimation>
+        {
+            [PetState.Idle] = Animation("idle.png"),
+            [PetState.Walk] = walk,
+        });
+
+        // Act
+        var result = skin.GetAnimation(state);
+
+        // Assert
+        result.Should().BeSameAs(walk);
+    }
+
+    /// <summary>
     /// Builds a single-frame animation for tests.
     /// </summary>
     /// <param name="name">

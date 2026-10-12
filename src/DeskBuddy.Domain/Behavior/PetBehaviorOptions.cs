@@ -151,4 +151,47 @@ public sealed class PetBehaviorOptions
     /// the pet down to <see cref="FallTerminalVelocity"/>.
     /// </summary>
     public double FallBrake { get; set; } = 500;
+
+    /// <summary>
+    /// Gets or sets the chance, from 0 to 1, that a pet walking into the left or right end of the screen starts to
+    /// climb it, when climbing is switched on.
+    /// </summary>
+    public double ClimbChance { get; set; } = 0.3;
+
+    /// <summary>
+    /// Gets or sets the speed, in device-independent pixels per second, at which the pet climbs and crawls along the
+    /// top edge.
+    /// </summary>
+    public double ClimbSpeed { get; set; } = 30;
+
+    /// <summary>
+    /// Gets or sets the shortest time between two moments at which a pet crawling along the top edge may turn around.
+    /// </summary>
+    public TimeSpan CeilingTurnIntervalMin { get; set; } = TimeSpan.FromSeconds(1);
+
+    /// <summary>
+    /// Gets or sets the longest time between two moments at which a pet crawling along the top edge may turn around.
+    /// </summary>
+    public TimeSpan CeilingTurnIntervalMax { get; set; } = TimeSpan.FromSeconds(3);
+
+    /// <summary>
+    /// Gets or sets the chance, from 0 to 1, that the pet turns around at such a moment.
+    /// </summary>
+    public double CeilingReverseChance { get; set; } = 0.35;
+
+    /// <summary>
+    /// Gets or sets the shortest time the pet crawls along the top edge before it lets go or climbs down.
+    /// </summary>
+    public TimeSpan CeilingDurationMin { get; set; } = TimeSpan.FromSeconds(8);
+
+    /// <summary>
+    /// Gets or sets the longest time the pet crawls along the top edge before it lets go or climbs down.
+    /// </summary>
+    public TimeSpan CeilingDurationMax { get; set; } = TimeSpan.FromSeconds(15);
+
+    /// <summary>
+    /// Gets or sets the chance, from 0 to 1, that the pet lets go of the top edge and falls when its time there is up,
+    /// instead of crawling to a corner and climbing down.
+    /// </summary>
+    public double CeilingDropChance { get; set; } = 0.5;
 }

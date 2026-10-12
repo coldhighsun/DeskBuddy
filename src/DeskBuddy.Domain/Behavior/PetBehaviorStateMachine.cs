@@ -124,6 +124,12 @@ public sealed class PetBehaviorStateMachine
             return State;
         }
 
+        // Crawling along the edges goes on until the window says it is over; only the above can cut it short.
+        if (State.IsCrawl())
+        {
+            return State;
+        }
+
         var now = _timeProvider.GetUtcNow();
         if ((State == PetState.Happy || _momentActive) && now < _stateEndsAt)
         {
@@ -247,6 +253,43 @@ public sealed class PetBehaviorStateMachine
     }
 
     /// <summary>
+    /// Notifies the machine that the pet started to crawl along an edge of the screen. The state is held until
+    /// <see cref="OnCrawlEnded"/>; grabbing the pet (<see cref="OnDragStarted"/>) interrupts it. Ignored while the pet
+    /// is being dragged or is falling.
+    /// </summary>
+    /// <param name="state">
+    /// <see cref="PetState.Climb"/> on a side of the screen, <see cref="PetState.Ceiling"/> on the top edge.
+    /// </param>
+    public void OnCrawlStarted(PetState state)
+    {
+        if (!state.IsCrawl() || State is PetState.Drag or PetState.Fall)
+        {
+            return;
+        }
+
+        Enter(state);
+    }
+
+    /// <summary>
+    /// Notifies the machine that the pet stopped crawling along the edges. Ignored if the pet is not crawling.
+    /// </summary>
+    public void OnCrawlEnded()
+    {
+        if (State.IsCrawl())
+        {
+            Enter(PetState.Idle);
+        }
+    }
+
+    /// <summary>
+    /// Puts the pet back to standing, whatever it was doing: used when it is replaced by a new one.
+    /// </summary>
+    public void Reset()
+    {
+        Enter(PetState.Idle);
+    }
+
+    /// <summary>
     /// Notifies the machine that the user clicked the pet. Ignored while the pet is being dragged or is falling.
     /// </summary>
     public void OnClicked()
@@ -260,7 +303,7 @@ public sealed class PetBehaviorStateMachine
     /// </summary>
     public void OnDelighted()
     {
-        if (State is not (PetState.Drag or PetState.Fall))
+        if (State is not (PetState.Drag or PetState.Fall) && !State.IsCrawl())
         {
             Enter(PetState.Happy);
         }
@@ -279,7 +322,7 @@ public sealed class PetBehaviorStateMachine
     /// </param>
     public void OnMoment(PetState state, TimeSpan duration)
     {
-        if (State is PetState.Drag or PetState.Fall)
+        if (State is PetState.Drag or PetState.Fall || State.IsCrawl())
         {
             return;
         }
@@ -303,8 +346,8 @@ public sealed class PetBehaviorStateMachine
         var now = _timeProvider.GetUtcNow();
         _stateEndsAt = state switch
         {
-            PetState.Idle => now + RandomBetween(_options.IdleDwellMin, _options.IdleDwellMax),
-            PetState.Walk => now + RandomBetween(_options.WalkDurationMin, _options.WalkDurationMax),
+            PetState.Idle => now + _random.NextTimeSpan(_options.IdleDwellMin, _options.IdleDwellMax),
+            PetState.Walk => now + _random.NextTimeSpan(_options.WalkDurationMin, _options.WalkDurationMax),
             PetState.Happy => now + _options.HappyDuration,
             _ => DateTimeOffset.MaxValue,
         };
@@ -313,22 +356,5 @@ public sealed class PetBehaviorStateMachine
         {
             WalkDirection = _random.Next(2) == 0 ? -1 : 1;
         }
-    }
-
-    /// <summary>
-    /// Picks a random duration between two bounds.
-    /// </summary>
-    /// <param name="min">
-    /// Lower bound.
-    /// </param>
-    /// <param name="max">
-    /// Upper bound; if not greater than <paramref name="min"/>, <paramref name="min"/> is returned.
-    /// </param>
-    /// <returns>
-    /// A duration in the range <c>[min, max)</c>.
-    /// </returns>
-    private TimeSpan RandomBetween(TimeSpan min, TimeSpan max)
-    {
-        return max <= min ? min : min + ((max - min) * _random.NextDouble());
     }
 }

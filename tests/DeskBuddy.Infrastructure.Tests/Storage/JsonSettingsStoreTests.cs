@@ -99,6 +99,7 @@ public sealed class JsonSettingsStoreTests : IDisposable
             ClockOutTime = new TimeSpan(17, 30, 0),
             Language = AppLanguage.En,
             Size = PetSize.Large,
+            ClimbEdges = true,
         };
 
         // Act
