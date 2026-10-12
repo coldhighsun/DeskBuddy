@@ -33,7 +33,9 @@ public static class PetStateFallback
             PetState.Meeting => PetState.Focus,
             PetState.LowBattery => PetState.Tired,
             PetState.Fall => PetState.Drag,
+            PetState.Glide => PetState.Fall,
             PetState.Climb => PetState.Walk,
+            PetState.ClimbDown => PetState.Climb,
             PetState.Ceiling => PetState.Walk,
             _ => null,
         };

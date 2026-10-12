@@ -106,6 +106,15 @@ public sealed class EdgeCrawl(PetBehaviorOptions options, Random random)
     public CrawlPhase Phase { get; private set; }
 
     /// <summary>
+    /// Gets the state the pet is in while it crawls like this: climbing up or down a side, or hanging from the top.
+    /// </summary>
+    public PetState CrawlState => Phase switch
+    {
+        CrawlPhase.Wall => _climbingUp ? PetState.Climb : PetState.ClimbDown,
+        _ => PetState.Ceiling,
+    };
+
+    /// <summary>
     /// Starts a crawl on the left or right side of the screen.
     /// </summary>
     /// <param name="onRightEdge">

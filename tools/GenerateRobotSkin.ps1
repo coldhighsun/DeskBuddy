@@ -1,18 +1,11 @@
 # Generates the pixel-art robot skin for programmers (no third-party artwork). Art faces right.
 # The robot sits at a desk and types code while the Coding state is on.
 # Usage: powershell -NoProfile -File tools/GenerateRobotSkin.ps1
-Add-Type -AssemblyName System.Drawing
+. (Join-Path $PSScriptRoot 'SkinDrawing.ps1')
 
 $outDir = Join-Path $PSScriptRoot '..\skins\robot'
 New-Item -ItemType Directory -Force -Path $outDir | Out-Null
 Get-ChildItem $outDir -Filter *.png | Remove-Item
-
-# One art pixel is 4x4 device pixels: the 128x128 frame is a 32x32 art grid.
-$S = 4
-
-function New-Brush([int]$R, [int]$G, [int]$B) {
-    New-Object System.Drawing.SolidBrush ([System.Drawing.Color]::FromArgb(255, $R, $G, $B))
-}
 
 $pal = @{
     Outline    = New-Brush 28 36 56
@@ -34,26 +27,7 @@ $pal = @{
 }
 $textFont = New-Object System.Drawing.Font 'Consolas', 16, ([System.Drawing.FontStyle]::Bold)
 
-# Fills a rectangle given in art pixels; $script:dy lifts or lowers everything drawn in the current frame, and
-# $script:offsetX shifts it sideways (only the side view uses that).
-$script:offsetX = 0
 $script:sink = 0
-function Px([string]$Color, [int]$X, [int]$Y, [int]$W = 1, [int]$H = 1) {
-    $script:g.FillRectangle($pal[$Color], (($X + $script:offsetX) * $S), (($Y + $script:dy) * $S), ($W * $S), ($H * $S))
-}
-
-function Add-Text([string]$Text, [string]$Color, [int]$X, [int]$Y) {
-    $script:g.DrawString($Text, $textFont, $pal[$Color], [single]$X, [single]$Y)
-}
-
-function Add-Heart([int]$X, [int]$Y) {
-    $rows = @('.X.X.', 'XXXXX', '.XXX.', '..X..')
-    for ($r = 0; $r -lt 4; $r++) {
-        for ($c = 0; $c -lt 5; $c++) {
-            if ($rows[$r][$c] -eq 'X') { Px Pink ($X + $c) ($Y + $r) }
-        }
-    }
-}
 
 # Wisps of steam rising from an overheating head.
 function Add-Steam([int]$Frame) {
@@ -109,12 +83,7 @@ function Add-Tag([string]$Text, [string]$Color, [string]$Side) {
 # Flip turns the finished picture upside down, for a robot hanging from the top of the screen. Mirror turns it left to
 # right, for a side view drawn facing left that has to face right.
 function Save-Frame([string]$Name, [scriptblock]$Draw, [int]$Dy = 0, [string]$Tag = '', [string]$TagColor = 'White', [string]$TagSide = 'Left', [switch]$Flip, [switch]$Mirror, [switch]$Air) {
-    $bmp = New-Object System.Drawing.Bitmap 128, 128
-    $script:g = [System.Drawing.Graphics]::FromImage($bmp)
-    $script:g.SmoothingMode = 'None'
-    $script:g.PixelOffsetMode = 'Half'
-    $script:g.TextRenderingHint = 'SingleBitPerPixelGridFit'
-    $script:g.Clear([System.Drawing.Color]::Transparent)
+    $bmp = New-Canvas
     if ($Air) {
         $script:sink = 0
         $script:dy = $Dy
@@ -124,11 +93,7 @@ function Save-Frame([string]$Name, [scriptblock]$Draw, [int]$Dy = 0, [string]$Ta
     }
     & $Draw
     if ($Tag) { Add-Tag $Tag $TagColor $TagSide }
-    if ($Flip) { $bmp.RotateFlip([System.Drawing.RotateFlipType]::RotateNoneFlipY) }
-    if ($Mirror) { $bmp.RotateFlip([System.Drawing.RotateFlipType]::RotateNoneFlipX) }
-    $bmp.Save((Join-Path $outDir $Name), [System.Drawing.Imaging.ImageFormat]::Png)
-    $script:g.Dispose()
-    $bmp.Dispose()
+    Save-Canvas $bmp (Join-Path $outDir $Name) -Flip:$Flip -Mirror:$Mirror
 }
 
 # A check mark of 5x4 art pixels at the given top-left corner.
@@ -175,7 +140,8 @@ function Add-Moon([int]$X, [int]$Y) {
 
 # The standing robot. Eyes: open | closed | happy | tired | focus | surprised | none. Feet: stride offset.
 # Spinner: 0-3 lights one dot of a loading ring where the eyes are. Progress: 0-4 fills the chest bar (-1 hides it).
-# EyeShift moves open eyes sideways; Glasses puts round lenses over them.
+# EyeShift moves open eyes sideways; Glasses puts round lenses over them. HoldOverhead raises both arms behind the
+# head to the handle of an umbrella or parachute above it.
 function Add-Robot {
     param(
         [string]$Eyes = 'open', [string]$Lamp = 'Orange', [string]$Light = 'Cyan',
@@ -183,7 +149,7 @@ function Add-Robot {
         [int]$EyeShift = 0, [int]$Spinner = -1, [int]$Progress = -1,
         [switch]$RightArmUp, [int]$RightArmDx = 0, [switch]$Mic,
         [switch]$Battery, [int]$BatteryBars = 0, [string]$BatteryColor = 'Red',
-        [int]$EyeDy = 0, [switch]$LeftArmReach, [int]$ReachY = 12
+        [int]$EyeDy = 0, [switch]$LeftArmReach, [int]$ReachY = 12, [switch]$HoldOverhead
     )
 
     # Treads, which stay on the ground when the rest of the robot sinks into a slouch.
@@ -192,16 +158,22 @@ function Add-Robot {
     Px Outline (17 - $Feet) 27 6 3; Px SteelDark (18 - $Feet) 28 4 1
     $script:dy += $script:sink
 
-    # Arms.
+    # Arms. Held overhead, they go up outside the head and in again behind it, so the hands meet on either side of the antenna.
+    if ($HoldOverhead) {
+        Add-Limb 8 18 5 10 Outline Steel; Add-Limb 5 10 12 4 Outline Steel
+        Add-Limb 23 18 26 10 Outline Steel; Add-Limb 26 10 19 4 Outline Steel
+    }
     $ayLeft = if ($ArmsUp) { 12 } else { 18 }
     $ayRight = if ($ArmsUp -or $RightArmUp) { 12 } else { 18 }
-    if ($LeftArmReach) {
+    if ($HoldOverhead) {
+        # No arms at the sides; the hands are drawn over the head, below.
+    } elseif ($LeftArmReach) {
         # The left arm stretches out sideways to hold on to the edge of the screen.
         Px Outline 0 $ReachY 10 3; Px Steel 1 ($ReachY + 1) 8 1; Px Orange 0 $ReachY 2 3
     } else {
         Px Outline 7 $ayLeft 3 7;  Px Steel 8 ($ayLeft + 1) 1 5
     }
-    Px Outline (22 + $RightArmDx) $ayRight 3 7; Px Steel (23 + $RightArmDx) ($ayRight + 1) 1 5
+    if (-not $HoldOverhead) { Px Outline (22 + $RightArmDx) $ayRight 3 7; Px Steel (23 + $RightArmDx) ($ayRight + 1) 1 5 }
 
     # Torso with a chest panel and status light.
     Px Outline 10 17 12 10; Px Steel 11 18 10 8
@@ -262,17 +234,9 @@ function Add-Robot {
             Px White ($x0) 9 1 3;  Px White ($x0 + 4) 9 1 3
         }
     }
-}
 
-# A limb three art pixels thick, drawn as a line between two points: an outline with a one-pixel core.
-function Add-Limb([int]$X0, [int]$Y0, [int]$X1, [int]$Y1, [string]$Edge, [string]$Fill) {
-    $steps = [Math]::Max([Math]::Max([Math]::Abs($X1 - $X0), [Math]::Abs($Y1 - $Y0)), 1)
-    foreach ($pass in 0, 1) {
-        foreach ($i in 0..$steps) {
-            $x = [int][Math]::Round($X0 + ($X1 - $X0) * $i / $steps)
-            $y = [int][Math]::Round($Y0 + ($Y1 - $Y0) * $i / $steps)
-            if ($pass -eq 0) { Px $Edge ($x - 1) ($y - 1) 3 3 } else { Px $Fill $x $y 1 1 }
-        }
+    if ($HoldOverhead) {
+        Px Orange 11 3 3 3; Px Orange 18 3 3 3
     }
 }
 
@@ -364,6 +328,11 @@ Save-Frame 'sleep_1.png' -Dy 1 { Add-Robot -Eyes closed -Lamp SteelDark -Light C
 # Drag: lifted by the antenna, arms up, treads dangling.
 Save-Frame 'drag_0.png' -Air { Add-Robot -Eyes surprised -ArmsUp -Feet 1 }
 Save-Frame 'drag_1.png' -Air { Add-Robot -Eyes surprised -ArmsUp -Feet -1 -Lamp SteelDark }
+
+# Glide: floating down under an umbrella or parachute, both hands up by the antenna, treads dangling. Drawn without the canopy, which
+# the program puts over the head.
+Save-Frame 'glide_0.png' -Air { Add-Robot -Eyes surprised -HoldOverhead -Feet 1 }
+Save-Frame 'glide_1.png' -Air { Add-Robot -Eyes surprised -HoldOverhead -Feet -1 -Lamp SteelDark }
 
 # Tired: overheating, low battery eyes, steam.
 Save-Frame 'tired_0.png' -Dy 1 { Add-Robot -Eyes tired -Lamp Red -Light CyanDim; Add-Steam 0 }
@@ -529,6 +498,12 @@ Save-Frame 'climb_1.png' -Air -Dy -1 { Add-RobotSide -NearHandY 9 -FarHandY 11 -
 Save-Frame 'climb_2.png' -Air { Add-RobotSide -NearHandY 14 -FarHandY 5 -NearFootY 24 -FarFootY 29 }
 Save-Frame 'climb_3.png' -Air -Dy -1 { Add-RobotSide -NearHandY 11 -FarHandY 9 -NearFootY 26 -FarFootY 27 -Lamp SteelDark }
 
+# ClimbDown: the same climb turned upside down, so the robot climbs down head first.
+Save-Frame 'climbdown_0.png' -Air -Flip { Add-RobotSide -NearHandY 5 -FarHandY 14 -NearFootY 29 -FarFootY 24 }
+Save-Frame 'climbdown_1.png' -Air -Flip -Dy -1 { Add-RobotSide -NearHandY 9 -FarHandY 11 -NearFootY 27 -FarFootY 26 -Lamp SteelDark }
+Save-Frame 'climbdown_2.png' -Air -Flip { Add-RobotSide -NearHandY 14 -FarHandY 5 -NearFootY 24 -FarFootY 29 }
+Save-Frame 'climbdown_3.png' -Air -Flip -Dy -1 { Add-RobotSide -NearHandY 11 -FarHandY 9 -NearFootY 26 -FarFootY 27 -Lamp SteelDark }
+
 # Ceiling: hangs upside down from the top of the screen on its treads, swinging a little as it moves along.
 Save-Frame 'ceiling_0.png' -Air -Flip -Dy 2 { Add-Robot -Eyes open -Feet 2 }
 Save-Frame 'ceiling_1.png' -Air -Flip -Dy 1 { Add-Robot -Eyes open -Feet 0 -Lamp SteelDark }
@@ -637,6 +612,7 @@ $manifest = @'
     "Walk":   { "fps": 8, "frames": ["walk_0.png", "walk_1.png", "walk_2.png", "walk_3.png"] },
     "Sleep":  { "fps": 1, "frames": ["sleep_0.png", "sleep_1.png"] },
     "Drag":   { "fps": 6, "frames": ["drag_0.png", "drag_1.png"] },
+    "Glide":   { "fps": 4, "frames": ["glide_0.png", "glide_1.png"] },
     "Tired":  { "fps": 2, "frames": ["tired_0.png", "tired_1.png"] },
     "Alert":  { "fps": 4, "frames": ["alert_0.png", "alert_1.png"] },
     "Focus":  { "fps": 1, "frames": ["focus_0.png", "focus_1.png"] },
@@ -658,6 +634,7 @@ $manifest = @'
     "Dizzy":       { "fps": 6, "frames": ["dizzy_0.png", "dizzy_1.png", "dizzy_2.png", "dizzy_3.png"] },
     "Hang":        { "fps": 2, "frames": ["hang_0.png", "hang_1.png"] },
     "Climb":       { "fps": 6, "frames": ["climb_0.png", "climb_1.png", "climb_2.png", "climb_3.png"] },
+    "ClimbDown":   { "fps": 6, "frames": ["climbdown_0.png", "climbdown_1.png", "climbdown_2.png", "climbdown_3.png"] },
     "Ceiling":     { "fps": 6, "frames": ["ceiling_0.png", "ceiling_1.png", "ceiling_2.png", "ceiling_3.png"] },
     "Idle.Left":   { "fps": 1, "frames": ["idle_left.png"] },
     "Idle.Right":  { "fps": 1, "frames": ["idle_right.png"] },
@@ -667,17 +644,6 @@ $manifest = @'
 }
 '@
 
-# Antivirus / indexers often hold freshly written files for a moment, so retry the manifest write.
-$manifestPath = Join-Path $outDir 'manifest.json'
-foreach ($attempt in 1..10) {
-    try {
-        Set-Content -Encoding UTF8 -Path $manifestPath -Value $manifest -ErrorAction Stop
-        break
-    }
-    catch [System.IO.IOException] {
-        if ($attempt -eq 10) { throw }
-        Start-Sleep -Milliseconds 500
-    }
-}
+Write-SkinManifest (Join-Path $outDir 'manifest.json') $manifest
 
 Write-Host "Robot skin written to $outDir"

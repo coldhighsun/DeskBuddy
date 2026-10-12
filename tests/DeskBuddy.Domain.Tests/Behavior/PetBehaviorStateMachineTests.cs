@@ -288,6 +288,75 @@ public class PetBehaviorStateMachineTests
     }
 
     /// <summary>
+    /// When the falling pet's umbrella opens, it holds it: the state changes from falling to gliding.
+    /// </summary>
+    [Fact]
+    public void OnFallOpened_WhileFalling_EntersGlide()
+    {
+        // Arrange
+        _machine.OnFallStarted();
+
+        // Act
+        _machine.OnFallOpened();
+
+        // Assert
+        _machine.State.Should().Be(PetState.Glide);
+    }
+
+    /// <summary>
+    /// A pet that is not falling has no umbrella to open.
+    /// </summary>
+    [Fact]
+    public void OnFallOpened_NotFalling_DoesNotChangeState()
+    {
+        // Act
+        _machine.OnFallOpened();
+
+        // Assert
+        _machine.State.Should().Be(PetState.Idle);
+    }
+
+    /// <summary>
+    /// A pet gliding down with its umbrella keeps at it however long it takes, and lands in the idle state.
+    /// </summary>
+    [Fact]
+    public void Update_WhileGliding_StaysUntilLanded()
+    {
+        // Arrange
+        _machine.OnFallStarted();
+        _machine.OnFallOpened();
+        _clock.Advance(TimeSpan.FromHours(1));
+
+        // Act
+        var whileGliding = _machine.Update(Active);
+        _machine.OnFallEnded();
+
+        // Assert
+        whileGliding.Should().Be(PetState.Glide);
+        _machine.State.Should().Be(PetState.Idle);
+    }
+
+    /// <summary>
+    /// A glide that is only acted out, as when a skin's pictures are previewed, ends after its time like any other
+    /// moment instead of lasting until a landing that never comes.
+    /// </summary>
+    [Fact]
+    public void Update_GlideActedOutForAMoment_EndsAfterTheMoment()
+    {
+        // Arrange
+        _machine.OnMoment(PetState.Glide, TimeSpan.FromSeconds(5));
+        var during = _machine.Update(Active);
+        _clock.Advance(TimeSpan.FromSeconds(6));
+
+        // Act
+        var after = _machine.Update(Active);
+
+        // Assert
+        during.Should().Be(PetState.Glide);
+        after.Should().Be(PetState.Idle);
+    }
+
+    /// <summary>
     /// Landing when the pet is not falling does nothing.
     /// </summary>
     [Fact]
@@ -344,6 +413,7 @@ public class PetBehaviorStateMachineTests
     /// </param>
     [Theory]
     [InlineData(PetState.Climb)]
+    [InlineData(PetState.ClimbDown)]
     [InlineData(PetState.Ceiling)]
     public void Update_WhileCrawling_StaysInState(PetState state)
     {

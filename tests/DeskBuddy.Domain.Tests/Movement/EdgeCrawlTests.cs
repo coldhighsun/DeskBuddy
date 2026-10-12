@@ -71,6 +71,73 @@ public class EdgeCrawlTests
     }
 
     /// <summary>
+    /// The crawl says which state the pet is in: climbing up or down the side it started on.
+    /// </summary>
+    /// <param name="climbingUp">
+    /// Whether the pet starts by climbing up.
+    /// </param>
+    /// <param name="expected">
+    /// The state that goes with it.
+    /// </param>
+    [Theory]
+    [InlineData(true, PetState.Climb)]
+    [InlineData(false, PetState.ClimbDown)]
+    public void CrawlState_AfterStartOnWall_MatchesDirection(bool climbingUp, PetState expected)
+    {
+        // Arrange
+        var crawl = CreateCrawl(0.99);
+
+        // Act
+        crawl.StartOnWall(onRightEdge: false, climbingUp: climbingUp);
+
+        // Assert
+        crawl.CrawlState.Should().Be(expected);
+    }
+
+    /// <summary>
+    /// On the top edge the pet is in the ceiling state.
+    /// </summary>
+    [Fact]
+    public void CrawlState_AfterStartOnCeiling_IsCeiling()
+    {
+        // Arrange
+        var crawl = CreateCrawl(0.99);
+
+        // Act
+        crawl.StartOnCeiling(1);
+
+        // Assert
+        crawl.CrawlState.Should().Be(PetState.Ceiling);
+    }
+
+    /// <summary>
+    /// A pet that climbs up over the top and along the ceiling to a corner comes down head first: the state follows
+    /// from climbing to hanging to climbing down, and the pet really goes down the side.
+    /// </summary>
+    [Fact]
+    public void CrawlState_UpTheSideAlongTheTopAndDown_ChangesWithTheRoute()
+    {
+        // Arrange
+        var crawl = CreateCrawl(0.99);
+        crawl.StartOnWall(onRightEdge: false, climbingUp: true);
+        var states = new List<PetState> { crawl.CrawlState };
+
+        // Act: over the top, then out of time on the ceiling 5 px from the left corner, then one second down the side.
+        var overTheTop = crawl.Step(new Point2(0, 10), Bounds, OneSecond);
+        states.Add(crawl.CrawlState);
+        var atCorner = crawl.Step(new Point2(5, 0), Bounds, TimeSpan.FromSeconds(5));
+        states.Add(crawl.CrawlState);
+        var downTheSide = crawl.Step(atCorner.Position, Bounds, OneSecond);
+        states.Add(crawl.CrawlState);
+
+        // Assert
+        overTheTop.Phase.Should().Be(CrawlPhase.Ceiling);
+        atCorner.Phase.Should().Be(CrawlPhase.Wall);
+        downTheSide.Position.Should().Be(new Point2(0, 30));
+        states.Should().Equal(PetState.Climb, PetState.Ceiling, PetState.ClimbDown, PetState.ClimbDown);
+    }
+
+    /// <summary>
     /// A pet climbing up moves up at the climbing speed, staying at the edge.
     /// </summary>
     [Fact]

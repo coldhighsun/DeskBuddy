@@ -8,6 +8,30 @@ namespace DeskBuddy.Domain.Tests;
 public class PetStateExtensionsTests
 {
     /// <summary>
+    /// Falling, with or without the umbrella open, counts as falling; nothing else does.
+    /// </summary>
+    /// <param name="state">
+    /// The state.
+    /// </param>
+    /// <param name="expected">
+    /// Whether it counts as falling.
+    /// </param>
+    [Theory]
+    [InlineData(PetState.Fall, true)]
+    [InlineData(PetState.Glide, true)]
+    [InlineData(PetState.Drag, false)]
+    [InlineData(PetState.Climb, false)]
+    [InlineData(PetState.Idle, false)]
+    public void IsFalling_State_MatchesExpectation(PetState state, bool expected)
+    {
+        // Act
+        var result = state.IsFalling();
+
+        // Assert
+        result.Should().Be(expected);
+    }
+
+    /// <summary>
     /// Only climbing a side and hanging from the top count as crawling.
     /// </summary>
     /// <param name="state">
@@ -18,6 +42,7 @@ public class PetStateExtensionsTests
     /// </param>
     [Theory]
     [InlineData(PetState.Climb, true)]
+    [InlineData(PetState.ClimbDown, true)]
     [InlineData(PetState.Ceiling, true)]
     [InlineData(PetState.Idle, false)]
     [InlineData(PetState.Walk, false)]
@@ -47,6 +72,7 @@ public class PetStateExtensionsTests
     [InlineData(PetState.Ceiling, PetState.Idle)]
     [InlineData(PetState.Ceiling, PetState.Alert)]
     [InlineData(PetState.Climb, PetState.Sleep)]
+    [InlineData(PetState.ClimbDown, PetState.Idle)]
     public void EndsCrawlInFall_CrawlGivesWayToOtherState_ReturnsTrue(PetState previous, PetState next)
     {
         // Act
@@ -67,9 +93,11 @@ public class PetStateExtensionsTests
     /// </param>
     [Theory]
     [InlineData(PetState.Climb, PetState.Ceiling)]
+    [InlineData(PetState.Ceiling, PetState.ClimbDown)]
     [InlineData(PetState.Ceiling, PetState.Climb)]
     [InlineData(PetState.Climb, PetState.Drag)]
     [InlineData(PetState.Ceiling, PetState.Fall)]
+    [InlineData(PetState.Ceiling, PetState.Glide)]
     [InlineData(PetState.Idle, PetState.Alert)]
     [InlineData(PetState.Walk, PetState.Idle)]
     public void EndsCrawlInFall_OtherChange_ReturnsFalse(PetState previous, PetState next)

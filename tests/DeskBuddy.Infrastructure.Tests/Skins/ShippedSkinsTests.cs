@@ -38,7 +38,7 @@ public class ShippedSkinsTests
 
     /// <summary>
     /// The robot skin loads, with every frame file present, and has its own animation for every state but falling, which
-    /// borrows the dragged one, including sitting at the computer.
+    /// borrows the dragged one, including holding the umbrella and sitting at the computer.
     /// </summary>
     [Fact]
     public async Task Robot_Loads_WithAnimationForEveryState()

@@ -144,9 +144,11 @@
 
   <data name="SettingsLanguage" xml:space="preserve"><value>Language</value></data>
   <data name="SettingsPetSize" xml:space="preserve"><value>Pet size</value></data>
-  <data name="SettingsClimbEdges" xml:space="preserve"><value>Let the pet climb the sides of the screen and hang from its top (needs a skin that supports it, such as the robot)</value></data>
+  <data name="SettingsClimbEdges" xml:space="preserve"><value>Let the pet climb the sides of the screen and hang from its top (needs a skin that supports it)</value></data>
   <data name="StateNameClimb" xml:space="preserve"><value>Climbing</value></data>
   <data name="StateHintClimb" xml:space="preserve"><value>Climbing along the screen edge</value></data>
+  <data name="StateNameClimbDown" xml:space="preserve"><value>Climbing down</value></data>
+  <data name="StateHintClimbDown" xml:space="preserve"><value>Climbing down the screen edge</value></data>
   <data name="StateNameCeiling" xml:space="preserve"><value>Hanging from the top</value></data>
   <data name="StateHintCeiling" xml:space="preserve"><value>Hanging from the top of the screen</value></data>
   <data name="PetSizeSmall" xml:space="preserve"><value>Small</value></data>
@@ -173,7 +175,9 @@
   <data name="StateHintFestive" xml:space="preserve"><value>Happy holiday</value></data>
   <data name="StateHintDizzy" xml:space="preserve"><value>Dizzy from all the shaking</value></data>
   <data name="StateHintHang" xml:space="preserve"><value>Hanging on to the screen edge</value></data>
-  <data name="StateHintFall" xml:space="preserve"><value>Floating down with an umbrella</value></data>
+  <data name="StateHintFall" xml:space="preserve"><value>Falling from a height</value></data>
+  <data name="StateNameGlide" xml:space="preserve"><value>Gliding</value></data>
+  <data name="StateHintGlide" xml:space="preserve"><value>Floating down holding an umbrella</value></data>
   <data name="StateNameIdle" xml:space="preserve"><value>Idle</value></data>
   <data name="StateNameWalk" xml:space="preserve"><value>Walking</value></data>
   <data name="StateNameTired" xml:space="preserve"><value>Tired</value></data>
