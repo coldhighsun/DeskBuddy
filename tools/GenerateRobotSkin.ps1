@@ -504,11 +504,11 @@ Save-Frame 'climbdown_1.png' -Air -Flip -Dy -1 { Add-RobotSide -NearHandY 9 -Far
 Save-Frame 'climbdown_2.png' -Air -Flip { Add-RobotSide -NearHandY 14 -FarHandY 5 -NearFootY 24 -FarFootY 29 }
 Save-Frame 'climbdown_3.png' -Air -Flip -Dy -1 { Add-RobotSide -NearHandY 11 -FarHandY 9 -NearFootY 26 -FarFootY 27 -Lamp SteelDark }
 
-# Ceiling: hangs upside down from the top of the screen on its treads, swinging a little as it moves along.
-Save-Frame 'ceiling_0.png' -Air -Flip -Dy 2 { Add-Robot -Eyes open -Feet 2 }
-Save-Frame 'ceiling_1.png' -Air -Flip -Dy 1 { Add-Robot -Eyes open -Feet 0 -Lamp SteelDark }
-Save-Frame 'ceiling_2.png' -Air -Flip -Dy 2 { Add-Robot -Eyes open -Feet -2 }
-Save-Frame 'ceiling_3.png' -Air -Flip -Dy 1 { Add-Robot -Eyes open -Feet 0 -Lamp SteelDark }
+# Ceiling: walks along the top of the screen upside down, in the same side view as walking on the ground.
+Save-Frame 'ceiling_0.png' -Flip -Mirror { Add-RobotSideWalk -NearHandX 5 -FarHandX 15 -Roll 0 }
+Save-Frame 'ceiling_1.png' -Flip -Mirror { Add-RobotSideWalk -NearHandX 10 -FarHandX 11 -Roll 1 -Lamp SteelDark }
+Save-Frame 'ceiling_2.png' -Flip -Mirror { Add-RobotSideWalk -NearHandX 15 -FarHandX 5 -Roll 2 }
+Save-Frame 'ceiling_3.png' -Flip -Mirror { Add-RobotSideWalk -NearHandX 11 -FarHandX 10 -Roll 3 -Lamp SteelDark }
 
 # Idle looks: the eyes follow the mouse pointer.
 Save-Frame 'idle_left.png'  { Add-Robot -Eyes open -EyeShift -2 }
