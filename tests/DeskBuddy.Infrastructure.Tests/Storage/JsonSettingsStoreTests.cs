@@ -98,6 +98,7 @@ public sealed class JsonSettingsStoreTests : IDisposable
             MeetingProcesses = ["Zoom", "Slack"],
             ClockOutTime = new TimeSpan(17, 30, 0),
             Language = AppLanguage.En,
+            Size = PetSize.Large,
         };
 
         // Act

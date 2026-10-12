@@ -247,6 +247,59 @@ public class PetSettingsTests
     }
 
     /// <summary>
+    /// The pet is shown at the medium size unless the user chooses another.
+    /// </summary>
+    [Fact]
+    public void Default_Size_IsMedium()
+    {
+        // Assert
+        PetSettings.Default.Size.Should().Be(PetSize.Medium);
+    }
+
+    /// <summary>
+    /// A size that does not exist falls back to medium.
+    /// </summary>
+    [Fact]
+    public void Normalize_UnknownSize_FallsBackToMedium()
+    {
+        // Arrange
+        var settings = PetSettings.Default with { Size = (PetSize)42 };
+
+        // Act
+        var normalized = settings.Normalize();
+
+        // Assert
+        normalized.Size.Should().Be(PetSize.Medium);
+    }
+
+    /// <summary>
+    /// The three sizes show a 64 pixel frame at 32, 48 and 64 pixels.
+    /// </summary>
+    [Theory]
+    [InlineData(PetSize.Small, 32)]
+    [InlineData(PetSize.Medium, 48)]
+    [InlineData(PetSize.Large, 64)]
+    public void Scale_Frame64_GivesTheSizeInPixels(PetSize size, double expected)
+    {
+        // Act
+        var edge = size.Scale(64);
+
+        // Assert
+        edge.Should().Be(expected);
+    }
+
+    /// <summary>
+    /// A frame that is not square keeps its proportions, and no edge shrinks below one pixel.
+    /// </summary>
+    [Fact]
+    public void Scale_NonSquareAndTinyFrames_KeepProportionsAndStayPositive()
+    {
+        // Assert
+        PetSize.Medium.Scale(96).Should().Be(72);
+        PetSize.Small.Scale(1).Should().Be(1);
+    }
+
+    /// <summary>
     /// The working day ends at six in the evening unless the user says otherwise.
     /// </summary>
     [Fact]

@@ -302,9 +302,12 @@ public partial class App
                 OpenPanel,
                 _host.Services.GetRequiredService<MovementSelector>(),
                 _host.Services.GetRequiredService<ScenarioSwitches>(),
+                _host.Services.GetRequiredService<SettingsService>().Current.Size,
                 _host.Services.GetRequiredService<IConfiguration>().GetValue("Preview", false));
             _petWindow.Show();
             var petWindow = _petWindow;
+            _host.Services.GetRequiredService<SettingsService>().Changed +=
+                (_, settings) => petWindow.Dispatcher.BeginInvoke(() => petWindow.SetSize(settings.Size));
             _skinSwitcher = new SkinSwitcher(
                 _host.Services.GetRequiredService<SettingsService>(),
                 _host.Services.GetRequiredService<ISkinLoader>(),

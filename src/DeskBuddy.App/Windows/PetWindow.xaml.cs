@@ -16,6 +16,7 @@ using DeskBuddy.Domain.Gaze;
 using DeskBuddy.Domain.Messages;
 using DeskBuddy.Domain.Movement;
 using DeskBuddy.Domain.Scenarios;
+using DeskBuddy.Domain.Settings;
 using DeskBuddy.Domain.Skins;
 
 namespace DeskBuddy.App.Windows;
@@ -83,6 +84,11 @@ public partial class PetWindow : Window
     /// The skin being shown.
     /// </summary>
     private Skin _skin;
+
+    /// <summary>
+    /// How large the pet is shown.
+    /// </summary>
+    private PetSize _size;
 
     /// <summary>
     /// Plays the current animation of the skin.
@@ -273,11 +279,13 @@ public partial class PetWindow : Window
         Action<PanelTab?> openPanel,
         MovementSelector movement,
         ScenarioSwitches switches,
+        PetSize size,
         bool previewMenu = false)
     {
         InitializeComponent();
 
         _skin = skin;
+        _size = size;
         _switches = switches;
         _petBox = GetPetBox;
         ToolTipService.SetInitialShowDelay(SpriteImage, ToolTipDelayMilliseconds);
@@ -289,8 +297,8 @@ public partial class PetWindow : Window
         _movement = movement;
         _previewMenu = previewMenu;
 
-        Width = skin.FrameWidth;
-        Height = skin.FrameHeight;
+        Width = size.Scale(skin.FrameWidth);
+        Height = size.Scale(skin.FrameHeight);
         ShowFrame();
 
         SourceInitialized += OnSourceInitialized;
@@ -369,15 +377,42 @@ public partial class PetWindow : Window
         _player.SetState(_shownState, CurrentLook());
         _frames = frames;
 
-        var bottom = Top + Height;
-        Width = skin.FrameWidth;
-        Height = skin.FrameHeight;
-        Top = bottom - Height;
+        ApplyFrameSize();
 
         ShowFrame();
         _animationWatch.Restart();
         _animationTimer.Interval = _player.Animation.FrameDuration;
         SettleInWorkArea();
+    }
+
+    /// <summary>
+    /// Shows the pet at another size, keeping its bottom edge in place.
+    /// </summary>
+    /// <param name="size">
+    /// The new size.
+    /// </param>
+    public void SetSize(PetSize size)
+    {
+        if (size == _size)
+        {
+            return;
+        }
+
+        _size = size;
+        ApplyFrameSize();
+        SettleInWorkArea();
+        RepositionBubble();
+    }
+
+    /// <summary>
+    /// Resizes the window to the frame size of the current skin at the current size, keeping the bottom edge.
+    /// </summary>
+    private void ApplyFrameSize()
+    {
+        var bottom = Top + Height;
+        Width = _size.Scale(_skin.FrameWidth);
+        Height = _size.Scale(_skin.FrameHeight);
+        Top = bottom - Height;
     }
 
     /// <summary>

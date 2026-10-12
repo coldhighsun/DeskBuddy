@@ -162,6 +162,11 @@ public sealed record PetSettings
     public AppLanguage Language { get; init; } = AppLanguage.Auto;
 
     /// <summary>
+    /// Gets how large the pet is shown on the screen.
+    /// </summary>
+    public PetSize Size { get; init; } = PetSize.Medium;
+
+    /// <summary>
     /// Gets the time of day, by the local clock, at which the working day ends and the pet looks at its watch.
     /// </summary>
     public TimeSpan ClockOutTime { get; init; } = TimeSpan.FromHours(18);
@@ -193,6 +198,7 @@ public sealed record PetSettings
             PomodoroLongBreak = Clamp(PomodoroLongBreak, MinPhaseDuration, MaxBreakDuration),
             SedentaryReminderAfter = Clamp(SedentaryReminderAfter, MinSedentaryInterval, MaxSedentaryInterval),
             Language = Enum.IsDefined(Language) ? Language : defaults.Language,
+            Size = Enum.IsDefined(Size) ? Size : defaults.Size,
             BossKey = BossKey.IsValid ? BossKey : defaults.BossKey,
             BlacklistedProcesses = NormalizeProcessNames(BlacklistedProcesses),
             DevProcesses = NormalizeProcessNames(DevProcesses),
