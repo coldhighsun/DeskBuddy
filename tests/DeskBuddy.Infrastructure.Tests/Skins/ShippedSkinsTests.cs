@@ -53,4 +53,24 @@ public class ShippedSkinsTests
         skin.GazeAnimations.Keys.Should().BeEquivalentTo(
             [GazeDirection.Left, GazeDirection.Right, GazeDirection.Up, GazeDirection.Down]);
     }
+
+    /// <summary>
+    /// The cat skin loads with every frame file present and covers the everyday and screen-edge states, leaving the
+    /// developer-specific ones to the fallback rules.
+    /// </summary>
+    [Fact]
+    public async Task Cat_Loads_WithEverydayAndScreenEdgeStates()
+    {
+        // Act
+        var skin = await _loader.LoadAsync(Path.Combine(FindSkinsDirectory(), "cat"));
+
+        // Assert
+        skin.Name.Should().Be("cat");
+        skin.Animations.Keys.Should().Contain(
+            [PetState.Idle, PetState.Walk, PetState.Sleep, PetState.Drag, PetState.Happy, PetState.Glide, PetState.Hang, PetState.Climb, PetState.ClimbDown, PetState.Ceiling]);
+        skin.Animations.Keys.Should().NotContain(PetState.Coding);
+        skin.Animations[PetState.Idle].FramePaths.Should().HaveCountGreaterThan(1);
+        skin.GazeAnimations.Keys.Should().BeEquivalentTo(
+            [GazeDirection.Left, GazeDirection.Right, GazeDirection.Up, GazeDirection.Down]);
+    }
 }
