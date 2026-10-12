@@ -180,6 +180,12 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     private AppLanguage _selectedLanguage;
 
     /// <summary>
+    /// Gets or sets how large the pet is shown.
+    /// </summary>
+    [ObservableProperty]
+    private PetSize _selectedSize;
+
+    /// <summary>
     /// Gets or sets the time of day the working day ends, as <c>HH:mm</c>.
     /// </summary>
     [ObservableProperty]
@@ -606,6 +612,30 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     ];
 
     /// <summary>
+    /// Gets the pet sizes to choose from.
+    /// </summary>
+    public IReadOnlyList<PetSizeOption> Sizes { get; } =
+    [
+        new(PetSize.Small, Strings.PetSizeSmall),
+        new(PetSize.Medium, Strings.PetSizeMedium),
+        new(PetSize.Large, Strings.PetSizeLarge),
+    ];
+
+    /// <summary>
+    /// Applies the chosen pet size.
+    /// </summary>
+    /// <param name="value">
+    /// The size.
+    /// </param>
+    partial void OnSelectedSizeChanged(PetSize value)
+    {
+        if (!_refreshing)
+        {
+            _ = ApplyAsync(settings => settings with { Size = value });
+        }
+    }
+
+    /// <summary>
     /// Applies the chosen language; it takes full effect after a restart.
     /// </summary>
     /// <param name="value">
@@ -831,6 +861,7 @@ public sealed partial class SettingsTabViewModel : ObservableObject
             ScenariosEnabled = settings.ScenariosEnabled;
             MeetingProcessesText = string.Join(Environment.NewLine, settings.MeetingProcesses);
             SelectedLanguage = settings.Language;
+            SelectedSize = settings.Size;
             ClockOutTimeError = string.Empty;
             ClockOutTimeText = settings.ClockOutTime.ToString(@"hh\:mm", CultureInfo.InvariantCulture);
             foreach (var toggle in Scenarios)

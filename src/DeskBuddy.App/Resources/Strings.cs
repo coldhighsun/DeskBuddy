@@ -405,6 +405,26 @@ internal static class Strings
     public static string SettingsLanguage => Get();
 
     /// <summary>
+    /// Gets the label of the pet size setting.
+    /// </summary>
+    public static string SettingsPetSize => Get();
+
+    /// <summary>
+    /// Gets the name of the small pet size.
+    /// </summary>
+    public static string PetSizeSmall => Get();
+
+    /// <summary>
+    /// Gets the name of the medium pet size.
+    /// </summary>
+    public static string PetSizeMedium => Get();
+
+    /// <summary>
+    /// Gets the name of the large pet size.
+    /// </summary>
+    public static string PetSizeLarge => Get();
+
+    /// <summary>
     /// Gets the name of the choice that follows the system language.
     /// </summary>
     public static string LanguageAuto => Get();

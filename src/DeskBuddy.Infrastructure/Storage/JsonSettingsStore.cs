@@ -196,6 +196,11 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
         public string? Language { get; init; }
 
         /// <summary>
+        /// Gets how large the pet is shown, as text so that an unknown name does not spoil the whole file.
+        /// </summary>
+        public string? Size { get; init; }
+
+        /// <summary>
         /// Creates the file shape from settings.
         /// </summary>
         /// <param name="settings">
@@ -226,6 +231,7 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
                 MeetingProcesses = [.. settings.MeetingProcesses],
                 ClockOutTime = settings.ClockOutTime,
                 Language = settings.Language.ToString(),
+                Size = settings.Size.ToString(),
             };
         }
 
@@ -260,6 +266,9 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
                 Language = Enum.TryParse<AppLanguage>(Language, ignoreCase: true, out var language) && Enum.IsDefined(language)
                     ? language
                     : defaults.Language,
+                Size = Enum.TryParse<PetSize>(Size, ignoreCase: true, out var size) && Enum.IsDefined(size)
+                    ? size
+                    : defaults.Size,
             };
         }
     }

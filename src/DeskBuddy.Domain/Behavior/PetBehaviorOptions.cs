@@ -122,5 +122,5 @@ public sealed class PetBehaviorOptions
     /// <summary>
     /// Gets or sets the walking speed in device-independent pixels per second.
     /// </summary>
-    public double WalkSpeed { get; set; } = 60;
+    public double WalkSpeed { get; set; } = 36;
 }

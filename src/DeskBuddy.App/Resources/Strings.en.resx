@@ -143,6 +143,10 @@
   <data name="SkinSwitchFailed" xml:space="preserve"><value>Could not switch the skin: {0}</value></data>
 
   <data name="SettingsLanguage" xml:space="preserve"><value>Language</value></data>
+  <data name="SettingsPetSize" xml:space="preserve"><value>Pet size</value></data>
+  <data name="PetSizeSmall" xml:space="preserve"><value>Small</value></data>
+  <data name="PetSizeMedium" xml:space="preserve"><value>Medium</value></data>
+  <data name="PetSizeLarge" xml:space="preserve"><value>Large</value></data>
   <data name="LanguageAuto" xml:space="preserve"><value>Follow system</value></data>
   <data name="LanguageZhCN" xml:space="preserve"><value>简体中文</value></data>
   <data name="LanguageEn" xml:space="preserve"><value>English</value></data>

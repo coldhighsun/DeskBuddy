@@ -143,6 +143,10 @@
   <data name="SkinSwitchFailed" xml:space="preserve"><value>无法切换皮肤：{0}</value></data>
 
   <data name="SettingsLanguage" xml:space="preserve"><value>语言 / Language</value></data>
+  <data name="SettingsPetSize" xml:space="preserve"><value>宠物大小</value></data>
+  <data name="PetSizeSmall" xml:space="preserve"><value>小</value></data>
+  <data name="PetSizeMedium" xml:space="preserve"><value>中</value></data>
+  <data name="PetSizeLarge" xml:space="preserve"><value>大</value></data>
   <data name="LanguageAuto" xml:space="preserve"><value>跟随系统</value></data>
   <data name="LanguageZhCN" xml:space="preserve"><value>简体中文</value></data>
   <data name="LanguageEn" xml:space="preserve"><value>English</value></data>

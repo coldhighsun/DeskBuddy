@@ -451,6 +451,26 @@ public class SettingsTabViewModelTests
     }
 
     /// <summary>
+    /// The chosen pet size is stored, and the settings are shown with the size they hold.
+    /// </summary>
+    [Fact]
+    public async Task SelectedSize_Changed_IsStored()
+    {
+        // Arrange
+        _store.Stored = PetSettings.Default with { Size = PetSize.Large };
+        await CreateAsync();
+        var shownAtStart = _viewModel.SelectedSize;
+
+        // Act
+        _viewModel.SelectedSize = PetSize.Small;
+
+        // Assert
+        shownAtStart.Should().Be(PetSize.Large);
+        _settings.Current.Size.Should().Be(PetSize.Small);
+        _viewModel.Sizes.Select(option => option.Value).Should().Equal(PetSize.Small, PetSize.Medium, PetSize.Large);
+    }
+
+    /// <summary>
     /// An edited end of the working day is applied; text that is no time of day is ignored.
     /// </summary>
     [Fact]

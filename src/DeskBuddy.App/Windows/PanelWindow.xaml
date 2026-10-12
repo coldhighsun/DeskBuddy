@@ -216,6 +216,19 @@
                             <ColumnDefinition Width="150" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="{x:Static res:Strings.SettingsPetSize}" VerticalAlignment="Center" />
+                        <ComboBox Grid.Column="1"
+                                  ItemsSource="{Binding Sizes}"
+                                  DisplayMemberPath="Label"
+                                  SelectedValuePath="Value"
+                                  SelectedValue="{Binding SelectedSize}"
+                                  AutomationProperties.AutomationId="PetSizeBox" />
+                    </Grid>
+                    <Grid Margin="0,8,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="150" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="{x:Static res:Strings.SettingsLanguage}" VerticalAlignment="Center" />
                         <ComboBox Grid.Column="1"
                                   ItemsSource="{Binding Languages}"
