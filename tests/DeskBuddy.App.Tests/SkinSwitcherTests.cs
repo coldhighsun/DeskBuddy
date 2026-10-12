@@ -1,6 +1,7 @@
 using AwesomeAssertions;
 using DeskBuddy.App.Rendering;
 using DeskBuddy.Application;
+using DeskBuddy.Domain.Settings;
 using DeskBuddy.Domain.Skins;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -52,13 +53,13 @@ public class SkinSwitcherTests
     public SkinSwitcherTests()
     {
         _settings = new SettingsService(_store);
-        _loader.Available.Add("default");
+        _loader.Available.Add(PetSettings.DefaultSkinName);
         _loader.Available.Add("cat");
         _switcher = new SkinSwitcher(
             _settings,
             _loader,
             "skins",
-            "default",
+            PetSettings.DefaultSkinName,
             skin =>
             {
                 _applyBehavior(skin);
@@ -145,8 +146,8 @@ public class SkinSwitcherTests
         // Assert
         _applied.Should().BeEmpty();
         _failures.Should().ContainSingle();
-        await EventuallyAsync(() => _settings.Current.SkinName == "default");
-        _settings.Current.SkinName.Should().Be("default");
+        await EventuallyAsync(() => _settings.Current.SkinName == PetSettings.DefaultSkinName);
+        _settings.Current.SkinName.Should().Be(PetSettings.DefaultSkinName);
     }
 
     /// <summary>
@@ -192,7 +193,7 @@ public class SkinSwitcherTests
     public async Task SwitchAsync_SameSkin_DoesNothing()
     {
         // Act
-        await _switcher.SwitchAsync("default");
+        await _switcher.SwitchAsync(PetSettings.DefaultSkinName);
 
         // Assert
         _loader.Requested.Should().BeEmpty();

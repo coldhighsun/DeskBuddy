@@ -15,7 +15,7 @@
 ## 功能
 
 - 小巧的动画宠物：会走动、睡觉、疲倦，被拖动时也有反应。
-- 皮肤由普通 PNG 帧和 `manifest.json` 组成（见 [skins/default](skins/default)）。
+- 皮肤由普通 PNG 帧和 `manifest.json` 组成（见 [skins/robot](skins/robot)）。
 - 适合程序员的像素风机器人皮肤（[skins/robot](skins/robot)）：当开发工具（IDE、编辑器或终端）在前台且你正在操作时，
   它会坐到桌前敲代码。开发工具列表可在设置里修改，只读取前台进程名，不读取窗口标题和按键内容。没有 `Coding`
   状态的皮肤会照常站着；机器人帧可用 `tools/GenerateRobotSkin.ps1` 重新生成。

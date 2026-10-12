@@ -9,7 +9,7 @@ public sealed record PetSettings
     /// <summary>
     /// Skin used when none is configured.
     /// </summary>
-    public const string DefaultSkinName = "default";
+    public const string DefaultSkinName = "robot";
 
     /// <summary>
     /// Suffix stripped from process names so <c>zoom</c> and <c>Zoom.exe</c> mean the same thing.

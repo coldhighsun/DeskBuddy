@@ -64,7 +64,7 @@ public class SettingsTabViewModelTests
         _settings = new SettingsService(_store);
         await _settings.InitializeAsync();
 
-        _loader.Available.Add("default");
+        _loader.Available.Add(PetSettings.DefaultSkinName);
         _loader.Available.Add("cat");
         var switcher = new SkinSwitcher(
             _settings,
@@ -78,7 +78,7 @@ public class SettingsTabViewModelTests
             _settings,
             bossKey,
             _autoStart,
-            new FakeSkinCatalog(skins.Length > 0 ? skins : ["default", "cat"]),
+            new FakeSkinCatalog(skins.Length > 0 ? skins : [PetSettings.DefaultSkinName, "cat"]),
             switcher,
             () => LogDirectoryOpened++);
     }
@@ -579,10 +579,10 @@ public class SettingsTabViewModelTests
         _store.Stored = PetSettings.Default with { SkinName = "gone" };
 
         // Act
-        await CreateAsync("default", "cat");
+        await CreateAsync(PetSettings.DefaultSkinName, "cat");
 
         // Assert
-        _viewModel.Skins.Should().Equal("default", "cat", "gone");
+        _viewModel.Skins.Should().Equal(PetSettings.DefaultSkinName, "cat", "gone");
         _viewModel.SelectedSkin.Should().Be("gone");
     }
 
@@ -611,15 +611,15 @@ public class SettingsTabViewModelTests
     public async Task SelectedSkin_CannotBeLoaded_RevertsAndExplains()
     {
         // Arrange
-        await CreateAsync("default", "cat", "broken");
+        await CreateAsync(PetSettings.DefaultSkinName, "cat", "broken");
 
         // Act
         _viewModel.SelectedSkin = "broken";
-        await EventuallyAsync(() => _viewModel.SkinError.Length > 0 && _viewModel.SelectedSkin == "default");
+        await EventuallyAsync(() => _viewModel.SkinError.Length > 0 && _viewModel.SelectedSkin == PetSettings.DefaultSkinName);
 
         // Assert
-        _viewModel.SelectedSkin.Should().Be("default");
-        _settings.Current.SkinName.Should().Be("default");
+        _viewModel.SelectedSkin.Should().Be(PetSettings.DefaultSkinName);
+        _settings.Current.SkinName.Should().Be(PetSettings.DefaultSkinName);
         _viewModel.SkinError.Should().NotBeEmpty();
     }
 

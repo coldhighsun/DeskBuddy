@@ -27,7 +27,7 @@ public class ShippedSkinsTests
         for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
         {
             var candidate = Path.Combine(directory.FullName, "skins");
-            if (Directory.Exists(Path.Combine(candidate, "default")))
+            if (Directory.Exists(Path.Combine(candidate, "robot")))
             {
                 return candidate;
             }

@@ -15,7 +15,7 @@ A desktop pet for work computers. It lives on your desktop, reacts to what you a
 ## Features
 
 - A small animated pet that walks, sleeps, gets tired, and reacts when you drag it.
-- Skins made of plain PNG frames plus a `manifest.json` (see [skins/default](skins/default)).
+- Skins made of plain PNG frames plus a `manifest.json` (see [skins/robot](skins/robot)).
 - A pixel-art robot skin for programmers ([skins/robot](skins/robot)): when a development tool (an IDE, an editor or a
   terminal) is in front and you are typing, it sits down at a desk and codes. The tools are editable in settings, and
   only the foreground process name is read, never window titles or keystrokes. Skins without a `Coding` state simply
