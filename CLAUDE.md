@@ -9,7 +9,7 @@ DeskBuddy 是一个 Windows 桌面宠物（WPF，.NET 10，仅 Windows 可构建
 ```bash
 dotnet build DeskBuddy.slnx
 dotnet test DeskBuddy.slnx
-dotnet test tests/DeskBuddy.Domain.Tests --filter "FullyQualifiedName~PetSettingsTests"   # 运行单个测试类/方法
+dotnet test --project tests/DeskBuddy.Domain.Tests --filter "FullyQualifiedName~PetSettingsTests"   # 运行单个测试类/方法
 dotnet run --project src/DeskBuddy.App                  # 加 `--Preview true` 可在右键菜单中播放所有动画
 powershell -NoProfile -File tools/Build-Installer.ps1   # 发布并用 Inno Setup 7 打包安装程序（输出到 artifacts/installer）
 powershell -NoProfile -File tools/GenerateRobotSkin.ps1 # 重新生成 robot 皮肤的 PNG 帧
@@ -24,9 +24,9 @@ powershell -NoProfile -File tools/GenerateCatSkin.ps1   # 重新生成 cat 皮�
 
 四层，依赖方向 App → Application → Domain，Infrastructure 实现 Application 定义的接口：
 
-- **Domain**：纯逻辑，不依赖任何基础设施。宠物行为状态机（`Behavior/PetBehaviorStateMachine`）、移动策略（`Movement/`，docked / roam / 自由落体 / 沿屏幕边缘爬行，通过 `IScreenEdges` 抽象屏幕）、场景选择（`Scenarios/`）、皮肤模型（`Skins/`）、设置（`Settings/PetSettings`）、番茄钟、久坐提醒等。所有宠物状态是 `PetState` 枚举。
-- **Application**：用例与服务。`PetBrain` 汇总传感器输入、番茄钟和用户交互，是 UI 询问“宠物现在该做什么”的唯一入口；`SettingsService`、`NoteService`、`TodoService` 等；`Abstractions/` 定义传感器与存储的接口（`ISettingsStore`、`ISkinLoader` 等）。
-- **Infrastructure**：接口的 Windows 实现——传感器（前台进程、进程列表、电源状态等）、JSON 存储（设置/待办/便签）、注册表开机自启、日志、`FolderSkinLoader`/`FolderSkinCatalog`。
+- **Domain**：纯逻辑，不依赖任何基础设施。宠物行为状态机（`Behavior/PetBehaviorStateMachine`）、移动策略（`Movement/`，docked / roam / 自由落体 / 沿屏幕边缘爬行，通过 `IScreenEdges` 抽象屏幕）、场景选择（`Scenarios/`）、皮肤模型（`Skins/`）、设置（`Settings/PetSettings`）、久坐提醒等。所有宠物状态是 `PetState` 枚举。
+- **Application**：用例与服务。`PetBrain` 汇总传感器输入和用户交互，是 UI 询问“宠物现在该做什么”的唯一入口；`SettingsService` 等；`Abstractions/` 定义传感器与存储的接口（`ISettingsStore`、`ISkinLoader` 等）。
+- **Infrastructure**：接口的 Windows 实现——传感器（前台进程、进程列表、电源状态等）、JSON 存储（设置）、注册表开机自启、日志、`FolderSkinLoader`/`FolderSkinCatalog`。
 - **App**：WPF 外壳。`App.xaml.cs` 用通用主机（Generic Host）组装全部依赖；`Rendering/` 负责皮肤帧缓存与热切换（`SkinSwitcher`）；`Windows/`、`ViewModels/`、`Interop/`（Win32 互操作）、`TrayIconService`、`SingleInstanceGuard`（单实例互斥）。
 
 ## 皮肤

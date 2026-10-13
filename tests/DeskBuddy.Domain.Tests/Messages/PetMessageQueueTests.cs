@@ -39,11 +39,11 @@ public class PetMessageQueueTests
     /// A number that identifies the message.
     /// </param>
     /// <returns>
-    /// A work-completed message carrying the number.
+    /// A reminder message carrying the number.
     /// </returns>
     private static PetMessage Message(int count)
     {
-        return new PetMessage(PetMessageKind.PomodoroWorkCompleted, [MessageAction.Dismiss], Count: count);
+        return new PetMessage(PetMessageKind.SedentaryReminder, [MessageAction.Dismiss], Count: count);
     }
 
     /// <summary>

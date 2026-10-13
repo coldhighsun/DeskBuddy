@@ -121,21 +121,6 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
         public TimeSpan? SleepAfter { get; init; }
 
         /// <summary>
-        /// Gets the pomodoro work length.
-        /// </summary>
-        public TimeSpan? PomodoroWork { get; init; }
-
-        /// <summary>
-        /// Gets the short break length.
-        /// </summary>
-        public TimeSpan? PomodoroShortBreak { get; init; }
-
-        /// <summary>
-        /// Gets the long break length.
-        /// </summary>
-        public TimeSpan? PomodoroLongBreak { get; init; }
-
-        /// <summary>
         /// Gets the sedentary reminder interval.
         /// </summary>
         public TimeSpan? SedentaryReminderAfter { get; init; }
@@ -222,9 +207,6 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
                 Mode = settings.Mode,
                 SkinName = settings.SkinName,
                 SleepAfter = settings.SleepAfter,
-                PomodoroWork = settings.PomodoroWork,
-                PomodoroShortBreak = settings.PomodoroShortBreak,
-                PomodoroLongBreak = settings.PomodoroLongBreak,
                 SedentaryReminderAfter = settings.SedentaryReminderAfter,
                 BossKey = settings.BossKey.ToString(),
                 AutoHideWhenFullscreen = settings.AutoHideWhenFullscreen,
@@ -256,9 +238,6 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
                 Mode = Mode ?? defaults.Mode,
                 SkinName = SkinName ?? defaults.SkinName,
                 SleepAfter = SleepAfter ?? defaults.SleepAfter,
-                PomodoroWork = PomodoroWork ?? defaults.PomodoroWork,
-                PomodoroShortBreak = PomodoroShortBreak ?? defaults.PomodoroShortBreak,
-                PomodoroLongBreak = PomodoroLongBreak ?? defaults.PomodoroLongBreak,
                 SedentaryReminderAfter = SedentaryReminderAfter ?? defaults.SedentaryReminderAfter,
                 BossKey = HotkeyGesture.TryParse(BossKey, out var gesture) ? gesture : defaults.BossKey,
                 AutoHideWhenFullscreen = AutoHideWhenFullscreen ?? defaults.AutoHideWhenFullscreen,

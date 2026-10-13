@@ -430,9 +430,9 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
 
     /// <summary>
     /// Re-evaluates the pet's state right away and shows it. Call after anything that can change the state, such as a
-    /// pomodoro command, instead of waiting for the next timer tick.
+    /// user command, instead of waiting for the next timer tick.
     /// </summary>
-    public void RefreshState()
+    private void RefreshState()
     {
         ApplyState(_brain.Tick());
     }
@@ -744,8 +744,8 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
 
     /// <summary>
     /// Shows or hides the window to match the brain's visibility. While hidden the animation and walking timers are
-    /// stopped, so a hidden pet costs next to nothing; the brain timer keeps running because the pomodoro and the
-    /// check for the full-screen application going away depend on it.
+    /// stopped, so a hidden pet costs next to nothing; the brain timer keeps running because the
+    /// check for the full-screen application going away depends on it.
     /// </summary>
     /// <param name="sender">
     /// The event source.
@@ -1153,7 +1153,7 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     }
 
     /// <summary>
-    /// Fills the right-click menu with the pomodoro commands that apply right now, plus hiding the pet.
+    /// Fills the right-click menu with the panel and settings entries.
     /// </summary>
     /// <param name="sender">
     /// The event source.
@@ -1164,16 +1164,11 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     private void OnContextMenuOpening(object sender, ContextMenuEventArgs e)
     {
         var items = ContextMenu.Items;
-        PomodoroMenu.Populate(items, _brain, RefreshState);
+        items.Clear();
 
         var openPanel = new MenuItem { Header = Strings.OpenPanel };
         openPanel.Click += (_, _) => _openPanel(null);
-        items.Insert(0, openPanel);
-
-        var settings = new MenuItem { Header = Strings.MenuSettings };
-        settings.Click += (_, _) => _openPanel(PanelTab.Settings);
-        items.Insert(1, settings);
-        items.Insert(2, new Separator());
+        items.Add(openPanel);
 
         if (_previewMenu)
         {

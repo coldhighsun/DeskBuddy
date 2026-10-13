@@ -47,7 +47,7 @@ public class SettingsServiceTests
         _store.Stored = PetSettings.Default with { Mode = DisturbanceMode.Roam };
 
         // Act
-        await _service.InitializeAsync();
+        await _service.InitializeAsync(TestContext.Current.CancellationToken);
 
         // Assert
         _service.Current.Mode.Should().Be(DisturbanceMode.Roam);
@@ -61,13 +61,13 @@ public class SettingsServiceTests
     public async Task InitializeAsync_OutOfRangeSettings_AreNormalized()
     {
         // Arrange
-        _store.Stored = PetSettings.Default with { PomodoroWork = TimeSpan.Zero };
+        _store.Stored = PetSettings.Default with { SleepAfter = TimeSpan.Zero };
 
         // Act
-        await _service.InitializeAsync();
+        await _service.InitializeAsync(TestContext.Current.CancellationToken);
 
         // Assert
-        _service.Current.PomodoroWork.Should().Be(PetSettings.MinPhaseDuration);
+        _service.Current.SleepAfter.Should().Be(PetSettings.MinSleepAfter);
     }
 
     /// <summary>
@@ -77,12 +77,12 @@ public class SettingsServiceTests
     public async Task UpdateAsync_Change_AppliesRaisesChangedAndSaves()
     {
         // Arrange
-        await _service.InitializeAsync();
+        await _service.InitializeAsync(TestContext.Current.CancellationToken);
         PetSettings? announced = null;
         _service.Changed += (_, settings) => announced = settings;
 
         // Act
-        var result = await _service.UpdateAsync(s => s with { Mode = DisturbanceMode.Roam });
+        var result = await _service.UpdateAsync(s => s with { Mode = DisturbanceMode.Roam }, TestContext.Current.CancellationToken);
 
         // Assert
         result.Mode.Should().Be(DisturbanceMode.Roam);
@@ -99,10 +99,10 @@ public class SettingsServiceTests
     public async Task UpdateAsync_OutOfRangeValue_IsNormalizedBeforeSaving()
     {
         // Arrange
-        await _service.InitializeAsync();
+        await _service.InitializeAsync(TestContext.Current.CancellationToken);
 
         // Act
-        await _service.UpdateAsync(s => s with { SleepAfter = TimeSpan.FromSeconds(1) });
+        await _service.UpdateAsync(s => s with { SleepAfter = TimeSpan.FromSeconds(1) }, TestContext.Current.CancellationToken);
 
         // Assert
         _service.Current.SleepAfter.Should().Be(PetSettings.MinSleepAfter);
@@ -116,7 +116,7 @@ public class SettingsServiceTests
     public async Task UpdateAsync_SaveFails_ThrowsAndKeepsChangeInMemory()
     {
         // Arrange
-        await _service.InitializeAsync();
+        await _service.InitializeAsync(TestContext.Current.CancellationToken);
         _store.SaveException = new IOException("disk full");
 
         // Act
@@ -137,7 +137,7 @@ public class SettingsServiceTests
         _store.LoadException = new UnauthorizedAccessException("denied");
 
         // Act
-        await _service.InitializeAsync();
+        await _service.InitializeAsync(TestContext.Current.CancellationToken);
 
         // Assert
         _service.LoadFailure.Should().BeOfType<UnauthorizedAccessException>();
@@ -152,7 +152,7 @@ public class SettingsServiceTests
     {
         // Arrange
         _store.LoadException = new IOException("locked");
-        await _service.InitializeAsync();
+        await _service.InitializeAsync(TestContext.Current.CancellationToken);
 
         // Act
         var act = () => _service.UpdateAsync(s => s with { Mode = DisturbanceMode.Roam });
@@ -169,7 +169,7 @@ public class SettingsServiceTests
     public async Task UpdateAsync_ConcurrentCalls_AreSerialized()
     {
         // Arrange
-        await _service.InitializeAsync();
+        await _service.InitializeAsync(TestContext.Current.CancellationToken);
         _store.SaveDelay = TimeSpan.FromMilliseconds(20);
 
         // Act

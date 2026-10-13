@@ -105,7 +105,7 @@ public class WindowsSystemLoadMonitorTests
         // Arrange
         var monitor = new WindowsSystemLoadMonitor();
         monitor.GetSnapshot();
-        await Task.Delay(TimeSpan.FromMilliseconds(200));
+        await Task.Delay(TimeSpan.FromMilliseconds(200), TestContext.Current.CancellationToken);
 
         // Act
         var snapshot = monitor.GetSnapshot();

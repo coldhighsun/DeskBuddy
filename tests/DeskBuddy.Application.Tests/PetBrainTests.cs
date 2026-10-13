@@ -7,7 +7,6 @@ using DeskBuddy.Domain.Chatter;
 using DeskBuddy.Domain.Messages;
 using DeskBuddy.Domain.Scenarios;
 using DeskBuddy.Domain.Schedule;
-using DeskBuddy.Domain.Pomodoro;
 using DeskBuddy.Domain.Power;
 using DeskBuddy.Domain.Sedentary;
 using DeskBuddy.Domain.Settings;
@@ -28,14 +27,9 @@ public class PetBrainTests
     private static readonly TimeSpan SleepAfter = TimeSpan.FromMinutes(5);
 
     /// <summary>
-    /// Work phase length of the test pomodoro.
+    /// Long enough for the sedentary reminder to come due after a first tick.
     /// </summary>
-    private static readonly TimeSpan Work = TimeSpan.FromMinutes(25);
-
-    /// <summary>
-    /// Short break length of the test pomodoro.
-    /// </summary>
-    private static readonly TimeSpan ShortBreak = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan ReminderDelay = TimeSpan.FromMinutes(25);
 
     /// <summary>
     /// How long a full-screen application must be gone before the pet comes back, in the tests.
@@ -149,7 +143,6 @@ public class PetBrainTests
             _load,
             new LoadReactionPolicy(new SystemLoadOptions(), _clock),
             _fullscreen,
-            new PomodoroSession(new PomodoroOptions(), _clock),
             new SedentaryReminderPolicy(sedentary, _clock),
             new PetMessageQueue(behavior.MessageDuration, _clock),
             new PetBehaviorStateMachine(behavior, _clock, new Random(1)),
@@ -213,22 +206,6 @@ public class PetBrainTests
 
         // Act
         var message = RunMinutesUntilMessage(60);
-
-        // Assert
-        message.Should().BeNull();
-    }
-
-    /// <summary>
-    /// While a pomodoro runs it paces the breaks, so no sedentary reminder appears.
-    /// </summary>
-    [Fact]
-    public void Tick_PomodoroRunning_NoSedentaryReminder()
-    {
-        // Arrange
-        _brain.StartPomodoro();
-
-        // Act: 20 minutes, which is past the sedentary threshold but before the 25-minute work phase ends.
-        var message = RunMinutesUntilMessage(20);
 
         // Assert
         message.Should().BeNull();
@@ -468,110 +445,14 @@ public class PetBrainTests
     }
 
     /// <summary>
-    /// Running a pomodoro work phase makes the pet focus.
-    /// </summary>
-    [Fact]
-    public void Tick_PomodoroWorking_PetFocuses()
-    {
-        // Arrange
-        _brain.StartPomodoro();
-
-        // Act
-        var state = _brain.Tick();
-
-        // Assert
-        state.Should().Be(PetState.Focus);
-    }
-
-    /// <summary>
-    /// A paused pomodoro no longer keeps the pet focused.
-    /// </summary>
-    [Fact]
-    public void Tick_PomodoroPaused_PetStopsFocusing()
-    {
-        // Arrange
-        _brain.StartPomodoro();
-        _brain.Tick();
-        _brain.PausePomodoro();
-
-        // Act
-        var state = _brain.Tick();
-
-        // Assert
-        state.Should().Be(PetState.Idle);
-    }
-
-    /// <summary>
-    /// When work ends the pet raises a message and calls for attention.
-    /// </summary>
-    [Fact]
-    public void Tick_WorkEnds_ShowsBreakMessageAndAlerts()
-    {
-        // Arrange
-        _brain.StartPomodoro();
-        _clock.Advance(Work);
-
-        // Act
-        var state = _brain.Tick();
-
-        // Assert
-        state.Should().Be(PetState.Alert);
-        _brain.CurrentMessage.Should().NotBeNull();
-        _brain.CurrentMessage!.Kind.Should().Be(PetMessageKind.PomodoroWorkCompleted);
-        _brain.CurrentMessage.Duration.Should().Be(ShortBreak);
-        _brain.CurrentMessage.Count.Should().Be(1);
-        _brain.CurrentMessage.Actions.Should().Equal(MessageAction.SkipBreak, MessageAction.Dismiss);
-    }
-
-    /// <summary>
-    /// When the break ends the pet offers to start the next round.
-    /// </summary>
-    [Fact]
-    public void Tick_BreakEnds_OffersNextRound()
-    {
-        // Arrange
-        _brain.StartPomodoro();
-        _clock.Advance(Work);
-        _brain.Tick();
-        _brain.DismissMessage();
-        _clock.Advance(ShortBreak);
-
-        // Act
-        _brain.Tick();
-
-        // Assert
-        _brain.CurrentMessage!.Kind.Should().Be(PetMessageKind.PomodoroBreakCompleted);
-        _brain.CurrentMessage.Actions.Should().Equal(MessageAction.StartPomodoro, MessageAction.Dismiss);
-    }
-
-    /// <summary>
-    /// A phase that expired while the machine slept produces no reminder.
-    /// </summary>
-    [Fact]
-    public void Tick_WorkExpiredLongAgo_RaisesNoMessage()
-    {
-        // Arrange
-        _brain.StartPomodoro();
-        _clock.Advance(Work + TimeSpan.FromHours(3));
-
-        // Act
-        var state = _brain.Tick();
-
-        // Assert
-        _brain.CurrentMessage.Should().BeNull();
-        state.Should().NotBe(PetState.Alert).And.NotBe(PetState.Focus);
-        _brain.Pomodoro.Phase.Should().Be(PomodoroPhase.Stopped);
-    }
-
-    /// <summary>
     /// A message fades on its own and the pet settles down again.
     /// </summary>
     [Fact]
     public void Tick_MessageTimesOut_AlertEnds()
     {
         // Arrange
-        _brain.StartPomodoro();
-        _clock.Advance(Work);
+        _brain.Tick();
+        _clock.Advance(ReminderDelay);
         _brain.Tick();
 
         // Act
@@ -591,8 +472,8 @@ public class PetBrainTests
     {
         // Arrange
         _fullscreen.DoNotDisturb = true;
-        _brain.StartPomodoro();
-        _clock.Advance(Work);
+        _brain.Tick();
+        _clock.Advance(ReminderDelay);
 
         // Act
         var state = _brain.Tick();
@@ -610,8 +491,8 @@ public class PetBrainTests
     {
         // Arrange
         _fullscreen.DoNotDisturb = true;
-        _brain.StartPomodoro();
-        _clock.Advance(Work);
+        _brain.Tick();
+        _clock.Advance(ReminderDelay);
         _brain.Tick();
         _fullscreen.DoNotDisturb = false;
 
@@ -630,8 +511,8 @@ public class PetBrainTests
     public void Tick_DoNotDisturbStartsWhileShowing_HidesMessage()
     {
         // Arrange
-        _brain.StartPomodoro();
-        _clock.Advance(Work);
+        _brain.Tick();
+        _clock.Advance(ReminderDelay);
         _brain.Tick();
         _fullscreen.DoNotDisturb = true;
 
@@ -707,8 +588,8 @@ public class PetBrainTests
     {
         // Arrange
         _brain.SetManuallyHidden(true);
-        _brain.StartPomodoro();
-        _clock.Advance(Work);
+        _brain.Tick();
+        _clock.Advance(ReminderDelay);
         _brain.Tick();
         var shownWhileHidden = _brain.CurrentMessage;
 
@@ -758,24 +639,6 @@ public class PetBrainTests
 
         // Assert
         raised.Should().Be(0);
-    }
-
-    /// <summary>
-    /// The pomodoro keeps running while the pet is hidden.
-    /// </summary>
-    [Fact]
-    public void Tick_PetHidden_PomodoroKeepsRunning()
-    {
-        // Arrange
-        _brain.StartPomodoro();
-        _brain.SetManuallyHidden(true);
-
-        // Act
-        _clock.Advance(Work);
-        _brain.Tick();
-
-        // Assert
-        _brain.Pomodoro.Phase.Should().Be(PomodoroPhase.ShortBreak);
     }
 
     /// <summary>
@@ -861,22 +724,6 @@ public class PetBrainTests
     }
 
     /// <summary>
-    /// A running pomodoro work phase silences the pet.
-    /// </summary>
-    [Fact]
-    public void Tick_PomodoroWorkRunning_NoChatter()
-    {
-        // Arrange
-        _brain.StartPomodoro();
-
-        // Act
-        var message = RunUntilChatter(20);
-
-        // Assert
-        message.Should().BeNull();
-    }
-
-    /// <summary>
     /// A user who is away is not spoken to.
     /// </summary>
     [Fact]
@@ -903,55 +750,14 @@ public class PetBrainTests
     }
 
     /// <summary>
-    /// The skip-break action ends the break and closes the bubble.
-    /// </summary>
-    [Fact]
-    public void Invoke_SkipBreak_StopsPomodoroAndClosesMessage()
-    {
-        // Arrange
-        _brain.StartPomodoro();
-        _clock.Advance(Work);
-        _brain.Tick();
-
-        // Act
-        _brain.Invoke(MessageAction.SkipBreak);
-
-        // Assert
-        _brain.Pomodoro.Phase.Should().Be(PomodoroPhase.Stopped);
-        _brain.CurrentMessage.Should().BeNull();
-    }
-
-    /// <summary>
-    /// The start action begins a new work phase and closes the bubble.
-    /// </summary>
-    [Fact]
-    public void Invoke_StartPomodoro_BeginsWorkAndClosesMessage()
-    {
-        // Arrange
-        _brain.StartPomodoro();
-        _clock.Advance(Work);
-        _brain.Tick();
-        _brain.DismissMessage();
-        _clock.Advance(ShortBreak);
-        _brain.Tick();
-
-        // Act
-        _brain.Invoke(MessageAction.StartPomodoro);
-
-        // Assert
-        _brain.Pomodoro.Phase.Should().Be(PomodoroPhase.Work);
-        _brain.CurrentMessage.Should().BeNull();
-    }
-
-    /// <summary>
     /// Dismiss only closes the bubble.
     /// </summary>
     [Fact]
     public void Invoke_Dismiss_OnlyClosesMessage()
     {
         // Arrange
-        _brain.StartPomodoro();
-        _clock.Advance(Work);
+        _brain.Tick();
+        _clock.Advance(ReminderDelay);
         _brain.Tick();
 
         // Act
@@ -959,7 +765,6 @@ public class PetBrainTests
 
         // Assert
         _brain.CurrentMessage.Should().BeNull();
-        _brain.Pomodoro.Phase.Should().Be(PomodoroPhase.ShortBreak);
     }
 
     /// <summary>
@@ -969,8 +774,8 @@ public class PetBrainTests
     public void OnClicked_WithMessageShowing_DismissesIt()
     {
         // Arrange
-        _brain.StartPomodoro();
-        _clock.Advance(Work);
+        _brain.Tick();
+        _clock.Advance(ReminderDelay);
         _brain.Tick();
 
         // Act
@@ -990,8 +795,8 @@ public class PetBrainTests
         // Arrange
         var raised = 0;
         _brain.MessageChanged += (_, _) => raised++;
-        _brain.StartPomodoro();
-        _clock.Advance(Work);
+        _brain.Tick();
+        _clock.Advance(ReminderDelay);
 
         // Act
         _brain.Tick();
@@ -1016,44 +821,6 @@ public class PetBrainTests
 
         // Assert
         raised.Should().Be(0);
-    }
-
-    /// <summary>
-    /// The status event fires when a pomodoro starts and again as whole minutes tick away, but not on every tick.
-    /// </summary>
-    [Fact]
-    public void PomodoroStatusChanged_RunningPhase_FiresOncePerMinute()
-    {
-        // Arrange
-        var raised = 0;
-        _brain.PomodoroStatusChanged += (_, _) => raised++;
-        _brain.StartPomodoro();
-
-        // Act: 150 seconds of ticks span the start plus two minute boundaries.
-        RunFor(TimeSpan.FromSeconds(150));
-
-        // Assert
-        raised.Should().Be(3);
-    }
-
-    /// <summary>
-    /// Pausing changes the visible status.
-    /// </summary>
-    [Fact]
-    public void PomodoroStatusChanged_Paused_Fires()
-    {
-        // Arrange
-        _brain.StartPomodoro();
-        _brain.Tick();
-        var raised = 0;
-        _brain.PomodoroStatusChanged += (_, _) => raised++;
-
-        // Act
-        _brain.PausePomodoro();
-        _brain.Tick();
-
-        // Assert
-        raised.Should().Be(1);
     }
 
     /// <summary>

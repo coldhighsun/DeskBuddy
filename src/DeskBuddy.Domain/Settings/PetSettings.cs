@@ -17,21 +17,6 @@ public sealed record PetSettings
     private const string ExecutableSuffix = ".exe";
 
     /// <summary>
-    /// Shortest allowed length of a pomodoro phase or break.
-    /// </summary>
-    public static readonly TimeSpan MinPhaseDuration = TimeSpan.FromMinutes(1);
-
-    /// <summary>
-    /// Longest allowed length of a pomodoro work phase.
-    /// </summary>
-    public static readonly TimeSpan MaxWorkDuration = TimeSpan.FromHours(3);
-
-    /// <summary>
-    /// Longest allowed length of a pomodoro break.
-    /// </summary>
-    public static readonly TimeSpan MaxBreakDuration = TimeSpan.FromHours(1);
-
-    /// <summary>
     /// Shortest allowed time of inactivity before the pet falls asleep.
     /// </summary>
     public static readonly TimeSpan MinSleepAfter = TimeSpan.FromSeconds(30);
@@ -92,21 +77,6 @@ public sealed record PetSettings
     /// Gets how long the user must be inactive before the pet falls asleep.
     /// </summary>
     public TimeSpan SleepAfter { get; init; } = TimeSpan.FromMinutes(5);
-
-    /// <summary>
-    /// Gets the length of a pomodoro work phase.
-    /// </summary>
-    public TimeSpan PomodoroWork { get; init; } = TimeSpan.FromMinutes(25);
-
-    /// <summary>
-    /// Gets the length of a short pomodoro break.
-    /// </summary>
-    public TimeSpan PomodoroShortBreak { get; init; } = TimeSpan.FromMinutes(5);
-
-    /// <summary>
-    /// Gets the length of a long pomodoro break.
-    /// </summary>
-    public TimeSpan PomodoroLongBreak { get; init; } = TimeSpan.FromMinutes(15);
 
     /// <summary>
     /// Gets how long the user can work without a break before the sedentary reminder.
@@ -199,9 +169,6 @@ public sealed record PetSettings
             Mode = Enum.IsDefined(Mode) ? Mode : defaults.Mode,
             SkinName = string.IsNullOrWhiteSpace(SkinName) ? DefaultSkinName : SkinName.Trim(),
             SleepAfter = Clamp(SleepAfter, MinSleepAfter, MaxSleepAfter),
-            PomodoroWork = Clamp(PomodoroWork, MinPhaseDuration, MaxWorkDuration),
-            PomodoroShortBreak = Clamp(PomodoroShortBreak, MinPhaseDuration, MaxBreakDuration),
-            PomodoroLongBreak = Clamp(PomodoroLongBreak, MinPhaseDuration, MaxBreakDuration),
             SedentaryReminderAfter = Clamp(SedentaryReminderAfter, MinSedentaryInterval, MaxSedentaryInterval),
             Language = Enum.IsDefined(Language) ? Language : defaults.Language,
             Size = Enum.IsDefined(Size) ? Size : defaults.Size,

@@ -60,7 +60,7 @@ public class MovementSelectorTests
         _selector.ModeChanged += (_, _) => raised++;
 
         // Act
-        await _settings.UpdateAsync(s => s with { Mode = DisturbanceMode.Roam });
+        await _settings.UpdateAsync(s => s with { Mode = DisturbanceMode.Roam }, TestContext.Current.CancellationToken);
 
         // Assert
         _selector.Current.Should().BeSameAs(_roam);
@@ -74,10 +74,10 @@ public class MovementSelectorTests
     public async Task Current_ModeChangedBackToDocked_SwitchesBack()
     {
         // Arrange
-        await _settings.UpdateAsync(s => s with { Mode = DisturbanceMode.Roam });
+        await _settings.UpdateAsync(s => s with { Mode = DisturbanceMode.Roam }, TestContext.Current.CancellationToken);
 
         // Act
-        await _settings.UpdateAsync(s => s with { Mode = DisturbanceMode.Docked });
+        await _settings.UpdateAsync(s => s with { Mode = DisturbanceMode.Docked }, TestContext.Current.CancellationToken);
 
         // Assert
         _selector.Current.Should().BeSameAs(_docked);
@@ -94,7 +94,7 @@ public class MovementSelectorTests
         _selector.ModeChanged += (_, _) => raised++;
 
         // Act
-        await _settings.UpdateAsync(s => s with { SkinName = "other" });
+        await _settings.UpdateAsync(s => s with { SkinName = "other" }, TestContext.Current.CancellationToken);
 
         // Assert
         raised.Should().Be(0);

@@ -1,7 +1,6 @@
 using DeskBuddy.Domain.Activity;
 using DeskBuddy.Domain.Behavior;
 using DeskBuddy.Domain.Chatter;
-using DeskBuddy.Domain.Pomodoro;
 using DeskBuddy.Domain.Scenarios;
 using DeskBuddy.Domain.Sedentary;
 using DeskBuddy.Domain.Settings;
@@ -10,11 +9,10 @@ using DeskBuddy.Domain.Visibility;
 namespace DeskBuddy.Application;
 
 /// <summary>
-/// Copies the user's settings into the shared option objects the behavior, pomodoro, sedentary, visibility, chatter and
+/// Copies the user's settings into the shared option objects the behavior, sedentary, visibility, chatter and
 /// development-detection logic read from, at
 /// startup and after every change. Those classes read their options each time they need a value, so a change takes
-/// effect without a restart; what is already running keeps its schedule (a pomodoro phase in progress keeps its end
-/// time) and the new value applies from the next one.
+/// effect without a restart; what is already running keeps its schedule and the new value applies from the next one.
 /// </summary>
 public sealed class SettingsApplier
 {
@@ -22,11 +20,6 @@ public sealed class SettingsApplier
     /// The behavior options to update.
     /// </summary>
     private readonly PetBehaviorOptions _behavior;
-
-    /// <summary>
-    /// The pomodoro options to update.
-    /// </summary>
-    private readonly PomodoroOptions _pomodoro;
 
     /// <summary>
     /// The sedentary options to update.
@@ -73,9 +66,6 @@ public sealed class SettingsApplier
     /// <param name="behavior">
     /// The behavior options to update.
     /// </param>
-    /// <param name="pomodoro">
-    /// The pomodoro options to update.
-    /// </param>
     /// <param name="sedentary">
     /// The sedentary options to update.
     /// </param>
@@ -100,7 +90,6 @@ public sealed class SettingsApplier
     public SettingsApplier(
         SettingsService settings,
         PetBehaviorOptions behavior,
-        PomodoroOptions pomodoro,
         SedentaryOptions sedentary,
         PetVisibility visibility,
         ChatterPolicy chatter,
@@ -111,7 +100,6 @@ public sealed class SettingsApplier
     {
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(behavior);
-        ArgumentNullException.ThrowIfNull(pomodoro);
         ArgumentNullException.ThrowIfNull(sedentary);
         ArgumentNullException.ThrowIfNull(visibility);
         ArgumentNullException.ThrowIfNull(chatter);
@@ -120,7 +108,6 @@ public sealed class SettingsApplier
         ArgumentNullException.ThrowIfNull(meeting);
 
         _behavior = behavior;
-        _pomodoro = pomodoro;
         _sedentary = sedentary;
         _visibility = visibility;
         _chatter = chatter;
@@ -142,9 +129,6 @@ public sealed class SettingsApplier
     private void Apply(PetSettings settings)
     {
         _behavior.SleepAfter = settings.SleepAfter;
-        _pomodoro.WorkDuration = settings.PomodoroWork;
-        _pomodoro.ShortBreakDuration = settings.PomodoroShortBreak;
-        _pomodoro.LongBreakDuration = settings.PomodoroLongBreak;
         _sedentary.ReminderAfter = settings.SedentaryReminderAfter;
         _visibility.AutoHideEnabled = settings.AutoHideWhenFullscreen;
         _chatter.IsEnabled = settings.Mode == DisturbanceMode.Roam;

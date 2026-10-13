@@ -36,7 +36,7 @@ public enum PetState
     Alert,
 
     /// <summary>
-    /// The pet is quietly accompanying a focus (pomodoro work) session.
+    /// The pet sits quietly. Not chosen on its own: it is the fallback frame set for <see cref="Meeting"/> when a skin has none.
     /// </summary>
     Focus,
 

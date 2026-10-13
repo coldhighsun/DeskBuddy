@@ -6,16 +6,6 @@ namespace DeskBuddy.Domain.Messages;
 public enum PetMessageKind
 {
     /// <summary>
-    /// A pomodoro work phase finished and a break has started.
-    /// </summary>
-    PomodoroWorkCompleted,
-
-    /// <summary>
-    /// A pomodoro break finished; the user can start the next round.
-    /// </summary>
-    PomodoroBreakCompleted,
-
-    /// <summary>
     /// The user has been working for a long time without a break.
     /// </summary>
     SedentaryReminder,
@@ -44,16 +34,6 @@ public enum MessageAction
     Dismiss,
 
     /// <summary>
-    /// Cut the current break short.
-    /// </summary>
-    SkipBreak,
-
-    /// <summary>
-    /// Start a new pomodoro round.
-    /// </summary>
-    StartPomodoro,
-
-    /// <summary>
     /// Ask to be reminded again soon.
     /// </summary>
     SnoozeReminder,
@@ -69,10 +49,10 @@ public enum MessageAction
 /// The actions offered to the user, in display order.
 /// </param>
 /// <param name="Duration">
-/// A duration the text refers to, for example the length of the break that just started.
+/// A duration the text refers to, for example how long the user has been working.
 /// </param>
 /// <param name="Count">
-/// A count the text refers to, for example the number of completed pomodoros.
+/// A count the text refers to, for example which remark to show.
 /// </param>
 /// <param name="Lifetime">
 /// How long the message stays up; <see langword="null"/> for the queue's default.

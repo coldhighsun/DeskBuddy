@@ -3,7 +3,6 @@ using DeskBuddy.Application.Abstractions;
 using DeskBuddy.Domain.Activity;
 using DeskBuddy.Domain.Behavior;
 using DeskBuddy.Domain.Chatter;
-using DeskBuddy.Domain.Pomodoro;
 using DeskBuddy.Domain.Scenarios;
 using DeskBuddy.Domain.Schedule;
 using DeskBuddy.Domain.Sedentary;
@@ -52,7 +51,6 @@ public class BossKeyControllerTests
             new FakeLoad(),
             new LoadReactionPolicy(new SystemLoadOptions(), clock),
             new FakeDetector(),
-            new PomodoroSession(new PomodoroOptions(), clock),
             new SedentaryReminderPolicy(new SedentaryOptions(), clock),
             new PetMessageQueue(TimeSpan.FromSeconds(30), clock),
             new PetBehaviorStateMachine(new PetBehaviorOptions(), clock, new Random(1)),
@@ -121,7 +119,7 @@ public class BossKeyControllerTests
         using var controller = new BossKeyController(_settings, _hotkeys, _brain);
 
         // Act
-        await _settings.UpdateAsync(s => s with { BossKey = OtherKey });
+        await _settings.UpdateAsync(s => s with { BossKey = OtherKey }, TestContext.Current.CancellationToken);
 
         // Assert
         _hotkeys.Registrations.Should().Equal(PetSettings.Default.BossKey, OtherKey);
@@ -138,7 +136,7 @@ public class BossKeyControllerTests
         using var controller = new BossKeyController(_settings, _hotkeys, _brain);
 
         // Act
-        await _settings.UpdateAsync(s => s with { Mode = DisturbanceMode.Roam });
+        await _settings.UpdateAsync(s => s with { Mode = DisturbanceMode.Roam }, TestContext.Current.CancellationToken);
 
         // Assert
         _hotkeys.Registrations.Should().HaveCount(1);
@@ -174,7 +172,7 @@ public class BossKeyControllerTests
         _hotkeys.Error = "already registered";
 
         // Act
-        await _settings.UpdateAsync(s => s with { BossKey = OtherKey });
+        await _settings.UpdateAsync(s => s with { BossKey = OtherKey }, TestContext.Current.CancellationToken);
 
         // Assert
         controller.Registered.Should().Be(PetSettings.Default.BossKey);
@@ -191,11 +189,11 @@ public class BossKeyControllerTests
         // Arrange
         using var controller = new BossKeyController(_settings, _hotkeys, _brain);
         _hotkeys.Error = "already registered";
-        await _settings.UpdateAsync(s => s with { BossKey = OtherKey });
+        await _settings.UpdateAsync(s => s with { BossKey = OtherKey }, TestContext.Current.CancellationToken);
         _hotkeys.Error = null;
 
         // Act
-        await _settings.UpdateAsync(s => s with { BossKey = PetSettings.Default.BossKey });
+        await _settings.UpdateAsync(s => s with { BossKey = PetSettings.Default.BossKey }, TestContext.Current.CancellationToken);
 
         // Assert
         controller.RegistrationError.Should().BeNull();

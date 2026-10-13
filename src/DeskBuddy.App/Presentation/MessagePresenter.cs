@@ -47,12 +47,6 @@ public static class MessagePresenter
 
         var text = message.Kind switch
         {
-            PetMessageKind.PomodoroWorkCompleted => string.Format(
-                CultureInfo.CurrentCulture,
-                Strings.MessageWorkCompleted,
-                WholeMinutes(message.Duration ?? TimeSpan.Zero),
-                message.Count ?? 0),
-            PetMessageKind.PomodoroBreakCompleted => Strings.MessageBreakCompleted,
             PetMessageKind.SedentaryReminder => string.Format(
                 CultureInfo.CurrentCulture,
                 Strings.MessageSedentary,
@@ -94,8 +88,6 @@ public static class MessagePresenter
         return action switch
         {
             MessageAction.Dismiss => Strings.ActionDismiss,
-            MessageAction.SkipBreak => Strings.ActionSkipBreak,
-            MessageAction.StartPomodoro => Strings.ActionStartPomodoro,
             MessageAction.SnoozeReminder => Strings.ActionSnoozeReminder,
             _ => string.Empty,
         };

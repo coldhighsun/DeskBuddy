@@ -1,37 +1,19 @@
 using System.ComponentModel;
-using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
-using System.Windows.Threading;
 using DeskBuddy.App.Presentation;
 using DeskBuddy.App.ViewModels;
-using DeskBuddy.Application;
 
 namespace DeskBuddy.App.Windows;
 
 /// <summary>
-/// The panel window with the pomodoro, to-do, note and settings tabs. Closing it only hides it, so it keeps its state and
+/// The panel window with the settings tabs. Closing it only hides it, so it keeps its state and
 /// opens instantly next time.
 /// </summary>
 public partial class PanelWindow
 {
-    /// <summary>
-    /// How often the pomodoro countdown is refreshed while the panel is visible.
-    /// </summary>
-    private static readonly TimeSpan RefreshInterval = TimeSpan.FromSeconds(1);
-
-    /// <summary>
-    /// The service that saves the note, flushed whenever the panel is hidden.
-    /// </summary>
-    private readonly NoteService _noteService;
-
-    /// <summary>
-    /// Refreshes the pomodoro countdown. Runs only while the panel is visible, so a hidden panel costs no CPU.
-    /// </summary>
-    private readonly DispatcherTimer _refreshTimer = new() { Interval = RefreshInterval };
-
     /// <summary>
     /// The view models behind the tabs.
     /// </summary>
@@ -48,18 +30,13 @@ public partial class PanelWindow
     /// <param name="viewModel">
     /// The view models behind the tabs.
     /// </param>
-    /// <param name="noteService">
-    /// The service that saves the note.
-    /// </param>
-    public PanelWindow(PanelViewModel viewModel, NoteService noteService)
+    public PanelWindow(PanelViewModel viewModel)
     {
         InitializeComponent();
 
         _viewModel = viewModel;
-        _noteService = noteService;
         DataContext = viewModel;
 
-        _refreshTimer.Tick += (_, _) => _viewModel.Pomodoro.Refresh();
         IsVisibleChanged += OnIsVisibleChanged;
     }
 
@@ -137,7 +114,7 @@ public partial class PanelWindow
     }
 
     /// <summary>
-    /// Runs the countdown refresh only while visible, and saves the note whenever the panel is hidden.
+    /// Refreshes external state when the panel is shown.
     /// </summary>
     /// <param name="sender">
     /// The event source.
@@ -145,24 +122,11 @@ public partial class PanelWindow
     /// <param name="e">
     /// Event data.
     /// </param>
-    private async void OnIsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+    private void OnIsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
     {
         if (IsVisible)
         {
-            _viewModel.Pomodoro.Refresh();
             _viewModel.Settings.RefreshExternalState();
-            _refreshTimer.Start();
-            return;
-        }
-
-        _refreshTimer.Stop();
-        try
-        {
-            await _noteService.FlushAsync();
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        {
-            _viewModel.Note.ReportSaveFailure(ex);
         }
     }
 

@@ -52,7 +52,7 @@ public class SedentaryReminderPolicyTests
         var reminders = 0;
         for (var elapsed = TimeSpan.Zero; elapsed < duration; elapsed += TimeSpan.FromMinutes(1))
         {
-            if (_policy.Update(TimeSpan.Zero, isCoveredElsewhere: false))
+            if (_policy.Update(TimeSpan.Zero))
             {
                 reminders++;
             }
@@ -110,7 +110,7 @@ public class SedentaryReminderPolicyTests
     {
         // Arrange
         Work(TimeSpan.FromMinutes(40));
-        _policy.Update(RestThreshold, isCoveredElsewhere: false);
+        _policy.Update(RestThreshold);
         _clock.Advance(RestThreshold);
 
         // Act: another 44 minutes of work after the break is still short of the threshold.
@@ -128,55 +128,13 @@ public class SedentaryReminderPolicyTests
     {
         // Arrange
         Work(TimeSpan.FromMinutes(40));
-        _policy.Update(RestThreshold - TimeSpan.FromSeconds(1), isCoveredElsewhere: false);
+        _policy.Update(RestThreshold - TimeSpan.FromSeconds(1));
 
         // Act
         var reminders = Work(TimeSpan.FromMinutes(6));
 
         // Assert
         reminders.Should().Be(1);
-    }
-
-    /// <summary>
-    /// While a pomodoro (or anything else) paces the user's breaks, no reminder fires.
-    /// </summary>
-    [Fact]
-    public void Update_CoveredElsewhere_NeverReminds()
-    {
-        // Act
-        var reminders = 0;
-        for (var minute = 0; minute < 120; minute++)
-        {
-            if (_policy.Update(TimeSpan.Zero, isCoveredElsewhere: true))
-            {
-                reminders++;
-            }
-
-            _clock.Advance(TimeSpan.FromMinutes(1));
-        }
-
-        // Assert
-        reminders.Should().Be(0);
-    }
-
-    /// <summary>
-    /// When the cover ends, the streak starts from that moment rather than counting the covered time.
-    /// </summary>
-    [Fact]
-    public void Update_CoverEnds_StreakStartsFresh()
-    {
-        // Arrange
-        for (var minute = 0; minute < 120; minute++)
-        {
-            _policy.Update(TimeSpan.Zero, isCoveredElsewhere: true);
-            _clock.Advance(TimeSpan.FromMinutes(1));
-        }
-
-        // Act
-        var reminders = Work(TimeSpan.FromMinutes(44));
-
-        // Assert
-        reminders.Should().Be(0);
     }
 
     /// <summary>
@@ -248,7 +206,7 @@ public class SedentaryReminderPolicyTests
     {
         // Arrange
         Work(TimeSpan.FromMinutes(30));
-        _policy.Update(RestThreshold, isCoveredElsewhere: false);
+        _policy.Update(RestThreshold);
 
         // Assert
         _policy.StreakDuration.Should().Be(TimeSpan.Zero);
@@ -261,7 +219,7 @@ public class SedentaryReminderPolicyTests
     public void Update_FirstPollOfStreak_DoesNotRemind()
     {
         // Act
-        var due = _policy.Update(TimeSpan.Zero, isCoveredElsewhere: false);
+        var due = _policy.Update(TimeSpan.Zero);
 
         // Assert
         due.Should().BeFalse();

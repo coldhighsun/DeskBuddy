@@ -23,39 +23,12 @@
 
   <data name="OpenPanel" xml:space="preserve"><value>Open panel</value></data>
 
-  <data name="TabPomodoro" xml:space="preserve"><value>Pomodoro</value></data>
-  <data name="TabTodo" xml:space="preserve"><value>To-do</value></data>
-  <data name="TabNote" xml:space="preserve"><value>Notes</value></data>
 
-  <data name="PomodoroCompleted" xml:space="preserve"><value>{0} pomodoros done in this cycle</value></data>
 
-  <data name="TodoNewLabel" xml:space="preserve"><value>New to-do (press Enter to add)</value></data>
-  <data name="TodoAdd" xml:space="preserve"><value>Add</value></data>
-  <data name="TodoDelete" xml:space="preserve"><value>Delete</value></data>
-  <data name="TodoClearCompleted" xml:space="preserve"><value>Clear completed</value></data>
-  <data name="TodoEmpty" xml:space="preserve"><value>No to-dos yet. Add one!</value></data>
-  <data name="TodoLoadFailed" xml:space="preserve"><value>Could not read the to-do data ({0}). To avoid overwriting it, saving is paused. Check the file and restart.</value></data>
-  <data name="TodoSaveFailed" xml:space="preserve"><value>Could not save the to-dos: {0}</value></data>
 
-  <data name="NoteHint" xml:space="preserve"><value>Jot something down. It is saved automatically.</value></data>
-  <data name="NoteLoadFailed" xml:space="preserve"><value>Could not read the note ({0}). To avoid overwriting it, editing is paused. Check the file and restart.</value></data>
-  <data name="NoteSaveFailed" xml:space="preserve"><value>Could not save the note: {0}</value></data>
 
-  <data name="PomodoroStart" xml:space="preserve"><value>Start focusing (pomodoro)</value></data>
-  <data name="PomodoroPause" xml:space="preserve"><value>Pause</value></data>
-  <data name="PomodoroResume" xml:space="preserve"><value>Resume</value></data>
-  <data name="PomodoroSkipWork" xml:space="preserve"><value>End focus and take a break</value></data>
-  <data name="PomodoroSkipBreak" xml:space="preserve"><value>Skip break</value></data>
-  <data name="PomodoroStop" xml:space="preserve"><value>Stop pomodoro</value></data>
 
-  <data name="StatusStopped" xml:space="preserve"><value>Pomodoro not started</value></data>
-  <data name="StatusWork" xml:space="preserve"><value>Focusing, {0} min left</value></data>
-  <data name="StatusShortBreak" xml:space="preserve"><value>On a break, {0} min left</value></data>
-  <data name="StatusLongBreak" xml:space="preserve"><value>On a long break, {0} min left</value></data>
-  <data name="StatusPaused" xml:space="preserve"><value>Paused, {0} min left</value></data>
 
-  <data name="MessageWorkCompleted" xml:space="preserve"><value>Pomodoro #{1} done! Take a {0}-minute break~</value></data>
-  <data name="MessageBreakCompleted" xml:space="preserve"><value>Break is over. Start the next pomodoro?</value></data>
 
   <data name="MessageSedentary" xml:space="preserve"><value>You have been working for {0} minutes. Stand up, stretch and have some water~</value></data>
 
@@ -70,20 +43,16 @@
 
   <data name="ActionDismiss" xml:space="preserve"><value>Got it</value></data>
   <data name="ActionSnoozeReminder" xml:space="preserve"><value>Remind me later</value></data>
-  <data name="ActionSkipBreak" xml:space="preserve"><value>Skip break</value></data>
-  <data name="ActionStartPomodoro" xml:space="preserve"><value>Start next round</value></data>
 
-  <data name="TabSettings" xml:space="preserve"><value>Settings</value></data>
-  <data name="MenuSettings" xml:space="preserve"><value>Settings</value></data>
+  <data name="TabAppearance" xml:space="preserve"><value>Appearance</value></data>
+  <data name="TabBehavior" xml:space="preserve"><value>Behavior</value></data>
+  <data name="TabSystem" xml:space="preserve"><value>System</value></data>
   <data name="SettingsAppearance" xml:space="preserve"><value>Appearance</value></data>
   <data name="SettingsSkin" xml:space="preserve"><value>Skin</value></data>
   <data name="SettingsMode" xml:space="preserve"><value>Disturbance mode</value></data>
   <data name="ModeDocked" xml:space="preserve"><value>Docked on the taskbar</value></data>
   <data name="ModeRoam" xml:space="preserve"><value>Roam freely on the desktop</value></data>
   <data name="SettingsTiming" xml:space="preserve"><value>Timing (minutes)</value></data>
-  <data name="SettingsPomodoroWork" xml:space="preserve"><value>Pomodoro focus length</value></data>
-  <data name="SettingsPomodoroShortBreak" xml:space="preserve"><value>Short break length</value></data>
-  <data name="SettingsPomodoroLongBreak" xml:space="preserve"><value>Long break length</value></data>
   <data name="SettingsSedentary" xml:space="preserve"><value>Sedentary reminder interval</value></data>
   <data name="SettingsSleep" xml:space="preserve"><value>Fall asleep after no input for</value></data>
   <data name="SettingsBossKey" xml:space="preserve"><value>Boss key (hide or show the pet)</value></data>

@@ -66,7 +66,7 @@ public sealed class FolderSkinLoaderTests : IDisposable
             "b.png");
 
         // Act
-        var skin = await _loader.LoadAsync(_directory);
+        var skin = await _loader.LoadAsync(_directory, TestContext.Current.CancellationToken);
 
         // Assert
         skin.Name.Should().Be("cat");
@@ -93,7 +93,7 @@ public sealed class FolderSkinLoaderTests : IDisposable
             "s.png");
 
         // Act
-        var skin = await _loader.LoadAsync(_directory);
+        var skin = await _loader.LoadAsync(_directory, TestContext.Current.CancellationToken);
 
         // Assert
         skin.GazeAnimations.Keys.Should().BeEquivalentTo([GazeDirection.Left, GazeDirection.Up]);
@@ -114,7 +114,7 @@ public sealed class FolderSkinLoaderTests : IDisposable
             "w.png");
 
         // Act
-        var skin = await _loader.LoadAsync(_directory);
+        var skin = await _loader.LoadAsync(_directory, TestContext.Current.CancellationToken);
 
         // Assert
         skin.Animations.Should().ContainKey(PetState.Walk);
@@ -130,7 +130,7 @@ public sealed class FolderSkinLoaderTests : IDisposable
         WriteSkin("""{"frameSize":[8,8],"states":{"Idle":{"fps":1,"frames":["i.png"]}}}""", "i.png");
 
         // Act
-        var skin = await _loader.LoadAsync(_directory);
+        var skin = await _loader.LoadAsync(_directory, TestContext.Current.CancellationToken);
 
         // Assert
         skin.GetAnimation(PetState.Tired).Should().BeSameAs(skin.GetAnimation(PetState.Idle));
@@ -148,7 +148,7 @@ public sealed class FolderSkinLoaderTests : IDisposable
             "i.png");
 
         // Act
-        var skin = await _loader.LoadAsync(_directory);
+        var skin = await _loader.LoadAsync(_directory, TestContext.Current.CancellationToken);
 
         // Assert
         skin.Animations.Should().HaveCount(1);

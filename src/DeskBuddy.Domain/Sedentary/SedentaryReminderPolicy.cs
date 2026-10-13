@@ -57,17 +57,13 @@ public sealed class SedentaryReminderPolicy
     /// <param name="userIdle">
     /// How long the user has had no keyboard or mouse input.
     /// </param>
-    /// <param name="isCoveredElsewhere">
-    /// <see langword="true"/> while something else already paces the user's breaks (a running pomodoro), in which case
-    /// no reminders are produced and the streak starts over once that ends.
-    /// </param>
     /// <returns>
     /// <see langword="true"/> if a reminder is due now. It returns <see langword="true"/> once per reminder, not on
     /// every call.
     /// </returns>
-    public bool Update(TimeSpan userIdle, bool isCoveredElsewhere)
+    public bool Update(TimeSpan userIdle)
     {
-        if (isCoveredElsewhere || userIdle >= _options.RestThreshold)
+        if (userIdle >= _options.RestThreshold)
         {
             _streakStart = null;
             return false;

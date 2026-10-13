@@ -3,7 +3,6 @@ using DeskBuddy.Domain;
 using DeskBuddy.Domain.Chatter;
 using DeskBuddy.Domain.Behavior;
 using DeskBuddy.Domain.Messages;
-using DeskBuddy.Domain.Pomodoro;
 using DeskBuddy.Domain.Scenarios;
 using DeskBuddy.Domain.Sedentary;
 using DeskBuddy.Domain.SystemLoad;
@@ -12,7 +11,7 @@ using DeskBuddy.Domain.Visibility;
 namespace DeskBuddy.Application;
 
 /// <summary>
-/// Gathers sensor input, the pomodoro timer and user interactions and drives the pet's behavior. This is the single
+/// Gathers sensor input and user interactions and drives the pet's behavior. This is the single
 /// place the UI talks to for "what should the pet be doing" and "is there something to tell the user".
 /// </summary>
 /// <param name="idleDetector">
@@ -26,9 +25,6 @@ namespace DeskBuddy.Application;
 /// </param>
 /// <param name="fullscreenDetector">
 /// Tells when the user must not be disturbed, so messages are held back and the pet may hide.
-/// </param>
-/// <param name="pomodoro">
-/// The pomodoro timer.
 /// </param>
 /// <param name="sedentary">
 /// Decides when to remind the user to get up.
@@ -57,7 +53,6 @@ public sealed class PetBrain(
     ISystemLoadMonitor loadMonitor,
     LoadReactionPolicy loadPolicy,
     IFullscreenDetector fullscreenDetector,
-    PomodoroSession pomodoro,
     SedentaryReminderPolicy sedentary,
     PetMessageQueue messages,
     PetBehaviorStateMachine stateMachine,
@@ -88,12 +83,6 @@ public sealed class PetBrain(
     private bool _canSpeak;
 
     /// <summary>
-    /// The pomodoro status last announced through <see cref="PomodoroStatusChanged"/>, to detect changes. The
-    /// remaining time is rounded up to whole minutes, so the event fires about once a minute while a phase runs.
-    /// </summary>
-    private (PomodoroPhase Phase, bool IsPaused, int MinutesLeft) _announcedStatus;
-
-    /// <summary>
     /// Raised when the message on screen appears, changes or goes away. Read <see cref="CurrentMessage"/>.
     /// </summary>
     public event EventHandler? MessageChanged;
@@ -104,11 +93,6 @@ public sealed class PetBrain(
     public event EventHandler? VisibilityChanged;
 
     /// <summary>
-    /// Raised when the pomodoro phase, paused flag or remaining whole minutes change.
-    /// </summary>
-    public event EventHandler? PomodoroStatusChanged;
-
-    /// <summary>
     /// Gets the current state.
     /// </summary>
     public PetState State => stateMachine.State;
@@ -117,11 +101,6 @@ public sealed class PetBrain(
     /// Gets the direction of the current or most recent walk: <c>-1</c> for left, <c>1</c> for right.
     /// </summary>
     public int WalkDirection => stateMachine.WalkDirection;
-
-    /// <summary>
-    /// Gets the pomodoro timer, for display. Change it through the brain's commands so the pet reacts.
-    /// </summary>
-    public PomodoroSession Pomodoro => pomodoro;
 
     /// <summary>
     /// Gets whether the pet is on screen and why not. Change it through <see cref="SetManuallyHidden"/> and
@@ -147,10 +126,7 @@ public sealed class PetBrain(
         var load = loadMonitor.GetSnapshot();
         var isStrained = loadPolicy.Update(load);
 
-        EnqueueMessageFor(pomodoro.Update());
-
-        // A running pomodoro already paces the user's breaks, so it replaces the sedentary reminder.
-        if (sedentary.Update(userIdle, isCoveredElsewhere: pomodoro.Phase != PomodoroPhase.Stopped))
+        if (sedentary.Update(userIdle))
         {
             messages.Enqueue(new PetMessage(
                 PetMessageKind.SedentaryReminder,
@@ -195,13 +171,12 @@ public sealed class PetBrain(
 
         var ambient = ScenarioCatalog.AmbientRanking.Pick([.. new[] { dev.Ambient, system.Ambient }.OfType<PetState>()]);
 
-        // A casual remark is only worth making when nothing else is on screen or waiting and the user is at the desk,
-        // not in a focused pomodoro and not in a meeting.
+        // A casual remark is only worth making when nothing else is on screen or waiting and the user is at the desk
+        // and not in a meeting.
         var canChat = visibility.IsVisible
             && level == DoNotDisturbLevel.None
             && ambient != PetState.Meeting
             && userIdle < ChatterPresenceLimit
-            && !(pomodoro.IsRunning && pomodoro.Phase == PomodoroPhase.Work)
             && messages.Current is null
             && messages.WaitingCount == 0;
         if (chatter.Update(canChat) is { } remark)
@@ -214,57 +189,13 @@ public sealed class PetBrain(
             MessageChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        AnnouncePomodoroStatusIfChanged();
-
         var inputs = new PetInputs(
             userIdle,
             isStrained,
-            IsFocusing: pomodoro.IsRunning && pomodoro.Phase == PomodoroPhase.Work,
             HasAlert: messages.Current is { Kind: not (PetMessageKind.Chatter or PetMessageKind.Remark) },
             IsDeveloping: dev.IsDeveloping,
             Ambient: ambient);
         return stateMachine.Update(inputs);
-    }
-
-    /// <summary>
-    /// Starts a pomodoro work phase and closes any "start the next round" prompt.
-    /// </summary>
-    public void StartPomodoro()
-    {
-        pomodoro.Start();
-        DismissMessage();
-    }
-
-    /// <summary>
-    /// Pauses the running pomodoro phase.
-    /// </summary>
-    public void PausePomodoro()
-    {
-        pomodoro.Pause();
-    }
-
-    /// <summary>
-    /// Resumes a paused pomodoro phase.
-    /// </summary>
-    public void ResumePomodoro()
-    {
-        pomodoro.Resume();
-    }
-
-    /// <summary>
-    /// Ends the current pomodoro phase early (see <see cref="PomodoroSession.Skip"/>).
-    /// </summary>
-    public void SkipPomodoroPhase()
-    {
-        pomodoro.Skip();
-    }
-
-    /// <summary>
-    /// Stops the pomodoro and discards its progress.
-    /// </summary>
-    public void StopPomodoro()
-    {
-        pomodoro.Stop();
     }
 
     /// <summary>
@@ -277,12 +208,6 @@ public sealed class PetBrain(
     {
         switch (action)
         {
-            case MessageAction.SkipBreak:
-                pomodoro.Skip();
-                break;
-            case MessageAction.StartPomodoro:
-                pomodoro.Start();
-                break;
             case MessageAction.SnoozeReminder:
                 sedentary.Snooze();
                 break;
@@ -448,51 +373,5 @@ public sealed class PetBrain(
     {
         DismissMessage();
         stateMachine.OnClicked();
-    }
-
-    /// <summary>
-    /// Queues the reminder that belongs to a pomodoro phase boundary. Stale boundaries (the machine was asleep) are
-    /// ignored.
-    /// </summary>
-    /// <param name="transition">
-    /// The boundary the timer just crossed.
-    /// </param>
-    private void EnqueueMessageFor(PomodoroTransition transition)
-    {
-        if (transition.IsStale)
-        {
-            return;
-        }
-
-        switch (transition.Kind)
-        {
-            case PomodoroTransitionKind.WorkCompleted:
-                messages.Enqueue(new PetMessage(
-                    PetMessageKind.PomodoroWorkCompleted,
-                    [MessageAction.SkipBreak, MessageAction.Dismiss],
-                    pomodoro.Remaining,
-                    pomodoro.CompletedWorkSessions));
-                break;
-            case PomodoroTransitionKind.BreakCompleted:
-                messages.Enqueue(new PetMessage(
-                    PetMessageKind.PomodoroBreakCompleted,
-                    [MessageAction.StartPomodoro, MessageAction.Dismiss]));
-                break;
-        }
-    }
-
-    /// <summary>
-    /// Raises <see cref="PomodoroStatusChanged"/> if the visible pomodoro status differs from the last announcement.
-    /// </summary>
-    private void AnnouncePomodoroStatusIfChanged()
-    {
-        var status = (pomodoro.Phase, pomodoro.IsPaused, (int)Math.Ceiling(pomodoro.Remaining.TotalMinutes));
-        if (status == _announcedStatus)
-        {
-            return;
-        }
-
-        _announcedStatus = status;
-        PomodoroStatusChanged?.Invoke(this, EventArgs.Empty);
     }
 }

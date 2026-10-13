@@ -45,11 +45,6 @@ public class PetBehaviorStateMachineTests
     private static readonly PetInputs Alerting = new(TimeSpan.Zero, HasAlert: true);
 
     /// <summary>
-    /// Inputs for an active user during a pomodoro work phase.
-    /// </summary>
-    private static readonly PetInputs Focusing = new(TimeSpan.Zero, IsFocusing: true);
-
-    /// <summary>
     /// Inputs for an active user while working in a development tool.
     /// </summary>
     private static readonly PetInputs Developing = new(TimeSpan.Zero, IsDeveloping: true);
@@ -899,13 +894,13 @@ public class PetBehaviorStateMachineTests
     }
 
     /// <summary>
-    /// An alert outranks sleep, tiredness and focus.
+    /// An alert outranks sleep and tiredness.
     /// </summary>
     [Fact]
     public void Update_AlertWithOtherConditions_AlertWins()
     {
         // Act
-        var state = _machine.Update(new PetInputs(SleepAfter, IsSystemStrained: true, IsFocusing: true, HasAlert: true));
+        var state = _machine.Update(new PetInputs(SleepAfter, IsSystemStrained: true, HasAlert: true));
 
         // Assert
         state.Should().Be(PetState.Alert);
@@ -956,114 +951,6 @@ public class PetBehaviorStateMachineTests
 
         // Assert
         state.Should().Be(PetState.Sleep);
-    }
-
-    /// <summary>
-    /// A pomodoro work phase makes the pet focus.
-    /// </summary>
-    [Fact]
-    public void Update_Focusing_EntersFocus()
-    {
-        // Act
-        var state = _machine.Update(Focusing);
-
-        // Assert
-        state.Should().Be(PetState.Focus);
-    }
-
-    /// <summary>
-    /// A focused pet does not wander off, however much time passes.
-    /// </summary>
-    [Fact]
-    public void Update_FocusingForLongTime_NeverWalks()
-    {
-        // Arrange
-        _machine.Update(Focusing);
-        _clock.Advance(TimeSpan.FromHours(1));
-
-        // Act
-        var state = _machine.Update(Focusing);
-
-        // Assert
-        state.Should().Be(PetState.Focus);
-    }
-
-    /// <summary>
-    /// Focus interrupts a walk already under way.
-    /// </summary>
-    [Fact]
-    public void Update_WalkingThenFocusing_EntersFocus()
-    {
-        // Arrange
-        _clock.Advance(IdleDwell);
-        _machine.Update(Active);
-
-        // Act
-        var state = _machine.Update(Focusing);
-
-        // Assert
-        state.Should().Be(PetState.Focus);
-    }
-
-    /// <summary>
-    /// When the work phase ends the pet stands and restarts its dwell.
-    /// </summary>
-    [Fact]
-    public void Update_FocusEnds_ReturnsToIdle()
-    {
-        // Arrange
-        _machine.Update(Focusing);
-        _clock.Advance(TimeSpan.FromMinutes(25));
-
-        // Act
-        var state = _machine.Update(Active);
-
-        // Assert
-        state.Should().Be(PetState.Idle);
-    }
-
-    /// <summary>
-    /// A strained system outranks focus.
-    /// </summary>
-    [Fact]
-    public void Update_FocusingAndSystemStrained_BecomesTired()
-    {
-        // Act
-        var state = _machine.Update(new PetInputs(TimeSpan.Zero, IsSystemStrained: true, IsFocusing: true));
-
-        // Assert
-        state.Should().Be(PetState.Tired);
-    }
-
-    /// <summary>
-    /// Sleep outranks focus: a user who walks away mid-pomodoro sees the pet asleep.
-    /// </summary>
-    [Fact]
-    public void Update_FocusingAndUserAway_Sleeps()
-    {
-        // Act
-        var state = _machine.Update(new PetInputs(SleepAfter, IsFocusing: true));
-
-        // Assert
-        state.Should().Be(PetState.Sleep);
-    }
-
-    /// <summary>
-    /// A click cheers up a focused pet briefly, after which it focuses again.
-    /// </summary>
-    [Fact]
-    public void OnClicked_Focusing_HappyThenFocusAgain()
-    {
-        // Arrange
-        _machine.Update(Focusing);
-        _machine.OnClicked();
-        _clock.Advance(HappyDuration);
-
-        // Act
-        var state = _machine.Update(Focusing);
-
-        // Assert
-        state.Should().Be(PetState.Focus);
     }
 
     /// <summary>
@@ -1173,19 +1060,6 @@ public class PetBehaviorStateMachineTests
     }
 
     /// <summary>
-    /// A pomodoro work phase, which the user asked for, outranks coding.
-    /// </summary>
-    [Fact]
-    public void Update_DevelopingAndFocusing_Focuses()
-    {
-        // Act
-        var state = _machine.Update(new PetInputs(TimeSpan.Zero, IsFocusing: true, IsDeveloping: true));
-
-        // Assert
-        state.Should().Be(PetState.Focus);
-    }
-
-    /// <summary>
     /// A message on screen calls for attention even while the user is developing.
     /// </summary>
     [Fact]
@@ -1252,7 +1126,7 @@ public class PetBehaviorStateMachineTests
     }
 
     /// <summary>
-    /// A moment holds even while the pet would otherwise be Tired, Focused or Coding.
+    /// A moment holds even while the pet would otherwise be Tired or Coding.
     /// </summary>
     [Fact]
     public void OnMoment_WhileLowerRankedInputsApply_StaysUntilItEnds()
@@ -1261,7 +1135,7 @@ public class PetBehaviorStateMachineTests
         _machine.OnMoment(PetState.Happy, TimeSpan.FromSeconds(3));
 
         // Act
-        var state = _machine.Update(new PetInputs(TimeSpan.Zero, IsSystemStrained: true, IsFocusing: true, IsDeveloping: true));
+        var state = _machine.Update(new PetInputs(TimeSpan.Zero, IsSystemStrained: true, IsDeveloping: true));
 
         // Assert
         state.Should().Be(PetState.Happy);
@@ -1402,16 +1276,15 @@ public class PetBehaviorStateMachineTests
     }
 
     /// <summary>
-    /// An ambient state outranks a strained system, a pomodoro and development work.
+    /// An ambient state outranks a strained system and development work.
     /// </summary>
     [Fact]
-    public void Update_Ambient_OutranksTiredFocusAndCoding()
+    public void Update_Ambient_OutranksTiredAndCoding()
     {
         // Act
         var state = _machine.Update(new PetInputs(
             TimeSpan.Zero,
             IsSystemStrained: true,
-            IsFocusing: true,
             IsDeveloping: true,
             Ambient: PetState.Alert));
 

@@ -20,7 +20,7 @@ namespace DeskBuddy.App.ViewModels;
 public sealed partial class SettingsTabViewModel : ObservableObject
 {
     /// <summary>
-    /// Shortest value accepted for a pomodoro work phase, in minutes.
+    /// Shortest value accepted for a time setting, in minutes.
     /// </summary>
     private const int MinMinutes = 1;
 
@@ -88,24 +88,6 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     /// </summary>
     [ObservableProperty]
     private bool _isRoam;
-
-    /// <summary>
-    /// The pomodoro work length in minutes, as typed.
-    /// </summary>
-    [ObservableProperty]
-    private string _pomodoroWorkText = string.Empty;
-
-    /// <summary>
-    /// The short break length in minutes, as typed.
-    /// </summary>
-    [ObservableProperty]
-    private string _shortBreakText = string.Empty;
-
-    /// <summary>
-    /// The long break length in minutes, as typed.
-    /// </summary>
-    [ObservableProperty]
-    private string _longBreakText = string.Empty;
 
     /// <summary>
     /// The sedentary reminder interval in minutes, as typed.
@@ -435,54 +417,6 @@ public sealed partial class SettingsTabViewModel : ObservableObject
         {
             _ = ApplyAsync(settings => settings with { Mode = DisturbanceMode.Roam });
         }
-    }
-
-    /// <summary>
-    /// Applies a typed pomodoro work length.
-    /// </summary>
-    /// <param name="value">
-    /// The text entered.
-    /// </param>
-    partial void OnPomodoroWorkTextChanged(string value)
-    {
-        CommitMinutes(
-            value,
-            Strings.SettingsPomodoroWork,
-            MinMinutes,
-            (int)PetSettings.MaxWorkDuration.TotalMinutes,
-            (settings, minutes) => settings with { PomodoroWork = minutes });
-    }
-
-    /// <summary>
-    /// Applies a typed short break length.
-    /// </summary>
-    /// <param name="value">
-    /// The text entered.
-    /// </param>
-    partial void OnShortBreakTextChanged(string value)
-    {
-        CommitMinutes(
-            value,
-            Strings.SettingsPomodoroShortBreak,
-            MinMinutes,
-            (int)PetSettings.MaxBreakDuration.TotalMinutes,
-            (settings, minutes) => settings with { PomodoroShortBreak = minutes });
-    }
-
-    /// <summary>
-    /// Applies a typed long break length.
-    /// </summary>
-    /// <param name="value">
-    /// The text entered.
-    /// </param>
-    partial void OnLongBreakTextChanged(string value)
-    {
-        CommitMinutes(
-            value,
-            Strings.SettingsPomodoroLongBreak,
-            MinMinutes,
-            (int)PetSettings.MaxBreakDuration.TotalMinutes,
-            (settings, minutes) => settings with { PomodoroLongBreak = minutes });
     }
 
     /// <summary>
@@ -867,9 +801,6 @@ public sealed partial class SettingsTabViewModel : ObservableObject
             SelectedSkin = settings.SkinName;
             IsDocked = settings.Mode == DisturbanceMode.Docked;
             IsRoam = settings.Mode == DisturbanceMode.Roam;
-            PomodoroWorkText = Minutes(settings.PomodoroWork);
-            ShortBreakText = Minutes(settings.PomodoroShortBreak);
-            LongBreakText = Minutes(settings.PomodoroLongBreak);
             SedentaryText = Minutes(settings.SedentaryReminderAfter);
             SleepText = Minutes(settings.SleepAfter);
             BossKeyText = settings.BossKey.ToString();

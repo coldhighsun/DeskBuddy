@@ -31,9 +31,6 @@ public class PetSettingsTests
         var settings = PetSettings.Default with
         {
             SleepAfter = TimeSpan.Zero,
-            PomodoroWork = TimeSpan.FromSeconds(1),
-            PomodoroShortBreak = TimeSpan.FromSeconds(-5),
-            PomodoroLongBreak = TimeSpan.Zero,
             SedentaryReminderAfter = TimeSpan.FromSeconds(10),
         };
 
@@ -42,9 +39,6 @@ public class PetSettingsTests
 
         // Assert
         normalized.SleepAfter.Should().Be(PetSettings.MinSleepAfter);
-        normalized.PomodoroWork.Should().Be(PetSettings.MinPhaseDuration);
-        normalized.PomodoroShortBreak.Should().Be(PetSettings.MinPhaseDuration);
-        normalized.PomodoroLongBreak.Should().Be(PetSettings.MinPhaseDuration);
         normalized.SedentaryReminderAfter.Should().Be(PetSettings.MinSedentaryInterval);
     }
 
@@ -58,9 +52,6 @@ public class PetSettingsTests
         var settings = PetSettings.Default with
         {
             SleepAfter = TimeSpan.FromDays(3),
-            PomodoroWork = TimeSpan.FromHours(10),
-            PomodoroShortBreak = TimeSpan.FromHours(10),
-            PomodoroLongBreak = TimeSpan.FromHours(10),
             SedentaryReminderAfter = TimeSpan.FromDays(1),
         };
 
@@ -69,9 +60,6 @@ public class PetSettingsTests
 
         // Assert
         normalized.SleepAfter.Should().Be(PetSettings.MaxSleepAfter);
-        normalized.PomodoroWork.Should().Be(PetSettings.MaxWorkDuration);
-        normalized.PomodoroShortBreak.Should().Be(PetSettings.MaxBreakDuration);
-        normalized.PomodoroLongBreak.Should().Be(PetSettings.MaxBreakDuration);
         normalized.SedentaryReminderAfter.Should().Be(PetSettings.MaxSedentaryInterval);
     }
 
@@ -84,7 +72,7 @@ public class PetSettingsTests
         // Arrange
         var settings = PetSettings.Default with
         {
-            PomodoroWork = TimeSpan.FromMinutes(50),
+            SleepAfter = TimeSpan.FromMinutes(50),
             Mode = DisturbanceMode.Roam,
             SkinName = "cat",
         };
@@ -93,7 +81,7 @@ public class PetSettingsTests
         var normalized = settings.Normalize();
 
         // Assert
-        normalized.PomodoroWork.Should().Be(TimeSpan.FromMinutes(50));
+        normalized.SleepAfter.Should().Be(TimeSpan.FromMinutes(50));
         normalized.Mode.Should().Be(DisturbanceMode.Roam);
         normalized.SkinName.Should().Be("cat");
     }

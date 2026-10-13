@@ -79,8 +79,8 @@ public class SkinSwitcherTests
         _switcher.Dispose();
 
         // Act
-        await _settings.UpdateAsync(s => s with { SkinName = "cat" });
-        await Task.Delay(50);
+        await _settings.UpdateAsync(s => s with { SkinName = "cat" }, TestContext.Current.CancellationToken);
+        await Task.Delay(50, TestContext.Current.CancellationToken);
 
         // Assert
         _applied.Should().BeEmpty();
@@ -93,7 +93,7 @@ public class SkinSwitcherTests
     public async Task SettingsChanged_SkinName_SwitchesSkin()
     {
         // Act
-        await _settings.UpdateAsync(s => s with { SkinName = "cat" });
+        await _settings.UpdateAsync(s => s with { SkinName = "cat" }, TestContext.Current.CancellationToken);
         await EventuallyAsync(() => _applied.Count > 0);
 
         // Assert
@@ -140,7 +140,7 @@ public class SkinSwitcherTests
     public async Task SwitchAsync_LoadFails_KeepsOldSkinReportsAndRestoresSetting()
     {
         // Arrange
-        await _settings.UpdateAsync(s => s with { SkinName = "broken" });
+        await _settings.UpdateAsync(s => s with { SkinName = "broken" }, TestContext.Current.CancellationToken);
         await EventuallyAsync(() => _failures.Count > 0);
 
         // Assert

@@ -44,7 +44,7 @@ public class ShippedSkinsTests
     public async Task Robot_Loads_WithAnimationForEveryState()
     {
         // Act
-        var skin = await _loader.LoadAsync(Path.Combine(FindSkinsDirectory(), "robot"));
+        var skin = await _loader.LoadAsync(Path.Combine(FindSkinsDirectory(), "robot"), TestContext.Current.CancellationToken);
 
         // Assert
         skin.Name.Should().Be("robot");
@@ -62,7 +62,7 @@ public class ShippedSkinsTests
     public async Task Cat_Loads_WithEverydayAndScreenEdgeStates()
     {
         // Act
-        var skin = await _loader.LoadAsync(Path.Combine(FindSkinsDirectory(), "cat"));
+        var skin = await _loader.LoadAsync(Path.Combine(FindSkinsDirectory(), "cat"), TestContext.Current.CancellationToken);
 
         // Assert
         skin.Name.Should().Be("cat");

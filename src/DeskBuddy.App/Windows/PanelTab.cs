@@ -6,22 +6,17 @@ namespace DeskBuddy.App.Windows;
 public enum PanelTab
 {
     /// <summary>
-    /// The pomodoro timer.
+    /// Skin, size, language and movement mode.
     /// </summary>
-    Pomodoro = 0,
+    Appearance = 0,
 
     /// <summary>
-    /// The to-do list.
+    /// Timings, full-screen behavior, development detection and scenarios.
     /// </summary>
-    Todo = 1,
+    Behavior = 1,
 
     /// <summary>
-    /// The sticky note.
+    /// Boss key, start with Windows and diagnostics.
     /// </summary>
-    Note = 2,
-
-    /// <summary>
-    /// The settings.
-    /// </summary>
-    Settings = 3,
+    System = 2,
 }

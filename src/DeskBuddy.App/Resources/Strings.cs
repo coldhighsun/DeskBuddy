@@ -63,142 +63,6 @@ internal static class Strings
     public static string OpenPanel => Get();
 
     /// <summary>
-    /// Gets the title of the pomodoro tab.
-    /// </summary>
-    public static string TabPomodoro => Get();
-
-    /// <summary>
-    /// Gets the title of the to-do tab.
-    /// </summary>
-    public static string TabTodo => Get();
-
-    /// <summary>
-    /// Gets the title of the note tab.
-    /// </summary>
-    public static string TabNote => Get();
-
-    /// <summary>
-    /// Gets the text showing completed pomodoros; <c>{0}</c> is the count.
-    /// </summary>
-    public static string PomodoroCompleted => Get();
-
-    /// <summary>
-    /// Gets the label above the new to-do box.
-    /// </summary>
-    public static string TodoNewLabel => Get();
-
-    /// <summary>
-    /// Gets the text of the button that adds a to-do.
-    /// </summary>
-    public static string TodoAdd => Get();
-
-    /// <summary>
-    /// Gets the tooltip of the button that deletes a to-do.
-    /// </summary>
-    public static string TodoDelete => Get();
-
-    /// <summary>
-    /// Gets the text of the button that clears completed to-dos.
-    /// </summary>
-    public static string TodoClearCompleted => Get();
-
-    /// <summary>
-    /// Gets the hint shown when the to-do list is empty.
-    /// </summary>
-    public static string TodoEmpty => Get();
-
-    /// <summary>
-    /// Gets the warning shown when the to-do data could not be read; <c>{0}</c> is the reason.
-    /// </summary>
-    public static string TodoLoadFailed => Get();
-
-    /// <summary>
-    /// Gets the warning shown when saving the to-do list failed; <c>{0}</c> is the reason.
-    /// </summary>
-    public static string TodoSaveFailed => Get();
-
-    /// <summary>
-    /// Gets the hint shown above the note box.
-    /// </summary>
-    public static string NoteHint => Get();
-
-    /// <summary>
-    /// Gets the warning shown when the note could not be read; <c>{0}</c> is the reason.
-    /// </summary>
-    public static string NoteLoadFailed => Get();
-
-    /// <summary>
-    /// Gets the warning shown when saving the note failed; <c>{0}</c> is the reason.
-    /// </summary>
-    public static string NoteSaveFailed => Get();
-
-    /// <summary>
-    /// Gets the menu text that starts a pomodoro.
-    /// </summary>
-    public static string PomodoroStart => Get();
-
-    /// <summary>
-    /// Gets the menu text that pauses the pomodoro.
-    /// </summary>
-    public static string PomodoroPause => Get();
-
-    /// <summary>
-    /// Gets the menu text that resumes the pomodoro.
-    /// </summary>
-    public static string PomodoroResume => Get();
-
-    /// <summary>
-    /// Gets the menu text that ends a work phase early.
-    /// </summary>
-    public static string PomodoroSkipWork => Get();
-
-    /// <summary>
-    /// Gets the menu text that skips a break.
-    /// </summary>
-    public static string PomodoroSkipBreak => Get();
-
-    /// <summary>
-    /// Gets the menu text that stops the pomodoro.
-    /// </summary>
-    public static string PomodoroStop => Get();
-
-    /// <summary>
-    /// Gets the status text shown when no pomodoro is running.
-    /// </summary>
-    public static string StatusStopped => Get();
-
-    /// <summary>
-    /// Gets the status text for a work phase; <c>{0}</c> is the remaining minutes.
-    /// </summary>
-    public static string StatusWork => Get();
-
-    /// <summary>
-    /// Gets the status text for a short break; <c>{0}</c> is the remaining minutes.
-    /// </summary>
-    public static string StatusShortBreak => Get();
-
-    /// <summary>
-    /// Gets the status text for a long break; <c>{0}</c> is the remaining minutes.
-    /// </summary>
-    public static string StatusLongBreak => Get();
-
-    /// <summary>
-    /// Gets the status text for a paused phase; <c>{0}</c> is the remaining minutes.
-    /// </summary>
-    public static string StatusPaused => Get();
-
-    /// <summary>
-    /// Gets the bubble text for a finished work phase; <c>{0}</c> is the break minutes, <c>{1}</c> the number of
-    /// completed pomodoros.
-    /// </summary>
-    public static string MessageWorkCompleted => Get();
-
-    /// <summary>
-    /// Gets the bubble text for a finished break.
-    /// </summary>
-    public static string MessageBreakCompleted => Get();
-
-    /// <summary>
     /// Gets the bubble text reminding the user to take a break; <c>{0}</c> is how many minutes they have worked.
     /// </summary>
     public static string MessageSedentary => Get();
@@ -214,24 +78,19 @@ internal static class Strings
     public static string ActionSnoozeReminder => Get();
 
     /// <summary>
-    /// Gets the bubble button text that skips the break.
+    /// Gets the title of the appearance tab.
     /// </summary>
-    public static string ActionSkipBreak => Get();
+    public static string TabAppearance => Get();
 
     /// <summary>
-    /// Gets the bubble button text that starts the next round.
+    /// Gets the title of the behavior tab.
     /// </summary>
-    public static string ActionStartPomodoro => Get();
+    public static string TabBehavior => Get();
 
     /// <summary>
-    /// Gets the title of the settings tab.
+    /// Gets the title of the system tab.
     /// </summary>
-    public static string TabSettings => Get();
-
-    /// <summary>
-    /// Gets the menu text that opens the settings tab.
-    /// </summary>
-    public static string MenuSettings => Get();
+    public static string TabSystem => Get();
 
     /// <summary>
     /// Gets the heading of the appearance section.
@@ -262,21 +121,6 @@ internal static class Strings
     /// Gets the heading of the timing section.
     /// </summary>
     public static string SettingsTiming => Get();
-
-    /// <summary>
-    /// Gets the label of the pomodoro work length.
-    /// </summary>
-    public static string SettingsPomodoroWork => Get();
-
-    /// <summary>
-    /// Gets the label of the short break length.
-    /// </summary>
-    public static string SettingsPomodoroShortBreak => Get();
-
-    /// <summary>
-    /// Gets the label of the long break length.
-    /// </summary>
-    public static string SettingsPomodoroLongBreak => Get();
 
     /// <summary>
     /// Gets the label of the sedentary reminder interval.

@@ -64,7 +64,7 @@ public sealed class JsonSettingsStoreTests : IDisposable
     public async Task LoadAsync_NothingSaved_ReturnsDefaultsWithoutCreatingFiles()
     {
         // Act
-        var settings = await _store.LoadAsync();
+        var settings = await _store.LoadAsync(TestContext.Current.CancellationToken);
 
         // Assert
         settings.Should().Be(PetSettings.Default);
@@ -83,9 +83,6 @@ public sealed class JsonSettingsStoreTests : IDisposable
             Mode = DisturbanceMode.Roam,
             SkinName = "猫咪",
             SleepAfter = TimeSpan.FromMinutes(8),
-            PomodoroWork = TimeSpan.FromMinutes(50),
-            PomodoroShortBreak = TimeSpan.FromMinutes(10),
-            PomodoroLongBreak = TimeSpan.FromMinutes(30),
             SedentaryReminderAfter = TimeSpan.FromMinutes(60),
             BossKey = new HotkeyGesture(HotkeyModifiers.Control | HotkeyModifiers.Shift, 0x7B),
             AutoHideWhenFullscreen = false,
@@ -103,8 +100,8 @@ public sealed class JsonSettingsStoreTests : IDisposable
         };
 
         // Act
-        await _store.SaveAsync(settings);
-        var loaded = await _store.LoadAsync();
+        await _store.SaveAsync(settings, TestContext.Current.CancellationToken);
+        var loaded = await _store.LoadAsync(TestContext.Current.CancellationToken);
 
         // Assert
         loaded.Should().BeEquivalentTo(settings);
@@ -117,13 +114,12 @@ public sealed class JsonSettingsStoreTests : IDisposable
     public async Task SaveAsync_WritesReadableFile()
     {
         // Act
-        await _store.SaveAsync(PetSettings.Default with { Mode = DisturbanceMode.Roam, SkinName = "猫咪" });
+        await _store.SaveAsync(PetSettings.Default with { Mode = DisturbanceMode.Roam, SkinName = "猫咪" }, TestContext.Current.CancellationToken);
 
         // Assert
-        var json = await File.ReadAllTextAsync(DataPath);
+        var json = await File.ReadAllTextAsync(DataPath, TestContext.Current.CancellationToken);
         json.Should().Contain("\"mode\": \"Roam\"");
         json.Should().Contain("\"bossKey\": \"Ctrl+Alt+H\"");
-        json.Should().Contain("\"pomodoroWork\": \"00:25:00\"");
         json.Should().Contain("猫咪");
     }
 
@@ -134,7 +130,7 @@ public sealed class JsonSettingsStoreTests : IDisposable
     public async Task SaveAsync_Completed_LeavesNoTemporaryFile()
     {
         // Act
-        await _store.SaveAsync(PetSettings.Default);
+        await _store.SaveAsync(PetSettings.Default, TestContext.Current.CancellationToken);
 
         // Assert
         Directory.GetFiles(_directory).Select(Path.GetFileName).Should().Equal(JsonSettingsStore.FileName);
@@ -150,7 +146,7 @@ public sealed class JsonSettingsStoreTests : IDisposable
         await WriteRawAsync("""{"version":1,"mode":"Roam"}""");
 
         // Act
-        var settings = await _store.LoadAsync();
+        var settings = await _store.LoadAsync(TestContext.Current.CancellationToken);
 
         // Assert
         settings.Mode.Should().Be(DisturbanceMode.Roam);
@@ -164,13 +160,13 @@ public sealed class JsonSettingsStoreTests : IDisposable
     public async Task LoadAsync_OutOfRangeValue_IsNormalized()
     {
         // Arrange
-        await WriteRawAsync("""{"pomodoroWork":"00:00:01","blacklistedProcesses":["Zoom.exe","zoom"]}""");
+        await WriteRawAsync("""{"sleepAfter":"00:00:01","blacklistedProcesses":["Zoom.exe","zoom"]}""");
 
         // Act
-        var settings = await _store.LoadAsync();
+        var settings = await _store.LoadAsync(TestContext.Current.CancellationToken);
 
         // Assert
-        settings.PomodoroWork.Should().Be(PetSettings.MinPhaseDuration);
+        settings.SleepAfter.Should().Be(PetSettings.MinSleepAfter);
         settings.BlacklistedProcesses.Should().Equal("Zoom");
     }
 
@@ -184,7 +180,7 @@ public sealed class JsonSettingsStoreTests : IDisposable
         await WriteRawAsync("""{"mode":"Roam","bossKey":"nonsense"}""");
 
         // Act
-        var settings = await _store.LoadAsync();
+        var settings = await _store.LoadAsync(TestContext.Current.CancellationToken);
 
         // Assert
         settings.BossKey.Should().Be(PetSettings.Default.BossKey);
@@ -201,12 +197,12 @@ public sealed class JsonSettingsStoreTests : IDisposable
         await WriteRawAsync("{ this is not json");
 
         // Act
-        var settings = await _store.LoadAsync();
+        var settings = await _store.LoadAsync(TestContext.Current.CancellationToken);
 
         // Assert
         settings.Should().Be(PetSettings.Default);
         File.Exists(DataPath).Should().BeFalse();
-        (await File.ReadAllTextAsync(DataPath + ".bak")).Should().Be("{ this is not json");
+        (await File.ReadAllTextAsync(DataPath + ".bak", TestContext.Current.CancellationToken)).Should().Be("{ this is not json");
     }
 
     /// <summary>
@@ -219,7 +215,7 @@ public sealed class JsonSettingsStoreTests : IDisposable
         await WriteRawAsync("""{"mode":"Banana"}""");
 
         // Act
-        var settings = await _store.LoadAsync();
+        var settings = await _store.LoadAsync(TestContext.Current.CancellationToken);
 
         // Assert
         settings.Should().Be(PetSettings.Default);
@@ -233,7 +229,7 @@ public sealed class JsonSettingsStoreTests : IDisposable
     public async Task LoadAsync_FileLockedForGood_ThrowsIOException()
     {
         // Arrange
-        await _store.SaveAsync(PetSettings.Default);
+        await _store.SaveAsync(PetSettings.Default, TestContext.Current.CancellationToken);
         using var holder = new FileStream(DataPath, FileMode.Open, FileAccess.Read, FileShare.None);
 
         // Act

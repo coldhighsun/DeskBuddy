@@ -47,8 +47,7 @@ public sealed class ChatterPolicy(TimeProvider timeProvider, Random random)
     /// Asks whether the pet should say something now.
     /// </summary>
     /// <param name="canSpeak">
-    /// <see langword="true"/> while speaking would not intrude: the user is at the computer, not in a focused
-    /// pomodoro, and nothing else is on screen.
+    /// <see langword="true"/> while speaking would not intrude: the user is at the computer, and nothing else is on screen.
     /// </param>
     /// <returns>
     /// The index of the remark to say, or <see langword="null"/> if the pet should stay quiet. A remark that comes due

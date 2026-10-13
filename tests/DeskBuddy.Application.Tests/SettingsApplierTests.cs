@@ -3,7 +3,6 @@ using DeskBuddy.Application.Abstractions;
 using DeskBuddy.Domain.Activity;
 using DeskBuddy.Domain.Behavior;
 using DeskBuddy.Domain.Chatter;
-using DeskBuddy.Domain.Pomodoro;
 using DeskBuddy.Domain.Scenarios;
 using DeskBuddy.Domain.Sedentary;
 using DeskBuddy.Domain.Settings;
@@ -26,11 +25,6 @@ public class SettingsApplierTests
     /// The behavior options being updated.
     /// </summary>
     private readonly PetBehaviorOptions _behavior = new();
-
-    /// <summary>
-    /// The pomodoro options being updated.
-    /// </summary>
-    private readonly PomodoroOptions _pomodoro = new();
 
     /// <summary>
     /// The sedentary options being updated.
@@ -69,13 +63,13 @@ public class SettingsApplierTests
     public async Task Constructor_CurrentSettings_AreCopiedToOptions()
     {
         // Arrange
-        await _settings.UpdateAsync(s => s with { PomodoroWork = TimeSpan.FromMinutes(50), SleepAfter = TimeSpan.FromMinutes(9) });
+        await _settings.UpdateAsync(s => s with { SedentaryReminderAfter = TimeSpan.FromMinutes(50), SleepAfter = TimeSpan.FromMinutes(9) }, TestContext.Current.CancellationToken);
 
         // Act
-        _ = new SettingsApplier(_settings, _behavior, _pomodoro, _sedentary, _visibility, _chatter, _devActivity, _scenarios, _meeting);
+        _ = new SettingsApplier(_settings, _behavior, _sedentary, _visibility, _chatter, _devActivity, _scenarios, _meeting);
 
         // Assert
-        _pomodoro.WorkDuration.Should().Be(TimeSpan.FromMinutes(50));
+        _sedentary.ReminderAfter.Should().Be(TimeSpan.FromMinutes(50));
         _behavior.SleepAfter.Should().Be(TimeSpan.FromMinutes(9));
     }
 
@@ -86,23 +80,17 @@ public class SettingsApplierTests
     public async Task Changed_NewSettings_UpdateAllOptions()
     {
         // Arrange
-        _ = new SettingsApplier(_settings, _behavior, _pomodoro, _sedentary, _visibility, _chatter, _devActivity, _scenarios, _meeting);
+        _ = new SettingsApplier(_settings, _behavior, _sedentary, _visibility, _chatter, _devActivity, _scenarios, _meeting);
 
         // Act
         await _settings.UpdateAsync(s => s with
         {
             SleepAfter = TimeSpan.FromMinutes(10),
-            PomodoroWork = TimeSpan.FromMinutes(30),
-            PomodoroShortBreak = TimeSpan.FromMinutes(6),
-            PomodoroLongBreak = TimeSpan.FromMinutes(20),
             SedentaryReminderAfter = TimeSpan.FromMinutes(60),
-        });
+        }, TestContext.Current.CancellationToken);
 
         // Assert
         _behavior.SleepAfter.Should().Be(TimeSpan.FromMinutes(10));
-        _pomodoro.WorkDuration.Should().Be(TimeSpan.FromMinutes(30));
-        _pomodoro.ShortBreakDuration.Should().Be(TimeSpan.FromMinutes(6));
-        _pomodoro.LongBreakDuration.Should().Be(TimeSpan.FromMinutes(20));
         _sedentary.ReminderAfter.Should().Be(TimeSpan.FromMinutes(60));
     }
 
@@ -113,10 +101,10 @@ public class SettingsApplierTests
     public async Task Changed_AutoHideSetting_UpdatesVisibility()
     {
         // Arrange
-        _ = new SettingsApplier(_settings, _behavior, _pomodoro, _sedentary, _visibility, _chatter, _devActivity, _scenarios, _meeting);
+        _ = new SettingsApplier(_settings, _behavior, _sedentary, _visibility, _chatter, _devActivity, _scenarios, _meeting);
 
         // Act
-        await _settings.UpdateAsync(s => s with { AutoHideWhenFullscreen = false });
+        await _settings.UpdateAsync(s => s with { AutoHideWhenFullscreen = false }, TestContext.Current.CancellationToken);
 
         // Assert
         _visibility.AutoHideEnabled.Should().BeFalse();
@@ -129,13 +117,13 @@ public class SettingsApplierTests
     public async Task Changed_Mode_EnablesChatterOnlyWhenRoaming()
     {
         // Arrange
-        _ = new SettingsApplier(_settings, _behavior, _pomodoro, _sedentary, _visibility, _chatter, _devActivity, _scenarios, _meeting);
+        _ = new SettingsApplier(_settings, _behavior, _sedentary, _visibility, _chatter, _devActivity, _scenarios, _meeting);
         var initially = _chatter.IsEnabled;
 
         // Act
-        await _settings.UpdateAsync(s => s with { Mode = DisturbanceMode.Roam });
+        await _settings.UpdateAsync(s => s with { Mode = DisturbanceMode.Roam }, TestContext.Current.CancellationToken);
         var roaming = _chatter.IsEnabled;
-        await _settings.UpdateAsync(s => s with { Mode = DisturbanceMode.Docked });
+        await _settings.UpdateAsync(s => s with { Mode = DisturbanceMode.Docked }, TestContext.Current.CancellationToken);
 
         // Assert
         initially.Should().BeFalse();
@@ -151,14 +139,14 @@ public class SettingsApplierTests
     {
         // Arrange
         void Override() => _behavior.SleepAfter = TimeSpan.FromSeconds(30);
-        _ = new SettingsApplier(_settings, _behavior, _pomodoro, _sedentary, _visibility, _chatter, _devActivity, _scenarios, _meeting, Override);
+        _ = new SettingsApplier(_settings, _behavior, _sedentary, _visibility, _chatter, _devActivity, _scenarios, _meeting, Override);
 
         // Act
-        await _settings.UpdateAsync(s => s with { SleepAfter = TimeSpan.FromMinutes(10), PomodoroWork = TimeSpan.FromMinutes(40) });
+        await _settings.UpdateAsync(s => s with { SleepAfter = TimeSpan.FromMinutes(10), SedentaryReminderAfter = TimeSpan.FromMinutes(40) }, TestContext.Current.CancellationToken);
 
         // Assert
         _behavior.SleepAfter.Should().Be(TimeSpan.FromSeconds(30));
-        _pomodoro.WorkDuration.Should().Be(TimeSpan.FromMinutes(40));
+        _sedentary.ReminderAfter.Should().Be(TimeSpan.FromMinutes(40));
     }
 
     /// <summary>

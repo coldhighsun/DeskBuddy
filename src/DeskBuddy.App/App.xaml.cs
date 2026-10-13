@@ -16,7 +16,6 @@ using DeskBuddy.Domain.Behavior;
 using DeskBuddy.Domain.Chatter;
 using DeskBuddy.Domain.Messages;
 using DeskBuddy.Domain.Movement;
-using DeskBuddy.Domain.Pomodoro;
 using DeskBuddy.Domain.Scenarios;
 using DeskBuddy.Domain.Schedule;
 using DeskBuddy.Domain.Sedentary;
@@ -44,11 +43,6 @@ public partial class App
     /// Name of the per-session mutex that enforces a single running instance.
     /// </summary>
     private const string SingleInstanceMutexName = @"Local\DeskBuddy.SingleInstance";
-
-    /// <summary>
-    /// How long after the last keystroke the note is saved.
-    /// </summary>
-    private static readonly TimeSpan NoteSaveDelay = TimeSpan.FromMilliseconds(800);
 
     /// <summary>
     /// How long a full-screen application must be gone before the pet comes back.
@@ -155,7 +149,6 @@ public partial class App
 
         var behaviorOptions = new PetBehaviorOptions();
         var loadOptions = new SystemLoadOptions();
-        var pomodoroOptions = new PomodoroOptions();
         var sedentaryOptions = new SedentaryOptions();
         var roamOptions = new RoamOptions();
 
@@ -165,7 +158,6 @@ public partial class App
         {
             builder.Configuration.GetSection("Behavior").Bind(behaviorOptions);
             builder.Configuration.GetSection("SystemLoad").Bind(loadOptions);
-            builder.Configuration.GetSection("Pomodoro").Bind(pomodoroOptions);
             builder.Configuration.GetSection("Sedentary").Bind(sedentaryOptions);
             builder.Configuration.GetSection("Roam").Bind(roamOptions);
         }
@@ -224,8 +216,6 @@ public partial class App
             Random.Shared));
         builder.Services.AddSingleton<MovementSelector>();
         builder.Services.AddSingleton(sp => new PetVisibility(sp.GetRequiredService<TimeProvider>(), PetRestoreDelay));
-        builder.Services.AddSingleton(pomodoroOptions);
-        builder.Services.AddSingleton<PomodoroSession>();
         builder.Services.AddSingleton(sedentaryOptions);
         builder.Services.AddSingleton<SedentaryReminderPolicy>();
         builder.Services.AddSingleton(sp => new PetMessageQueue(
@@ -244,7 +234,6 @@ public partial class App
         builder.Services.AddSingleton(sp => new SettingsApplier(
             sp.GetRequiredService<SettingsService>(),
             behaviorOptions,
-            pomodoroOptions,
             sedentaryOptions,
             sp.GetRequiredService<PetVisibility>(),
             sp.GetRequiredService<ChatterPolicy>(),
@@ -252,15 +241,6 @@ public partial class App
             sp.GetRequiredService<ScenarioSwitches>(),
             sp.GetRequiredService<MeetingPolicy>(),
             ApplyConfigurationOverrides));
-        builder.Services.AddSingleton<ITodoRepository>(sp => new JsonTodoRepository(
-            dataDirectory,
-            sp.GetRequiredService<ILogger<JsonTodoRepository>>()));
-        builder.Services.AddSingleton<INoteStore>(_ => new FileNoteStore(dataDirectory));
-        builder.Services.AddSingleton<TodoService>();
-        builder.Services.AddSingleton(sp => new NoteService(
-            sp.GetRequiredService<INoteStore>(),
-            sp.GetRequiredService<TimeProvider>(),
-            NoteSaveDelay));
 
         _host = builder.Build();
         InstallCrashGuard();
@@ -320,7 +300,7 @@ public partial class App
                 skinName,
                 newSkin => petWindow.SetSkin(newSkin, new SkinFrameCache(newSkin)),
                 _host.Services.GetRequiredService<ILogger<SkinSwitcher>>());
-            _tray = new TrayIconService(brain, _petWindow.RefreshState, OpenPanel, ExitApplication);
+            _tray = new TrayIconService(brain, OpenPanel, ExitApplication);
 
             _hotkeys = new Win32HotkeyService();
             _bossKey = new BossKeyController(_host.Services.GetRequiredService<SettingsService>(), _hotkeys, brain);
@@ -350,7 +330,6 @@ public partial class App
 
         if (_host is not null)
         {
-            FlushNote(_host.Services.GetRequiredService<ILogger<App>>());
             _host.StopAsync().GetAwaiter().GetResult();
             _host.Dispose();
         }
@@ -372,9 +351,6 @@ public partial class App
         {
             var services = _host.Services;
             var viewModel = new PanelViewModel(
-                new PomodoroTabViewModel(services.GetRequiredService<PetBrain>(), _petWindow.RefreshState),
-                new TodoTabViewModel(services.GetRequiredService<TodoService>()),
-                new NoteTabViewModel(services.GetRequiredService<NoteService>()),
                 new SettingsTabViewModel(
                     services.GetRequiredService<SettingsService>(),
                     _bossKey,
@@ -382,7 +358,7 @@ public partial class App
                     services.GetRequiredService<ISkinCatalog>(),
                     _skinSwitcher,
                     OpenLogDirectory));
-            _panel = new PanelWindow(viewModel, services.GetRequiredService<NoteService>());
+            _panel = new PanelWindow(viewModel);
         }
 
         _panel?.ShowPanel(tab);
@@ -437,14 +413,14 @@ public partial class App
     }
 
     /// <summary>
-    /// Loads the saved settings, to-do list and note. A storage problem does not stop the application; it is logged here and
+    /// Loads the saved settings. A storage problem does not stop the application; it is logged here and
     /// shown in the panel, where editing is disabled so the unreadable data is never overwritten.
     /// </summary>
     /// <param name="logger">
     /// Logger used to report storage problems.
     /// </param>
     /// <returns>
-    /// A task that completes when all have been loaded.
+    /// A task that completes when they have been loaded.
     /// </returns>
     private async Task InitializeUserDataAsync(ILogger logger)
     {
@@ -455,38 +431,6 @@ public partial class App
         if (settings.LoadFailure is { } settingsFailure)
         {
             logger.LogError(settingsFailure, "The saved settings could not be read; defaults are used and changes are disabled.");
-        }
-
-        var todos = services.GetRequiredService<TodoService>();
-        await todos.InitializeAsync();
-        if (todos.LoadFailure is { } todoFailure)
-        {
-            logger.LogError(todoFailure, "The saved to-do list could not be read; changes are disabled.");
-        }
-
-        var note = services.GetRequiredService<NoteService>();
-        await note.InitializeAsync();
-        if (note.LoadFailure is { } noteFailure)
-        {
-            logger.LogError(noteFailure, "The saved note could not be read; edits are disabled.");
-        }
-    }
-
-    /// <summary>
-    /// Saves any note text typed in the last moments before exit.
-    /// </summary>
-    /// <param name="logger">
-    /// Logger used to report a failed save.
-    /// </param>
-    private void FlushNote(ILogger logger)
-    {
-        try
-        {
-            _host!.Services.GetRequiredService<NoteService>().FlushAsync().GetAwaiter().GetResult();
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        {
-            logger.LogError(ex, "The note could not be saved on exit.");
         }
     }
 }

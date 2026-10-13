@@ -131,9 +131,6 @@ public class SettingsTabViewModelTests
         _store.Stored = PetSettings.Default with
         {
             Mode = DisturbanceMode.Roam,
-            PomodoroWork = TimeSpan.FromMinutes(50),
-            PomodoroShortBreak = TimeSpan.FromMinutes(10),
-            PomodoroLongBreak = TimeSpan.FromMinutes(30),
             SedentaryReminderAfter = TimeSpan.FromMinutes(60),
             SleepAfter = TimeSpan.FromMinutes(8),
             AutoHideWhenFullscreen = false,
@@ -147,9 +144,6 @@ public class SettingsTabViewModelTests
         // Assert
         _viewModel.IsRoam.Should().BeTrue();
         _viewModel.IsDocked.Should().BeFalse();
-        _viewModel.PomodoroWorkText.Should().Be("50");
-        _viewModel.ShortBreakText.Should().Be("10");
-        _viewModel.LongBreakText.Should().Be("30");
         _viewModel.SedentaryText.Should().Be("60");
         _viewModel.SleepText.Should().Be("8");
         _viewModel.BossKeyText.Should().Be("Ctrl+Alt+H");
@@ -169,16 +163,10 @@ public class SettingsTabViewModelTests
         await CreateAsync();
 
         // Act
-        _viewModel.PomodoroWorkText = "50";
-        _viewModel.ShortBreakText = "7";
-        _viewModel.LongBreakText = "20";
         _viewModel.SedentaryText = "90";
         _viewModel.SleepText = "12";
 
         // Assert
-        _settings.Current.PomodoroWork.Should().Be(TimeSpan.FromMinutes(50));
-        _settings.Current.PomodoroShortBreak.Should().Be(TimeSpan.FromMinutes(7));
-        _settings.Current.PomodoroLongBreak.Should().Be(TimeSpan.FromMinutes(20));
         _settings.Current.SedentaryReminderAfter.Should().Be(TimeSpan.FromMinutes(90));
         _settings.Current.SleepAfter.Should().Be(TimeSpan.FromMinutes(12));
         _store.Stored.Should().Be(_settings.Current);
@@ -195,11 +183,11 @@ public class SettingsTabViewModelTests
         await CreateAsync();
 
         // Act
-        _viewModel.PomodoroWorkText = "  30 ";
+        _viewModel.SedentaryText = "  30 ";
 
         // Assert
-        _settings.Current.PomodoroWork.Should().Be(TimeSpan.FromMinutes(30));
-        _viewModel.PomodoroWorkText.Should().Be("30");
+        _settings.Current.SedentaryReminderAfter.Should().Be(TimeSpan.FromMinutes(30));
+        _viewModel.SedentaryText.Should().Be("30");
     }
 
     /// <summary>
@@ -211,7 +199,7 @@ public class SettingsTabViewModelTests
     [InlineData("0")]
     [InlineData("-5")]
     [InlineData("2.5")]
-    [InlineData("181")]
+    [InlineData("481")]
     [InlineData("99999999999")]
     public async Task Minutes_InvalidValue_IsNotAppliedAndExplained(string text)
     {
@@ -219,22 +207,19 @@ public class SettingsTabViewModelTests
         await CreateAsync();
 
         // Act
-        _viewModel.PomodoroWorkText = text;
+        _viewModel.SedentaryText = text;
 
         // Assert
-        _settings.Current.PomodoroWork.Should().Be(PetSettings.Default.PomodoroWork);
+        _settings.Current.SedentaryReminderAfter.Should().Be(PetSettings.Default.SedentaryReminderAfter);
         _store.SaveCount.Should().Be(0);
-        _viewModel.TimingError.Should().Contain("1").And.Contain("180");
-        _viewModel.PomodoroWorkText.Should().Be(text);
+        _viewModel.TimingError.Should().Contain("1").And.Contain("480");
+        _viewModel.SedentaryText.Should().Be(text);
     }
 
     /// <summary>
     /// The upper limits of the entries are accepted and the next value up is not.
     /// </summary>
     [Theory]
-    [InlineData(nameof(SettingsTabViewModel.PomodoroWorkText), 180)]
-    [InlineData(nameof(SettingsTabViewModel.ShortBreakText), 60)]
-    [InlineData(nameof(SettingsTabViewModel.LongBreakText), 60)]
     [InlineData(nameof(SettingsTabViewModel.SedentaryText), 480)]
     [InlineData(nameof(SettingsTabViewModel.SleepText), 720)]
     public async Task Minutes_AtUpperLimit_AcceptedAndAboveRejected(string property, int limit)

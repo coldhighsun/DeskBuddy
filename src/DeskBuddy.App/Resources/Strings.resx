@@ -23,39 +23,12 @@
 
   <data name="OpenPanel" xml:space="preserve"><value>打开面板</value></data>
 
-  <data name="TabPomodoro" xml:space="preserve"><value>番茄钟</value></data>
-  <data name="TabTodo" xml:space="preserve"><value>待办</value></data>
-  <data name="TabNote" xml:space="preserve"><value>便签</value></data>
 
-  <data name="PomodoroCompleted" xml:space="preserve"><value>本轮已完成 {0} 个番茄</value></data>
 
-  <data name="TodoNewLabel" xml:space="preserve"><value>新的待办事项（回车添加）</value></data>
-  <data name="TodoAdd" xml:space="preserve"><value>添加</value></data>
-  <data name="TodoDelete" xml:space="preserve"><value>删除</value></data>
-  <data name="TodoClearCompleted" xml:space="preserve"><value>清除已完成</value></data>
-  <data name="TodoEmpty" xml:space="preserve"><value>还没有待办，添加一个吧～</value></data>
-  <data name="TodoLoadFailed" xml:space="preserve"><value>待办数据读取失败（{0}）。为避免覆盖原有数据，已暂停保存，请检查文件后重启。</value></data>
-  <data name="TodoSaveFailed" xml:space="preserve"><value>待办保存失败：{0}</value></data>
 
-  <data name="NoteHint" xml:space="preserve"><value>随手记点什么吧，内容会自动保存。</value></data>
-  <data name="NoteLoadFailed" xml:space="preserve"><value>便签读取失败（{0}）。为避免覆盖原有内容，已暂停编辑，请检查文件后重启。</value></data>
-  <data name="NoteSaveFailed" xml:space="preserve"><value>便签保存失败：{0}</value></data>
 
-  <data name="PomodoroStart" xml:space="preserve"><value>开始专注（番茄钟）</value></data>
-  <data name="PomodoroPause" xml:space="preserve"><value>暂停</value></data>
-  <data name="PomodoroResume" xml:space="preserve"><value>继续</value></data>
-  <data name="PomodoroSkipWork" xml:space="preserve"><value>结束本轮专注并休息</value></data>
-  <data name="PomodoroSkipBreak" xml:space="preserve"><value>跳过休息</value></data>
-  <data name="PomodoroStop" xml:space="preserve"><value>停止番茄钟</value></data>
 
-  <data name="StatusStopped" xml:space="preserve"><value>番茄钟未开始</value></data>
-  <data name="StatusWork" xml:space="preserve"><value>专注中，剩余 {0} 分钟</value></data>
-  <data name="StatusShortBreak" xml:space="preserve"><value>休息中，剩余 {0} 分钟</value></data>
-  <data name="StatusLongBreak" xml:space="preserve"><value>长休息中，剩余 {0} 分钟</value></data>
-  <data name="StatusPaused" xml:space="preserve"><value>已暂停，剩余 {0} 分钟</value></data>
 
-  <data name="MessageWorkCompleted" xml:space="preserve"><value>第 {1} 个番茄完成啦！休息 {0} 分钟吧～</value></data>
-  <data name="MessageBreakCompleted" xml:space="preserve"><value>休息结束了，要开始下一个番茄吗？</value></data>
 
   <data name="MessageSedentary" xml:space="preserve"><value>你已经连续工作 {0} 分钟了，起来活动一下、喝口水吧～</value></data>
 
@@ -70,20 +43,16 @@
 
   <data name="ActionDismiss" xml:space="preserve"><value>知道了</value></data>
   <data name="ActionSnoozeReminder" xml:space="preserve"><value>稍后提醒</value></data>
-  <data name="ActionSkipBreak" xml:space="preserve"><value>跳过休息</value></data>
-  <data name="ActionStartPomodoro" xml:space="preserve"><value>开始下一轮</value></data>
 
-  <data name="TabSettings" xml:space="preserve"><value>设置</value></data>
-  <data name="MenuSettings" xml:space="preserve"><value>设置</value></data>
+  <data name="TabAppearance" xml:space="preserve"><value>外观</value></data>
+  <data name="TabBehavior" xml:space="preserve"><value>行为</value></data>
+  <data name="TabSystem" xml:space="preserve"><value>系统</value></data>
   <data name="SettingsAppearance" xml:space="preserve"><value>外观</value></data>
   <data name="SettingsSkin" xml:space="preserve"><value>皮肤</value></data>
   <data name="SettingsMode" xml:space="preserve"><value>打扰模式</value></data>
   <data name="ModeDocked" xml:space="preserve"><value>停靠在任务栏上</value></data>
   <data name="ModeRoam" xml:space="preserve"><value>在桌面上自由活动</value></data>
   <data name="SettingsTiming" xml:space="preserve"><value>计时（单位：分钟）</value></data>
-  <data name="SettingsPomodoroWork" xml:space="preserve"><value>番茄钟专注时长</value></data>
-  <data name="SettingsPomodoroShortBreak" xml:space="preserve"><value>短休息时长</value></data>
-  <data name="SettingsPomodoroLongBreak" xml:space="preserve"><value>长休息时长</value></data>
   <data name="SettingsSedentary" xml:space="preserve"><value>久坐提醒间隔</value></data>
   <data name="SettingsSleep" xml:space="preserve"><value>无操作多久后睡着</value></data>
   <data name="SettingsBossKey" xml:space="preserve"><value>老板键（一键隐藏或显示宠物）</value></data>

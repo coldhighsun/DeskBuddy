@@ -5,14 +5,13 @@ using DeskBuddy.App.Presentation;
 using DeskBuddy.App.Resources;
 using DeskBuddy.App.Windows;
 using DeskBuddy.Application;
-using DeskBuddy.Domain.Pomodoro;
 using H.NotifyIcon;
 using H.NotifyIcon.Core;
 
 namespace DeskBuddy.App;
 
 /// <summary>
-/// Owns the notification-area icon: its pomodoro and show/hide/exit menu, and a tooltip with the pomodoro status.
+/// Owns the notification-area icon: its panel, show/hide and exit menu.
 /// </summary>
 public sealed class TrayIconService : IDisposable
 {
@@ -22,14 +21,9 @@ public sealed class TrayIconService : IDisposable
     private readonly TaskbarIcon _icon;
 
     /// <summary>
-    /// The brain whose pomodoro the menu controls.
+    /// The brain whose visibility the menu controls.
     /// </summary>
     private readonly PetBrain _brain;
-
-    /// <summary>
-    /// Called after any pomodoro command so the pet reacts immediately.
-    /// </summary>
-    private readonly Action _afterCommand;
 
     /// <summary>
     /// Opens the panel window.
@@ -45,10 +39,7 @@ public sealed class TrayIconService : IDisposable
     /// Initializes a new instance of the <see cref="TrayIconService"/> class and shows the icon.
     /// </summary>
     /// <param name="brain">
-    /// The brain whose pomodoro the menu controls.
-    /// </param>
-    /// <param name="afterCommand">
-    /// Called after any pomodoro command so the pet reacts immediately.
+    /// The brain whose visibility the menu controls.
     /// </param>
     /// <param name="openPanel">
     /// Opens the panel window; called from the menu and on double-click of the icon.
@@ -56,10 +47,9 @@ public sealed class TrayIconService : IDisposable
     /// <param name="onExit">
     /// Callback invoked when the user chooses Exit.
     /// </param>
-    public TrayIconService(PetBrain brain, Action afterCommand, Action<PanelTab?> openPanel, Action onExit)
+    public TrayIconService(PetBrain brain, Action<PanelTab?> openPanel, Action onExit)
     {
         _brain = brain;
-        _afterCommand = afterCommand;
         _openPanel = openPanel;
         _onExit = onExit;
 
@@ -71,14 +61,14 @@ public sealed class TrayIconService : IDisposable
                 Foreground = Brushes.White,
                 Background = Brushes.DarkOrange,
             },
+            ToolTipText = Strings.AppName,
             ContextMenu = new ContextMenu(),
         };
 
         Refresh();
         _icon.ForceCreate();
 
-        // The menu and tooltip depend on pet visibility and on the pomodoro; rebuild them when either changes.
-        _brain.PomodoroStatusChanged += OnStatusChanged;
+        // The menu depends on pet visibility; rebuild it when that changes.
         _brain.VisibilityChanged += OnStatusChanged;
         _icon.TrayMouseDoubleClick += OnTrayDoubleClick;
     }
@@ -86,7 +76,6 @@ public sealed class TrayIconService : IDisposable
     /// <inheritdoc />
     public void Dispose()
     {
-        _brain.PomodoroStatusChanged -= OnStatusChanged;
         _brain.VisibilityChanged -= OnStatusChanged;
         _icon.Dispose();
     }
@@ -120,7 +109,7 @@ public sealed class TrayIconService : IDisposable
     }
 
     /// <summary>
-    /// Rebuilds the menu and tooltip when something they show has changed.
+    /// Rebuilds the menu when something it shows has changed.
     /// </summary>
     /// <param name="sender">
     /// The event source.
@@ -134,26 +123,16 @@ public sealed class TrayIconService : IDisposable
     }
 
     /// <summary>
-    /// Rebuilds the tooltip and the context menu from the current pomodoro status and whether the user hid the pet.
+    /// Rebuilds the context menu from whether the user hid the pet.
     /// </summary>
     private void Refresh()
     {
-        var session = _brain.Pomodoro;
-        _icon.ToolTipText = session.Phase == PomodoroPhase.Stopped
-            ? Strings.AppName
-            : $"{Strings.AppName} - {PomodoroMenu.FormatStatus(session)}";
-
         var items = _icon.ContextMenu!.Items;
-        PomodoroMenu.Populate(items, _brain, _afterCommand);
+        items.Clear();
 
         var openPanel = new MenuItem { Header = Strings.OpenPanel };
         openPanel.Click += (_, _) => _openPanel(null);
-        items.Insert(0, openPanel);
-
-        var settings = new MenuItem { Header = Strings.MenuSettings };
-        settings.Click += (_, _) => _openPanel(PanelTab.Settings);
-        items.Insert(1, settings);
-        items.Insert(2, new Separator());
+        items.Add(openPanel);
 
         items.Add(new Separator());
 

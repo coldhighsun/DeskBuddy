@@ -6,7 +6,6 @@ using DeskBuddy.Domain.Activity;
 using DeskBuddy.Domain.Behavior;
 using DeskBuddy.Domain.Chatter;
 using DeskBuddy.Domain.Messages;
-using DeskBuddy.Domain.Pomodoro;
 using DeskBuddy.Domain.Power;
 using DeskBuddy.Domain.Scenarios;
 using DeskBuddy.Domain.Schedule;
@@ -234,7 +233,6 @@ internal static class TestBrain
             new QuietLoad(),
             new LoadReactionPolicy(new SystemLoadOptions(), clock),
             new QuietDetector(),
-            new PomodoroSession(new PomodoroOptions(), clock),
             new SedentaryReminderPolicy(new SedentaryOptions(), clock),
             new PetMessageQueue(TimeSpan.FromSeconds(30), clock),
             new PetBehaviorStateMachine(new PetBehaviorOptions(), clock, new Random(1)),
