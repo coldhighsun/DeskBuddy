@@ -96,6 +96,27 @@ public sealed class DragTracker
 public static class BubblePlacement
 {
     /// <summary>
+    /// Works out how far the bubble's bottom reaches below the top of the pet window so that it ends just above the
+    /// sprite, whatever transparent space the skin leaves above its head.
+    /// </summary>
+    /// <param name="petHeight">
+    /// The pet window's height in device pixels.
+    /// </param>
+    /// <param name="spriteTop">
+    /// Where the sprite starts, as a fraction of the window height.
+    /// </param>
+    /// <param name="gap">
+    /// The space to leave between the bubble and the sprite, in device pixels.
+    /// </param>
+    /// <returns>
+    /// The overlap in device pixels; negative when the bubble has to stay clear of the window.
+    /// </returns>
+    public static int TailOverlap(int petHeight, double spriteTop, int gap)
+    {
+        return (int)Math.Round(petHeight * spriteTop, MidpointRounding.AwayFromZero) - gap;
+    }
+
+    /// <summary>
     /// Places the bubble above the pet, centred on it but kept inside the work area.
     /// </summary>
     /// <param name="pet">
