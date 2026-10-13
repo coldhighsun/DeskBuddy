@@ -141,6 +141,10 @@
   <data name="LanguageAuto" xml:space="preserve"><value>Follow system</value></data>
   <data name="LanguageZhCN" xml:space="preserve"><value>简体中文</value></data>
   <data name="LanguageEn" xml:space="preserve"><value>English</value></data>
+  <data name="SettingsTheme" xml:space="preserve"><value>Theme</value></data>
+  <data name="ThemeAuto" xml:space="preserve"><value>Follow system</value></data>
+  <data name="ThemeLight" xml:space="preserve"><value>Light</value></data>
+  <data name="ThemeDark" xml:space="preserve"><value>Dark</value></data>
   <data name="LanguageRestartHint" xml:space="preserve"><value>Restart DeskBuddy for a language change to take full effect.</value></data>
 
   <data name="StateHintCoding" xml:space="preserve"><value>Keeping you company while you code</value></data>

@@ -5,6 +5,8 @@
     <AssemblyName>DeskBuddy</AssemblyName>
     <TargetFramework>net10.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
+    <!-- Window.ThemeMode (the Fluent theme with dark mode) is still experimental in .NET 10. -->
+    <NoWarn>$(NoWarn);WPF0001</NoWarn>
     <MinVerTagPrefix>v</MinVerTagPrefix>
     <SatelliteResourceLanguages>en;zh-Hans</SatelliteResourceLanguages>
     <Product>DeskBuddy</Product>

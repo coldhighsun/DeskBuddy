@@ -144,6 +144,12 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     private AppLanguage _selectedLanguage;
 
     /// <summary>
+    /// Gets or sets the color theme of the user interface.
+    /// </summary>
+    [ObservableProperty]
+    private AppTheme _selectedTheme;
+
+    /// <summary>
     /// Gets or sets how large the pet is shown.
     /// </summary>
     [ObservableProperty]
@@ -494,6 +500,16 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     ];
 
     /// <summary>
+    /// Gets the themes to choose from.
+    /// </summary>
+    public IReadOnlyList<ThemeOption> Themes { get; } =
+    [
+        new(AppTheme.Auto, Strings.ThemeAuto),
+        new(AppTheme.Light, Strings.ThemeLight),
+        new(AppTheme.Dark, Strings.ThemeDark),
+    ];
+
+    /// <summary>
     /// Gets the pet sizes to choose from.
     /// </summary>
     public IReadOnlyList<PetSizeOption> Sizes { get; } =
@@ -502,6 +518,20 @@ public sealed partial class SettingsTabViewModel : ObservableObject
         new(PetSize.Medium, Strings.PetSizeMedium),
         new(PetSize.Large, Strings.PetSizeLarge),
     ];
+
+    /// <summary>
+    /// Applies the chosen theme; it takes effect at once.
+    /// </summary>
+    /// <param name="value">
+    /// The theme.
+    /// </param>
+    partial void OnSelectedThemeChanged(AppTheme value)
+    {
+        if (!_refreshing)
+        {
+            _ = ApplyAsync(settings => settings with { Theme = value });
+        }
+    }
 
     /// <summary>
     /// Applies the chosen pet size.
@@ -753,6 +783,7 @@ public sealed partial class SettingsTabViewModel : ObservableObject
             ScenariosEnabled = settings.ScenariosEnabled;
             MeetingProcessesText = string.Join(Environment.NewLine, settings.MeetingProcesses);
             SelectedLanguage = settings.Language;
+            SelectedTheme = settings.Theme;
             SelectedSize = settings.Size;
             ClimbEdges = settings.ClimbEdges;
             ClockOutTimeError = string.Empty;

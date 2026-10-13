@@ -42,6 +42,8 @@ A desktop pet for work computers. It lives on your desktop, reacts to what you a
 - English and Simplified Chinese: the interface follows the system language, or choose one in the settings (a change
   takes full effect after a restart). Translations live in `src/DeskBuddy.App/Resources` (`Strings.resx` is Chinese,
   `Strings.en.resx` is English).
+- Light and dark themes: the panel, tray menu and speech bubble follow the Windows app theme and switch as it changes, or
+  choose light or dark under Appearance in the settings (takes effect at once). A Windows high-contrast theme is respected.
 - Tray icon and single-instance protection.
 
 ## Build

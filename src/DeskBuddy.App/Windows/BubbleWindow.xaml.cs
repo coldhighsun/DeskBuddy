@@ -66,6 +66,7 @@ public partial class BubbleWindow : Window
                 Padding = new Thickness(10, 3, 10, 3),
                 Focusable = false,
             };
+            button.SetResourceReference(FrameworkElement.StyleProperty, "BubbleButtonStyle");
             button.Click += (_, _) => ActionInvoked?.Invoke(this, action);
             ButtonPanel.Children.Add(button);
         }

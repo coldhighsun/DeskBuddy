@@ -141,6 +141,10 @@
   <data name="LanguageAuto" xml:space="preserve"><value>跟随系统</value></data>
   <data name="LanguageZhCN" xml:space="preserve"><value>简体中文</value></data>
   <data name="LanguageEn" xml:space="preserve"><value>English</value></data>
+  <data name="SettingsTheme" xml:space="preserve"><value>主题</value></data>
+  <data name="ThemeAuto" xml:space="preserve"><value>跟随系统</value></data>
+  <data name="ThemeLight" xml:space="preserve"><value>浅色</value></data>
+  <data name="ThemeDark" xml:space="preserve"><value>深色</value></data>
   <data name="LanguageRestartHint" xml:space="preserve"><value>更改语言后需要重启 DeskBuddy 才会完全生效。</value></data>
 
   <data name="StateHintCoding" xml:space="preserve"><value>正在陪你写代码</value></data>

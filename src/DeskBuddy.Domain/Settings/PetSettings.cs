@@ -132,6 +132,11 @@ public sealed record PetSettings
     public AppLanguage Language { get; init; } = AppLanguage.Auto;
 
     /// <summary>
+    /// Gets the color theme of the user interface; a change takes effect at once.
+    /// </summary>
+    public AppTheme Theme { get; init; } = AppTheme.Auto;
+
+    /// <summary>
     /// Gets how large the pet is shown on the screen.
     /// </summary>
     public PetSize Size { get; init; } = PetSize.Medium;
@@ -171,6 +176,7 @@ public sealed record PetSettings
             SleepAfter = Clamp(SleepAfter, MinSleepAfter, MaxSleepAfter),
             SedentaryReminderAfter = Clamp(SedentaryReminderAfter, MinSedentaryInterval, MaxSedentaryInterval),
             Language = Enum.IsDefined(Language) ? Language : defaults.Language,
+            Theme = Enum.IsDefined(Theme) ? Theme : defaults.Theme,
             Size = Enum.IsDefined(Size) ? Size : defaults.Size,
             BossKey = BossKey.IsValid ? BossKey : defaults.BossKey,
             BlacklistedProcesses = NormalizeProcessNames(BlacklistedProcesses),
