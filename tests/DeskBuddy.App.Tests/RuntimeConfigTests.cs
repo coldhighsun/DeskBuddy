@@ -18,7 +18,7 @@ public sealed class RuntimeConfigTests
     public void RuntimeConfig_TieredCompilation_IsDisabled()
     {
         // Arrange
-        var path = Path.Combine(AppContext.BaseDirectory, "DeskBuddy.App.runtimeconfig.json");
+        var path = Path.Combine(AppContext.BaseDirectory, "DeskBuddy.runtimeconfig.json");
 
         // Act
         using var document = JsonDocument.Parse(File.ReadAllText(path));
