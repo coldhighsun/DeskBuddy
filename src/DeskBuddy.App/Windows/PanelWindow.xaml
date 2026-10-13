@@ -3,13 +3,14 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:res="clr-namespace:DeskBuddy.App.Resources"
         Title="{x:Static res:Strings.AppName}"
-        Icon="pack://application:,,,/Assets/DeskBuddy.ico"
+        Icon="pack://application:,,,/DeskBuddy;component/Assets/DeskBuddy.ico"
         Width="460"
         Height="560"
-        MinWidth="380"
-        MinHeight="420"
+        ResizeMode="CanMinimize"
         WindowStartupLocation="CenterScreen">
     <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibility" />
+
         <!-- A TextBlock that is collapsed while its text is empty, for optional error messages. -->
         <Style x:Key="ErrorTextStyle" TargetType="TextBlock">
             <Setter Property="Foreground" Value="#FFD13438" />
@@ -38,27 +39,171 @@
                        AutomationProperties.AutomationId="SettingsSaveError" />
         </StackPanel>
 
-        <TabControl x:Name="Tabs" Grid.Row="1" Margin="0,6,0,0">
+        <TabControl x:Name="Tabs" Grid.Row="1" Margin="0,6,0,0" SelectedIndex="0">
+            <TabItem Header="{x:Static res:Strings.TabPets}"
+                     AutomationProperties.AutomationId="PetsTab"
+                     DataContext="{Binding DataContext.Pets, RelativeSource={RelativeSource AncestorType=Window}}">
+                <Grid Margin="12,12,0,12">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="0,0,12,0">
+                        <TextBlock Text="{x:Static res:Strings.PetsEmpty}"
+                                   Visibility="{Binding IsEmpty, Converter={StaticResource BooleanToVisibility}}"
+                                   Opacity="0.65"
+                                   TextWrapping="Wrap" />
+                        <ItemsControl ItemsSource="{Binding Cards}" AutomationProperties.AutomationId="PetCards">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Width="176"
+                                            Height="314"
+                                            Margin="0,0,8,8"
+                                            Padding="10"
+                                            BorderThickness="2"
+                                            CornerRadius="6"
+                                            Background="Transparent"
+                                            MouseLeftButtonUp="OnPetCardMouseLeftButtonUp"
+                                            AutomationProperties.AutomationId="{Binding FolderName, StringFormat=PetCard_{0}}">
+                                        <Border.Style>
+                                            <Style TargetType="Border">
+                                                <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.ControlLightBrushKey}}" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding IsAvailable}" Value="True">
+                                                        <Setter Property="Cursor" Value="Hand" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding IsAvailable}" Value="False">
+                                                        <Setter Property="Opacity" Value="0.6" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <StackPanel>
+                                            <Image Width="96"
+                                                   Height="96"
+                                                   HorizontalAlignment="Center"
+                                                   Source="{Binding CurrentFrame}"
+                                                   Stretch="Uniform"
+                                                   RenderOptions.BitmapScalingMode="HighQuality" />
+                                            <TextBlock Text="{Binding StateCaption}"
+                                                       HorizontalAlignment="Center"
+                                                       Opacity="0.6"
+                                                       FontSize="11"
+                                                       MinHeight="16"
+                                                       Margin="0,2,0,6" />
+                                            <DockPanel LastChildFill="True">
+                                                <TextBlock DockPanel.Dock="Right"
+                                                           Text="{x:Static res:Strings.PetsCurrent}"
+                                                           Foreground="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"
+                                                           FontSize="11"
+                                                           VerticalAlignment="Center"
+                                                           Visibility="{Binding IsCurrent, Converter={StaticResource BooleanToVisibility}}" />
+                                                <TextBlock Text="{Binding DisplayName}"
+                                                           FontWeight="SemiBold"
+                                                           TextTrimming="CharacterEllipsis" />
+                                            </DockPanel>
+                                            <TextBlock Text="{Binding InfoText}"
+                                                       Opacity="0.65"
+                                                       FontSize="11"
+                                                       TextWrapping="Wrap"
+                                                       Margin="0,2,0,6" />
+                                            <ItemsControl ItemsSource="{Binding Tags}" Focusable="False">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <WrapPanel />
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Margin="0,0,4,4"
+                                                                Padding="5,1"
+                                                                CornerRadius="3"
+                                                                BorderThickness="1">
+                                                            <Border.Style>
+                                                                <Style TargetType="Border">
+                                                                    <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
+                                                                    <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding IsSupported}" Value="False">
+                                                                            <Setter Property="Background" Value="Transparent" />
+                                                                            <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}" />
+                                                                            <Setter Property="Opacity" Value="0.55" />
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Border.Style>
+                                                            <TextBlock Text="{Binding Text}" FontSize="11">
+                                                                <TextBlock.Style>
+                                                                    <Style TargetType="TextBlock">
+                                                                        <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}" />
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding IsSupported}" Value="False">
+                                                                                <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" />
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </TextBlock.Style>
+                                                            </TextBlock>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                            <TextBlock Text="{Binding LoadError}"
+                                                       ToolTip="{Binding LoadError}"
+                                                       Style="{StaticResource ErrorTextStyle}"
+                                                       MaxHeight="64"
+                                                       FontSize="11" />
+                                            <Button Content="{x:Static res:Strings.PetsUse}"
+                                                    Margin="0,6,0,0"
+                                                    Padding="0,3"
+                                                    Command="{Binding DataContext.UseCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    AutomationProperties.AutomationId="{Binding FolderName, StringFormat=PetUse_{0}}">
+                                                <Button.Style>
+                                                    <Style TargetType="Button">
+                                                        <Setter Property="Visibility" Value="Hidden" />
+                                                        <Style.Triggers>
+                                                            <MultiDataTrigger>
+                                                                <MultiDataTrigger.Conditions>
+                                                                    <Condition Binding="{Binding IsSelected}" Value="True" />
+                                                                    <Condition Binding="{Binding IsCurrent}" Value="False" />
+                                                                </MultiDataTrigger.Conditions>
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                            </MultiDataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Button.Style>
+                                            </Button>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        </StackPanel>
+                    </ScrollViewer>
+                    <TextBlock Grid.Row="1"
+                               Text="{Binding PetError}"
+                               Style="{StaticResource ErrorTextStyle}"
+                               Margin="0,6,12,0"
+                               AutomationProperties.AutomationId="PetError" />
+                </Grid>
+            </TabItem>
+
             <TabItem Header="{x:Static res:Strings.TabAppearance}" AutomationProperties.AutomationId="AppearanceTab">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="12">
                         <!-- Appearance -->
                         <TextBlock Text="{x:Static res:Strings.SettingsAppearance}" FontWeight="SemiBold" Margin="0,6,0,6" />
                         <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="150" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="{x:Static res:Strings.SettingsPet}" VerticalAlignment="Center" />
-                            <ComboBox Grid.Column="1"
-                                      ItemsSource="{Binding Pets}"
-                                      SelectedItem="{Binding SelectedPet}"
-                                      AutomationProperties.AutomationId="PetBox" />
-                        </Grid>
-                        <TextBlock Text="{Binding PetError}"
-                                   Style="{StaticResource ErrorTextStyle}"
-                                   AutomationProperties.AutomationId="PetError" />
-                        <Grid Margin="0,8,0,0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="150" />
                                 <ColumnDefinition Width="*" />

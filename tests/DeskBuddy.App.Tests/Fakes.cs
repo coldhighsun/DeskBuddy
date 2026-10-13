@@ -175,6 +175,16 @@ internal sealed class FakePetLoader : IPetLoader
     /// </summary>
     public Dictionary<string, TaskCompletionSource> Gates { get; } = [];
 
+    /// <summary>
+    /// Gets the names pets give themselves, by folder name; a pet without an entry is named after its folder.
+    /// </summary>
+    public Dictionary<string, string> DisplayNames { get; } = [];
+
+    /// <summary>
+    /// Gets the states pets define besides Idle, by folder name.
+    /// </summary>
+    public Dictionary<string, PetState[]> ExtraStates { get; } = [];
+
     /// <inheritdoc />
     public async Task<Pet> LoadAsync(string petDirectory, CancellationToken cancellationToken = default)
     {
@@ -191,7 +201,9 @@ internal sealed class FakePetLoader : IPetLoader
             throw new InvalidDataException($"Pet '{name}' is broken.");
         }
 
-        return CreatePet(name);
+        return CreatePet(
+            DisplayNames.GetValueOrDefault(name, name),
+            ExtraStates.GetValueOrDefault(name, []));
     }
 
     /// <summary>
@@ -205,10 +217,32 @@ internal sealed class FakePetLoader : IPetLoader
     /// </returns>
     public static Pet CreatePet(string name)
     {
+        return CreatePet(name, []);
+    }
+
+    /// <summary>
+    /// Creates a pet that defines some states besides Idle.
+    /// </summary>
+    /// <param name="name">
+    /// The pet name.
+    /// </param>
+    /// <param name="extraStates">
+    /// The states to define besides Idle, each with two pictures.
+    /// </param>
+    /// <returns>
+    /// A pet with an idle frame and two pictures for each extra state.
+    /// </returns>
+    public static Pet CreatePet(string name, IEnumerable<PetState> extraStates)
+    {
         var animations = new Dictionary<PetState, PetAnimation>
         {
             [PetState.Idle] = new PetAnimation(4, ["idle.png"]),
         };
+        foreach (var state in extraStates)
+        {
+            animations[state] = new PetAnimation(4, [$"{state}_0.png", $"{state}_1.png"]);
+        }
+
         return new Pet(name, 128, 128, animations);
     }
 }

@@ -349,14 +349,20 @@ public partial class App
         if (_panel is null && _host is not null && _petWindow is not null && _bossKey is not null && _petSwitcher is not null)
         {
             var services = _host.Services;
+            var previewFrames = new PetPreviewFrames();
             var viewModel = new PanelViewModel(
                 new SettingsTabViewModel(
                     services.GetRequiredService<SettingsService>(),
                     _bossKey,
                     services.GetRequiredService<IAutoStartService>(),
+                    OpenLogDirectory),
+                new PetsTabViewModel(
+                    services.GetRequiredService<SettingsService>(),
                     services.GetRequiredService<IPetCatalog>(),
+                    services.GetRequiredService<IPetLoader>(),
+                    Path.Combine(AppContext.BaseDirectory, "pets"),
                     _petSwitcher,
-                    OpenLogDirectory));
+                    previewFrames.Get));
             _panel = new PanelWindow(viewModel);
         }
 

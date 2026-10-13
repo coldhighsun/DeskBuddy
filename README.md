@@ -16,6 +16,8 @@ A desktop pet for work computers. It lives on your desktop, reacts to what you a
 
 - A small animated pet that walks, sleeps, gets tired, and reacts when you drag it.
 - Pets made of plain PNG frames plus a `manifest.json` (see [pets/robot](pets/robot)).
+- The first tab of the panel lists every installed pet with a live preview, its picture size and what it can do (follows
+  the mouse, climbs screen edges, keeps you company while developing, acts out situations), so you can compare and pick one.
 - A pixel-art robot pet for programmers ([pets/robot](pets/robot)): when a development tool (an IDE, an editor or a
   terminal) is in front and you are typing, it sits down at a desk and codes. The tools are editable in settings, and
   only the foreground process name is read, never window titles or keystrokes. Pets without a `Coding` state simply
