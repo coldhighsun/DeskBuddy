@@ -22,8 +22,8 @@
     </WindowChrome.WindowChrome>
     <StackPanel>
         <Border CornerRadius="12"
-                Background="#FFFDF6EC"
-                BorderBrush="#FFE0C8A8"
+                Background="{DynamicResource BubbleBackgroundBrush}"
+                BorderBrush="{DynamicResource BubbleBorderBrush}"
                 BorderThickness="1"
                 Padding="12,10,12,10"
                 MaxWidth="260">
@@ -31,15 +31,15 @@
                 <TextBlock x:Name="MessageText"
                            TextWrapping="Wrap"
                            FontSize="13"
-                           Foreground="#FF3C281E" />
+                           Foreground="{DynamicResource BubbleTextBrush}" />
                 <WrapPanel x:Name="ButtonPanel" Margin="0,2,0,0" />
             </StackPanel>
         </Border>
         <!-- Little tail pointing down at the pet; its horizontal position is set in code. -->
         <Path x:Name="Tail"
               Data="M 0,0 L 14,0 L 7,9 Z"
-              Fill="#FFFDF6EC"
-              Stroke="#FFE0C8A8"
+              Fill="{DynamicResource BubbleBackgroundBrush}"
+              Stroke="{DynamicResource BubbleBorderBrush}"
               StrokeThickness="0"
               HorizontalAlignment="Left"
               Margin="0,-1,0,0" />

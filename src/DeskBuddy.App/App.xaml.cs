@@ -110,6 +110,11 @@ public partial class App
     private PetSwitcher? _petSwitcher;
 
     /// <summary>
+    /// Applies the color theme to the application.
+    /// </summary>
+    private ThemeService? _themeService;
+
+    /// <summary>
     /// The global boss-key shortcut; <see langword="null"/> until startup completes.
     /// </summary>
     private BossKeyController? _bossKey;
@@ -257,6 +262,14 @@ public partial class App
         CultureInfo.CurrentUICulture = culture;
         logger.LogInformation("Interface language: {Language}.", culture.Name);
 
+        // The theme must be applied before any window is created, so none flashes in the wrong colors.
+        var themeService = new ThemeService(
+            Resources,
+            Dispatcher,
+            _host.Services.GetRequiredService<SettingsService>(),
+            _host.Services.GetRequiredService<ILogger<ThemeService>>());
+        _themeService = themeService;
+
         // Resolving the applier copies the loaded settings into the option objects the pet logic reads from.
         _host.Services.GetRequiredService<SettingsApplier>();
         var petName = _host.Services.GetRequiredService<SettingsService>().Current.PetName;
@@ -299,7 +312,7 @@ public partial class App
                 petName,
                 newPet => petWindow.SetPet(newPet, new PetFrameCache(newPet)),
                 _host.Services.GetRequiredService<ILogger<PetSwitcher>>());
-            _tray = new TrayIconService(brain, OpenPanel, ExitApplication);
+            _tray = new TrayIconService(brain, OpenPanel, ExitApplication, themeService);
 
             _hotkeys = new Win32HotkeyService();
             _bossKey = new BossKeyController(_host.Services.GetRequiredService<SettingsService>(), _hotkeys, brain);
@@ -323,6 +336,7 @@ public partial class App
     protected override void OnExit(ExitEventArgs e)
     {
         _petSwitcher?.Dispose();
+        _themeService?.Dispose();
         _bossKey?.Dispose();
         _hotkeys?.Dispose();
         _tray?.Dispose();
@@ -364,6 +378,7 @@ public partial class App
                     _petSwitcher,
                     previewFrames.Get));
             _panel = new PanelWindow(viewModel);
+            _themeService?.Register(_panel);
         }
 
         _panel?.ShowPanel(tab);

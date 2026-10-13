@@ -95,6 +95,7 @@ public sealed class JsonSettingsStoreTests : IDisposable
             MeetingProcesses = ["Zoom", "Slack"],
             ClockOutTime = new TimeSpan(17, 30, 0),
             Language = AppLanguage.En,
+            Theme = AppTheme.Dark,
             Size = PetSize.Large,
             ClimbEdges = true,
         };
@@ -203,6 +204,29 @@ public sealed class JsonSettingsStoreTests : IDisposable
         settings.Should().Be(PetSettings.Default);
         File.Exists(DataPath).Should().BeFalse();
         (await File.ReadAllTextAsync(DataPath + ".bak", TestContext.Current.CancellationToken)).Should().Be("{ this is not json");
+    }
+
+    /// <summary>
+    /// A theme that is not known, as a name or as a number, falls back to following the system without spoiling the
+    /// rest of the file.
+    /// </summary>
+    /// <param name="theme">
+    /// The stored value.
+    /// </param>
+    [Theory]
+    [InlineData("Purple")]
+    [InlineData("42")]
+    public async Task LoadAsync_UnknownThemeName_FallsBackToAuto(string theme)
+    {
+        // Arrange
+        await WriteRawAsync($$"""{"version":1,"mode":"Roam","theme":"{{theme}}"}""");
+
+        // Act
+        var settings = await _store.LoadAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        settings.Theme.Should().Be(AppTheme.Auto);
+        settings.Mode.Should().Be(DisturbanceMode.Roam);
     }
 
     /// <summary>

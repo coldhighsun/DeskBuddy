@@ -15,6 +15,11 @@ internal static class StaThread
     /// </param>
     public static void Run(Action action)
     {
+        // WPF registers the pack:// scheme, which the resource dictionaries are addressed with, when its Application type
+        // is first used. Touching a static member does that without creating an Application, of which a process may only
+        // have one.
+        _ = System.Windows.Application.ResourceAssembly;
+
         ExceptionDispatchInfo? failure = null;
         var thread = new Thread(() =>
         {

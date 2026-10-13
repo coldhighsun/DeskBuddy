@@ -13,7 +13,7 @@
 
         <!-- A TextBlock that is collapsed while its text is empty, for optional error messages. -->
         <Style x:Key="ErrorTextStyle" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="#FFD13438" />
+            <Setter Property="Foreground" Value="{DynamicResource ErrorTextBrush}" />
             <Setter Property="TextWrapping" Value="Wrap" />
             <Setter Property="Margin" Value="0,6,0,0" />
             <Style.Triggers>
@@ -63,7 +63,7 @@
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <Border Width="176"
-                                            Height="314"
+                                            Height="330"
                                             Margin="0,0,8,8"
                                             Padding="10"
                                             BorderThickness="2"
@@ -73,10 +73,10 @@
                                             AutomationProperties.AutomationId="{Binding FolderName, StringFormat=PetCard_{0}}">
                                         <Border.Style>
                                             <Style TargetType="Border">
-                                                <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.ControlLightBrushKey}}" />
+                                                <Setter Property="BorderBrush" Value="{DynamicResource PetCardBorderBrush}" />
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding IsSelected}" Value="True">
-                                                        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource PetCardSelectedBorderBrush}" />
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding IsAvailable}" Value="True">
                                                         <Setter Property="Cursor" Value="Hand" />
@@ -144,10 +144,10 @@
                                                             <TextBlock Text="{Binding Text}" FontSize="11">
                                                                 <TextBlock.Style>
                                                                     <Style TargetType="TextBlock">
-                                                                        <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}" />
+                                                                        <!-- Unsupported tags keep the themed text color of the window. -->
                                                                         <Style.Triggers>
-                                                                            <DataTrigger Binding="{Binding IsSupported}" Value="False">
-                                                                                <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" />
+                                                                            <DataTrigger Binding="{Binding IsSupported}" Value="True">
+                                                                                <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}" />
                                                                             </DataTrigger>
                                                                         </Style.Triggers>
                                                                     </Style>
@@ -162,14 +162,11 @@
                                                        Style="{StaticResource ErrorTextStyle}"
                                                        MaxHeight="64"
                                                        FontSize="11" />
-                                            <Button Content="{x:Static res:Strings.PetsUse}"
-                                                    Margin="0,6,0,0"
-                                                    Padding="0,3"
-                                                    Command="{Binding DataContext.UseCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                                    CommandParameter="{Binding}"
-                                                    AutomationProperties.AutomationId="{Binding FolderName, StringFormat=PetUse_{0}}">
-                                                <Button.Style>
-                                                    <Style TargetType="Button">
+                                            <!-- The visibility style sits on a wrapper: a style on the Button itself would replace the
+                                                 themed button style. Hidden (not collapsed) keeps the card layout steady. -->
+                                            <Grid>
+                                                <Grid.Style>
+                                                    <Style TargetType="Grid">
                                                         <Setter Property="Visibility" Value="Hidden" />
                                                         <Style.Triggers>
                                                             <MultiDataTrigger>
@@ -181,8 +178,17 @@
                                                             </MultiDataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
-                                                </Button.Style>
-                                            </Button>
+                                                </Grid.Style>
+                                                <Button Content="{x:Static res:Strings.PetsUse}"
+                                                        Margin="0,8,0,0"
+                                                        Padding="0,7"
+                                                        MinHeight="34"
+                                                        Style="{DynamicResource AccentButtonStyle}"
+                                                        HorizontalAlignment="Stretch"
+                                                        Command="{Binding DataContext.UseCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                        CommandParameter="{Binding}"
+                                                        AutomationProperties.AutomationId="{Binding FolderName, StringFormat=PetUse_{0}}" />
+                                            </Grid>
                                         </StackPanel>
                                     </Border>
                                 </DataTemplate>
@@ -236,6 +242,19 @@
                                       AutomationProperties.AutomationId="LanguageBox" />
                         </Grid>
                         <TextBlock Text="{x:Static res:Strings.LanguageRestartHint}" Opacity="0.65" FontSize="11" TextWrapping="Wrap" Margin="0,2,0,0" />
+                        <Grid Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="150" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="{x:Static res:Strings.SettingsTheme}" VerticalAlignment="Center" />
+                            <ComboBox Grid.Column="1"
+                                      ItemsSource="{Binding Themes}"
+                                      DisplayMemberPath="Label"
+                                      SelectedValuePath="Value"
+                                      SelectedValue="{Binding SelectedTheme}"
+                                      AutomationProperties.AutomationId="ThemeBox" />
+                        </Grid>
                         <TextBlock Text="{x:Static res:Strings.SettingsMode}" Margin="0,10,0,4" />
                         <RadioButton GroupName="Mode"
                                      Content="{x:Static res:Strings.ModeDocked}"

@@ -415,6 +415,26 @@ public class SettingsTabViewModelTests
     }
 
     /// <summary>
+    /// The chosen theme is stored, and the settings are shown with the theme they hold.
+    /// </summary>
+    [Fact]
+    public async Task SelectedTheme_Changed_IsStored()
+    {
+        // Arrange
+        _store.Stored = PetSettings.Default with { Theme = AppTheme.Light };
+        await CreateAsync();
+        var shownAtStart = _viewModel.SelectedTheme;
+
+        // Act
+        _viewModel.SelectedTheme = AppTheme.Dark;
+
+        // Assert
+        shownAtStart.Should().Be(AppTheme.Light);
+        _settings.Current.Theme.Should().Be(AppTheme.Dark);
+        _viewModel.Themes.Select(option => option.Value).Should().Equal(AppTheme.Auto, AppTheme.Light, AppTheme.Dark);
+    }
+
+    /// <summary>
     /// The chosen pet size is stored, and the settings are shown with the size they hold.
     /// </summary>
     [Fact]

@@ -1,0 +1,15 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- The same keys as the light and dark colors, taken from the Windows high-contrast theme. They are dynamic resources, so
+         they follow the system when the user switches to another high-contrast theme. Key names must not
+         collide with the Fluent theme resources (see ThemeResourcesTests), which win inside themed windows. -->
+    <SolidColorBrush x:Key="BubbleBackgroundBrush" Color="{DynamicResource {x:Static SystemColors.WindowColorKey}}" />
+    <SolidColorBrush x:Key="BubbleBorderBrush" Color="{DynamicResource {x:Static SystemColors.WindowTextColorKey}}" />
+    <SolidColorBrush x:Key="BubbleTextBrush" Color="{DynamicResource {x:Static SystemColors.WindowTextColorKey}}" />
+    <SolidColorBrush x:Key="BubbleButtonBackgroundBrush" Color="{DynamicResource {x:Static SystemColors.ControlColorKey}}" />
+    <SolidColorBrush x:Key="BubbleButtonHoverBrush" Color="{DynamicResource {x:Static SystemColors.ControlLightColorKey}}" />
+    <SolidColorBrush x:Key="BubbleButtonPressedBrush" Color="{DynamicResource {x:Static SystemColors.ControlDarkColorKey}}" />
+    <SolidColorBrush x:Key="ErrorTextBrush" Color="{DynamicResource {x:Static SystemColors.HotTrackColorKey}}" />
+    <SolidColorBrush x:Key="PetCardBorderBrush" Color="{DynamicResource {x:Static SystemColors.GrayTextColorKey}}" />
+    <SolidColorBrush x:Key="PetCardSelectedBorderBrush" Color="{DynamicResource {x:Static SystemColors.HighlightColorKey}}" />
+</ResourceDictionary>

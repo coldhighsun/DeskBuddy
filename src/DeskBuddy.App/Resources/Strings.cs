@@ -304,6 +304,11 @@ internal static class Strings
     public static string SettingsLanguage => Get();
 
     /// <summary>
+    /// Gets the label of the theme setting.
+    /// </summary>
+    public static string SettingsTheme => Get();
+
+    /// <summary>
     /// Gets the label of the pet size setting.
     /// </summary>
     public static string SettingsPetSize => Get();
@@ -342,6 +347,21 @@ internal static class Strings
     /// Gets the name of the English choice.
     /// </summary>
     public static string LanguageEn => Get();
+
+    /// <summary>
+    /// Gets the name of the choice that follows the system theme.
+    /// </summary>
+    public static string ThemeAuto => Get();
+
+    /// <summary>
+    /// Gets the name of the light theme choice.
+    /// </summary>
+    public static string ThemeLight => Get();
+
+    /// <summary>
+    /// Gets the name of the dark theme choice.
+    /// </summary>
+    public static string ThemeDark => Get();
 
     /// <summary>
     /// Gets the note that a language change needs a restart.

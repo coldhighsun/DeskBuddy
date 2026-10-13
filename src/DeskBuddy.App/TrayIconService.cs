@@ -52,7 +52,10 @@ public sealed class TrayIconService : IDisposable
     /// <param name="onExit">
     /// Callback invoked when the user chooses Exit.
     /// </param>
-    public TrayIconService(PetBrain brain, Action<PanelTab?> openPanel, Action onExit)
+    /// <param name="theme">
+    /// Gives the context menu the colors of the current theme.
+    /// </param>
+    public TrayIconService(PetBrain brain, Action<PanelTab?> openPanel, Action onExit, ThemeService theme)
     {
         _brain = brain;
         _openPanel = openPanel;
@@ -66,6 +69,7 @@ public sealed class TrayIconService : IDisposable
             ContextMenu = new ContextMenu(),
         };
 
+        theme.Register(_icon.ContextMenu);
         Refresh();
         _icon.ForceCreate();
 

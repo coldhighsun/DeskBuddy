@@ -235,6 +235,32 @@ public class PetSettingsTests
     }
 
     /// <summary>
+    /// The theme follows the system until the user picks one.
+    /// </summary>
+    [Fact]
+    public void Default_Theme_FollowsTheSystem()
+    {
+        // Assert
+        PetSettings.Default.Theme.Should().Be(AppTheme.Auto);
+    }
+
+    /// <summary>
+    /// A theme that does not exist falls back to following the system.
+    /// </summary>
+    [Fact]
+    public void Normalize_UnknownTheme_FallsBackToAuto()
+    {
+        // Arrange
+        var settings = PetSettings.Default with { Theme = (AppTheme)42 };
+
+        // Act
+        var normalized = settings.Normalize();
+
+        // Assert
+        normalized.Theme.Should().Be(AppTheme.Auto);
+    }
+
+    /// <summary>
     /// Climbing along the edges of the screen is off until the user switches it on.
     /// </summary>
     [Fact]
