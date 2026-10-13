@@ -165,6 +165,20 @@ public sealed class PetBehaviorOptions
     public double ClimbSpeed { get; set; } = 30;
 
     /// <summary>
+    /// Gets or sets the speed, in device-independent pixels per second, at which the pet changes height to the taskbar
+    /// line or top edge of the monitor it walks onto, when monitors side by side have them at different heights. Much
+    /// faster than it walks, so that it is not partly out of sight for long.
+    /// </summary>
+    public double VerticalEaseSpeed { get; set; } = 600;
+
+    /// <summary>
+    /// Gets or sets the difference in height, in device-independent pixels, below which the pet takes no notice of a
+    /// different taskbar line or top edge: device pixels cannot show less, and the rounding of positions to them would
+    /// otherwise look like a difference.
+    /// </summary>
+    public double VerticalEaseTolerance { get; set; } = 2;
+
+    /// <summary>
     /// Gets or sets the shortest time between two moments at which a pet crawling along the top edge may turn around.
     /// </summary>
     public TimeSpan CeilingTurnIntervalMin { get; set; } = TimeSpan.FromSeconds(1);

@@ -101,6 +101,11 @@ public sealed class EdgeCrawl(PetBehaviorOptions options, Random random)
     private bool _headingForCorner;
 
     /// <summary>
+    /// Whether the pet, on its way to a corner, has already turned around at an end that was only a seam.
+    /// </summary>
+    private bool _turnedAtSeam;
+
+    /// <summary>
     /// Gets where the pet is now.
     /// </summary>
     public CrawlPhase Phase { get; private set; }
@@ -149,6 +154,7 @@ public sealed class EdgeCrawl(PetBehaviorOptions options, Random random)
         Phase = CrawlPhase.Ceiling;
         _direction = direction < 0 ? -1 : 1;
         _headingForCorner = false;
+        _turnedAtSeam = false;
         _ceilingLeft = random.NextTimeSpan(options.CeilingDurationMin, options.CeilingDurationMax);
         _untilTurn = NextTurnInterval();
         return _direction;
@@ -167,14 +173,30 @@ public sealed class EdgeCrawl(PetBehaviorOptions options, Random random)
     /// <param name="delta">
     /// Time elapsed since the previous step.
     /// </param>
+    /// <param name="holdCourse">
+    /// Whether the pet has to keep going the way it goes, for instance because it lies across the seam between two
+    /// monitors: on the top edge it then neither turns around, nor lets go, nor sets out for a corner, and the time for
+    /// those does not run down.
+    /// </param>
+    /// <param name="edges">
+    /// Tells whether the left or right end of the range is only a seam to another monitor rather than an edge of the
+    /// screen; asked only when the pet gets to an end on the top edge. A pet heading for a corner turns around at a seam
+    /// instead of climbing down there, and lets go if both ends are seams. <see langword="null"/> takes every end for an
+    /// edge of the screen.
+    /// </param>
     /// <returns>
     /// The new position, phase and facing, and whether the crawl goes on.
     /// </returns>
-    public CrawlStep Step(Point2 position, MovementBounds bounds, TimeSpan delta)
+    public CrawlStep Step(
+        Point2 position,
+        MovementBounds bounds,
+        TimeSpan delta,
+        bool holdCourse = false,
+        IScreenEdges? edges = null)
     {
         return Phase == CrawlPhase.Wall
             ? StepOnWall(position, bounds, delta)
-            : StepOnCeiling(position, bounds, delta);
+            : StepOnCeiling(position, bounds, delta, holdCourse, edges);
     }
 
     /// <summary>
@@ -232,15 +254,22 @@ public sealed class EdgeCrawl(PetBehaviorOptions options, Random random)
     /// <param name="delta">
     /// Time elapsed since the previous step.
     /// </param>
+    /// <param name="holdCourse">
+    /// Whether the pet keeps going the way it goes, without turning around, letting go or heading for a corner.
+    /// </param>
+    /// <param name="edges">
+    /// Tells whether an end of the range is only a seam to another monitor, or <see langword="null"/> if all ends are
+    /// corners of the screen.
+    /// </param>
     /// <returns>
     /// The step.
     /// </returns>
-    private CrawlStep StepOnCeiling(Point2 position, MovementBounds bounds, TimeSpan delta)
+    private CrawlStep StepOnCeiling(Point2 position, MovementBounds bounds, TimeSpan delta, bool holdCourse, IScreenEdges? edges)
     {
         var minX = bounds.MinX;
         var maxX = Math.Max(bounds.MinX, bounds.MaxX);
 
-        if (!_headingForCorner)
+        if (!_headingForCorner && !holdCourse)
         {
             _ceilingLeft -= delta;
             if (_ceilingLeft <= TimeSpan.Zero)
@@ -272,13 +301,24 @@ public sealed class EdgeCrawl(PetBehaviorOptions options, Random random)
         {
             var atLeft = x <= minX;
             x = atLeft ? minX : maxX;
-            if (_headingForCorner)
+
+            // The end of the range is no corner of the screen when another monitor lies beside it (the monitor there has
+            // no screen at this height, so the range stops short of it): there is no side to climb down.
+            var atSeam = edges?.HasMonitorBeside(atLeft) == true;
+            if (_headingForCorner && !atSeam)
             {
                 // At the corner: down the side, all the way to the ground.
                 var facing = StartOnWall(onRightEdge: !atLeft, climbingUp: false);
                 return new CrawlStep(new Point2(x, bounds.MinY), CrawlPhase.Wall, facing, CrawlOutcome.Continue);
             }
 
+            if (_headingForCorner && _turnedAtSeam)
+            {
+                // Both ends are seams: there is no corner to go to, so the pet lets go.
+                return new CrawlStep(new Point2(x, bounds.MinY), CrawlPhase.Ceiling, _direction, CrawlOutcome.Dropped);
+            }
+
+            _turnedAtSeam |= _headingForCorner;
             _direction = atLeft ? 1 : -1;
         }
 
