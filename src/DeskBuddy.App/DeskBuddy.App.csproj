@@ -11,14 +11,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets\DeskBuddy.ico</ApplicationIcon>
-    <!--
-      Tiered compilation off: the runtime otherwise keeps re-compiling the code the pet runs every few milliseconds, which
-      measured as about 6 s of CPU in the first minute against under 2 s with it off. Code runs fully optimised from its
-      first call; start-up time is unchanged. ReadyToRun was measured too and did not add anything on top of this.
-    -->
-    <TieredCompilation>false</TieredCompilation>
-    <!-- WPF0001: the Fluent theme (Window.ThemeMode) is still marked experimental in WPF. -->
-    <NoWarn>$(NoWarn);WPF0001</NoWarn>
+    <PublishSingleFile>true</PublishSingleFile>
   </PropertyGroup>
 
   <ItemGroup>
