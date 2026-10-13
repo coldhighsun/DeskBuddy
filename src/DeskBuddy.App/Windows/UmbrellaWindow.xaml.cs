@@ -25,7 +25,7 @@ public enum UmbrellaKind
 
 /// <summary>
 /// Click-through window drawn over the pet's head while it falls: an umbrella or parachute that opens when the fall
-/// speeds up and folds away on landing. Drawn in code, so it works with every skin.
+/// speeds up and folds away on landing. Drawn in code, so it works with every pet.
 /// </summary>
 public partial class UmbrellaWindow : Window
 {

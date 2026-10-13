@@ -1,4 +1,4 @@
-namespace DeskBuddy.Domain.Skins;
+namespace DeskBuddy.Domain.Pets;
 
 /// <summary>
 /// Per-pixel opacity of a sprite frame, used to decide whether a mouse position hits the pet or passes through.

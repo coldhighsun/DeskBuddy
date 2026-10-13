@@ -49,15 +49,15 @@
                                 <ColumnDefinition Width="150" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="{x:Static res:Strings.SettingsSkin}" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="0" Text="{x:Static res:Strings.SettingsPet}" VerticalAlignment="Center" />
                             <ComboBox Grid.Column="1"
-                                      ItemsSource="{Binding Skins}"
-                                      SelectedItem="{Binding SelectedSkin}"
-                                      AutomationProperties.AutomationId="SkinBox" />
+                                      ItemsSource="{Binding Pets}"
+                                      SelectedItem="{Binding SelectedPet}"
+                                      AutomationProperties.AutomationId="PetBox" />
                         </Grid>
-                        <TextBlock Text="{Binding SkinError}"
+                        <TextBlock Text="{Binding PetError}"
                                    Style="{StaticResource ErrorTextStyle}"
-                                   AutomationProperties.AutomationId="SkinError" />
+                                   AutomationProperties.AutomationId="PetError" />
                         <Grid Margin="0,8,0,0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="150" />

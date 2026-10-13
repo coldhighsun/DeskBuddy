@@ -36,9 +36,9 @@ public class SettingsTabViewModelTests
     private readonly FakeAutoStartService _autoStart = new();
 
     /// <summary>
-    /// The skin loader behind the skin switcher.
+    /// The pet loader behind the pet switcher.
     /// </summary>
-    private readonly FakeSkinLoader _loader = new();
+    private readonly FakePetLoader _loader = new();
 
     /// <summary>
     /// The settings service.
@@ -53,32 +53,32 @@ public class SettingsTabViewModelTests
     /// <summary>
     /// Loads the settings and creates the view model over fakes.
     /// </summary>
-    /// <param name="skins">
-    /// The skin names the catalog lists.
+    /// <param name="pets">
+    /// The pet names the catalog lists.
     /// </param>
     /// <returns>
     /// A task that completes when the view model is ready.
     /// </returns>
-    private async Task CreateAsync(params string[] skins)
+    private async Task CreateAsync(params string[] pets)
     {
         _settings = new SettingsService(_store);
         await _settings.InitializeAsync();
 
-        _loader.Available.Add(PetSettings.DefaultSkinName);
+        _loader.Available.Add(PetSettings.DefaultPetName);
         _loader.Available.Add("cat");
-        var switcher = new SkinSwitcher(
+        var switcher = new PetSwitcher(
             _settings,
             _loader,
-            "skins",
-            _settings.Current.SkinName,
+            "pets",
+            _settings.Current.PetName,
             _ => { },
-            NullLogger<SkinSwitcher>.Instance);
+            NullLogger<PetSwitcher>.Instance);
         var bossKey = new BossKeyController(_settings, _hotkeys, TestBrain.Create());
         _viewModel = new SettingsTabViewModel(
             _settings,
             bossKey,
             _autoStart,
-            new FakeSkinCatalog(skins.Length > 0 ? skins : [PetSettings.DefaultSkinName, "cat"]),
+            new FakePetCatalog(pets.Length > 0 ? pets : [PetSettings.DefaultPetName, "cat"]),
             switcher,
             () => LogDirectoryOpened++);
     }
@@ -555,57 +555,57 @@ public class SettingsTabViewModelTests
     }
 
     /// <summary>
-    /// The list of skins always includes the one in use, even if it is not installed any more.
+    /// The list of pets always includes the one in use, even if it is not installed any more.
     /// </summary>
     [Fact]
-    public async Task Skins_CurrentSkinNotInstalled_IsStillListed()
+    public async Task Pets_CurrentPetNotInstalled_IsStillListed()
     {
         // Arrange
-        _store.Stored = PetSettings.Default with { SkinName = "gone" };
+        _store.Stored = PetSettings.Default with { PetName = "gone" };
 
         // Act
-        await CreateAsync(PetSettings.DefaultSkinName, "cat");
+        await CreateAsync(PetSettings.DefaultPetName, "cat");
 
         // Assert
-        _viewModel.Skins.Should().Equal(PetSettings.DefaultSkinName, "cat", "gone");
-        _viewModel.SelectedSkin.Should().Be("gone");
+        _viewModel.Pets.Should().Equal(PetSettings.DefaultPetName, "cat", "gone");
+        _viewModel.SelectedPet.Should().Be("gone");
     }
 
     /// <summary>
-    /// Choosing a skin applies it to the settings.
+    /// Choosing a pet applies it to the settings.
     /// </summary>
     [Fact]
-    public async Task SelectedSkin_Chosen_IsApplied()
+    public async Task SelectedPet_Chosen_IsApplied()
     {
         // Arrange
         await CreateAsync();
 
         // Act
-        _viewModel.SelectedSkin = "cat";
+        _viewModel.SelectedPet = "cat";
 
         // Assert
-        _settings.Current.SkinName.Should().Be("cat");
+        _settings.Current.PetName.Should().Be("cat");
         await EventuallyAsync(() => _loader.Requested.Count > 0);
         _loader.Requested.Should().Equal("cat");
     }
 
     /// <summary>
-    /// A skin that cannot be loaded goes back to the one in use, with a message.
+    /// A pet that cannot be loaded goes back to the one in use, with a message.
     /// </summary>
     [Fact]
-    public async Task SelectedSkin_CannotBeLoaded_RevertsAndExplains()
+    public async Task SelectedPet_CannotBeLoaded_RevertsAndExplains()
     {
         // Arrange
-        await CreateAsync(PetSettings.DefaultSkinName, "cat", "broken");
+        await CreateAsync(PetSettings.DefaultPetName, "cat", "broken");
 
         // Act
-        _viewModel.SelectedSkin = "broken";
-        await EventuallyAsync(() => _viewModel.SkinError.Length > 0 && _viewModel.SelectedSkin == PetSettings.DefaultSkinName);
+        _viewModel.SelectedPet = "broken";
+        await EventuallyAsync(() => _viewModel.PetError.Length > 0 && _viewModel.SelectedPet == PetSettings.DefaultPetName);
 
         // Assert
-        _viewModel.SelectedSkin.Should().Be(PetSettings.DefaultSkinName);
-        _settings.Current.SkinName.Should().Be(PetSettings.DefaultSkinName);
-        _viewModel.SkinError.Should().NotBeEmpty();
+        _viewModel.SelectedPet.Should().Be(PetSettings.DefaultPetName);
+        _settings.Current.PetName.Should().Be(PetSettings.DefaultPetName);
+        _viewModel.PetError.Should().NotBeEmpty();
     }
 
     /// <summary>

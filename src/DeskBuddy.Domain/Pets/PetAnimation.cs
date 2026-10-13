@@ -1,4 +1,4 @@
-namespace DeskBuddy.Domain.Skins;
+namespace DeskBuddy.Domain.Pets;
 
 /// <summary>
 /// A frame-by-frame animation for a single <see cref="PetState"/>.
@@ -9,7 +9,7 @@ namespace DeskBuddy.Domain.Skins;
 /// <param name="FramePaths">
 /// Absolute paths of the frame images, in playback order. Must not be empty.
 /// </param>
-public sealed record SkinAnimation(double Fps, IReadOnlyList<string> FramePaths)
+public sealed record PetAnimation(double Fps, IReadOnlyList<string> FramePaths)
 {
     /// <summary>
     /// Gets the time each frame stays on screen.

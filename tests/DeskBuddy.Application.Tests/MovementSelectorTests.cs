@@ -94,7 +94,7 @@ public class MovementSelectorTests
         _selector.ModeChanged += (_, _) => raised++;
 
         // Act
-        await _settings.UpdateAsync(s => s with { SkinName = "other" }, TestContext.Current.CancellationToken);
+        await _settings.UpdateAsync(s => s with { PetName = "other" }, TestContext.Current.CancellationToken);
 
         // Assert
         raised.Should().Be(0);

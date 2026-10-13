@@ -14,7 +14,7 @@ public class CachedForegroundAppTests
     private readonly FakeTimeProvider _time = new();
 
     /// <summary>
-    /// Asking again within the lifetime does not query again, and the answer is the same.
+    /// Apetg again within the lifetime does not query again, and the answer is the same.
     /// </summary>
     [Fact]
     public void GetForegroundProcessName_WithinLifetime_QueriesOnce()

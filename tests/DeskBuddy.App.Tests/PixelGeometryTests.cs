@@ -150,7 +150,7 @@ public sealed class PixelGeometryTests
     }
 
     /// <summary>
-    /// The bubble ends a small gap above the sprite, however much transparent space the skin leaves over its head.
+    /// The bubble ends a small gap above the sprite, however much transparent space the pet leaves over its head.
     /// </summary>
     [Theory]
     [InlineData(0.0, 4, -4)]

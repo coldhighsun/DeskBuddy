@@ -332,7 +332,7 @@ public class PetBehaviorStateMachineTests
     }
 
     /// <summary>
-    /// A glide that is only acted out, as when a skin's pictures are previewed, ends after its time like any other
+    /// A glide that is only acted out, as when a pet's pictures are previewed, ends after its time like any other
     /// moment instead of lasting until a landing that never comes.
     /// </summary>
     [Fact]

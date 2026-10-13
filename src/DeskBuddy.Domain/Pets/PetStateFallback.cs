@@ -1,7 +1,7 @@
-namespace DeskBuddy.Domain.Skins;
+namespace DeskBuddy.Domain.Pets;
 
 /// <summary>
-/// Says which state to show instead when a skin has no animation for the one asked for, so a skin that predates a
+/// Says which state to show instead when a pet has no animation for the one asked for, so a pet that predates a
 /// state still looks sensible instead of falling all the way back to standing still.
 /// </summary>
 public static class PetStateFallback
@@ -10,10 +10,10 @@ public static class PetStateFallback
     /// Gets the state to try instead of the given one.
     /// </summary>
     /// <param name="state">
-    /// The state a skin lacks.
+    /// The state a pet lacks.
     /// </param>
     /// <returns>
-    /// The next state to try, or <see langword="null"/> if there is none (the skin then shows Idle).
+    /// The next state to try, or <see langword="null"/> if there is none (the pet then shows Idle).
     /// </returns>
     public static PetState? Of(PetState state)
     {

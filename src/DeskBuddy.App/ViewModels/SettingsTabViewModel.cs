@@ -45,9 +45,9 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     private readonly IAutoStartService _autoStartService;
 
     /// <summary>
-    /// Lists the installed skins.
+    /// Lists the installed pets.
     /// </summary>
-    private readonly ISkinCatalog _catalog;
+    private readonly IPetCatalog _catalog;
 
     /// <summary>
     /// Opens the directory the log files are written to.
@@ -66,16 +66,16 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     private bool _applyingBossKey;
 
     /// <summary>
-    /// The installed skins, always including the one in use.
+    /// The installed pets, always including the one in use.
     /// </summary>
     [ObservableProperty]
-    private IReadOnlyList<string> _skins = [];
+    private IReadOnlyList<string> _pets = [];
 
     /// <summary>
-    /// The skin in use.
+    /// The pet in use.
     /// </summary>
     [ObservableProperty]
-    private string _selectedSkin = PetSettings.DefaultSkinName;
+    private string _selectedPet = PetSettings.DefaultPetName;
 
     /// <summary>
     /// Whether the pet stays on the taskbar.
@@ -198,10 +198,10 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     private string _bossKeyError = string.Empty;
 
     /// <summary>
-    /// A problem with changing the skin, or empty.
+    /// A problem with changing the pet, or empty.
     /// </summary>
     [ObservableProperty]
-    private string _skinError = string.Empty;
+    private string _petError = string.Empty;
 
     /// <summary>
     /// A problem with the start-at-sign-in switch, or empty.
@@ -228,10 +228,10 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     /// Starts the application at sign-in.
     /// </param>
     /// <param name="catalog">
-    /// Lists the installed skins.
+    /// Lists the installed pets.
     /// </param>
-    /// <param name="skinSwitcher">
-    /// Switches the skin, which reports when that fails.
+    /// <param name="petSwitcher">
+    /// Switches the pet, which reports when that fails.
     /// </param>
     /// <param name="openLogDirectory">
     /// Opens the log directory in the file manager.
@@ -240,15 +240,15 @@ public sealed partial class SettingsTabViewModel : ObservableObject
         SettingsService settings,
         BossKeyController bossKey,
         IAutoStartService autoStart,
-        ISkinCatalog catalog,
-        SkinSwitcher skinSwitcher,
+        IPetCatalog catalog,
+        PetSwitcher petSwitcher,
         Action openLogDirectory)
     {
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(bossKey);
         ArgumentNullException.ThrowIfNull(autoStart);
         ArgumentNullException.ThrowIfNull(catalog);
-        ArgumentNullException.ThrowIfNull(skinSwitcher);
+        ArgumentNullException.ThrowIfNull(petSwitcher);
         ArgumentNullException.ThrowIfNull(openLogDirectory);
 
         _openLogDirectory = openLogDirectory;
@@ -267,7 +267,7 @@ public sealed partial class SettingsTabViewModel : ObservableObject
 
         _settings.Changed += OnSettingsChanged;
         _bossKey.StatusChanged += OnBossKeyStatusChanged;
-        skinSwitcher.SwitchFailed += OnSkinSwitchFailed;
+        petSwitcher.SwitchFailed += OnPetSwitchFailed;
 
         if (_settings.LoadFailure is { } failure)
         {
@@ -305,7 +305,7 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     public string LoadFailureMessage { get; } = string.Empty;
 
     /// <summary>
-    /// Re-reads what can change without the application knowing: the installed skins and whether the application is
+    /// Re-reads what can change without the application knowing: the installed pets and whether the application is
     /// registered to start at sign-in (the user can switch that off in Task Manager). Call when the tab is shown.
     /// </summary>
     public void RefreshExternalState()
@@ -313,11 +313,11 @@ public sealed partial class SettingsTabViewModel : ObservableObject
         _refreshing = true;
         try
         {
-            var names = _catalog.GetSkinNames();
-            Skins = names.Contains(_settings.Current.SkinName, StringComparer.Ordinal)
+            var names = _catalog.GetPetNames();
+            Pets = names.Contains(_settings.Current.PetName, StringComparer.Ordinal)
                 ? names
-                : [.. names, _settings.Current.SkinName];
-            SelectedSkin = _settings.Current.SkinName;
+                : [.. names, _settings.Current.PetName];
+            SelectedPet = _settings.Current.PetName;
             AutoStart = _autoStartService.IsEnabled();
         }
         finally
@@ -375,20 +375,20 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Applies a chosen skin.
+    /// Applies a chosen pet.
     /// </summary>
     /// <param name="value">
-    /// The skin name.
+    /// The pet name.
     /// </param>
-    partial void OnSelectedSkinChanged(string value)
+    partial void OnSelectedPetChanged(string value)
     {
         if (_refreshing || string.IsNullOrEmpty(value))
         {
             return;
         }
 
-        SkinError = string.Empty;
-        _ = ApplyAsync(settings => settings with { SkinName = value });
+        PetError = string.Empty;
+        _ = ApplyAsync(settings => settings with { PetName = value });
     }
 
     /// <summary>
@@ -774,7 +774,7 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Shows settings that were changed elsewhere, such as a skin or boss key that was put back.
+    /// Shows settings that were changed elsewhere, such as a pet or boss key that was put back.
     /// </summary>
     /// <param name="sender">
     /// The event source.
@@ -798,7 +798,7 @@ public sealed partial class SettingsTabViewModel : ObservableObject
         _refreshing = true;
         try
         {
-            SelectedSkin = settings.SkinName;
+            SelectedPet = settings.PetName;
             IsDocked = settings.Mode == DisturbanceMode.Docked;
             IsRoam = settings.Mode == DisturbanceMode.Roam;
             SedentaryText = Minutes(settings.SedentaryReminderAfter);
@@ -865,7 +865,7 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Shows why a skin could not be switched to.
+    /// Shows why a pet could not be switched to.
     /// </summary>
     /// <param name="sender">
     /// The event source.
@@ -873,8 +873,8 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     /// <param name="reason">
     /// Why the switch failed.
     /// </param>
-    private void OnSkinSwitchFailed(object? sender, string reason)
+    private void OnPetSwitchFailed(object? sender, string reason)
     {
-        SkinError = string.Format(CultureInfo.CurrentCulture, Strings.SkinSwitchFailed, reason);
+        PetError = string.Format(CultureInfo.CurrentCulture, Strings.PetSwitchFailed, reason);
     }
 }

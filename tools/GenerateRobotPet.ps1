@@ -1,9 +1,9 @@
-# Generates the pixel-art robot skin for programmers (no third-party artwork). Art faces right.
+# Generates the pixel-art robot pet for programmers (no third-party artwork). Art faces right.
 # The robot sits at a desk and types code while the Coding state is on.
-# Usage: powershell -NoProfile -File tools/GenerateRobotSkin.ps1
-. (Join-Path $PSScriptRoot 'SkinDrawing.ps1')
+# Usage: powershell -NoProfile -File tools/GenerateRobotPet.ps1
+. (Join-Path $PSScriptRoot 'PetDrawing.ps1')
 
-$outDir = Join-Path $PSScriptRoot '..\skins\robot'
+$outDir = Join-Path $PSScriptRoot '..\pets\robot'
 New-Item -ItemType Directory -Force -Path $outDir | Out-Null
 Get-ChildItem $outDir -Filter *.png | Remove-Item
 
@@ -659,6 +659,6 @@ $manifest = @'
 }
 '@
 
-Write-SkinManifest (Join-Path $outDir 'manifest.json') $manifest
+Write-PetManifest (Join-Path $outDir 'manifest.json') $manifest
 
-Write-Host "Robot skin written to $outDir"
+Write-Host "Robot pet written to $outDir"

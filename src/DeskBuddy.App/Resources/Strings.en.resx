@@ -48,7 +48,7 @@
   <data name="TabBehavior" xml:space="preserve"><value>Behavior</value></data>
   <data name="TabSystem" xml:space="preserve"><value>System</value></data>
   <data name="SettingsAppearance" xml:space="preserve"><value>Appearance</value></data>
-  <data name="SettingsSkin" xml:space="preserve"><value>Skin</value></data>
+  <data name="SettingsPet" xml:space="preserve"><value>Pet</value></data>
   <data name="SettingsMode" xml:space="preserve"><value>Disturbance mode</value></data>
   <data name="ModeDocked" xml:space="preserve"><value>Docked on the taskbar</value></data>
   <data name="ModeRoam" xml:space="preserve"><value>Roam freely on the desktop</value></data>
@@ -64,7 +64,7 @@
   <data name="CoveredMonitor" xml:space="preserve"><value>Also treat a foreground window that covers a whole monitor as full screen</value></data>
   <data name="BlacklistLabel" xml:space="preserve"><value>These programs count as full screen when in front (one process name per line, e.g. zoom)</value></data>
   <data name="SettingsScenarios" xml:space="preserve"><value>Scenarios</value></data>
-  <data name="ScenariosEnabled" xml:space="preserve"><value>Let the pet act out situations by itself (needs skin support)</value></data>
+  <data name="ScenariosEnabled" xml:space="preserve"><value>Let the pet act out situations by itself (needs a pet that supports it)</value></data>
   <data name="ScenarioBuilding" xml:space="preserve"><value>Show a loading ring while a compiler keeps the CPU busy</value></data>
   <data name="ScenarioBuildDone" xml:space="preserve"><value>Cheer when a build ends (it cannot tell success from failure)</value></data>
   <data name="ScenarioGitPush" xml:space="preserve"><value>Ship a parcel when git talks to a remote</value></data>
@@ -78,7 +78,7 @@
   <data name="ScenarioClockOut" xml:space="preserve"><value>Check its watch at clock-out time, once a day</value></data>
   <data name="ScenarioChime" xml:space="preserve"><value>Ring a little bell on the hour during the day (off by default)</value></data>
   <data name="ScenarioFestive" xml:space="preserve"><value>Wear a party hat on New Year's Day, Spring Festival, Programmers' Day and Christmas</value></data>
-  <data name="ScenarioDizzy" xml:space="preserve"><value>Get dizzy when you shake the mouse hard (the eyes also follow the pointer; needs skin support)</value></data>
+  <data name="ScenarioDizzy" xml:space="preserve"><value>Get dizzy when you shake the mouse hard (the eyes also follow the pointer; needs a pet that supports it)</value></data>
   <data name="ScenarioHang" xml:space="preserve"><value>Hang on to the screen edge when you drop the pet at the left or right side</value></data>
   <data name="ClockOutTimeLabel" xml:space="preserve"><value>Clock-out time (e.g. 18:00)</value></data>
   <data name="ClockOutTimeInvalid" xml:space="preserve"><value>The clock-out time must be a time between 00:00 and 23:59, such as 18:00.</value></data>
@@ -96,7 +96,7 @@
   <data name="RemarkLowBattery" xml:space="preserve"><value>Battery is low. Time to charge~</value></data>
   <data name="RemarkNightCoding" xml:space="preserve"><value>It is late. Do not stay up too long~</value></data>
   <data name="SettingsDev" xml:space="preserve"><value>Development</value></data>
-  <data name="DevMode" xml:space="preserve"><value>Let the pet sit at its computer while I develop (the skin must support it)</value></data>
+  <data name="DevMode" xml:space="preserve"><value>Let the pet sit at its computer while I develop (this pet must support it)</value></data>
   <data name="DevProcessesLabel" xml:space="preserve"><value>These programs count as development when in front and I am active (one process name per line, e.g. Code)</value></data>
   <data name="SettingsSystem" xml:space="preserve"><value>System</value></data>
   <data name="AutoStart" xml:space="preserve"><value>Start with Windows</value></data>
@@ -108,11 +108,11 @@
   <data name="MinutesRange" xml:space="preserve"><value>"{0}" needs a whole number of minutes between {1} and {2}.</value></data>
   <data name="SettingsSaveFailed" xml:space="preserve"><value>Could not save the settings: {0}</value></data>
   <data name="SettingsLoadFailed" xml:space="preserve"><value>Could not read the settings ({0}). To avoid overwriting them, changes are paused. Check the file and restart.</value></data>
-  <data name="SkinSwitchFailed" xml:space="preserve"><value>Could not switch the skin: {0}</value></data>
+  <data name="PetSwitchFailed" xml:space="preserve"><value>Could not switch the pet: {0}</value></data>
 
   <data name="SettingsLanguage" xml:space="preserve"><value>Language</value></data>
   <data name="SettingsPetSize" xml:space="preserve"><value>Pet size</value></data>
-  <data name="SettingsClimbEdges" xml:space="preserve"><value>Let the pet climb the sides of the screen and hang from its top (needs a skin that supports it)</value></data>
+  <data name="SettingsClimbEdges" xml:space="preserve"><value>Let the pet climb the sides of the screen and hang from its top (needs a pet that supports it)</value></data>
   <data name="StateHintClimb" xml:space="preserve"><value>Climbing along the screen edge</value></data>
   <data name="StateHintClimbDown" xml:space="preserve"><value>Climbing down the screen edge</value></data>
   <data name="StateHintCeiling" xml:space="preserve"><value>Hanging from the top of the screen</value></data>

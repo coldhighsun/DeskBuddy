@@ -2,18 +2,18 @@ using AwesomeAssertions;
 using DeskBuddy.App.Rendering;
 using DeskBuddy.Application;
 using DeskBuddy.Domain.Settings;
-using DeskBuddy.Domain.Skins;
+using DeskBuddy.Domain.Pets;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace DeskBuddy.App.Tests;
 
 /// <summary>
-/// Tests for <see cref="SkinSwitcher"/>.
+/// Tests for <see cref="PetSwitcher"/>.
 /// </summary>
-public class SkinSwitcherTests
+public class PetSwitcherTests
 {
     /// <summary>
-    /// The skins that were put on screen, in order.
+    /// The pets that were put on screen, in order.
     /// </summary>
     private readonly List<string> _applied = [];
 
@@ -25,7 +25,7 @@ public class SkinSwitcherTests
     /// <summary>
     /// The loader the switcher uses.
     /// </summary>
-    private readonly FakeSkinLoader _loader = new();
+    private readonly FakePetLoader _loader = new();
 
     /// <summary>
     /// The settings the switcher follows.
@@ -40,32 +40,32 @@ public class SkinSwitcherTests
     /// <summary>
     /// The switcher under test.
     /// </summary>
-    private readonly SkinSwitcher _switcher;
+    private readonly PetSwitcher _switcher;
 
     /// <summary>
     /// What the apply step does besides recording; may throw to simulate undecodable images.
     /// </summary>
-    private Action<Skin> _applyBehavior = _ => { };
+    private Action<Pet> _applyBehavior = _ => { };
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="SkinSwitcherTests"/> class.
+    /// Initializes a new instance of the <see cref="PetSwitcherTests"/> class.
     /// </summary>
-    public SkinSwitcherTests()
+    public PetSwitcherTests()
     {
         _settings = new SettingsService(_store);
-        _loader.Available.Add(PetSettings.DefaultSkinName);
+        _loader.Available.Add(PetSettings.DefaultPetName);
         _loader.Available.Add("cat");
-        _switcher = new SkinSwitcher(
+        _switcher = new PetSwitcher(
             _settings,
             _loader,
-            "skins",
-            PetSettings.DefaultSkinName,
-            skin =>
+            "pets",
+            PetSettings.DefaultPetName,
+            pet =>
             {
-                _applyBehavior(skin);
-                _applied.Add(skin.Name);
+                _applyBehavior(pet);
+                _applied.Add(pet.Name);
             },
-            NullLogger<SkinSwitcher>.Instance);
+            NullLogger<PetSwitcher>.Instance);
         _switcher.SwitchFailed += (_, reason) => _failures.Add(reason);
     }
 
@@ -79,7 +79,7 @@ public class SkinSwitcherTests
         _switcher.Dispose();
 
         // Act
-        await _settings.UpdateAsync(s => s with { SkinName = "cat" }, TestContext.Current.CancellationToken);
+        await _settings.UpdateAsync(s => s with { PetName = "cat" }, TestContext.Current.CancellationToken);
         await Task.Delay(50, TestContext.Current.CancellationToken);
 
         // Assert
@@ -87,13 +87,13 @@ public class SkinSwitcherTests
     }
 
     /// <summary>
-    /// Changing the skin in the settings switches the skin on screen.
+    /// Changing the pet in the settings switches the pet on screen.
     /// </summary>
     [Fact]
-    public async Task SettingsChanged_SkinName_SwitchesSkin()
+    public async Task SettingsChanged_PetName_SwitchesPet()
     {
         // Act
-        await _settings.UpdateAsync(s => s with { SkinName = "cat" }, TestContext.Current.CancellationToken);
+        await _settings.UpdateAsync(s => s with { PetName = "cat" }, TestContext.Current.CancellationToken);
         await EventuallyAsync(() => _applied.Count > 0);
 
         // Assert
@@ -101,7 +101,7 @@ public class SkinSwitcherTests
     }
 
     /// <summary>
-    /// After a failure the previous skin can still be switched away from and back to normally.
+    /// After a failure the previous pet can still be switched away from and back to normally.
     /// </summary>
     [Fact]
     public async Task SwitchAsync_AfterFailure_NextSwitchWorks()
@@ -117,10 +117,10 @@ public class SkinSwitcherTests
     }
 
     /// <summary>
-    /// A skin whose images cannot be decoded is treated the same as one that cannot be loaded.
+    /// A pet whose images cannot be decoded is treated the same as one that cannot be loaded.
     /// </summary>
     [Fact]
-    public async Task SwitchAsync_ApplyFails_KeepsOldSkinAndReports()
+    public async Task SwitchAsync_ApplyFails_KeepsOldPetAndReports()
     {
         // Arrange
         _applyBehavior = _ => throw new NotSupportedException("bad image");
@@ -134,27 +134,27 @@ public class SkinSwitcherTests
     }
 
     /// <summary>
-    /// A skin that cannot be loaded leaves the old one, reports why, and puts the setting back.
+    /// A pet that cannot be loaded leaves the old one, reports why, and puts the setting back.
     /// </summary>
     [Fact]
-    public async Task SwitchAsync_LoadFails_KeepsOldSkinReportsAndRestoresSetting()
+    public async Task SwitchAsync_LoadFails_KeepsOldPetReportsAndRestoresSetting()
     {
         // Arrange
-        await _settings.UpdateAsync(s => s with { SkinName = "broken" }, TestContext.Current.CancellationToken);
+        await _settings.UpdateAsync(s => s with { PetName = "broken" }, TestContext.Current.CancellationToken);
         await EventuallyAsync(() => _failures.Count > 0);
 
         // Assert
         _applied.Should().BeEmpty();
         _failures.Should().ContainSingle();
-        await EventuallyAsync(() => _settings.Current.SkinName == PetSettings.DefaultSkinName);
-        _settings.Current.SkinName.Should().Be(PetSettings.DefaultSkinName);
+        await EventuallyAsync(() => _settings.Current.PetName == PetSettings.DefaultPetName);
+        _settings.Current.PetName.Should().Be(PetSettings.DefaultPetName);
     }
 
     /// <summary>
-    /// A different skin is loaded from its folder and put on screen.
+    /// A different pet is loaded from its folder and put on screen.
     /// </summary>
     [Fact]
-    public async Task SwitchAsync_OtherSkin_LoadsAndApplies()
+    public async Task SwitchAsync_OtherPet_LoadsAndApplies()
     {
         // Act
         await _switcher.SwitchAsync("cat");
@@ -187,13 +187,13 @@ public class SkinSwitcherTests
     }
 
     /// <summary>
-    /// Asking for the skin that is already on screen does nothing.
+    /// Apetg for the pet that is already on screen does nothing.
     /// </summary>
     [Fact]
-    public async Task SwitchAsync_SameSkin_DoesNothing()
+    public async Task SwitchAsync_SamePet_DoesNothing()
     {
         // Act
-        await _switcher.SwitchAsync(PetSettings.DefaultSkinName);
+        await _switcher.SwitchAsync(PetSettings.DefaultPetName);
 
         // Assert
         _loader.Requested.Should().BeEmpty();

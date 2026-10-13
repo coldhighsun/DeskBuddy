@@ -1,16 +1,16 @@
 using DeskBuddy.Domain.Gaze;
 
-namespace DeskBuddy.Domain.Skins;
+namespace DeskBuddy.Domain.Pets;
 
 /// <summary>
-/// Tracks playback position of the current animation of a <see cref="Skin"/>. Pure logic with no UI dependency.
+/// Tracks playback position of the current animation of a <see cref="Pet"/>. Pure logic with no UI dependency.
 /// </summary>
 public sealed class AnimationPlayer
 {
     /// <summary>
-    /// The skin whose animations are played.
+    /// The pet whose animations are played.
     /// </summary>
-    private readonly Skin _skin;
+    private readonly Pet _pet;
 
     /// <summary>
     /// Time accumulated on the current frame.
@@ -20,15 +20,15 @@ public sealed class AnimationPlayer
     /// <summary>
     /// Initializes a new instance of the <see cref="AnimationPlayer"/> class playing <see cref="PetState.Idle"/>.
     /// </summary>
-    /// <param name="skin">
-    /// The skin to play animations from.
+    /// <param name="pet">
+    /// The pet to play animations from.
     /// </param>
-    public AnimationPlayer(Skin skin)
+    public AnimationPlayer(Pet pet)
     {
-        ArgumentNullException.ThrowIfNull(skin);
+        ArgumentNullException.ThrowIfNull(pet);
 
-        _skin = skin;
-        Animation = skin.GetAnimation(PetState.Idle);
+        _pet = pet;
+        Animation = pet.GetAnimation(PetState.Idle);
     }
 
     /// <summary>
@@ -39,7 +39,7 @@ public sealed class AnimationPlayer
     /// <summary>
     /// Gets the animation currently playing, after Idle fallback has been applied.
     /// </summary>
-    public SkinAnimation Animation { get; private set; }
+    public PetAnimation Animation { get; private set; }
 
     /// <summary>
     /// Gets the index of the current frame within <see cref="Animation"/>.
@@ -67,7 +67,7 @@ public sealed class AnimationPlayer
     {
         State = state;
 
-        var next = _skin.GetAnimation(state, gaze);
+        var next = _pet.GetAnimation(state, gaze);
         if (ReferenceEquals(next, Animation))
         {
             return false;

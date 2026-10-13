@@ -1,30 +1,30 @@
 using AwesomeAssertions;
 using DeskBuddy.Domain;
 using DeskBuddy.Domain.Gaze;
-using DeskBuddy.Infrastructure.Skins;
+using DeskBuddy.Infrastructure.Pets;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace DeskBuddy.Infrastructure.Tests.Skins;
+namespace DeskBuddy.Infrastructure.Tests.Pets;
 
 /// <summary>
-/// Tests for <see cref="FolderSkinLoader"/>, using a real temporary directory per test.
+/// Tests for <see cref="FolderPetLoader"/>, using a real temporary directory per test.
 /// </summary>
-public sealed class FolderSkinLoaderTests : IDisposable
+public sealed class FolderPetLoaderTests : IDisposable
 {
     /// <summary>
-    /// Temporary skin directory, unique per test instance.
+    /// Temporary pet directory, unique per test instance.
     /// </summary>
     private readonly string _directory = Path.Combine(Path.GetTempPath(), $"DeskBuddyTests_{Guid.NewGuid():N}");
 
     /// <summary>
     /// The loader under test.
     /// </summary>
-    private readonly FolderSkinLoader _loader = new(NullLogger<FolderSkinLoader>.Instance);
+    private readonly FolderPetLoader _loader = new(NullLogger<FolderPetLoader>.Instance);
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="FolderSkinLoaderTests"/> class and creates the temp directory.
+    /// Initializes a new instance of the <see cref="FolderPetLoaderTests"/> class and creates the temp directory.
     /// </summary>
-    public FolderSkinLoaderTests()
+    public FolderPetLoaderTests()
     {
         Directory.CreateDirectory(_directory);
     }
@@ -44,9 +44,9 @@ public sealed class FolderSkinLoaderTests : IDisposable
     /// <param name="frames">
     /// Names of frame files to create.
     /// </param>
-    private void WriteSkin(string manifestJson, params string[] frames)
+    private void WritePet(string manifestJson, params string[] frames)
     {
-        File.WriteAllText(Path.Combine(_directory, FolderSkinLoader.ManifestFileName), manifestJson);
+        File.WriteAllText(Path.Combine(_directory, FolderPetLoader.ManifestFileName), manifestJson);
         foreach (var frame in frames)
         {
             File.WriteAllBytes(Path.Combine(_directory, frame), []);
@@ -54,26 +54,26 @@ public sealed class FolderSkinLoaderTests : IDisposable
     }
 
     /// <summary>
-    /// A valid manifest yields a skin with resolved absolute frame paths.
+    /// A valid manifest yields a pet with resolved absolute frame paths.
     /// </summary>
     [Fact]
-    public async Task LoadAsync_ValidManifest_ReturnsSkinWithAbsoluteFramePaths()
+    public async Task LoadAsync_ValidManifest_ReturnsPetWithAbsoluteFramePaths()
     {
         // Arrange
-        WriteSkin(
+        WritePet(
             """{"name":"cat","frameSize":[64,96],"states":{"Idle":{"fps":4,"frames":["a.png","b.png"]}}}""",
             "a.png",
             "b.png");
 
         // Act
-        var skin = await _loader.LoadAsync(_directory, TestContext.Current.CancellationToken);
+        var pet = await _loader.LoadAsync(_directory, TestContext.Current.CancellationToken);
 
         // Assert
-        skin.Name.Should().Be("cat");
-        skin.FrameWidth.Should().Be(64);
-        skin.FrameHeight.Should().Be(96);
-        skin.GetAnimation(PetState.Idle).Fps.Should().Be(4);
-        skin.GetAnimation(PetState.Idle).FramePaths.Should().Equal(
+        pet.Name.Should().Be("cat");
+        pet.FrameWidth.Should().Be(64);
+        pet.FrameHeight.Should().Be(96);
+        pet.GetAnimation(PetState.Idle).Fps.Should().Be(4);
+        pet.GetAnimation(PetState.Idle).FramePaths.Should().Equal(
             Path.Combine(_directory, "a.png"),
             Path.Combine(_directory, "b.png"));
     }
@@ -85,7 +85,7 @@ public sealed class FolderSkinLoaderTests : IDisposable
     public async Task LoadAsync_IdleLookEntries_AreLoadedAsGazeAnimations()
     {
         // Arrange
-        WriteSkin(
+        WritePet(
             """{"frameSize":[8,8],"states":{"Idle":{"fps":1,"frames":["i.png"]},"Idle.Left":{"fps":1,"frames":["l.png"]},"idle.up":{"fps":1,"frames":["u.png"]},"Idle.Sideways":{"fps":1,"frames":["s.png"]}}}""",
             "i.png",
             "l.png",
@@ -93,12 +93,12 @@ public sealed class FolderSkinLoaderTests : IDisposable
             "s.png");
 
         // Act
-        var skin = await _loader.LoadAsync(_directory, TestContext.Current.CancellationToken);
+        var pet = await _loader.LoadAsync(_directory, TestContext.Current.CancellationToken);
 
         // Assert
-        skin.GazeAnimations.Keys.Should().BeEquivalentTo([GazeDirection.Left, GazeDirection.Up]);
-        skin.GetAnimation(PetState.Idle, GazeDirection.Left).FramePaths.Should().Equal(Path.Combine(_directory, "l.png"));
-        skin.Animations.Keys.Should().BeEquivalentTo([PetState.Idle]);
+        pet.GazeAnimations.Keys.Should().BeEquivalentTo([GazeDirection.Left, GazeDirection.Up]);
+        pet.GetAnimation(PetState.Idle, GazeDirection.Left).FramePaths.Should().Equal(Path.Combine(_directory, "l.png"));
+        pet.Animations.Keys.Should().BeEquivalentTo([PetState.Idle]);
     }
 
     /// <summary>
@@ -108,50 +108,50 @@ public sealed class FolderSkinLoaderTests : IDisposable
     public async Task LoadAsync_LowercaseStateName_IsRecognized()
     {
         // Arrange
-        WriteSkin(
+        WritePet(
             """{"frameSize":[8,8],"states":{"idle":{"fps":1,"frames":["i.png"]},"walk":{"fps":1,"frames":["w.png"]}}}""",
             "i.png",
             "w.png");
 
         // Act
-        var skin = await _loader.LoadAsync(_directory, TestContext.Current.CancellationToken);
+        var pet = await _loader.LoadAsync(_directory, TestContext.Current.CancellationToken);
 
         // Assert
-        skin.Animations.Should().ContainKey(PetState.Walk);
+        pet.Animations.Should().ContainKey(PetState.Walk);
     }
 
     /// <summary>
-    /// States the skin does not define fall back to Idle.
+    /// States the pet does not define fall back to Idle.
     /// </summary>
     [Fact]
     public async Task LoadAsync_MissingState_FallsBackToIdle()
     {
         // Arrange
-        WriteSkin("""{"frameSize":[8,8],"states":{"Idle":{"fps":1,"frames":["i.png"]}}}""", "i.png");
+        WritePet("""{"frameSize":[8,8],"states":{"Idle":{"fps":1,"frames":["i.png"]}}}""", "i.png");
 
         // Act
-        var skin = await _loader.LoadAsync(_directory, TestContext.Current.CancellationToken);
+        var pet = await _loader.LoadAsync(_directory, TestContext.Current.CancellationToken);
 
         // Assert
-        skin.GetAnimation(PetState.Tired).Should().BeSameAs(skin.GetAnimation(PetState.Idle));
+        pet.GetAnimation(PetState.Tired).Should().BeSameAs(pet.GetAnimation(PetState.Idle));
     }
 
     /// <summary>
-    /// Unknown state names are skipped instead of failing the whole skin.
+    /// Unknown state names are skipped instead of failing the whole pet.
     /// </summary>
     [Fact]
     public async Task LoadAsync_UnknownStateName_IsIgnored()
     {
         // Arrange
-        WriteSkin(
+        WritePet(
             """{"frameSize":[8,8],"states":{"Idle":{"fps":1,"frames":["i.png"]},"Dance":{"fps":1,"frames":["i.png"]}}}""",
             "i.png");
 
         // Act
-        var skin = await _loader.LoadAsync(_directory, TestContext.Current.CancellationToken);
+        var pet = await _loader.LoadAsync(_directory, TestContext.Current.CancellationToken);
 
         // Assert
-        skin.Animations.Should().HaveCount(1);
+        pet.Animations.Should().HaveCount(1);
     }
 
     /// <summary>
@@ -174,7 +174,7 @@ public sealed class FolderSkinLoaderTests : IDisposable
     public async Task LoadAsync_MalformedJson_ThrowsInvalidData()
     {
         // Arrange
-        WriteSkin("{ not json");
+        WritePet("{ not json");
 
         // Act
         var act = () => _loader.LoadAsync(_directory);
@@ -190,7 +190,7 @@ public sealed class FolderSkinLoaderTests : IDisposable
     public async Task LoadAsync_FrameFileMissing_ThrowsInvalidData()
     {
         // Arrange
-        WriteSkin("""{"frameSize":[8,8],"states":{"Idle":{"fps":1,"frames":["missing.png"]}}}""");
+        WritePet("""{"frameSize":[8,8],"states":{"Idle":{"fps":1,"frames":["missing.png"]}}}""");
 
         // Act
         var act = () => _loader.LoadAsync(_directory);
@@ -206,7 +206,7 @@ public sealed class FolderSkinLoaderTests : IDisposable
     public async Task LoadAsync_NoIdleState_ThrowsInvalidData()
     {
         // Arrange
-        WriteSkin("""{"frameSize":[8,8],"states":{"Walk":{"fps":1,"frames":["w.png"]}}}""", "w.png");
+        WritePet("""{"frameSize":[8,8],"states":{"Walk":{"fps":1,"frames":["w.png"]}}}""", "w.png");
 
         // Act
         var act = () => _loader.LoadAsync(_directory);
@@ -222,7 +222,7 @@ public sealed class FolderSkinLoaderTests : IDisposable
     public async Task LoadAsync_ZeroFps_ThrowsInvalidData()
     {
         // Arrange
-        WriteSkin("""{"frameSize":[8,8],"states":{"Idle":{"fps":0,"frames":["i.png"]}}}""", "i.png");
+        WritePet("""{"frameSize":[8,8],"states":{"Idle":{"fps":0,"frames":["i.png"]}}}""", "i.png");
 
         // Act
         var act = () => _loader.LoadAsync(_directory);

@@ -74,7 +74,7 @@ public class PetSettingsTests
         {
             SleepAfter = TimeSpan.FromMinutes(50),
             Mode = DisturbanceMode.Roam,
-            SkinName = "cat",
+            PetName = "cat",
         };
 
         // Act
@@ -83,7 +83,7 @@ public class PetSettingsTests
         // Assert
         normalized.SleepAfter.Should().Be(TimeSpan.FromMinutes(50));
         normalized.Mode.Should().Be(DisturbanceMode.Roam);
-        normalized.SkinName.Should().Be("cat");
+        normalized.PetName.Should().Be("cat");
     }
 
     /// <summary>
@@ -100,19 +100,19 @@ public class PetSettingsTests
     }
 
     /// <summary>
-    /// A blank skin name falls back to the default skin, and spaces around a name are removed.
+    /// A blank pet name falls back to the default pet, and spaces around a name are removed.
     /// </summary>
     [Theory]
-    [InlineData("", PetSettings.DefaultSkinName)]
-    [InlineData("   ", PetSettings.DefaultSkinName)]
+    [InlineData("", PetSettings.DefaultPetName)]
+    [InlineData("   ", PetSettings.DefaultPetName)]
     [InlineData("  cat ", "cat")]
-    public void Normalize_SkinName_IsTrimmedOrDefaulted(string name, string expected)
+    public void Normalize_PetName_IsTrimmedOrDefaulted(string name, string expected)
     {
         // Act
-        var normalized = (PetSettings.Default with { SkinName = name }).Normalize();
+        var normalized = (PetSettings.Default with { PetName = name }).Normalize();
 
         // Assert
-        normalized.SkinName.Should().Be(expected);
+        normalized.PetName.Should().Be(expected);
     }
 
     /// <summary>

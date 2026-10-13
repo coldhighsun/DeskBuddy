@@ -81,7 +81,7 @@ public sealed class JsonSettingsStoreTests : IDisposable
         var settings = new PetSettings
         {
             Mode = DisturbanceMode.Roam,
-            SkinName = "猫咪",
+            PetName = "猫咪",
             SleepAfter = TimeSpan.FromMinutes(8),
             SedentaryReminderAfter = TimeSpan.FromMinutes(60),
             BossKey = new HotkeyGesture(HotkeyModifiers.Control | HotkeyModifiers.Shift, 0x7B),
@@ -114,7 +114,7 @@ public sealed class JsonSettingsStoreTests : IDisposable
     public async Task SaveAsync_WritesReadableFile()
     {
         // Act
-        await _store.SaveAsync(PetSettings.Default with { Mode = DisturbanceMode.Roam, SkinName = "猫咪" }, TestContext.Current.CancellationToken);
+        await _store.SaveAsync(PetSettings.Default with { Mode = DisturbanceMode.Roam, PetName = "猫咪" }, TestContext.Current.CancellationToken);
 
         // Assert
         var json = await File.ReadAllTextAsync(DataPath, TestContext.Current.CancellationToken);

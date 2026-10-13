@@ -1,4 +1,4 @@
-# Drawing helpers shared by the skin generators (GenerateRobotSkin.ps1, GenerateCatSkin.ps1). Dot-source this file; the
+# Drawing helpers shared by the pet generators (GenerateRobotPet.ps1, GenerateCatPet.ps1). Dot-source this file; the
 # caller defines $pal (a hashtable of brushes made with New-Brush) and $textFont before it draws anything.
 Add-Type -AssemblyName System.Drawing
 
@@ -69,7 +69,7 @@ function Save-Canvas($Bitmap, [string]$Path, [switch]$Flip, [switch]$Mirror) {
 }
 
 # Antivirus / indexers often hold freshly written files for a moment, so retry the manifest write whatever the failure.
-function Write-SkinManifest([string]$Path, [string]$Text) {
+function Write-PetManifest([string]$Path, [string]$Text) {
     foreach ($attempt in 1..10) {
         try {
             Set-Content -Encoding UTF8 -Path $Path -Value $Text -ErrorAction Stop

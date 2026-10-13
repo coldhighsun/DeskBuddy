@@ -11,7 +11,7 @@ using DeskBuddy.Domain.Scenarios;
 using DeskBuddy.Domain.Schedule;
 using DeskBuddy.Domain.Sedentary;
 using DeskBuddy.Domain.Settings;
-using DeskBuddy.Domain.Skins;
+using DeskBuddy.Domain.Pets;
 using DeskBuddy.Domain.SystemLoad;
 using DeskBuddy.Domain.Visibility;
 using Microsoft.Extensions.Time.Testing;
@@ -141,32 +141,32 @@ internal sealed class FakeAutoStartService : IAutoStartService
 }
 
 /// <summary>
-/// Skin catalog stub with a fixed list.
+/// Pet catalog stub with a fixed list.
 /// </summary>
 /// <param name="names">
-/// The skin names to report.
+/// The pet names to report.
 /// </param>
-internal sealed class FakeSkinCatalog(params string[] names) : ISkinCatalog
+internal sealed class FakePetCatalog(params string[] names) : IPetCatalog
 {
     /// <inheritdoc />
-    public IReadOnlyList<string> GetSkinNames()
+    public IReadOnlyList<string> GetPetNames()
     {
         return names;
     }
 }
 
 /// <summary>
-/// Skin loader stub that loads skins named in advance and fails for any other.
+/// Pet loader stub that loads pets named in advance and fails for any other.
 /// </summary>
-internal sealed class FakeSkinLoader : ISkinLoader
+internal sealed class FakePetLoader : IPetLoader
 {
     /// <summary>
-    /// Gets the names of the skin folders that were asked for, in order.
+    /// Gets the names of the pet folders that were asked for, in order.
     /// </summary>
     public List<string> Requested { get; } = [];
 
     /// <summary>
-    /// Gets the names of the skins that load successfully.
+    /// Gets the names of the pets that load successfully.
     /// </summary>
     public HashSet<string> Available { get; } = [];
 
@@ -176,9 +176,9 @@ internal sealed class FakeSkinLoader : ISkinLoader
     public Dictionary<string, TaskCompletionSource> Gates { get; } = [];
 
     /// <inheritdoc />
-    public async Task<Skin> LoadAsync(string skinDirectory, CancellationToken cancellationToken = default)
+    public async Task<Pet> LoadAsync(string petDirectory, CancellationToken cancellationToken = default)
     {
-        var name = Path.GetFileName(skinDirectory);
+        var name = Path.GetFileName(petDirectory);
         Requested.Add(name);
 
         if (Gates.TryGetValue(name, out var gate))
@@ -188,28 +188,28 @@ internal sealed class FakeSkinLoader : ISkinLoader
 
         if (!Available.Contains(name))
         {
-            throw new InvalidDataException($"Skin '{name}' is broken.");
+            throw new InvalidDataException($"Pet '{name}' is broken.");
         }
 
-        return CreateSkin(name);
+        return CreatePet(name);
     }
 
     /// <summary>
-    /// Creates a minimal skin.
+    /// Creates a minimal pet.
     /// </summary>
     /// <param name="name">
-    /// The skin name.
+    /// The pet name.
     /// </param>
     /// <returns>
-    /// A skin with a single idle frame.
+    /// A pet with a single idle frame.
     /// </returns>
-    public static Skin CreateSkin(string name)
+    public static Pet CreatePet(string name)
     {
-        var animations = new Dictionary<PetState, SkinAnimation>
+        var animations = new Dictionary<PetState, PetAnimation>
         {
-            [PetState.Idle] = new SkinAnimation(4, ["idle.png"]),
+            [PetState.Idle] = new PetAnimation(4, ["idle.png"]),
         };
-        return new Skin(name, 128, 128, animations);
+        return new Pet(name, 128, 128, animations);
     }
 }
 

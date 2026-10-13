@@ -1,25 +1,25 @@
 using AwesomeAssertions;
 using DeskBuddy.Domain.Gaze;
-using DeskBuddy.Domain.Skins;
+using DeskBuddy.Domain.Pets;
 
-namespace DeskBuddy.Domain.Tests.Skins;
+namespace DeskBuddy.Domain.Tests.Pets;
 
 /// <summary>
-/// Tests for <see cref="Skin"/>.
+/// Tests for <see cref="Pet"/>.
 /// </summary>
-public class SkinTests
+public class PetTests
 {
     /// <summary>
-    /// A skin without Idle must be rejected because Idle is the fallback.
+    /// A pet without Idle must be rejected because Idle is the fallback.
     /// </summary>
     [Fact]
     public void Constructor_NoIdleAnimation_Throws()
     {
         // Arrange
-        var animations = new Dictionary<PetState, SkinAnimation> { [PetState.Walk] = Animation("walk.png") };
+        var animations = new Dictionary<PetState, PetAnimation> { [PetState.Walk] = Animation("walk.png") };
 
         // Act
-        var act = () => new Skin("test", 128, 128, animations);
+        var act = () => new Pet("test", 128, 128, animations);
 
         // Assert
         act.Should().Throw<ArgumentException>();
@@ -33,52 +33,52 @@ public class SkinTests
     {
         // Arrange
         var walk = Animation("walk.png");
-        var skin = new Skin("test", 128, 128, new Dictionary<PetState, SkinAnimation>
+        var pet = new Pet("test", 128, 128, new Dictionary<PetState, PetAnimation>
         {
             [PetState.Idle] = Animation("idle.png"),
             [PetState.Walk] = walk,
         });
 
         // Act
-        var result = skin.GetAnimation(PetState.Walk);
+        var result = pet.GetAnimation(PetState.Walk);
 
         // Assert
         result.Should().BeSameAs(walk);
     }
 
     /// <summary>
-    /// A state the skin does not define falls back to Idle.
+    /// A state the pet does not define falls back to Idle.
     /// </summary>
     [Fact]
     public void GetAnimation_MissingState_FallsBackToIdle()
     {
         // Arrange
         var idle = Animation("idle.png");
-        var skin = new Skin("test", 128, 128, new Dictionary<PetState, SkinAnimation> { [PetState.Idle] = idle });
+        var pet = new Pet("test", 128, 128, new Dictionary<PetState, PetAnimation> { [PetState.Idle] = idle });
 
         // Act
-        var result = skin.GetAnimation(PetState.Sleep);
+        var result = pet.GetAnimation(PetState.Sleep);
 
         // Assert
         result.Should().BeSameAs(idle);
     }
 
     /// <summary>
-    /// A state the skin lacks shows its closest fallback if the skin has that.
+    /// A state the pet lacks shows its closest fallback if the pet has that.
     /// </summary>
     [Fact]
     public void GetAnimation_MissingStateWithFallback_UsesTheFallback()
     {
         // Arrange
         var coding = Animation("coding.png");
-        var skin = new Skin("test", 128, 128, new Dictionary<PetState, SkinAnimation>
+        var pet = new Pet("test", 128, 128, new Dictionary<PetState, PetAnimation>
         {
             [PetState.Idle] = Animation("idle.png"),
             [PetState.Coding] = coding,
         });
 
         // Act
-        var result = skin.GetAnimation(PetState.NightCoding);
+        var result = pet.GetAnimation(PetState.NightCoding);
 
         // Assert
         result.Should().BeSameAs(coding);
@@ -92,10 +92,10 @@ public class SkinTests
     {
         // Arrange
         var idle = Animation("idle.png");
-        var skin = new Skin("test", 128, 128, new Dictionary<PetState, SkinAnimation> { [PetState.Idle] = idle });
+        var pet = new Pet("test", 128, 128, new Dictionary<PetState, PetAnimation> { [PetState.Idle] = idle });
 
         // Act
-        var result = skin.GetAnimation(PetState.NightCoding);
+        var result = pet.GetAnimation(PetState.NightCoding);
 
         // Assert
         result.Should().BeSameAs(idle);
@@ -119,30 +119,30 @@ public class SkinTests
     }
 
     /// <summary>
-    /// An idle pet looks in the direction asked for if the skin has that look.
+    /// An idle pet looks in the direction asked for if the pet has that look.
     /// </summary>
     [Fact]
     public void GetAnimation_IdleWithGazeVariant_ReturnsTheVariant()
     {
         // Arrange
         var left = Animation("left.png");
-        var skin = new Skin(
+        var pet = new Pet(
             "test",
             128,
             128,
-            new Dictionary<PetState, SkinAnimation> { [PetState.Idle] = Animation("idle.png") },
-            new Dictionary<GazeDirection, SkinAnimation> { [GazeDirection.Left] = left });
+            new Dictionary<PetState, PetAnimation> { [PetState.Idle] = Animation("idle.png") },
+            new Dictionary<GazeDirection, PetAnimation> { [GazeDirection.Left] = left });
 
         // Act
-        var result = skin.GetAnimation(PetState.Idle, GazeDirection.Left);
+        var result = pet.GetAnimation(PetState.Idle, GazeDirection.Left);
 
         // Assert
         result.Should().BeSameAs(left);
-        skin.CanLookAround.Should().BeTrue();
+        pet.CanLookAround.Should().BeTrue();
     }
 
     /// <summary>
-    /// A look the skin lacks, or any look in another state, shows the plain animation.
+    /// A look the pet lacks, or any look in another state, shows the plain animation.
     /// </summary>
     [Fact]
     public void GetAnimation_GazeVariantMissingOrNotIdle_ReturnsThePlainAnimation()
@@ -150,16 +150,16 @@ public class SkinTests
         // Arrange
         var idle = Animation("idle.png");
         var walk = Animation("walk.png");
-        var skin = new Skin(
+        var pet = new Pet(
             "test",
             128,
             128,
-            new Dictionary<PetState, SkinAnimation> { [PetState.Idle] = idle, [PetState.Walk] = walk },
-            new Dictionary<GazeDirection, SkinAnimation> { [GazeDirection.Left] = Animation("left.png") });
+            new Dictionary<PetState, PetAnimation> { [PetState.Idle] = idle, [PetState.Walk] = walk },
+            new Dictionary<GazeDirection, PetAnimation> { [GazeDirection.Left] = Animation("left.png") });
 
         // Act
-        var up = skin.GetAnimation(PetState.Idle, GazeDirection.Up);
-        var walking = skin.GetAnimation(PetState.Walk, GazeDirection.Left);
+        var up = pet.GetAnimation(PetState.Idle, GazeDirection.Up);
+        var walking = pet.GetAnimation(PetState.Walk, GazeDirection.Left);
 
         // Assert
         up.Should().BeSameAs(idle);
@@ -167,16 +167,16 @@ public class SkinTests
     }
 
     /// <summary>
-    /// A skin without looks cannot look around.
+    /// A pet without looks cannot look around.
     /// </summary>
     [Fact]
     public void CanLookAround_NoGazeVariants_IsFalse()
     {
         // Arrange
-        var skin = new Skin("test", 128, 128, new Dictionary<PetState, SkinAnimation> { [PetState.Idle] = Animation("idle.png") });
+        var pet = new Pet("test", 128, 128, new Dictionary<PetState, PetAnimation> { [PetState.Idle] = Animation("idle.png") });
 
         // Assert
-        skin.CanLookAround.Should().BeFalse();
+        pet.CanLookAround.Should().BeFalse();
     }
 
     /// <summary>
@@ -187,14 +187,14 @@ public class SkinTests
     {
         // Arrange
         var tired = Animation("tired.png");
-        var skin = new Skin("test", 128, 128, new Dictionary<PetState, SkinAnimation>
+        var pet = new Pet("test", 128, 128, new Dictionary<PetState, PetAnimation>
         {
             [PetState.Idle] = Animation("idle.png"),
             [PetState.Tired] = tired,
         });
 
         // Act
-        var result = skin.GetAnimation(PetState.Dizzy);
+        var result = pet.GetAnimation(PetState.Dizzy);
 
         // Assert
         result.Should().BeSameAs(tired);
@@ -208,24 +208,24 @@ public class SkinTests
     {
         // Arrange
         var drag = Animation("drag.png");
-        var skin = new Skin("test", 128, 128, new Dictionary<PetState, SkinAnimation>
+        var pet = new Pet("test", 128, 128, new Dictionary<PetState, PetAnimation>
         {
             [PetState.Idle] = Animation("idle.png"),
             [PetState.Drag] = drag,
         });
 
         // Act
-        var result = skin.GetAnimation(PetState.Fall);
+        var result = pet.GetAnimation(PetState.Fall);
 
         // Assert
         result.Should().BeSameAs(drag);
     }
 
     /// <summary>
-    /// A pet climbing or hanging from the top with a skin that lacks those pictures looks like it walks.
+    /// A pet climbing or hanging from the top with a pet that lacks those pictures looks like it walks.
     /// </summary>
     /// <param name="state">
-    /// The state the skin lacks.
+    /// The state the pet lacks.
     /// </param>
     [Theory]
     [InlineData(PetState.Climb)]
@@ -234,28 +234,28 @@ public class SkinTests
     {
         // Arrange
         var walk = Animation("walk.png");
-        var skin = new Skin("test", 128, 128, new Dictionary<PetState, SkinAnimation>
+        var pet = new Pet("test", 128, 128, new Dictionary<PetState, PetAnimation>
         {
             [PetState.Idle] = Animation("idle.png"),
             [PetState.Walk] = walk,
         });
 
         // Act
-        var result = skin.GetAnimation(state);
+        var result = pet.GetAnimation(state);
 
         // Assert
         result.Should().BeSameAs(walk);
     }
 
     /// <summary>
-    /// A pet climbing down with a skin that has only the climbing up pictures shows those.
+    /// A pet climbing down with a pet that has only the climbing up pictures shows those.
     /// </summary>
     [Fact]
     public void GetAnimation_ClimbDownMissing_UsesClimb()
     {
         // Arrange
         var climb = Animation("climb.png");
-        var skin = new Skin("test", 128, 128, new Dictionary<PetState, SkinAnimation>
+        var pet = new Pet("test", 128, 128, new Dictionary<PetState, PetAnimation>
         {
             [PetState.Idle] = Animation("idle.png"),
             [PetState.Walk] = Animation("walk.png"),
@@ -263,14 +263,14 @@ public class SkinTests
         });
 
         // Act
-        var result = skin.GetAnimation(PetState.ClimbDown);
+        var result = pet.GetAnimation(PetState.ClimbDown);
 
         // Assert
         result.Should().BeSameAs(climb);
     }
 
     /// <summary>
-    /// A pet holding an open umbrella with a skin that has no picture for it shows the falling one, or the dragged one if
+    /// A pet holding an open umbrella with a pet that has no picture for it shows the falling one, or the dragged one if
     /// that is missing too.
     /// </summary>
     [Fact]
@@ -279,13 +279,13 @@ public class SkinTests
         // Arrange
         var fall = Animation("fall.png");
         var drag = Animation("drag.png");
-        var withFall = new Skin("test", 128, 128, new Dictionary<PetState, SkinAnimation>
+        var withFall = new Pet("test", 128, 128, new Dictionary<PetState, PetAnimation>
         {
             [PetState.Idle] = Animation("idle.png"),
             [PetState.Drag] = drag,
             [PetState.Fall] = fall,
         });
-        var withoutFall = new Skin("test", 128, 128, new Dictionary<PetState, SkinAnimation>
+        var withoutFall = new Pet("test", 128, 128, new Dictionary<PetState, PetAnimation>
         {
             [PetState.Idle] = Animation("idle.png"),
             [PetState.Drag] = drag,
@@ -309,8 +309,8 @@ public class SkinTests
     /// <returns>
     /// An animation at 4 fps with one frame.
     /// </returns>
-    private static SkinAnimation Animation(string name)
+    private static PetAnimation Animation(string name)
     {
-        return new SkinAnimation(4, [name]);
+        return new PetAnimation(4, [name]);
     }
 }

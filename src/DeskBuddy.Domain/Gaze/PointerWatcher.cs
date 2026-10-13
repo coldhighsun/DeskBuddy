@@ -69,7 +69,7 @@ public sealed class PointerWatcher(MouseShakeDetector shake)
     /// Whether a shake may make the pet dizzy now.
     /// </param>
     /// <param name="canLook">
-    /// Whether the pet can turn its eyes now: it stands around and its skin has looks.
+    /// Whether the pet can turn its eyes now: it stands around and its pet has looks.
     /// </param>
     /// <param name="petBox">
     /// Tells where the pet is; only asked for when the eyes are about to turn.

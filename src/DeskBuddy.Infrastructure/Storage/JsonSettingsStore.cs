@@ -111,9 +111,9 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
         public DisturbanceMode? Mode { get; init; }
 
         /// <summary>
-        /// Gets the skin name.
+        /// Gets the pet name.
         /// </summary>
-        public string? SkinName { get; init; }
+        public string? PetName { get; init; }
 
         /// <summary>
         /// Gets the inactivity time before sleeping.
@@ -205,7 +205,7 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
             return new SettingsFile
             {
                 Mode = settings.Mode,
-                SkinName = settings.SkinName,
+                PetName = settings.PetName,
                 SleepAfter = settings.SleepAfter,
                 SedentaryReminderAfter = settings.SedentaryReminderAfter,
                 BossKey = settings.BossKey.ToString(),
@@ -236,7 +236,7 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
             return new PetSettings
             {
                 Mode = Mode ?? defaults.Mode,
-                SkinName = SkinName ?? defaults.SkinName,
+                PetName = PetName ?? defaults.PetName,
                 SleepAfter = SleepAfter ?? defaults.SleepAfter,
                 SedentaryReminderAfter = SedentaryReminderAfter ?? defaults.SedentaryReminderAfter,
                 BossKey = HotkeyGesture.TryParse(BossKey, out var gesture) ? gesture : defaults.BossKey,
