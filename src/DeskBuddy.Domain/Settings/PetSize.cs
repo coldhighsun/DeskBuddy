@@ -27,13 +27,13 @@ public enum PetSize
 public static class PetSizeExtensions
 {
     /// <summary>
-    /// Gets the edge length in device independent pixels that skins are designed for, which is what the
+    /// Gets the edge length in device independent pixels that pets are designed for, which is what the
     /// <see cref="PetSize.Large"/> size shows.
     /// </summary>
     public const double ReferenceEdge = 64;
 
     /// <summary>
-    /// Gets the factor by which a size scales the frame size declared by a skin.
+    /// Gets the factor by which a size scales the frame size declared by a pet.
     /// </summary>
     /// <param name="size">
     /// The size.
@@ -52,13 +52,13 @@ public static class PetSizeExtensions
     }
 
     /// <summary>
-    /// Scales one edge of a skin frame.
+    /// Scales one edge of a pet frame.
     /// </summary>
     /// <param name="size">
     /// The size.
     /// </param>
     /// <param name="frameEdge">
-    /// The edge length declared by the skin.
+    /// The edge length declared by the pet.
     /// </param>
     /// <returns>
     /// The scaled edge length, rounded and at least 1.

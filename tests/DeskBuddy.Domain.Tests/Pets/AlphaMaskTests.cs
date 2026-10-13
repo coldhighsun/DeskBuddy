@@ -1,7 +1,7 @@
 using AwesomeAssertions;
-using DeskBuddy.Domain.Skins;
+using DeskBuddy.Domain.Pets;
 
-namespace DeskBuddy.Domain.Tests.Skins;
+namespace DeskBuddy.Domain.Tests.Pets;
 
 /// <summary>
 /// Tests for <see cref="AlphaMask"/>.

@@ -17,7 +17,7 @@ using DeskBuddy.Domain.Messages;
 using DeskBuddy.Domain.Movement;
 using DeskBuddy.Domain.Scenarios;
 using DeskBuddy.Domain.Settings;
-using DeskBuddy.Domain.Skins;
+using DeskBuddy.Domain.Pets;
 
 namespace DeskBuddy.App.Windows;
 
@@ -78,9 +78,9 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     private static readonly TimeSpan BrainInterval = TimeSpan.FromSeconds(1);
 
     /// <summary>
-    /// The skin being shown.
+    /// The pet being shown.
     /// </summary>
-    private Skin _skin;
+    private Pet _pet;
 
     /// <summary>
     /// How large the pet is shown.
@@ -88,7 +88,7 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     private PetSize _size;
 
     /// <summary>
-    /// Plays the current animation of the skin.
+    /// Plays the current animation of the pet.
     /// </summary>
     private AnimationPlayer _player;
 
@@ -154,9 +154,9 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     private readonly UmbrellaFollower _umbrella;
 
     /// <summary>
-    /// Decoded frames of the skin.
+    /// Decoded frames of the pet.
     /// </summary>
-    private SkinFrameCache _frames;
+    private PetFrameCache _frames;
 
     /// <summary>
     /// Decides what the pet is doing.
@@ -295,11 +295,11 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     /// <summary>
     /// Initializes a new instance of the <see cref="PetWindow"/> class.
     /// </summary>
-    /// <param name="skin">
-    /// The skin that determines the window size and animations.
+    /// <param name="pet">
+    /// The pet that determines the window size and animations.
     /// </param>
     /// <param name="frames">
-    /// Decoded frames for the skin.
+    /// Decoded frames for the pet.
     /// </param>
     /// <param name="brain">
     /// The brain that decides what the pet does.
@@ -317,8 +317,8 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     /// Which scenarios the user has switched on.
     /// </param>
     public PetWindow(
-        Skin skin,
-        SkinFrameCache frames,
+        Pet pet,
+        PetFrameCache frames,
         PetBrain brain,
         PetBehaviorOptions options,
         Action<PanelTab?> openPanel,
@@ -330,12 +330,12 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
 
         _umbrella = new UmbrellaFollower(this);
 
-        _skin = skin;
+        _pet = pet;
         _size = size;
         _switches = switches;
         _petBox = GetPetBox;
         ToolTipService.SetInitialShowDelay(SpriteImage, ToolTipDelayMilliseconds);
-        _player = new AnimationPlayer(skin);
+        _player = new AnimationPlayer(pet);
         _frames = frames;
         _brain = brain;
         _options = options;
@@ -343,8 +343,8 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
         _openPanel = openPanel;
         _movement = movement;
 
-        Width = size.Scale(skin.FrameWidth);
-        Height = size.Scale(skin.FrameHeight);
+        Width = size.Scale(pet.FrameWidth);
+        Height = size.Scale(pet.FrameHeight);
         ShowFrame();
 
         SourceInitialized += OnSourceInitialized;
@@ -419,21 +419,21 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     }
 
     /// <summary>
-    /// Replaces the skin while the window is showing. A new skin is a new pet: whatever the old one was doing is over,
+    /// Replaces the pet while the window is showing. A new pet is a new pet: whatever the old one was doing is over,
     /// and the new one starts on the ground at a random spot of a monitor picked at random.
     /// </summary>
-    /// <param name="skin">
-    /// The new skin.
+    /// <param name="pet">
+    /// The new pet.
     /// </param>
     /// <param name="frames">
-    /// Decoded frames of the new skin.
+    /// Decoded frames of the new pet.
     /// </param>
-    public void SetSkin(Skin skin, SkinFrameCache frames)
+    public void SetPet(Pet pet, PetFrameCache frames)
     {
-        ArgumentNullException.ThrowIfNull(skin);
+        ArgumentNullException.ThrowIfNull(pet);
         ArgumentNullException.ThrowIfNull(frames);
 
-        _skin = skin;
+        _pet = pet;
         _frames = frames;
 
         if (_fall is not null)
@@ -448,7 +448,7 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
         _facing = 1;
         ApplyFacing();
 
-        _player = new AnimationPlayer(skin);
+        _player = new AnimationPlayer(pet);
         _player.SetState(_shownState, CurrentLook());
         SpriteImage.ToolTip = Strings.StateHint(_shownState);
 
@@ -499,13 +499,13 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     }
 
     /// <summary>
-    /// Resizes the window to the frame size of the current skin at the current size, keeping the bottom edge.
+    /// Resizes the window to the frame size of the current pet at the current size, keeping the bottom edge.
     /// </summary>
     private void ApplyFrameSize()
     {
         var bottom = Top + Height;
-        Width = _size.Scale(_skin.FrameWidth);
-        Height = _size.Scale(_skin.FrameHeight);
+        Width = _size.Scale(_pet.FrameWidth);
+        Height = _size.Scale(_pet.FrameHeight);
         Top = bottom - Height;
     }
 
@@ -975,7 +975,7 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
             cursor.X,
             cursor.Y,
             _switches.Allows(PetState.Dizzy) && _brain.State != PetState.Drag && !_brain.State.IsFalling(),
-            _skin.CanLookAround && _shownState == PetState.Idle,
+            _pet.CanLookAround && _shownState == PetState.Idle,
             _petBox);
         if (reaction.BecomeDizzy)
         {
@@ -1058,11 +1058,11 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
 
     /// <summary>
     /// Runs the pointer timer only while the pet is on screen and something needs the pointer: shaking can make it
-    /// dizzy, or its skin can look around. Checked every second, as the switches can change at any time.
+    /// dizzy, or its pet can look around. Checked every second, as the switches can change at any time.
     /// </summary>
     private void UpdatePointerTimer()
     {
-        var wanted = IsVisible && _switches.IsEnabled && (_switches.Allows(PetState.Dizzy) || _skin.CanLookAround);
+        var wanted = IsVisible && _switches.IsEnabled && (_switches.Allows(PetState.Dizzy) || _pet.CanLookAround);
         if (wanted && !_pointerTimer.IsEnabled)
         {
             _pointerTimer.Start();
@@ -1266,13 +1266,13 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
 
     /// <summary>
     /// Gets a value indicating whether the pet may crawl along the edges of the screen now: the user allows it, the pet
-    /// walks along the taskbar, and the skin has the pictures for it.
+    /// walks along the taskbar, and the pet has the pictures for it.
     /// </summary>
     private bool CanCrawl =>
         _climbEdges
         && _movement.Current.FallsWhenDropped
-        && _skin.Animations.ContainsKey(PetState.Climb)
-        && _skin.Animations.ContainsKey(PetState.Ceiling);
+        && _pet.Animations.ContainsKey(PetState.Climb)
+        && _pet.Animations.ContainsKey(PetState.Ceiling);
 
     /// <summary>
     /// Lets a pet that has just walked into the left or right end of the screen start to climb it, by chance.
@@ -1639,7 +1639,7 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     }
 
     /// <summary>
-    /// Lets the pet cling to the left or right edge of the work area if it was dropped close to it, and the skin has a
+    /// Lets the pet cling to the left or right edge of the work area if it was dropped close to it, and the pet has a
     /// way of showing that.
     /// </summary>
     /// <returns>
@@ -1647,7 +1647,7 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     /// </returns>
     private bool TryHangOnEdge()
     {
-        if (!_skin.Animations.ContainsKey(PetState.Hang) || !_switches.Allows(PetState.Hang))
+        if (!_pet.Animations.ContainsKey(PetState.Hang) || !_switches.Allows(PetState.Hang))
         {
             return false;
         }

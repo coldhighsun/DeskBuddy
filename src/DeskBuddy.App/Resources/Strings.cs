@@ -98,9 +98,9 @@ internal static class Strings
     public static string SettingsAppearance => Get();
 
     /// <summary>
-    /// Gets the label of the skin choice.
+    /// Gets the label of the pet choice.
     /// </summary>
-    public static string SettingsSkin => Get();
+    public static string SettingsPet => Get();
 
     /// <summary>
     /// Gets the label of the disturbance mode choice.
@@ -218,9 +218,9 @@ internal static class Strings
     public static string SettingsLoadFailed => Get();
 
     /// <summary>
-    /// Gets the message for a skin that could not be switched to; <c>{0}</c> is the reason.
+    /// Gets the message for a pet that could not be switched to; <c>{0}</c> is the reason.
     /// </summary>
-    public static string SkinSwitchFailed => Get();
+    public static string PetSwitchFailed => Get();
 
     /// <summary>
     /// Gets one of the pet's casual remarks.

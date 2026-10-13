@@ -1,5 +1,5 @@
 # Generates the application icon (tray, exe, windows, installer): the robot's head on a rounded navy tile, drawn on a
-# 16x16 art grid like the robot skin and scaled up without smoothing, so it stays crisp at every size.
+# 16x16 art grid like the robot pet and scaled up without smoothing, so it stays crisp at every size.
 # Output: src/DeskBuddy.App/Assets/DeskBuddy.ico (PNG-compressed, 16-256 px) and DeskBuddy.png (256 px preview).
 # Usage: powershell -NoProfile -File tools/GenerateAppIcon.ps1
 Add-Type -AssemblyName System.Drawing
@@ -8,7 +8,7 @@ $outDir = Join-Path $PSScriptRoot '..\src\DeskBuddy.App\Assets'
 New-Item -ItemType Directory -Force -Path $outDir | Out-Null
 $outDir = (Resolve-Path $outDir).Path
 
-# Palette, shared with GenerateRobotSkin.ps1 where the colors have the same meaning.
+# Palette, shared with GenerateRobotPet.ps1 where the colors have the same meaning.
 $colors = @{
     'B' = @(54, 72, 112)     # tile background
     'K' = @(18, 24, 40)      # head outline

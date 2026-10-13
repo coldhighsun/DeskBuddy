@@ -1,13 +1,13 @@
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using DeskBuddy.Domain.Skins;
+using DeskBuddy.Domain.Pets;
 
 namespace DeskBuddy.App.Rendering;
 
 /// <summary>
-/// Pre-decodes every frame of a skin into frozen bitmaps so rendering never allocates or touches the disk.
+/// Pre-decodes every frame of a pet into frozen bitmaps so rendering never allocates or touches the disk.
 /// </summary>
-public sealed class SkinFrameCache
+public sealed class PetFrameCache
 {
     /// <summary>
     /// Decoded frames keyed by their file path.
@@ -20,17 +20,17 @@ public sealed class SkinFrameCache
     private readonly Dictionary<string, AlphaMask> _masks;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="SkinFrameCache"/> class and decodes all frames of the skin.
+    /// Initializes a new instance of the <see cref="PetFrameCache"/> class and decodes all frames of the pet.
     /// </summary>
-    /// <param name="skin">
-    /// The skin whose frames are decoded.
+    /// <param name="pet">
+    /// The pet whose frames are decoded.
     /// </param>
-    public SkinFrameCache(Skin skin)
+    public PetFrameCache(Pet pet)
     {
-        ArgumentNullException.ThrowIfNull(skin);
+        ArgumentNullException.ThrowIfNull(pet);
 
-        var paths = skin.Animations.Values
-            .Concat(skin.GazeAnimations.Values)
+        var paths = pet.Animations.Values
+            .Concat(pet.GazeAnimations.Values)
             .SelectMany(animation => animation.FramePaths)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
@@ -49,7 +49,7 @@ public sealed class SkinFrameCache
     /// Gets the decoded frame for a file path.
     /// </summary>
     /// <param name="path">
-    /// Frame file path as listed in the skin.
+    /// Frame file path as listed in the pet.
     /// </param>
     /// <returns>
     /// The frozen, decoded image.
@@ -63,7 +63,7 @@ public sealed class SkinFrameCache
     /// Gets the alpha mask for a frame.
     /// </summary>
     /// <param name="path">
-    /// Frame file path as listed in the skin.
+    /// Frame file path as listed in the pet.
     /// </param>
     /// <returns>
     /// The mask describing which pixels of the frame are opaque.

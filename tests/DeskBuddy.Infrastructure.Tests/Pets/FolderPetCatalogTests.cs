@@ -1,29 +1,29 @@
 using AwesomeAssertions;
-using DeskBuddy.Infrastructure.Skins;
+using DeskBuddy.Infrastructure.Pets;
 
-namespace DeskBuddy.Infrastructure.Tests.Skins;
+namespace DeskBuddy.Infrastructure.Tests.Pets;
 
 /// <summary>
-/// Tests for <see cref="FolderSkinCatalog"/>, using a real temporary directory per test.
+/// Tests for <see cref="FolderPetCatalog"/>, using a real temporary directory per test.
 /// </summary>
-public sealed class FolderSkinCatalogTests : IDisposable
+public sealed class FolderPetCatalogTests : IDisposable
 {
     /// <summary>
-    /// Temporary skins directory, unique per test instance.
+    /// Temporary pets directory, unique per test instance.
     /// </summary>
-    private readonly string _directory = Path.Combine(Path.GetTempPath(), $"DeskBuddySkins_{Guid.NewGuid():N}");
+    private readonly string _directory = Path.Combine(Path.GetTempPath(), $"DeskBuddyPets_{Guid.NewGuid():N}");
 
     /// <summary>
     /// The catalog under test.
     /// </summary>
-    private readonly FolderSkinCatalog _catalog;
+    private readonly FolderPetCatalog _catalog;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="FolderSkinCatalogTests"/> class.
+    /// Initializes a new instance of the <see cref="FolderPetCatalogTests"/> class.
     /// </summary>
-    public FolderSkinCatalogTests()
+    public FolderPetCatalogTests()
     {
-        _catalog = new FolderSkinCatalog(_directory);
+        _catalog = new FolderPetCatalog(_directory);
     }
 
     /// <inheritdoc />
@@ -50,37 +50,37 @@ public sealed class FolderSkinCatalogTests : IDisposable
         Directory.CreateDirectory(folder);
         if (withManifest)
         {
-            File.WriteAllText(Path.Combine(folder, FolderSkinLoader.ManifestFileName), "{}");
+            File.WriteAllText(Path.Combine(folder, FolderPetLoader.ManifestFileName), "{}");
         }
     }
 
     /// <summary>
-    /// A skins folder that does not exist yields no skins instead of an error.
+    /// A pets folder that does not exist yields no pets instead of an error.
     /// </summary>
     [Fact]
-    public void GetSkinNames_FolderMissing_ReturnsEmpty()
+    public void GetPetNames_FolderMissing_ReturnsEmpty()
     {
         // Act
-        var names = _catalog.GetSkinNames();
+        var names = _catalog.GetPetNames();
 
         // Assert
         names.Should().BeEmpty();
     }
 
     /// <summary>
-    /// Only folders with a manifest count as skins, and the names are sorted ignoring case.
+    /// Only folders with a manifest count as pets, and the names are sorted ignoring case.
     /// </summary>
     [Fact]
-    public void GetSkinNames_MixedFolders_ListsOnlySkinsSorted()
+    public void GetPetNames_MixedFolders_ListsOnlyPetsSorted()
     {
         // Arrange
         AddFolder("zebra", withManifest: true);
         AddFolder("Alpha", withManifest: true);
         AddFolder("notes", withManifest: false);
-        File.WriteAllText(Path.Combine(_directory, FolderSkinLoader.ManifestFileName), "{}");
+        File.WriteAllText(Path.Combine(_directory, FolderPetLoader.ManifestFileName), "{}");
 
         // Act
-        var names = _catalog.GetSkinNames();
+        var names = _catalog.GetPetNames();
 
         // Assert
         names.Should().Equal("Alpha", "zebra");

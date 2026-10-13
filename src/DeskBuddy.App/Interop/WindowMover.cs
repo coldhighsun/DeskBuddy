@@ -8,7 +8,7 @@ namespace DeskBuddy.App.Interop;
 /// <summary>
 /// Moves a window the cheap way. Setting <see cref="Window.Left"/> and <see cref="Window.Top"/> costs a full
 /// <c>SetWindowPos</c> each, with a repaint request; moving the pet around dozens of times a second that is the biggest
-/// item in its CPU use. Here the window is moved once, in whole device pixels, and without asking for a repaint — the
+/// item in its CPU use. Here the window is moved once, in whole device pixels, and without apetg for a repaint — the
 /// desktop compositor already holds the window's contents and just draws them somewhere else.
 /// </summary>
 public static partial class WindowMover

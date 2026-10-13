@@ -2,81 +2,81 @@ using System.IO;
 using DeskBuddy.Application;
 using DeskBuddy.Application.Abstractions;
 using DeskBuddy.Domain.Settings;
-using DeskBuddy.Domain.Skins;
+using DeskBuddy.Domain.Pets;
 using Microsoft.Extensions.Logging;
 
 namespace DeskBuddy.App.Rendering;
 
 /// <summary>
-/// Changes the pet's skin while the application runs: when the skin named in the settings changes, the new skin is
-/// loaded and handed to the window. If it cannot be loaded the old skin stays and the setting is put back, so the
-/// settings always name the skin that is on screen.
+/// Changes the pet's pet while the application runs: when the pet named in the settings changes, the new pet is
+/// loaded and handed to the window. If it cannot be loaded the old pet stays and the setting is put back, so the
+/// settings always name the pet that is on screen.
 /// </summary>
-public sealed class SkinSwitcher : IDisposable
+public sealed class PetSwitcher : IDisposable
 {
     /// <summary>
-    /// The settings that name the skin.
+    /// The settings that name the pet.
     /// </summary>
     private readonly SettingsService _settings;
 
     /// <summary>
-    /// Loads a skin from its folder.
+    /// Loads a pet from its folder.
     /// </summary>
-    private readonly ISkinLoader _loader;
+    private readonly IPetLoader _loader;
 
     /// <summary>
-    /// The folder that holds one subfolder per skin.
+    /// The folder that holds one subfolder per pet.
     /// </summary>
-    private readonly string _skinsDirectory;
+    private readonly string _petsDirectory;
 
     /// <summary>
-    /// Puts a loaded skin on screen; may throw if its images cannot be decoded.
+    /// Puts a loaded pet on screen; may throw if its images cannot be decoded.
     /// </summary>
-    private readonly Action<Skin> _apply;
+    private readonly Action<Pet> _apply;
 
     /// <summary>
-    /// Logger used to report a skin that could not be switched to.
+    /// Logger used to report a pet that could not be switched to.
     /// </summary>
-    private readonly ILogger<SkinSwitcher> _logger;
+    private readonly ILogger<PetSwitcher> _logger;
 
     /// <summary>
-    /// The name of the skin on screen.
+    /// The name of the pet on screen.
     /// </summary>
     private string _currentName;
 
     /// <summary>
-    /// The name of the skin most recently asked for, so an older, slower load does not overwrite a newer one.
+    /// The name of the pet most recently asked for, so an older, slower load does not overwrite a newer one.
     /// </summary>
     private string _requestedName;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="SkinSwitcher"/> class and starts following the settings.
+    /// Initializes a new instance of the <see cref="PetSwitcher"/> class and starts following the settings.
     /// </summary>
     /// <param name="settings">
-    /// The settings that name the skin.
+    /// The settings that name the pet.
     /// </param>
     /// <param name="loader">
-    /// Loads a skin from its folder.
+    /// Loads a pet from its folder.
     /// </param>
-    /// <param name="skinsDirectory">
-    /// The folder that holds one subfolder per skin.
+    /// <param name="petsDirectory">
+    /// The folder that holds one subfolder per pet.
     /// </param>
     /// <param name="currentName">
-    /// The name of the skin on screen at the start.
+    /// The name of the pet on screen at the start.
     /// </param>
     /// <param name="apply">
-    /// Puts a loaded skin on screen; may throw if its images cannot be decoded.
+    /// Puts a loaded pet on screen; may throw if its images cannot be decoded.
     /// </param>
     /// <param name="logger">
-    /// Logger used to report a skin that could not be switched to.
+    /// Logger used to report a pet that could not be switched to.
     /// </param>
-    public SkinSwitcher(
+    public PetSwitcher(
         SettingsService settings,
-        ISkinLoader loader,
-        string skinsDirectory,
+        IPetLoader loader,
+        string petsDirectory,
         string currentName,
-        Action<Skin> apply,
-        ILogger<SkinSwitcher> logger)
+        Action<Pet> apply,
+        ILogger<PetSwitcher> logger)
     {
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(loader);
@@ -85,7 +85,7 @@ public sealed class SkinSwitcher : IDisposable
 
         _settings = settings;
         _loader = loader;
-        _skinsDirectory = skinsDirectory;
+        _petsDirectory = petsDirectory;
         _currentName = currentName;
         _requestedName = currentName;
         _apply = apply;
@@ -95,7 +95,7 @@ public sealed class SkinSwitcher : IDisposable
     }
 
     /// <summary>
-    /// Raised when a skin could not be switched to; the argument says why. The old skin is still on screen.
+    /// Raised when a pet could not be switched to; the argument says why. The old pet is still on screen.
     /// </summary>
     public event EventHandler<string>? SwitchFailed;
 
@@ -106,11 +106,11 @@ public sealed class SkinSwitcher : IDisposable
     }
 
     /// <summary>
-    /// Switches to a skin if it is not the one on screen. A failure is reported through <see cref="SwitchFailed"/> and
-    /// the setting is put back to the skin on screen.
+    /// Switches to a pet if it is not the one on screen. A failure is reported through <see cref="SwitchFailed"/> and
+    /// the setting is put back to the pet on screen.
     /// </summary>
     /// <param name="name">
-    /// The skin's folder name.
+    /// The pet's folder name.
     /// </param>
     /// <returns>
     /// A task that completes when the switch has been made or has failed.
@@ -126,7 +126,7 @@ public sealed class SkinSwitcher : IDisposable
         string? failure = null;
         try
         {
-            var skin = await _loader.LoadAsync(Path.Combine(_skinsDirectory, name));
+            var pet = await _loader.LoadAsync(Path.Combine(_petsDirectory, name));
 
             // A newer request has been made while this one was loading; let that one win.
             if (!string.Equals(name, _requestedName, StringComparison.Ordinal))
@@ -134,12 +134,12 @@ public sealed class SkinSwitcher : IDisposable
                 return;
             }
 
-            _apply(skin);
+            _apply(pet);
             _currentName = name;
         }
         catch (Exception ex) when (ex is InvalidDataException or IOException or NotSupportedException or FormatException)
         {
-            _logger.LogWarning(ex, "Could not switch to the '{Skin}' skin; keeping '{Current}'.", name, _currentName);
+            _logger.LogWarning(ex, "Could not switch to the '{Pet}' pet; keeping '{Current}'.", name, _currentName);
 
             // A failure of a request that has been superseded no longer matters.
             if (string.Equals(name, _requestedName, StringComparison.Ordinal))
@@ -157,7 +157,7 @@ public sealed class SkinSwitcher : IDisposable
     }
 
     /// <summary>
-    /// Follows a change of the skin name in the settings.
+    /// Follows a change of the pet name in the settings.
     /// </summary>
     /// <param name="sender">
     /// The event source.
@@ -167,11 +167,11 @@ public sealed class SkinSwitcher : IDisposable
     /// </param>
     private async void OnSettingsChanged(object? sender, PetSettings settings)
     {
-        await SwitchAsync(settings.SkinName);
+        await SwitchAsync(settings.PetName);
     }
 
     /// <summary>
-    /// Puts the skin name in the settings back to the skin on screen.
+    /// Puts the pet name in the settings back to the pet on screen.
     /// </summary>
     /// <returns>
     /// A task that completes when the setting has been restored.
@@ -180,11 +180,11 @@ public sealed class SkinSwitcher : IDisposable
     {
         try
         {
-            await _settings.UpdateAsync(settings => settings with { SkinName = _currentName });
+            await _settings.UpdateAsync(settings => settings with { PetName = _currentName });
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException)
         {
-            _logger.LogWarning(ex, "The skin setting could not be put back to '{Current}'.", _currentName);
+            _logger.LogWarning(ex, "The pet setting could not be put back to '{Current}'.", _currentName);
         }
     }
 }

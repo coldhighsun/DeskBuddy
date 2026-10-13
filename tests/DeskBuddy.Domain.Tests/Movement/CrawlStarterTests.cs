@@ -66,7 +66,7 @@ public class CrawlStarterTests
     /// When the chance does not come out in its favor the pet walks on, and the monitors are not even asked about.
     /// </summary>
     [Fact]
-    public void AtWalkEnd_NoLuck_ReturnsNullWithoutAskingForMonitors()
+    public void AtWalkEnd_NoLuck_ReturnsNullWithoutApetgForMonitors()
     {
         // Arrange
         var edges = new FakeEdges();

@@ -7,9 +7,9 @@ namespace DeskBuddy.Domain.Settings;
 public sealed record PetSettings
 {
     /// <summary>
-    /// Skin used when none is configured.
+    /// Pet used when none is configured.
     /// </summary>
-    public const string DefaultSkinName = "robot";
+    public const string DefaultPetName = "robot";
 
     /// <summary>
     /// Suffix stripped from process names so <c>zoom</c> and <c>Zoom.exe</c> mean the same thing.
@@ -69,9 +69,9 @@ public sealed record PetSettings
     public DisturbanceMode Mode { get; init; } = DisturbanceMode.Docked;
 
     /// <summary>
-    /// Gets the name of the skin folder under <c>skins</c>.
+    /// Gets the name of the pet folder under <c>pets</c>.
     /// </summary>
-    public string SkinName { get; init; } = DefaultSkinName;
+    public string PetName { get; init; } = DefaultPetName;
 
     /// <summary>
     /// Gets how long the user must be inactive before the pet falls asleep.
@@ -138,7 +138,7 @@ public sealed record PetSettings
 
     /// <summary>
     /// Gets a value indicating whether the pet may climb along the sides of the screen and hang from its top edge. It
-    /// only does so when the skin has pictures for it and the pet walks along the taskbar.
+    /// only does so when the pet has pictures for it and the pet walks along the taskbar.
     /// </summary>
     public bool ClimbEdges { get; init; }
 
@@ -155,7 +155,7 @@ public sealed record PetSettings
 
     /// <summary>
     /// Returns a copy with every value forced into its allowed range: durations are clamped, unknown modes, blank
-    /// skin names and invalid shortcuts fall back to the defaults, and the process list is trimmed, stripped of
+    /// pet names and invalid shortcuts fall back to the defaults, and the process list is trimmed, stripped of
     /// <c>.exe</c> and de-duplicated ignoring case.
     /// </summary>
     /// <returns>
@@ -167,7 +167,7 @@ public sealed record PetSettings
         return this with
         {
             Mode = Enum.IsDefined(Mode) ? Mode : defaults.Mode,
-            SkinName = string.IsNullOrWhiteSpace(SkinName) ? DefaultSkinName : SkinName.Trim(),
+            PetName = string.IsNullOrWhiteSpace(PetName) ? DefaultPetName : PetName.Trim(),
             SleepAfter = Clamp(SleepAfter, MinSleepAfter, MaxSleepAfter),
             SedentaryReminderAfter = Clamp(SedentaryReminderAfter, MinSedentaryInterval, MaxSedentaryInterval),
             Language = Enum.IsDefined(Language) ? Language : defaults.Language,

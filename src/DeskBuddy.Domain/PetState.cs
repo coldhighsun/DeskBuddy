@@ -36,7 +36,7 @@ public enum PetState
     Alert,
 
     /// <summary>
-    /// The pet sits quietly. Not chosen on its own: it is the fallback frame set for <see cref="Meeting"/> when a skin has none.
+    /// The pet sits quietly. Not chosen on its own: it is the fallback frame set for <see cref="Meeting"/> when a pet has none.
     /// </summary>
     Focus,
 
@@ -131,7 +131,7 @@ public enum PetState
     Fall,
 
     /// <summary>
-    /// The falling pet has opened its umbrella or parachute and floats down holding it. A skin without pictures for it
+    /// The falling pet has opened its umbrella or parachute and floats down holding it. A pet without pictures for it
     /// shows the falling ones instead.
     /// </summary>
     Glide,
@@ -142,7 +142,7 @@ public enum PetState
     Climb,
 
     /// <summary>
-    /// The pet climbs down along the left or right edge of the screen, head first. A skin without pictures for it shows
+    /// The pet climbs down along the left or right edge of the screen, head first. A pet without pictures for it shows
     /// the climbing ones instead.
     /// </summary>
     ClimbDown,

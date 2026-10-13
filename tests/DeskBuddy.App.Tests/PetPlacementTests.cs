@@ -285,7 +285,7 @@ public class PetPlacementTests
     }
 
     /// <summary>
-    /// Asking for a spot without any monitor is a mistake of the caller.
+    /// Apetg for a spot without any monitor is a mistake of the caller.
     /// </summary>
     [Fact]
     public void PickOnGround_NoMonitors_Throws()

@@ -1,10 +1,10 @@
-# Generates the pixel-art cat skin (no third-party artwork). Art faces right.
-# Usage: powershell -NoProfile -File tools/GenerateCatSkin.ps1
-. (Join-Path $PSScriptRoot 'SkinDrawing.ps1')
+# Generates the pixel-art cat pet (no third-party artwork). Art faces right.
+# Usage: powershell -NoProfile -File tools/GenerateCatPet.ps1
+. (Join-Path $PSScriptRoot 'PetDrawing.ps1')
 # The cat's limbs have a core two art pixels thick.
 $script:LimbCore = 2
 
-$outDir = Join-Path $PSScriptRoot '..\skins\cat'
+$outDir = Join-Path $PSScriptRoot '..\pets\cat'
 New-Item -ItemType Directory -Force -Path $outDir | Out-Null
 Get-ChildItem $outDir -Filter *.png | Remove-Item
 
@@ -345,6 +345,6 @@ $manifest = @'
 '@
 
 $manifestPath = Join-Path $outDir 'manifest.json'
-Write-SkinManifest $manifestPath $manifest
+Write-PetManifest $manifestPath $manifest
 
-Write-Host "Cat skin written to $outDir"
+Write-Host "Cat pet written to $outDir"

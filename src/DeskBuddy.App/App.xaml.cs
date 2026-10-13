@@ -25,7 +25,7 @@ using DeskBuddy.Domain.SystemLoad;
 using DeskBuddy.Infrastructure.Logging;
 using DeskBuddy.Infrastructure.Sensors;
 using DeskBuddy.Infrastructure.Startup;
-using DeskBuddy.Infrastructure.Skins;
+using DeskBuddy.Infrastructure.Pets;
 using DeskBuddy.Infrastructure.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -105,9 +105,9 @@ public partial class App
     private static readonly TimeSpan ProcessListInterval = TimeSpan.FromSeconds(3);
 
     /// <summary>
-    /// Switches the skin when the setting changes; <see langword="null"/> until startup completes.
+    /// Switches the pet when the setting changes; <see langword="null"/> until startup completes.
     /// </summary>
-    private SkinSwitcher? _skinSwitcher;
+    private PetSwitcher? _petSwitcher;
 
     /// <summary>
     /// The global boss-key shortcut; <see langword="null"/> until startup completes.
@@ -167,9 +167,9 @@ public partial class App
         builder.Services.AddSingleton(behaviorOptions);
         builder.Services.AddSingleton(loadOptions);
         builder.Services.AddSingleton(TimeProvider.System);
-        builder.Services.AddSingleton<ISkinLoader, FolderSkinLoader>();
+        builder.Services.AddSingleton<IPetLoader, FolderPetLoader>();
         builder.Services.AddSingleton<IAutoStartService>(_ => new RegistryAutoStartService());
-        builder.Services.AddSingleton<ISkinCatalog>(_ => new FolderSkinCatalog(Path.Combine(AppContext.BaseDirectory, "skins")));
+        builder.Services.AddSingleton<IPetCatalog>(_ => new FolderPetCatalog(Path.Combine(AppContext.BaseDirectory, "pets")));
         builder.Services.AddSingleton<IIdleDetector, Win32IdleDetector>();
         builder.Services.AddSingleton<ISystemLoadMonitor, WindowsSystemLoadMonitor>();
         builder.Services.AddSingleton<LoadReactionPolicy>();
@@ -259,24 +259,24 @@ public partial class App
 
         // Resolving the applier copies the loaded settings into the option objects the pet logic reads from.
         _host.Services.GetRequiredService<SettingsApplier>();
-        var skinName = _host.Services.GetRequiredService<SettingsService>().Current.SkinName;
+        var petName = _host.Services.GetRequiredService<SettingsService>().Current.PetName;
 
         try
         {
-            var skinDirectory = Path.Combine(AppContext.BaseDirectory, "skins", skinName);
-            if (!Directory.Exists(skinDirectory))
+            var petDirectory = Path.Combine(AppContext.BaseDirectory, "pets", petName);
+            if (!Directory.Exists(petDirectory))
             {
-                logger.LogWarning("The '{Skin}' skin was not found; using '{Default}'.", skinName, PetSettings.DefaultSkinName);
-                skinName = PetSettings.DefaultSkinName;
-                skinDirectory = Path.Combine(AppContext.BaseDirectory, "skins", skinName);
+                logger.LogWarning("The '{Pet}' pet was not found; using '{Default}'.", petName, PetSettings.DefaultPetName);
+                petName = PetSettings.DefaultPetName;
+                petDirectory = Path.Combine(AppContext.BaseDirectory, "pets", petName);
             }
 
-            var skin = await _host.Services.GetRequiredService<ISkinLoader>().LoadAsync(skinDirectory);
+            var pet = await _host.Services.GetRequiredService<IPetLoader>().LoadAsync(petDirectory);
 
             var brain = _host.Services.GetRequiredService<PetBrain>();
             _petWindow = new PetWindow(
-                skin,
-                new SkinFrameCache(skin),
+                pet,
+                new PetFrameCache(pet),
                 brain,
                 behaviorOptions,
                 OpenPanel,
@@ -292,13 +292,13 @@ public partial class App
                     petWindow.SetSize(settings.Size);
                     petWindow.SetClimbEdges(settings.ClimbEdges);
                 });
-            _skinSwitcher = new SkinSwitcher(
+            _petSwitcher = new PetSwitcher(
                 _host.Services.GetRequiredService<SettingsService>(),
-                _host.Services.GetRequiredService<ISkinLoader>(),
-                Path.Combine(AppContext.BaseDirectory, "skins"),
-                skinName,
-                newSkin => petWindow.SetSkin(newSkin, new SkinFrameCache(newSkin)),
-                _host.Services.GetRequiredService<ILogger<SkinSwitcher>>());
+                _host.Services.GetRequiredService<IPetLoader>(),
+                Path.Combine(AppContext.BaseDirectory, "pets"),
+                petName,
+                newPet => petWindow.SetPet(newPet, new PetFrameCache(newPet)),
+                _host.Services.GetRequiredService<ILogger<PetSwitcher>>());
             _tray = new TrayIconService(brain, OpenPanel, ExitApplication);
 
             _hotkeys = new Win32HotkeyService();
@@ -313,7 +313,7 @@ public partial class App
         }
         catch (InvalidDataException ex)
         {
-            logger.LogError(ex, "Failed to load the '{Skin}' skin.", skinName);
+            logger.LogError(ex, "Failed to load the '{Pet}' pet.", petName);
             MessageBox.Show(ex.Message, "DeskBuddy", MessageBoxButton.OK, MessageBoxImage.Error);
             Shutdown(1);
         }
@@ -322,7 +322,7 @@ public partial class App
     /// <inheritdoc />
     protected override void OnExit(ExitEventArgs e)
     {
-        _skinSwitcher?.Dispose();
+        _petSwitcher?.Dispose();
         _bossKey?.Dispose();
         _hotkeys?.Dispose();
         _tray?.Dispose();
@@ -346,7 +346,7 @@ public partial class App
     /// </param>
     private void OpenPanel(PanelTab? tab)
     {
-        if (_panel is null && _host is not null && _petWindow is not null && _bossKey is not null && _skinSwitcher is not null)
+        if (_panel is null && _host is not null && _petWindow is not null && _bossKey is not null && _petSwitcher is not null)
         {
             var services = _host.Services;
             var viewModel = new PanelViewModel(
@@ -354,8 +354,8 @@ public partial class App
                     services.GetRequiredService<SettingsService>(),
                     _bossKey,
                     services.GetRequiredService<IAutoStartService>(),
-                    services.GetRequiredService<ISkinCatalog>(),
-                    _skinSwitcher,
+                    services.GetRequiredService<IPetCatalog>(),
+                    _petSwitcher,
                     OpenLogDirectory));
             _panel = new PanelWindow(viewModel);
         }

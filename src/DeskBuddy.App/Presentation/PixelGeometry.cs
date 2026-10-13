@@ -97,7 +97,7 @@ public static class BubblePlacement
 {
     /// <summary>
     /// Works out how far the bubble's bottom reaches below the top of the pet window so that it ends just above the
-    /// sprite, whatever transparent space the skin leaves above its head.
+    /// sprite, whatever transparent space the pet leaves above its head.
     /// </summary>
     /// <param name="petHeight">
     /// The pet window's height in device pixels.

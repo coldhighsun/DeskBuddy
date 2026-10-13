@@ -15,11 +15,11 @@ A desktop pet for work computers. It lives on your desktop, reacts to what you a
 ## Features
 
 - A small animated pet that walks, sleeps, gets tired, and reacts when you drag it.
-- Skins made of plain PNG frames plus a `manifest.json` (see [skins/robot](skins/robot)).
-- A pixel-art robot skin for programmers ([skins/robot](skins/robot)): when a development tool (an IDE, an editor or a
+- Pets made of plain PNG frames plus a `manifest.json` (see [pets/robot](pets/robot)).
+- A pixel-art robot pet for programmers ([pets/robot](pets/robot)): when a development tool (an IDE, an editor or a
   terminal) is in front and you are typing, it sits down at a desk and codes. The tools are editable in settings, and
-  only the foreground process name is read, never window titles or keystrokes. Skins without a `Coding` state simply
-  keep standing; regenerate the robot with `tools/GenerateRobotSkin.ps1`.
+  only the foreground process name is read, never window titles or keystrokes. Pets without a `Coding` state simply
+  keep standing; regenerate the robot with `tools/GenerateRobotPet.ps1`.
 - The robot also reacts to what you do as a developer, each reaction switchable in settings: a loading ring while a
   build runs and a cheer when it ends (it cannot tell whether the build succeeded), a parcel when git talks to a
   remote, coffee and heavy eyes when you code for hours late at night, and glasses with a magnifier when you look
@@ -33,7 +33,7 @@ A desktop pet for work computers. It lives on your desktop, reacts to what you a
   to the screen edge when you drop it within a few pixels of the left or right side. Drop it from high above the
   taskbar and it floats down under an umbrella or a parachute, which folds away when it lands (docked mode only; a
   roaming pet stays where you put it). With "climb the screen edges" switched on in the settings (off by default,
-  and only for skins that have the pictures, such as the robot), the pet also climbs up and down the sides of the
+  and only for pets that have the pictures, such as the robot), the pet also climbs up and down the sides of the
   screen by chance, hangs from the top edge and crawls along it, then lets go and floats down or climbs back to the
   ground; dropping it at the top or a side makes it start right away. Each of these pictures carries a
   small label (BLD, GIT, MTG, LOW...), and resting the mouse on the pet explains in words what it is doing.

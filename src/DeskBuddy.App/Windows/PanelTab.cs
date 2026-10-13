@@ -6,7 +6,7 @@ namespace DeskBuddy.App.Windows;
 public enum PanelTab
 {
     /// <summary>
-    /// Skin, size, language and movement mode.
+    /// Pet, size, language and movement mode.
     /// </summary>
     Appearance = 0,
 

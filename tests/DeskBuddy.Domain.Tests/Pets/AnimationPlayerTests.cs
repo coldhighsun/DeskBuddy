@@ -1,7 +1,7 @@
 using AwesomeAssertions;
-using DeskBuddy.Domain.Skins;
+using DeskBuddy.Domain.Pets;
 
-namespace DeskBuddy.Domain.Tests.Skins;
+namespace DeskBuddy.Domain.Tests.Pets;
 
 /// <summary>
 /// Tests for <see cref="AnimationPlayer"/>.
@@ -15,7 +15,7 @@ public class AnimationPlayerTests
     public void Advance_FrameDurationElapsed_MovesToNextFrame()
     {
         // Arrange
-        var player = new AnimationPlayer(CreateSkin());
+        var player = new AnimationPlayer(CreatePet());
 
         // Act
         var changed = player.Advance(TimeSpan.FromMilliseconds(500));
@@ -33,7 +33,7 @@ public class AnimationPlayerTests
     public void Advance_LessThanFrameDuration_DoesNotChangeFrame()
     {
         // Arrange
-        var player = new AnimationPlayer(CreateSkin());
+        var player = new AnimationPlayer(CreatePet());
 
         // Act
         var changed = player.Advance(TimeSpan.FromMilliseconds(400));
@@ -52,7 +52,7 @@ public class AnimationPlayerTests
     public void Advance_NonPositiveDelta_DoesNothing(int milliseconds)
     {
         // Arrange
-        var player = new AnimationPlayer(CreateSkin());
+        var player = new AnimationPlayer(CreatePet());
 
         // Act
         var changed = player.Advance(TimeSpan.FromMilliseconds(milliseconds));
@@ -69,7 +69,7 @@ public class AnimationPlayerTests
     public void Advance_PartialTimes_Accumulate()
     {
         // Arrange
-        var player = new AnimationPlayer(CreateSkin());
+        var player = new AnimationPlayer(CreatePet());
 
         // Act
         player.Advance(TimeSpan.FromMilliseconds(300));
@@ -87,7 +87,7 @@ public class AnimationPlayerTests
     public void Advance_PastLastFrame_LoopsToStart()
     {
         // Arrange
-        var player = new AnimationPlayer(CreateSkin());
+        var player = new AnimationPlayer(CreatePet());
 
         // Act
         player.Advance(TimeSpan.FromMilliseconds(500));
@@ -104,7 +104,7 @@ public class AnimationPlayerTests
     public void Advance_SingleFrameAnimation_NeverChanges()
     {
         // Arrange
-        var player = new AnimationPlayer(CreateSkin());
+        var player = new AnimationPlayer(CreatePet());
         player.SetState(PetState.Sleep);
 
         // Act
@@ -122,7 +122,7 @@ public class AnimationPlayerTests
     public void SetState_DifferentAnimation_ResetsFrameAndReportsChange()
     {
         // Arrange
-        var player = new AnimationPlayer(CreateSkin());
+        var player = new AnimationPlayer(CreatePet());
         player.Advance(TimeSpan.FromMilliseconds(500));
 
         // Act
@@ -141,7 +141,7 @@ public class AnimationPlayerTests
     public void SetState_MissingStateResolvingToCurrentAnimation_DoesNotRestart()
     {
         // Arrange
-        var player = new AnimationPlayer(CreateSkin());
+        var player = new AnimationPlayer(CreatePet());
         player.Advance(TimeSpan.FromMilliseconds(500));
 
         // Act
@@ -154,14 +154,14 @@ public class AnimationPlayerTests
     }
 
     /// <summary>
-    /// Creates a skin with a 2-frame Idle at 2 fps (500 ms per frame) and a 1-frame Sleep.
+    /// Creates a pet with a 2-frame Idle at 2 fps (500 ms per frame) and a 1-frame Sleep.
     /// </summary>
     /// <returns>
-    /// The test skin.
+    /// The test pet.
     /// </returns>
-    private static Skin CreateSkin()
+    private static Pet CreatePet()
     {
-        return new Skin("test", 128, 128, new Dictionary<PetState, SkinAnimation>
+        return new Pet("test", 128, 128, new Dictionary<PetState, PetAnimation>
         {
             [PetState.Idle] = new(2, ["idle_0.png", "idle_1.png"]),
             [PetState.Sleep] = new(1, ["sleep_0.png"]),
