@@ -5,6 +5,8 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
 	<UseArtifactsOutput>true</UseArtifactsOutput>
+    <!-- Lets non-Windows hosts (e.g. GitHub's Linux dependency submission job) restore the WPF projects. -->
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
   </PropertyGroup>
 
 </Project>
