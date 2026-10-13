@@ -65,4 +65,4 @@ jobs:
           if ($tag.Contains("-")) {
             $ghArgs += "--prerelease"
           }
-          gh release create @args
+          gh release create @ghArgs
