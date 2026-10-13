@@ -95,7 +95,6 @@
   <data name="RemarkWelcome" xml:space="preserve"><value>欢迎回来～</value></data>
   <data name="RemarkLowBattery" xml:space="preserve"><value>电量不多啦，快去充电～</value></data>
   <data name="RemarkNightCoding" xml:space="preserve"><value>夜深了，别熬太晚，早点休息哦～</value></data>
-  <data name="MenuPreview" xml:space="preserve"><value>预览动作</value></data>
   <data name="SettingsDev" xml:space="preserve"><value>开发</value></data>
   <data name="DevMode" xml:space="preserve"><value>开发时让宠物坐到电脑前陪我（皮肤需支持）</value></data>
   <data name="DevProcessesLabel" xml:space="preserve"><value>这些程序在前台且我在操作时算“正在开发”（每行一个进程名，如 Code）</value></data>
@@ -114,11 +113,8 @@
   <data name="SettingsLanguage" xml:space="preserve"><value>语言 / Language</value></data>
   <data name="SettingsPetSize" xml:space="preserve"><value>宠物大小</value></data>
   <data name="SettingsClimbEdges" xml:space="preserve"><value>允许宠物攀爬屏幕两侧并悬挂在屏幕顶部（需要皮肤支持）</value></data>
-  <data name="StateNameClimb" xml:space="preserve"><value>爬屏幕侧边</value></data>
   <data name="StateHintClimb" xml:space="preserve"><value>正在爬屏幕边缘</value></data>
-  <data name="StateNameClimbDown" xml:space="preserve"><value>爬下屏幕侧边</value></data>
   <data name="StateHintClimbDown" xml:space="preserve"><value>正在沿屏幕边缘往下爬</value></data>
-  <data name="StateNameCeiling" xml:space="preserve"><value>挂在屏幕顶部</value></data>
   <data name="StateHintCeiling" xml:space="preserve"><value>挂在屏幕顶部移动</value></data>
   <data name="PetSizeSmall" xml:space="preserve"><value>小</value></data>
   <data name="PetSizeMedium" xml:space="preserve"><value>中</value></data>
@@ -145,28 +141,5 @@
   <data name="StateHintDizzy" xml:space="preserve"><value>被晃晕了</value></data>
   <data name="StateHintHang" xml:space="preserve"><value>挂在屏幕边缘</value></data>
   <data name="StateHintFall" xml:space="preserve"><value>从高处落下</value></data>
-  <data name="StateNameGlide" xml:space="preserve"><value>撑开伞飘落</value></data>
   <data name="StateHintGlide" xml:space="preserve"><value>撑开伞，慢慢飘落</value></data>
-  <data name="StateNameIdle" xml:space="preserve"><value>待机</value></data>
-  <data name="StateNameWalk" xml:space="preserve"><value>走路</value></data>
-  <data name="StateNameTired" xml:space="preserve"><value>疲倦</value></data>
-  <data name="StateNameFocus" xml:space="preserve"><value>专注</value></data>
-  <data name="StateNameHappy" xml:space="preserve"><value>开心</value></data>
-  <data name="StateNameCoding" xml:space="preserve"><value>写代码</value></data>
-  <data name="StateNameBuilding" xml:space="preserve"><value>构建中</value></data>
-  <data name="StateNameBuildDone" xml:space="preserve"><value>构建结束</value></data>
-  <data name="StateNameGitPush" xml:space="preserve"><value>git 同步</value></data>
-  <data name="StateNameNightCoding" xml:space="preserve"><value>深夜加班</value></data>
-  <data name="StateNameReading" xml:space="preserve"><value>查资料</value></data>
-  <data name="StateNameWelcome" xml:space="preserve"><value>欢迎回来</value></data>
-  <data name="StateNameMeeting" xml:space="preserve"><value>会议中</value></data>
-  <data name="StateNameLowBattery" xml:space="preserve"><value>电量低</value></data>
-  <data name="StateNameCharging" xml:space="preserve"><value>充电</value></data>
-  <data name="StateNameMeal" xml:space="preserve"><value>饭点</value></data>
-  <data name="StateNameClockOut" xml:space="preserve"><value>下班</value></data>
-  <data name="StateNameChime" xml:space="preserve"><value>整点报时</value></data>
-  <data name="StateNameFestive" xml:space="preserve"><value>节日</value></data>
-  <data name="StateNameDizzy" xml:space="preserve"><value>晕眩</value></data>
-  <data name="StateNameHang" xml:space="preserve"><value>挂边缘</value></data>
-  <data name="StateNameFall" xml:space="preserve"><value>飘落</value></data>
 </root>

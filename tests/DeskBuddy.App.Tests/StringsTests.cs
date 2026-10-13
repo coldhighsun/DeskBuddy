@@ -92,15 +92,13 @@ public class StringsTests : IDisposable
     }
 
     /// <summary>
-    /// A state without an explanation has none, a state with one has it, and names fall back to the enum name.
+    /// A state without an explanation has none, a state with one has it.
     /// </summary>
     [Fact]
-    public void StateHintAndName_Lookups_BehaveAsDocumented()
+    public void StateHint_Lookups_BehaveAsDocumented()
     {
         // Assert
         Strings.StateHint(PetState.Idle).Should().BeNull();
         Strings.StateHint(PetState.Building).Should().NotBeNullOrEmpty();
-        Strings.StateName(PetState.Building).Should().NotBeNullOrEmpty();
-        Strings.StateName(PetState.Drag).Should().Be("Drag");
     }
 }

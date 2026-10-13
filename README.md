@@ -40,7 +40,6 @@ A desktop pet for work computers. It lives on your desktop, reacts to what you a
 - English and Simplified Chinese: the interface follows the system language, or choose one in the settings (a change
   takes full effect after a restart). Translations live in `src/DeskBuddy.App/Resources` (`Strings.resx` is Chinese,
   `Strings.en.resx` is English).
-  Start the app with `--Preview true` to get a right-click menu that plays every animation.
 - Tray icon and single-instance protection.
 
 ## Build

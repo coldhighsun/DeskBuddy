@@ -34,11 +34,6 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     private const double DragThreshold = 4;
 
     /// <summary>
-    /// How long an animation picked from the preview menu plays.
-    /// </summary>
-    private static readonly TimeSpan PreviewDuration = TimeSpan.FromSeconds(6);
-
-    /// <summary>
     /// How long the pet is dizzy after the mouse was shaken.
     /// </summary>
     private static readonly TimeSpan DizzyDuration = TimeSpan.FromSeconds(2);
@@ -277,12 +272,6 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     private int _facing = 1;
 
     /// <summary>
-    /// Whether the context menu offers to preview every animation, for checking skins without waiting for the
-    /// situations that trigger them.
-    /// </summary>
-    private readonly bool _previewMenu;
-
-    /// <summary>
     /// Whether the left mouse button is currently held on the pet.
     /// </summary>
     private bool _pressed;
@@ -327,9 +316,6 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     /// <param name="switches">
     /// Which scenarios the user has switched on.
     /// </param>
-    /// <param name="previewMenu">
-    /// Whether the context menu offers to preview every animation.
-    /// </param>
     public PetWindow(
         Skin skin,
         SkinFrameCache frames,
@@ -338,8 +324,7 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
         Action<PanelTab?> openPanel,
         MovementSelector movement,
         ScenarioSwitches switches,
-        PetSize size,
-        bool previewMenu = false)
+        PetSize size)
     {
         InitializeComponent();
 
@@ -357,7 +342,6 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
         _crawl = new EdgeCrawl(options, Random.Shared);
         _openPanel = openPanel;
         _movement = movement;
-        _previewMenu = previewMenu;
 
         Width = size.Scale(skin.FrameWidth);
         Height = size.Scale(skin.FrameHeight);
@@ -420,9 +404,6 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
             _tickBounds = null;
             _umbrella.OnPetResized();
         };
-
-        ContextMenu = new ContextMenu();
-        ContextMenuOpening += OnContextMenuOpening;
 
         // The pet starts at a random spot. WPF places the window by Left and Top when it creates it, so they are set here.
         PetPlacement.Place(PickRandomSpot(), this);
@@ -1150,55 +1131,6 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
         {
             _bubble.PositionAbove(this);
         }
-    }
-
-    /// <summary>
-    /// Fills the right-click menu with the panel and settings entries.
-    /// </summary>
-    /// <param name="sender">
-    /// The event source.
-    /// </param>
-    /// <param name="e">
-    /// Event data.
-    /// </param>
-    private void OnContextMenuOpening(object sender, ContextMenuEventArgs e)
-    {
-        var items = ContextMenu.Items;
-        items.Clear();
-
-        var openPanel = new MenuItem { Header = Strings.OpenPanel };
-        openPanel.Click += (_, _) => _openPanel(null);
-        items.Add(openPanel);
-
-        if (_previewMenu)
-        {
-            items.Add(new Separator());
-            var preview = new MenuItem { Header = Strings.MenuPreview };
-            foreach (var state in Enum.GetValues<PetState>().Where(state => state is not (PetState.Drag or PetState.Sleep or PetState.Alert or PetState.Fall) && !state.IsCrawl()))
-            {
-                var item = new MenuItem { Header = Strings.StateName(state) };
-                item.Click += (_, _) =>
-                {
-                    _brain.ActOut(state, PreviewDuration);
-
-                    // A pet previewed gliding holds a canopy, which folds away when the preview ends.
-                    if (state == PetState.Glide && _brain.State == PetState.Glide)
-                    {
-                        _umbrella.Open();
-                    }
-
-                    RefreshState();
-                };
-                preview.Items.Add(item);
-            }
-
-            items.Add(preview);
-        }
-
-        items.Add(new Separator());
-        var hide = new MenuItem { Header = Strings.TrayHidePet };
-        hide.Click += (_, _) => _brain.SetManuallyHidden(true);
-        items.Add(hide);
     }
 
     /// <summary>
