@@ -6,7 +6,7 @@
     forced to walk continuously (-Walk) or to stay idle (default), and the samples show both the start-up cost (JIT) and the
     steady state. Results are CPU percent of one core.
 .PARAMETER Exe
-    Path to DeskBuddy.App.exe.
+    Path to DeskBuddy.exe.
 .PARAMETER Seconds
     How long to sample.
 .PARAMETER IntervalSeconds

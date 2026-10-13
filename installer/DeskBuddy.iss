@@ -14,7 +14,7 @@
 #endif
 
 #define AppName "DeskBuddy"
-#define AppExe "DeskBuddy.App.exe"
+#define AppExe "DeskBuddy.exe"
 
 [Setup]
 ; Never change AppId: it is how an upgrade finds the installation it replaces.
