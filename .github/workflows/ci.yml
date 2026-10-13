@@ -3,6 +3,8 @@ name: CI
 on:
   push:
     branches: [main]
+    # Pushing a v* tag (for example v1.2.3) also runs the release job.
+    tags: ['v*']
   pull_request:
 
 permissions:
@@ -27,3 +29,40 @@ jobs:
 
       - name: Test
         run: dotnet test DeskBuddy.slnx -c Release --no-build
+
+  release:
+    # Only for version tags, and only after the build and tests passed.
+    needs: build-test
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # MinVer derives the version from git tags, which needs the full history.
+          fetch-depth: 0
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Publish
+        run: dotnet publish src/DeskBuddy.App/DeskBuddy.App.csproj -c Release -r win-x64 --self-contained true -o artifacts/publish
+
+      - name: Zip
+        shell: pwsh
+        run: Compress-Archive -Path artifacts/publish/* -DestinationPath "DeskBuddy-${{ github.ref_name }}-win-x64.zip"
+
+      - name: Create release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $ghArgs = @($tag, "DeskBuddy-$tag-win-x64.zip", "--title", "DeskBuddy $tag", "--generate-notes", "--verify-tag")
+          # A hyphen in the tag (v1.2.0-rc.1) marks a pre-release.
+          if ($tag.Contains("-")) {
+            $ghArgs += "--prerelease"
+          }
+          gh release create @args
