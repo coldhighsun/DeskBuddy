@@ -137,6 +137,35 @@ internal static partial class MonitorHelper
     }
 
     /// <summary>
+    /// Gets how far a window may walk: across the row of monitors that lie side by side, starting from the one it is on.
+    /// </summary>
+    /// <param name="window">
+    /// The window, which must already have a handle.
+    /// </param>
+    /// <returns>
+    /// The range in device pixels. Falls back to the work area of the monitor the window is on, without seams, if the
+    /// monitors cannot be listed.
+    /// </returns>
+    public static WalkRange GetWalkRangePixels(Window window)
+    {
+        var bounds = GetWindowBoundsPixels(window);
+
+        // The centre in whole pixels, as the pet window works it out when it checks that it is still on this monitor.
+        var range = WalkRange.Compute(
+            GetAllMonitors(),
+            bounds.Left + (bounds.Width / 2),
+            bounds.Top + (bounds.Height / 2),
+            bounds.Height);
+        if (range is { } found)
+        {
+            return found;
+        }
+
+        var work = GetWorkAreaPixels(window);
+        return new WalkRange(work.Left, work.Right, work.Top, work.Bottom, work, [], VisualTreeHelper.GetDpi(window).DpiScaleX, [work]);
+    }
+
+    /// <summary>
     /// Looks up the monitor a window is on and the window's bounds.
     /// </summary>
     /// <param name="window">
@@ -187,7 +216,10 @@ internal static partial class MonitorHelper
         {
             // Without the scaling of the monitor (the call fails) it is taken as 100%.
             var scale = GetDpiForMonitor(monitor, EffectiveDpi, out var dpiX, out _) == 0 ? dpiX / DefaultDpi : 1;
-            areas.Add(new MonitorArea(new PixelRect(info.Work.Left, info.Work.Top, info.Work.Right, info.Work.Bottom), scale));
+            areas.Add(new MonitorArea(
+                new PixelRect(info.Work.Left, info.Work.Top, info.Work.Right, info.Work.Bottom),
+                scale,
+                new PixelRect(info.Monitor.Left, info.Monitor.Top, info.Monitor.Right, info.Monitor.Bottom)));
         }
 
         return 1;

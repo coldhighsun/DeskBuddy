@@ -220,9 +220,46 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     private BubbleWindow? _bubble;
 
     /// <summary>
-    /// Work area of the monitor the pet is on, cached while walking.
+    /// The range the pet may take, cached while walking: the work area of the monitor it is on, or, when it walks along
+    /// the taskbar, the whole row of monitors lying side by side (the taskbar line and top edge are those of the monitor
+    /// it is on).
     /// </summary>
     private Rect _workArea;
+
+    /// <summary>
+    /// Whether a change of state was held back because the pet lay across the seam between two monitors, and is to be
+    /// shown once it is off the seam.
+    /// </summary>
+    private bool _stateHeld;
+
+    /// <summary>
+    /// Tells where the pet window is for the walk and crawl steps; see <see cref="CurrentPosition"/>.
+    /// </summary>
+    private readonly StepTracker _stepTracker = new();
+
+    /// <summary>
+    /// The real bounds of the pet window, read once during a movement tick and shared by everything that needs them in
+    /// that tick; <see langword="null"/> outside a movement tick and after the window has been moved in it.
+    /// </summary>
+    private PixelRect? _tickBounds;
+
+    /// <summary>
+    /// The positions, in device pixels, where the monitors the pet may walk across meet; empty when it is limited to one
+    /// monitor.
+    /// </summary>
+    private IReadOnlyList<int> _seams = [];
+
+    /// <summary>
+    /// The whole area, in device pixels, of the monitor the cached work area was worked out for.
+    /// </summary>
+    private PixelRect _workAreaMonitor;
+
+    /// <summary>
+    /// The work area, in device pixels, of every monitor the pet may walk across; that of its own monitor only when it is
+    /// limited to one. The top edge and taskbar line the pet keeps to come from these (see
+    /// <see cref="CreateMovementContext"/>); the vertical extent of <see cref="_workArea"/> is only the fallback.
+    /// </summary>
+    private IReadOnlyList<PixelRect> _rowAreas = [];
 
     /// <summary>
     /// Movement ticks since the work area was last refreshed; reset when a walk starts.
@@ -367,17 +404,20 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
         LocationChanged += (_, _) =>
         {
             _pixelBounds = null;
+            _tickBounds = null;
             RepositionBubble();
             _umbrella.OnPetLocationChanged();
         };
         SizeChanged += (_, _) =>
         {
             _pixelBounds = null;
+            _tickBounds = null;
             _umbrella.OnPetResized();
         };
         DpiChanged += (_, _) =>
         {
             _pixelBounds = null;
+            _tickBounds = null;
             _umbrella.OnPetResized();
         };
 
@@ -603,6 +643,16 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
             return;
         }
 
+        // A pet on the seam between two monitors walks on until it is on one of them; whatever else the brain wants is
+        // shown then, as soon as the movement tick sees it off the seam. Being picked up or falling is not held back.
+        if (SeamGuard.HoldsStateChange(_shownState, state, IsOnSeam()))
+        {
+            _stateHeld = true;
+            return;
+        }
+
+        _stateHeld = false;
+
         // A crawl that ends high above the ground (an alert, sleep, letting go, switching climbing off) ends in a fall under
         // the umbrella, not in a jump to the ground. Being picked up is not an end; the drop decides.
         if (_shownState.EndsCrawlInFall(state) && TryStartFall())
@@ -761,17 +811,85 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     /// </returns>
     private MovementContext CreateMovementContext()
     {
+        // The top edge and the taskbar line of monitors side by side need not be at the same height. A pet that lies over
+        // two of them keeps to what is on screen on both, so it is never partly out of sight; it takes the line of the
+        // monitor it is on once it has crossed over.
+        var window = WindowPixels();
+        var (top, bottom) = WalkRange.VerticalAtDip(
+            _rowAreas,
+            window.Left,
+            window.Right,
+            VisualTreeHelper.GetDpi(this).DpiScaleY,
+            (_workArea.Top, _workArea.Bottom));
+
         var bounds = new MovementBounds(
             _workArea.Left,
             _workArea.Right - Width,
-            _workArea.Top,
-            _workArea.Bottom - Height);
+            top,
+            bottom - Height);
         return new MovementContext(
-            new Point2(Left, Top),
+            CurrentPosition(),
             new Point2(Width, Height),
             bounds,
             ToPoint2(MonitorHelper.GetCursorPositionDip(this)),
             _options.WalkSpeed);
+    }
+
+    /// <summary>
+    /// Gets where the pet window really is, in device-independent pixels of its present scaling. <see cref="Window.Left"/>
+    /// is not used for it: it is kept in device-independent pixels of the scaling the window had when it was last moved,
+    /// so after the pet walks onto a monitor with another scaling it can be out by the ratio of the two scalings, which
+    /// made the pet leap ahead. The position the walk step worked out last is returned as long as the window has not been
+    /// moved by anything else, so that steps of less than a pixel are not lost.
+    /// </summary>
+    /// <returns>
+    /// The position of the window's top-left corner.
+    /// </returns>
+    private Point2 CurrentPosition()
+    {
+        var dpi = VisualTreeHelper.GetDpi(this);
+        return _stepTracker.Resolve(WindowPixels(), dpi.DpiScaleX, dpi.DpiScaleY);
+    }
+
+    /// <summary>
+    /// Gets the real bounds of the pet window in device pixels: those read earlier in the movement tick that is running,
+    /// otherwise read now.
+    /// </summary>
+    /// <returns>
+    /// The bounds of the window.
+    /// </returns>
+    private PixelRect WindowPixels()
+    {
+        return _tickBounds ?? MonitorHelper.GetWindowBoundsPixels(this);
+    }
+
+    /// <summary>
+    /// Moves the pet window to the position a walk or crawl step worked out, and remembers it as the pet's position.
+    /// </summary>
+    /// <param name="position">
+    /// The wanted position of the window's top-left corner, in device-independent pixels of the present scaling.
+    /// </param>
+    private void MoveToStepPosition(Point2 position)
+    {
+        var before = VisualTreeHelper.GetDpi(this);
+        var pixels = StepTracker.ToPixels(position, before.DpiScaleX, before.DpiScaleY);
+
+        // Moved only if it is a different device pixel than the one the window is at.
+        var actual = WindowPixels();
+        if (actual.Left != pixels.X || actual.Top != pixels.Y)
+        {
+            WindowMover.MoveToPixelsSettled(this, pixels.X, pixels.Y);
+            _tickBounds = null;
+        }
+
+        // The scaling may have changed with the move; the exact position is then the pixels in the new scaling.
+        var after = VisualTreeHelper.GetDpi(this);
+        if (after.DpiScaleX != before.DpiScaleX || after.DpiScaleY != before.DpiScaleY)
+        {
+            position = new Point2(pixels.X / after.DpiScaleX, pixels.Y / after.DpiScaleY);
+        }
+
+        _stepTracker.Remember(pixels, position, after.DpiScaleX, after.DpiScaleY);
     }
 
     /// <summary>
@@ -793,7 +911,7 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     /// </summary>
     private void BeginWalk()
     {
-        _workArea = MonitorHelper.GetWorkAreaDip(this);
+        RefreshWorkArea();
         _moveTicksSinceWorkAreaRefresh = 0;
         _facing = _movement.Current.BeginWalk(CreateMovementContext(), _brain.WalkDirection);
         ApplyFacing();
@@ -1099,8 +1217,27 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     /// </param>
     private void OnMoveTick(object? sender, EventArgs e)
     {
+        // The window bounds are read once and shared by everything in the tick, until the window is moved.
+        _tickBounds = null;
+        try
+        {
+            MoveOnce();
+        }
+        finally
+        {
+            _tickBounds = null;
+        }
+    }
+
+    /// <summary>
+    /// Moves the pet one step, whatever it is doing: falling, crawling or walking.
+    /// </summary>
+    private void MoveOnce()
+    {
         var delta = _moveWatch.Elapsed;
         _moveWatch.Restart();
+
+        _tickBounds = MonitorHelper.GetWindowBoundsPixels(this);
 
         if (_shownState.IsFalling())
         {
@@ -1119,13 +1256,46 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
         var context = CreateMovementContext();
         var step = _movement.Current.Step(context, delta);
 
+        // Monitors side by side can have their taskbar lines at different heights. Onto a lower line the pet falls (under
+        // its umbrella if it is high enough above it); onto a higher one it climbs up quickly, instead of jumping.
+        var position = step.Position;
+        if (_rowAreas.Count > 1 && _movement.Current.FallsWhenDropped)
+        {
+            var change = VerticalEase.Classify(context.Position.Y, position.Y, _options.VerticalEaseTolerance);
+            if (change == VerticalChange.Drop && TryStartFall(refreshWorkArea: false))
+            {
+                ApplyState(_brain.State);
+                return;
+            }
+
+            if (change != VerticalChange.None)
+            {
+                position = position with
+                {
+                    Y = VerticalEase.Approach(
+                        context.Position.Y,
+                        position.Y,
+                        _options.VerticalEaseSpeed * delta.TotalSeconds),
+                };
+            }
+        }
+
         // One cheap move for both coordinates, and none at all when the step stays within the same device pixel.
-        WindowMover.MoveTo(this, step.Position.X, step.Position.Y);
+        MoveToStepPosition(position);
 
         if (step.Facing != _facing)
         {
             _facing = step.Facing;
             ApplyFacing();
+        }
+
+        // The pet is off the seam: show what the brain wanted while it was on it, if that still holds (a short reaction
+        // that ran out meanwhile is gone).
+        if (_stateHeld && !IsOnSeam())
+        {
+            _stateHeld = false;
+            ApplyState(_brain.State);
+            return;
         }
 
         if (step.Arrived)
@@ -1208,15 +1378,16 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     /// </param>
     private void StartCrawl(CrawlStart start)
     {
-        _workArea = MonitorHelper.GetWorkAreaDip(this);
+        RefreshWorkArea();
         _moveTicksSinceWorkAreaRefresh = 0;
         var bounds = CreateMovementContext().Bounds;
 
         if (start.Phase == CrawlPhase.Ceiling)
         {
             _facing = _crawl.StartOnCeiling(start.Direction);
-            Left = bounds.Clamp(new Point2(Left, Top)).X;
+            Left = bounds.Clamp(CurrentPosition()).X;
             Top = bounds.MinY;
+            NudgeOffSeam();
             _brain.OnCrawlStarted(PetState.Ceiling);
         }
         else
@@ -1245,8 +1416,23 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
 
         RefreshWorkAreaPeriodically();
 
-        var step = _crawl.Step(new Point2(Left, Top), CreateMovementContext().Bounds, delta);
-        WindowMover.MoveTo(this, step.Position.X, step.Position.Y);
+        var current = CurrentPosition();
+        var step = _crawl.Step(current, CreateMovementContext().Bounds, delta, holdCourse: IsOnSeam(), edges: this);
+
+        // The top edge of monitors side by side can be at different heights; the pet changes height quickly rather than
+        // jumping when it crawls from one to the other.
+        var position = step.Position;
+        if (_rowAreas.Count > 1
+            && step.Phase == CrawlPhase.Ceiling
+            && VerticalEase.Classify(current.Y, position.Y, _options.VerticalEaseTolerance) != VerticalChange.None)
+        {
+            position = position with
+            {
+                Y = VerticalEase.Approach(current.Y, position.Y, _options.VerticalEaseSpeed * delta.TotalSeconds),
+            };
+        }
+
+        MoveToStepPosition(position);
 
         if (step.Outcome != CrawlOutcome.Continue)
         {
@@ -1263,6 +1449,7 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
         var state = _crawl.CrawlState;
         if (state != _shownState)
         {
+            RefreshWorkArea();
             _brain.OnCrawlStarted(state);
             ApplyState(_brain.State);
         }
@@ -1284,9 +1471,100 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     /// </summary>
     private void RefreshWorkAreaPeriodically()
     {
-        if (_moveTicksSinceWorkAreaRefresh++ % WorkAreaRefreshEveryTicks == 0)
+        if (_moveTicksSinceWorkAreaRefresh++ % WorkAreaRefreshEveryTicks == 0 || HasLeftWorkAreaMonitor())
+        {
+            RefreshWorkArea();
+        }
+    }
+
+    /// <summary>
+    /// Works out the range the pet may take: the work area of the monitor it is on or, when it walks along the taskbar,
+    /// the whole row of monitors lying side by side with that one, so it can walk from one to the next. The taskbar line
+    /// and the top edge are those of the monitor the pet is on here; <see cref="CreateMovementContext"/> takes the other
+    /// monitors into account while the pet lies over several.
+    /// </summary>
+    private void RefreshWorkArea()
+    {
+        if (!_movement.Current.FallsWhenDropped)
         {
             _workArea = MonitorHelper.GetWorkAreaDip(this);
+            _seams = [];
+            _rowAreas = [MonitorHelper.GetWorkAreaPixels(this)];
+            _workAreaMonitor = default;
+            return;
+        }
+
+        var dpi = VisualTreeHelper.GetDpi(this);
+        var range = MonitorHelper.GetWalkRangePixels(this);
+
+        // With several monitors the pet is as wide in pixels at the far end as the scaling of the monitor there makes it,
+        // not as it is on the monitor it is on now; the end is moved so that the pet still fits when it gets there.
+        var right = range.Seams.Count > 0
+            ? range.Right + (Width * (dpi.DpiScaleX - range.RightScale))
+            : range.Right;
+        _workArea = new Rect(
+            range.Left / dpi.DpiScaleX,
+            range.Top / dpi.DpiScaleY,
+            (right - range.Left) / dpi.DpiScaleX,
+            (range.Bottom - range.Top) / dpi.DpiScaleY);
+        _seams = range.Seams;
+        _rowAreas = range.WorkAreas;
+        _workAreaMonitor = range.Current;
+    }
+
+    /// <summary>
+    /// Tells whether the pet has moved on to another monitor than the one the cached work area was worked out for, which
+    /// changes its taskbar line and scaling, so the work area is to be refreshed at once.
+    /// </summary>
+    /// <returns>
+    /// <see langword="true"/> if the centre of the pet is no longer on that monitor.
+    /// </returns>
+    private bool HasLeftWorkAreaMonitor()
+    {
+        if (_seams.Count == 0 || _workAreaMonitor.Width <= 0)
+        {
+            return false;
+        }
+
+        var bounds = WindowPixels();
+        var center = bounds.Left + (bounds.Width / 2);
+        return center < _workAreaMonitor.Left || center >= _workAreaMonitor.Right;
+    }
+
+    /// <summary>
+    /// Tells whether the pet lies across the seam between two monitors, with part of it on each.
+    /// </summary>
+    /// <returns>
+    /// <see langword="true"/> if it does; the pet then has to walk on until it is on one monitor.
+    /// </returns>
+    private bool IsOnSeam()
+    {
+        if (_seams.Count == 0)
+        {
+            return false;
+        }
+
+        // The real position of the window: Window.Left can be out by the ratio of two scalings after the pet has walked
+        // onto another monitor (see CurrentPosition).
+        var bounds = WindowPixels();
+        return SeamGuard.Straddles(bounds.Left, bounds.Right, _seams);
+    }
+
+    /// <summary>
+    /// Moves a pet that lies across the seam between two monitors onto the one where more of it is.
+    /// </summary>
+    private void NudgeOffSeam()
+    {
+        if (_seams.Count == 0)
+        {
+            return;
+        }
+
+        var bounds = MonitorHelper.GetWindowBoundsPixels(this);
+        var left = SeamGuard.NudgeOffSeam(bounds.Left, bounds.Right, _seams);
+        if (left != bounds.Left)
+        {
+            WindowMover.MoveToPixels(this, left, bounds.Top);
         }
     }
 
@@ -1405,9 +1683,9 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
             return false;
         }
 
-        _workArea = MonitorHelper.GetWorkAreaDip(this);
+        RefreshWorkArea();
         var start = CrawlStarter.OnDrop(
-            new Point2(Left, Top),
+            CurrentPosition(),
             new Point2(Width, Height),
             CreateMovementContext().Bounds,
             EdgeSnapDistance,
@@ -1436,10 +1714,10 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
             return false;
         }
 
-        _workArea = MonitorHelper.GetWorkAreaDip(this);
+        RefreshWorkArea();
         var bounds = CreateMovementContext().Bounds;
         var snapped = EdgeSnap.Find(
-            new Point2(Left, Top),
+            CurrentPosition(),
             new Point2(Width, Height),
             bounds,
             EdgeSnapDistance,
@@ -1462,27 +1740,36 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     /// <summary>
     /// Lets a pet that was dropped well above where it would rest fall down to it.
     /// </summary>
+    /// <param name="refreshWorkArea">
+    /// Whether to work out the range the pet may take afresh first; <see langword="false"/> when that has just been done,
+    /// as in a movement tick.
+    /// </param>
     /// <returns>
     /// <see langword="true"/> if the pet now falls; the timer then moves it until it lands.
     /// </returns>
-    private bool TryStartFall()
+    private bool TryStartFall(bool refreshWorkArea = true)
     {
         if (!_movement.Current.FallsWhenDropped)
         {
             return false;
         }
 
-        _workArea = MonitorHelper.GetWorkAreaDip(this);
+        if (refreshWorkArea)
+        {
+            RefreshWorkArea();
+        }
 
         // The pet lands on the taskbar line, which is the bottom of the work area.
         var bounds = CreateMovementContext().Bounds;
-        if (!FreeFall.ShouldFall(Top, bounds.MaxY, _options.FallMinHeight))
+        var y = CurrentPosition().Y;
+        if (!FreeFall.ShouldFall(y, bounds.MaxY, _options.FallMinHeight))
         {
             return false;
         }
 
-        Left = bounds.Clamp(new Point2(Left, Top)).X;
-        _fall = new FallState(Top, 0, false, false);
+        Left = bounds.Clamp(CurrentPosition()).X;
+        NudgeOffSeam();
+        _fall = new FallState(y, 0, false, false);
         _brain.OnFallStarted();
         return true;
     }
@@ -1507,7 +1794,7 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
         var bounds = CreateMovementContext().Bounds;
         var next = FreeFall.Step(current, bounds.MaxY, elapsed, _options);
         _fall = next;
-        _umbrella.MovePet(Math.Clamp(Left, bounds.MinX, Math.Max(bounds.MinX, bounds.MaxX)), next.Y);
+        _umbrella.MovePet(Math.Clamp(CurrentPosition().X, bounds.MinX, Math.Max(bounds.MinX, bounds.MaxX)), next.Y);
 
         if (next.Opened && !current.Opened)
         {
@@ -1549,26 +1836,27 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     /// </summary>
     private void SettleInWorkArea()
     {
-        _workArea = MonitorHelper.GetWorkAreaDip(this);
+        RefreshWorkArea();
 
         // A pet in mid-air keeps falling to the ground (see OnFallTick); only keep it inside the work area sideways.
         if (_fall is not null)
         {
-            Left = CreateMovementContext().Bounds.Clamp(new Point2(Left, Top)).X;
+            Left = CreateMovementContext().Bounds.Clamp(CurrentPosition()).X;
             return;
         }
 
         // A pet crawling along the edges stays where it is, inside the work area; the crawl puts it right again.
         if (IsCrawling)
         {
-            var kept = CreateMovementContext().Bounds.Clamp(new Point2(Left, Top));
+            var kept = CreateMovementContext().Bounds.Clamp(CurrentPosition());
             Left = kept.X;
             Top = kept.Y;
             return;
         }
 
-        var rest = _movement.Current.Settle(new Point2(Left, Top), CreateMovementContext().Bounds);
+        var rest = _movement.Current.Settle(CurrentPosition(), CreateMovementContext().Bounds);
         Left = rest.X;
         Top = rest.Y;
+        NudgeOffSeam();
     }
 }
