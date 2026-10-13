@@ -13,9 +13,10 @@
     <ApplicationIcon>Assets\DeskBuddy.ico</ApplicationIcon>
     <PublishSingleFile>true</PublishSingleFile>
     <!--
-      Tiered compilation off: the runtime otherwise keeps re-compiling the code the pet runs every few milliseconds, which
-      measured as about 6 s of CPU in the first minute against under 2 s with it off. Code runs fully optimised from its
-      first call; start-up time is unchanged. ReadyToRun was measured too and did not add anything on top of this.
+      Tiered compilation off: the runtime otherwise keeps re-compiling the code the pet runs every few milliseconds. Idle
+      Release build, first minute after start (two runs each): about 9.6 s of CPU with it on against about 5.9 s with it
+      off, and about 20 MB more working set (about 206 MB against 184 MB). Code runs fully optimised from its first call.
+      ReadyToRun was measured earlier and did not add anything on top of this.
     -->
     <TieredCompilation>false</TieredCompilation>
   </PropertyGroup>
