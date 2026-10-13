@@ -271,6 +271,48 @@ public class EdgeCrawlTests
     }
 
     /// <summary>
+    /// A pet told to hold its course does not turn around at a moment at which it otherwise would, and goes on the same
+    /// way.
+    /// </summary>
+    [Fact]
+    public void Step_CeilingTurnMomentWhileHoldingCourse_KeepsDirection()
+    {
+        // Arrange
+        var crawl = CreateCrawl(0.0);
+        crawl.StartOnCeiling(1);
+
+        // Act
+        var step = crawl.Step(new Point2(500, 0), Bounds, OneSecond, holdCourse: true);
+
+        // Assert
+        step.Position.Should().Be(new Point2(530, 0));
+        step.Facing.Should().Be(1);
+        step.Outcome.Should().Be(CrawlOutcome.Continue);
+    }
+
+    /// <summary>
+    /// A pet told to hold its course does not let go when its time on the top edge would be up, and the time does not run
+    /// down meanwhile; once it may decide again, it lets go when the time is up.
+    /// </summary>
+    [Fact]
+    public void Step_CeilingTimeUpWhileHoldingCourse_KeepsCrawlingUntilReleased()
+    {
+        // Arrange
+        var crawl = CreateCrawl(0.0);
+        crawl.StartOnCeiling(1);
+
+        // Act
+        var held = crawl.Step(new Point2(500, 0), Bounds, TimeSpan.FromSeconds(5), holdCourse: true);
+        var released = crawl.Step(held.Position, Bounds, TimeSpan.FromSeconds(5));
+
+        // Assert
+        held.Outcome.Should().Be(CrawlOutcome.Continue);
+        held.Phase.Should().Be(CrawlPhase.Ceiling);
+        held.Position.X.Should().Be(650);
+        released.Outcome.Should().Be(CrawlOutcome.Dropped);
+    }
+
+    /// <summary>
     /// On the top edge the pet moves along it at the climbing speed, facing the way it goes.
     /// </summary>
     /// <param name="direction">
@@ -374,6 +416,93 @@ public class EdgeCrawlTests
         step.Facing.Should().Be(-1);
         next.Position.Should().Be(new Point2(1000, 30));
         next.Outcome.Should().Be(CrawlOutcome.Continue);
+    }
+
+    /// <summary>
+    /// A pet on its way to a corner that gets to an end which is only a seam to another monitor turns around instead of
+    /// climbing down, and goes on to the other end.
+    /// </summary>
+    [Fact]
+    public void Step_CornerEndIsSeam_TurnsAroundInsteadOfClimbingDown()
+    {
+        // Arrange: the right end is a seam, the left one an edge of the screen.
+        var crawl = CreateCrawl(0.99);
+        crawl.StartOnCeiling(1);
+        var edges = new FakeEdges(left: false, right: true);
+
+        // Act: out of time near the right end, so the pet heads for it; it gets there, then goes on to the left end.
+        var heading = crawl.Step(new Point2(990, 0), Bounds, TimeSpan.FromSeconds(5), edges: edges);
+        var turned = crawl.Step(heading.Position, Bounds, OneSecond, edges: edges);
+
+        // Assert
+        heading.Phase.Should().Be(CrawlPhase.Ceiling);
+        heading.Position.X.Should().Be(1000);
+        heading.Facing.Should().Be(-1);
+        turned.Phase.Should().Be(CrawlPhase.Ceiling);
+        turned.Position.X.Should().Be(970);
+    }
+
+    /// <summary>
+    /// A pet on its way to a corner that finds a seam at both ends has no side to climb down, and lets go.
+    /// </summary>
+    [Fact]
+    public void Step_BothEndsAreSeams_LetsGoAfterTurningOnce()
+    {
+        // Arrange
+        var crawl = CreateCrawl(0.99);
+        crawl.StartOnCeiling(1);
+        var edges = new FakeEdges(left: true, right: true);
+
+        // Act: heads for the right end, turns at it, crosses to the left end.
+        var atRight = crawl.Step(new Point2(990, 0), Bounds, TimeSpan.FromSeconds(5), edges: edges);
+        var atLeft = crawl.Step(new Point2(5, 0), Bounds, OneSecond, edges: edges);
+
+        // Assert
+        atRight.Outcome.Should().Be(CrawlOutcome.Continue);
+        atLeft.Outcome.Should().Be(CrawlOutcome.Dropped);
+    }
+
+    /// <summary>
+    /// A pet that gets to a seam while it is not heading for a corner simply turns around, as at any end.
+    /// </summary>
+    [Fact]
+    public void Step_EndIsSeamWhileNotHeadingForCorner_TurnsAround()
+    {
+        // Arrange
+        var crawl = CreateCrawl(0.99);
+        crawl.StartOnCeiling(1);
+
+        // Act
+        var step = crawl.Step(new Point2(995, 0), Bounds, OneSecond, edges: new FakeEdges(left: true, right: true));
+
+        // Assert
+        step.Phase.Should().Be(CrawlPhase.Ceiling);
+        step.Facing.Should().Be(-1);
+        step.Outcome.Should().Be(CrawlOutcome.Continue);
+    }
+
+    /// <summary>
+    /// A fake that says whether the left and right ends are seams to other monitors.
+    /// </summary>
+    /// <param name="left">
+    /// Whether another monitor lies beside the left end.
+    /// </param>
+    /// <param name="right">
+    /// Whether another monitor lies beside the right end.
+    /// </param>
+    private sealed class FakeEdges(bool left, bool right) : IScreenEdges
+    {
+        /// <inheritdoc />
+        public bool HasMonitorBeside(bool atLeft)
+        {
+            return atLeft ? left : right;
+        }
+
+        /// <inheritdoc />
+        public bool HasMonitorAbove()
+        {
+            return false;
+        }
     }
 
     /// <summary>
