@@ -1,0 +1,46 @@
+version: 2
+
+updates:
+  # NuGet packages, pinned centrally in Directory.Packages.props.
+  - package-ecosystem: nuget
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: "build"
+    groups:
+      # Minor and patch updates share one pull request.
+      nuget-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+      # Major updates (potentially breaking) get their own pull request.
+      nuget-major:
+        patterns:
+          - "*"
+        update-types:
+          - major
+
+  # Action versions referenced from .github/workflows/*.yml.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: "build"
+    groups:
+      actions-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+      actions-major:
+        patterns:
+          - "*"
+        update-types:
+          - major

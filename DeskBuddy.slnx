@@ -11,6 +11,9 @@
   <Folder Name="/assets/tests/">
     <File Path="tests/Directory.Build.props" />
   </Folder>
+  <Folder Name="/assets/.github/">
+    <File Path=".github/dependabot.yml" />
+  </Folder>
   <Folder Name="/assets/.github/workflows/">
     <File Path=".github/workflows/ci.yml" />
   </Folder>
