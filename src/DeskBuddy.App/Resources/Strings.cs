@@ -78,6 +78,71 @@ internal static class Strings
     public static string ActionSnoozeReminder => Get();
 
     /// <summary>
+    /// Gets the title of the pets tab.
+    /// </summary>
+    public static string TabPets => Get();
+
+    /// <summary>
+    /// Gets the badge on the pet in use.
+    /// </summary>
+    public static string PetsCurrent => Get();
+
+    /// <summary>
+    /// Gets the text of the button that switches to a pet.
+    /// </summary>
+    public static string PetsUse => Get();
+
+    /// <summary>
+    /// Gets the line about a pet's picture size and states; <c>{0}</c> and <c>{1}</c> are its width and height, <c>{2}</c>
+    /// the number of states it draws itself and <c>{3}</c> the number of states there are.
+    /// </summary>
+    public static string PetsInfo => Get();
+
+    /// <summary>
+    /// Gets the label of a pet whose eyes follow the mouse.
+    /// </summary>
+    public static string PetsCapLookAround => Get();
+
+    /// <summary>
+    /// Gets the label for climbing the screen edges; <c>{0}</c> of <c>{1}</c> states are drawn.
+    /// </summary>
+    public static string PetsCapEdges => Get();
+
+    /// <summary>
+    /// Gets the label for keeping company while developing; <c>{0}</c> of <c>{1}</c> states are drawn.
+    /// </summary>
+    public static string PetsCapDevelopment => Get();
+
+    /// <summary>
+    /// Gets the label for everyday situations; <c>{0}</c> of <c>{1}</c> states are drawn.
+    /// </summary>
+    public static string PetsCapScenarios => Get();
+
+    /// <summary>
+    /// Gets the message for a pet that could not be loaded; <c>{0}</c> is the reason.
+    /// </summary>
+    public static string PetsLoadFailed => Get();
+
+    /// <summary>
+    /// Gets the message shown when no pet is installed.
+    /// </summary>
+    public static string PetsEmpty => Get();
+
+    /// <summary>
+    /// Gets the name of a state, shown under the pet preview.
+    /// </summary>
+    /// <param name="state">
+    /// The state being previewed.
+    /// </param>
+    /// <returns>
+    /// The localized name.
+    /// </returns>
+    public static string PetStateName(PetState state)
+    {
+        return Manager.GetString($"PetStateName{state}", CultureInfo.CurrentUICulture) ?? $"!PetStateName{state}!";
+    }
+
+    /// <summary>
     /// Gets the title of the appearance tab.
     /// </summary>
     public static string TabAppearance => Get();
@@ -96,11 +161,6 @@ internal static class Strings
     /// Gets the heading of the appearance section.
     /// </summary>
     public static string SettingsAppearance => Get();
-
-    /// <summary>
-    /// Gets the label of the pet choice.
-    /// </summary>
-    public static string SettingsPet => Get();
 
     /// <summary>
     /// Gets the label of the disturbance mode choice.

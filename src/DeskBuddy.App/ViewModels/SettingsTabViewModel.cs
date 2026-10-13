@@ -2,7 +2,6 @@ using System.Globalization;
 using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using DeskBuddy.App.Rendering;
 using DeskBuddy.App.Resources;
 using DeskBuddy.Application;
 using DeskBuddy.Application.Abstractions;
@@ -45,11 +44,6 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     private readonly IAutoStartService _autoStartService;
 
     /// <summary>
-    /// Lists the installed pets.
-    /// </summary>
-    private readonly IPetCatalog _catalog;
-
-    /// <summary>
     /// Opens the directory the log files are written to.
     /// </summary>
     private readonly Action _openLogDirectory;
@@ -64,18 +58,6 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     /// Whether a new boss key is being tried, during which the controller's status changes are handled by that attempt.
     /// </summary>
     private bool _applyingBossKey;
-
-    /// <summary>
-    /// The installed pets, always including the one in use.
-    /// </summary>
-    [ObservableProperty]
-    private IReadOnlyList<string> _pets = [];
-
-    /// <summary>
-    /// The pet in use.
-    /// </summary>
-    [ObservableProperty]
-    private string _selectedPet = PetSettings.DefaultPetName;
 
     /// <summary>
     /// Whether the pet stays on the taskbar.
@@ -198,12 +180,6 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     private string _bossKeyError = string.Empty;
 
     /// <summary>
-    /// A problem with changing the pet, or empty.
-    /// </summary>
-    [ObservableProperty]
-    private string _petError = string.Empty;
-
-    /// <summary>
     /// A problem with the start-at-sign-in switch, or empty.
     /// </summary>
     [ObservableProperty]
@@ -227,12 +203,6 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     /// <param name="autoStart">
     /// Starts the application at sign-in.
     /// </param>
-    /// <param name="catalog">
-    /// Lists the installed pets.
-    /// </param>
-    /// <param name="petSwitcher">
-    /// Switches the pet, which reports when that fails.
-    /// </param>
     /// <param name="openLogDirectory">
     /// Opens the log directory in the file manager.
     /// </param>
@@ -240,22 +210,17 @@ public sealed partial class SettingsTabViewModel : ObservableObject
         SettingsService settings,
         BossKeyController bossKey,
         IAutoStartService autoStart,
-        IPetCatalog catalog,
-        PetSwitcher petSwitcher,
         Action openLogDirectory)
     {
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(bossKey);
         ArgumentNullException.ThrowIfNull(autoStart);
-        ArgumentNullException.ThrowIfNull(catalog);
-        ArgumentNullException.ThrowIfNull(petSwitcher);
         ArgumentNullException.ThrowIfNull(openLogDirectory);
 
         _openLogDirectory = openLogDirectory;
         _settings = settings;
         _bossKey = bossKey;
         _autoStartService = autoStart;
-        _catalog = catalog;
 
         Scenarios =
         [
@@ -267,7 +232,6 @@ public sealed partial class SettingsTabViewModel : ObservableObject
 
         _settings.Changed += OnSettingsChanged;
         _bossKey.StatusChanged += OnBossKeyStatusChanged;
-        petSwitcher.SwitchFailed += OnPetSwitchFailed;
 
         if (_settings.LoadFailure is { } failure)
         {
@@ -305,19 +269,14 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     public string LoadFailureMessage { get; } = string.Empty;
 
     /// <summary>
-    /// Re-reads what can change without the application knowing: the installed pets and whether the application is
-    /// registered to start at sign-in (the user can switch that off in Task Manager). Call when the tab is shown.
+    /// Re-reads what can change without the application knowing: whether the application is registered to start at
+    /// sign-in (the user can switch that off in Task Manager). Call when the tab is shown.
     /// </summary>
     public void RefreshExternalState()
     {
         _refreshing = true;
         try
         {
-            var names = _catalog.GetPetNames();
-            Pets = names.Contains(_settings.Current.PetName, StringComparer.Ordinal)
-                ? names
-                : [.. names, _settings.Current.PetName];
-            SelectedPet = _settings.Current.PetName;
             AutoStart = _autoStartService.IsEnabled();
         }
         finally
@@ -372,23 +331,6 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     public void ReportBossKeyRejected()
     {
         BossKeyError = Strings.BossKeyInvalid;
-    }
-
-    /// <summary>
-    /// Applies a chosen pet.
-    /// </summary>
-    /// <param name="value">
-    /// The pet name.
-    /// </param>
-    partial void OnSelectedPetChanged(string value)
-    {
-        if (_refreshing || string.IsNullOrEmpty(value))
-        {
-            return;
-        }
-
-        PetError = string.Empty;
-        _ = ApplyAsync(settings => settings with { PetName = value });
     }
 
     /// <summary>
@@ -774,7 +716,7 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Shows settings that were changed elsewhere, such as a pet or boss key that was put back.
+    /// Shows settings that were changed elsewhere, such as a boss key that was put back.
     /// </summary>
     /// <param name="sender">
     /// The event source.
@@ -798,7 +740,6 @@ public sealed partial class SettingsTabViewModel : ObservableObject
         _refreshing = true;
         try
         {
-            SelectedPet = settings.PetName;
             IsDocked = settings.Mode == DisturbanceMode.Docked;
             IsRoam = settings.Mode == DisturbanceMode.Roam;
             SedentaryText = Minutes(settings.SedentaryReminderAfter);
@@ -862,19 +803,5 @@ public sealed partial class SettingsTabViewModel : ObservableObject
         BossKeyError = _bossKey.RegistrationError is { } reason
             ? string.Format(CultureInfo.CurrentCulture, Strings.BossKeyFailed, _settings.Current.BossKey, reason)
             : string.Empty;
-    }
-
-    /// <summary>
-    /// Shows why a pet could not be switched to.
-    /// </summary>
-    /// <param name="sender">
-    /// The event source.
-    /// </param>
-    /// <param name="reason">
-    /// Why the switch failed.
-    /// </param>
-    private void OnPetSwitchFailed(object? sender, string reason)
-    {
-        PetError = string.Format(CultureInfo.CurrentCulture, Strings.PetSwitchFailed, reason);
     }
 }

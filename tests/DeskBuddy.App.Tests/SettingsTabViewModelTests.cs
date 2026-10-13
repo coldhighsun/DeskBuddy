@@ -1,12 +1,10 @@
 using System.IO;
 using AwesomeAssertions;
-using DeskBuddy.App.Rendering;
 using DeskBuddy.App.ViewModels;
 using DeskBuddy.Application;
 using DeskBuddy.Domain;
 using DeskBuddy.Domain.Scenarios;
 using DeskBuddy.Domain.Settings;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace DeskBuddy.App.Tests;
 
@@ -36,11 +34,6 @@ public class SettingsTabViewModelTests
     private readonly FakeAutoStartService _autoStart = new();
 
     /// <summary>
-    /// The pet loader behind the pet switcher.
-    /// </summary>
-    private readonly FakePetLoader _loader = new();
-
-    /// <summary>
     /// The settings service.
     /// </summary>
     private SettingsService _settings = null!;
@@ -53,33 +46,19 @@ public class SettingsTabViewModelTests
     /// <summary>
     /// Loads the settings and creates the view model over fakes.
     /// </summary>
-    /// <param name="pets">
-    /// The pet names the catalog lists.
-    /// </param>
     /// <returns>
     /// A task that completes when the view model is ready.
     /// </returns>
-    private async Task CreateAsync(params string[] pets)
+    private async Task CreateAsync()
     {
         _settings = new SettingsService(_store);
         await _settings.InitializeAsync();
 
-        _loader.Available.Add(PetSettings.DefaultPetName);
-        _loader.Available.Add("cat");
-        var switcher = new PetSwitcher(
-            _settings,
-            _loader,
-            "pets",
-            _settings.Current.PetName,
-            _ => { },
-            NullLogger<PetSwitcher>.Instance);
         var bossKey = new BossKeyController(_settings, _hotkeys, TestBrain.Create());
         _viewModel = new SettingsTabViewModel(
             _settings,
             bossKey,
             _autoStart,
-            new FakePetCatalog(pets.Length > 0 ? pets : [PetSettings.DefaultPetName, "cat"]),
-            switcher,
             () => LogDirectoryOpened++);
     }
 
@@ -552,60 +531,6 @@ public class SettingsTabViewModelTests
 
         // Assert
         _settings.Current.ScenariosEnabled.Should().BeFalse();
-    }
-
-    /// <summary>
-    /// The list of pets always includes the one in use, even if it is not installed any more.
-    /// </summary>
-    [Fact]
-    public async Task Pets_CurrentPetNotInstalled_IsStillListed()
-    {
-        // Arrange
-        _store.Stored = PetSettings.Default with { PetName = "gone" };
-
-        // Act
-        await CreateAsync(PetSettings.DefaultPetName, "cat");
-
-        // Assert
-        _viewModel.Pets.Should().Equal(PetSettings.DefaultPetName, "cat", "gone");
-        _viewModel.SelectedPet.Should().Be("gone");
-    }
-
-    /// <summary>
-    /// Choosing a pet applies it to the settings.
-    /// </summary>
-    [Fact]
-    public async Task SelectedPet_Chosen_IsApplied()
-    {
-        // Arrange
-        await CreateAsync();
-
-        // Act
-        _viewModel.SelectedPet = "cat";
-
-        // Assert
-        _settings.Current.PetName.Should().Be("cat");
-        await EventuallyAsync(() => _loader.Requested.Count > 0);
-        _loader.Requested.Should().Equal("cat");
-    }
-
-    /// <summary>
-    /// A pet that cannot be loaded goes back to the one in use, with a message.
-    /// </summary>
-    [Fact]
-    public async Task SelectedPet_CannotBeLoaded_RevertsAndExplains()
-    {
-        // Arrange
-        await CreateAsync(PetSettings.DefaultPetName, "cat", "broken");
-
-        // Act
-        _viewModel.SelectedPet = "broken";
-        await EventuallyAsync(() => _viewModel.PetError.Length > 0 && _viewModel.SelectedPet == PetSettings.DefaultPetName);
-
-        // Assert
-        _viewModel.SelectedPet.Should().Be(PetSettings.DefaultPetName);
-        _settings.Current.PetName.Should().Be(PetSettings.DefaultPetName);
-        _viewModel.PetError.Should().NotBeEmpty();
     }
 
     /// <summary>

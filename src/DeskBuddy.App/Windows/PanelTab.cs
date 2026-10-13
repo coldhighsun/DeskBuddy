@@ -6,17 +6,22 @@ namespace DeskBuddy.App.Windows;
 public enum PanelTab
 {
     /// <summary>
-    /// Pet, size, language and movement mode.
+    /// The installed pets with previews, to pick one from.
     /// </summary>
-    Appearance = 0,
+    Pets = 0,
+
+    /// <summary>
+    /// Size, language and movement mode.
+    /// </summary>
+    Appearance = 1,
 
     /// <summary>
     /// Timings, full-screen behavior, development detection and scenarios.
     /// </summary>
-    Behavior = 1,
+    Behavior = 2,
 
     /// <summary>
     /// Boss key, start with Windows and diagnostics.
     /// </summary>
-    System = 2,
+    System = 3,
 }

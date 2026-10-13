@@ -44,11 +44,30 @@
   <data name="ActionDismiss" xml:space="preserve"><value>知道了</value></data>
   <data name="ActionSnoozeReminder" xml:space="preserve"><value>稍后提醒</value></data>
 
+  <data name="TabPets" xml:space="preserve"><value>宠物</value></data>
+  <data name="PetsCurrent" xml:space="preserve"><value>当前</value></data>
+  <data name="PetsUse" xml:space="preserve"><value>使用</value></data>
+  <data name="PetsInfo" xml:space="preserve"><value>画面 {0}×{1} · 动作 {2}/{3}</value></data>
+  <data name="PetsCapLookAround" xml:space="preserve"><value>眼睛跟随鼠标</value></data>
+  <data name="PetsCapEdges" xml:space="preserve"><value>攀爬屏幕边缘 {0}/{1}</value></data>
+  <data name="PetsCapDevelopment" xml:space="preserve"><value>开发陪伴 {0}/{1}</value></data>
+  <data name="PetsCapScenarios" xml:space="preserve"><value>情境动作 {0}/{1}</value></data>
+  <data name="PetsLoadFailed" xml:space="preserve"><value>无法加载：{0}</value></data>
+  <data name="PetsEmpty" xml:space="preserve"><value>没有找到宠物。</value></data>
+  <data name="PetStateNameIdle" xml:space="preserve"><value>待机</value></data>
+  <data name="PetStateNameWalk" xml:space="preserve"><value>走路</value></data>
+  <data name="PetStateNameSleep" xml:space="preserve"><value>睡觉</value></data>
+  <data name="PetStateNameHappy" xml:space="preserve"><value>开心</value></data>
+  <data name="PetStateNameAlert" xml:space="preserve"><value>警觉</value></data>
+  <data name="PetStateNameTired" xml:space="preserve"><value>疲惫</value></data>
+  <data name="PetStateNameDizzy" xml:space="preserve"><value>头晕</value></data>
+  <data name="PetStateNameClimb" xml:space="preserve"><value>攀爬</value></data>
+  <data name="PetStateNameCoding" xml:space="preserve"><value>敲代码</value></data>
+  <data name="PetStateNameMeal" xml:space="preserve"><value>吃饭</value></data>
   <data name="TabAppearance" xml:space="preserve"><value>外观</value></data>
   <data name="TabBehavior" xml:space="preserve"><value>行为</value></data>
   <data name="TabSystem" xml:space="preserve"><value>系统</value></data>
   <data name="SettingsAppearance" xml:space="preserve"><value>外观</value></data>
-  <data name="SettingsPet" xml:space="preserve"><value>宠物</value></data>
   <data name="SettingsMode" xml:space="preserve"><value>打扰模式</value></data>
   <data name="ModeDocked" xml:space="preserve"><value>停靠在任务栏上</value></data>
   <data name="ModeRoam" xml:space="preserve"><value>在桌面上自由活动</value></data>

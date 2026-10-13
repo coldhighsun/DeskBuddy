@@ -4,6 +4,7 @@ using System.Xml.Linq;
 using AwesomeAssertions;
 using DeskBuddy.Domain;
 using DeskBuddy.Domain.Chatter;
+using DeskBuddy.Domain.Pets;
 using DeskBuddy.Domain.Scenarios;
 
 namespace DeskBuddy.App.Tests;
@@ -72,6 +73,19 @@ public partial class ResourceFilesTests
 
         // Assert
         keys.Where(key => !_chinese.ContainsKey(key)).Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// Every state the pet previews show has a name in both languages.
+    /// </summary>
+    [Fact]
+    public void Resources_EveryShowcaseState_HasName()
+    {
+        // Act
+        var keys = PetShowcase.States.Select(state => $"PetStateName{state}").ToList();
+
+        // Assert
+        keys.Where(key => !_chinese.ContainsKey(key) || !_english.ContainsKey(key)).Should().BeEmpty();
     }
 
     /// <summary>

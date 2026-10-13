@@ -44,11 +44,30 @@
   <data name="ActionDismiss" xml:space="preserve"><value>Got it</value></data>
   <data name="ActionSnoozeReminder" xml:space="preserve"><value>Remind me later</value></data>
 
+  <data name="TabPets" xml:space="preserve"><value>Pets</value></data>
+  <data name="PetsCurrent" xml:space="preserve"><value>In use</value></data>
+  <data name="PetsUse" xml:space="preserve"><value>Use</value></data>
+  <data name="PetsInfo" xml:space="preserve"><value>Frame {0}×{1} · {2}/{3} states</value></data>
+  <data name="PetsCapLookAround" xml:space="preserve"><value>Eyes follow the mouse</value></data>
+  <data name="PetsCapEdges" xml:space="preserve"><value>Climbs screen edges {0}/{1}</value></data>
+  <data name="PetsCapDevelopment" xml:space="preserve"><value>Develops with you {0}/{1}</value></data>
+  <data name="PetsCapScenarios" xml:space="preserve"><value>Situations {0}/{1}</value></data>
+  <data name="PetsLoadFailed" xml:space="preserve"><value>Cannot load: {0}</value></data>
+  <data name="PetsEmpty" xml:space="preserve"><value>No pets found.</value></data>
+  <data name="PetStateNameIdle" xml:space="preserve"><value>Idle</value></data>
+  <data name="PetStateNameWalk" xml:space="preserve"><value>Walking</value></data>
+  <data name="PetStateNameSleep" xml:space="preserve"><value>Sleeping</value></data>
+  <data name="PetStateNameHappy" xml:space="preserve"><value>Happy</value></data>
+  <data name="PetStateNameAlert" xml:space="preserve"><value>Alert</value></data>
+  <data name="PetStateNameTired" xml:space="preserve"><value>Tired</value></data>
+  <data name="PetStateNameDizzy" xml:space="preserve"><value>Dizzy</value></data>
+  <data name="PetStateNameClimb" xml:space="preserve"><value>Climbing</value></data>
+  <data name="PetStateNameCoding" xml:space="preserve"><value>Coding</value></data>
+  <data name="PetStateNameMeal" xml:space="preserve"><value>Having a meal</value></data>
   <data name="TabAppearance" xml:space="preserve"><value>Appearance</value></data>
   <data name="TabBehavior" xml:space="preserve"><value>Behavior</value></data>
   <data name="TabSystem" xml:space="preserve"><value>System</value></data>
   <data name="SettingsAppearance" xml:space="preserve"><value>Appearance</value></data>
-  <data name="SettingsPet" xml:space="preserve"><value>Pet</value></data>
   <data name="SettingsMode" xml:space="preserve"><value>Disturbance mode</value></data>
   <data name="ModeDocked" xml:space="preserve"><value>Docked on the taskbar</value></data>
   <data name="ModeRoam" xml:space="preserve"><value>Roam freely on the desktop</value></data>

@@ -6,5 +6,9 @@ namespace DeskBuddy.App.ViewModels;
 /// <param name="Settings">
 /// The settings tab.
 /// </param>
+/// <param name="Pets">
+/// The pets tab.
+/// </param>
 public sealed record PanelViewModel(
-    SettingsTabViewModel Settings);
+    SettingsTabViewModel Settings,
+    PetsTabViewModel Pets);

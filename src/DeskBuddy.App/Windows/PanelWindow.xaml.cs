@@ -1,8 +1,10 @@
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
+using System.Windows.Threading;
 using DeskBuddy.App.Presentation;
 using DeskBuddy.App.ViewModels;
 
@@ -15,6 +17,11 @@ namespace DeskBuddy.App.Windows;
 public partial class PanelWindow
 {
     /// <summary>
+    /// How often the pet previews are redrawn; the fastest animations run at 8 pictures a second.
+    /// </summary>
+    private static readonly TimeSpan PreviewInterval = TimeSpan.FromMilliseconds(50);
+
+    /// <summary>
     /// The view models behind the tabs.
     /// </summary>
     private readonly PanelViewModel _viewModel;
@@ -23,6 +30,19 @@ public partial class PanelWindow
     /// Whether the application is exiting, in which case closing really closes the window.
     /// </summary>
     private bool _isExiting;
+
+    /// <summary>
+    /// Moves the pet previews on while the pets tab is showing.
+    /// </summary>
+    private readonly DispatcherTimer _previewTimer = new(DispatcherPriority.Render)
+    {
+        Interval = PreviewInterval,
+    };
+
+    /// <summary>
+    /// Measures the real time between two ticks of <see cref="_previewTimer"/>, as timer intervals are not exact.
+    /// </summary>
+    private readonly Stopwatch _previewWatch = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PanelWindow"/> class.
@@ -38,6 +58,8 @@ public partial class PanelWindow
         DataContext = viewModel;
 
         IsVisibleChanged += OnIsVisibleChanged;
+        Tabs.SelectionChanged += OnTabsSelectionChanged;
+        _previewTimer.Tick += OnPreviewTick;
     }
 
     /// <summary>
@@ -128,6 +150,96 @@ public partial class PanelWindow
         {
             _viewModel.Settings.RefreshExternalState();
         }
+
+        UpdatePreviews();
+    }
+
+    /// <summary>
+    /// Picks the pet whose card was clicked, so its preview starts moving. The use button handles its own click, so
+    /// pressing it does not get here.
+    /// </summary>
+    /// <param name="sender">
+    /// The card.
+    /// </param>
+    /// <param name="e">
+    /// Mouse event data.
+    /// </param>
+    private void OnPetCardMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is FrameworkElement { DataContext: PetCardViewModel card })
+        {
+            _viewModel.Pets.SelectCard(card);
+        }
+    }
+
+    /// <summary>
+    /// Starts or stops the pet previews when another tab is chosen.
+    /// </summary>
+    /// <param name="sender">
+    /// The event source.
+    /// </param>
+    /// <param name="e">
+    /// Event data.
+    /// </param>
+    private void OnTabsSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        // Selection events of the lists inside the tabs bubble up to the tab control; only its own matter here.
+        if (ReferenceEquals(e.OriginalSource, Tabs))
+        {
+            UpdatePreviews();
+        }
+    }
+
+    /// <summary>
+    /// Runs the pet previews only while the pets tab is in view, so the panel costs nothing when it is hidden or on
+    /// another tab, and looks for new pets each time the tab comes into view.
+    /// </summary>
+    private void UpdatePreviews()
+    {
+        var shouldRun = IsVisible && Tabs.SelectedIndex == (int)PanelTab.Pets;
+        if (shouldRun == _previewTimer.IsEnabled)
+        {
+            return;
+        }
+
+        if (!shouldRun)
+        {
+            _previewTimer.Stop();
+            _previewWatch.Reset();
+            return;
+        }
+
+        _viewModel.Pets.RestartPreviews();
+        _previewWatch.Restart();
+        _previewTimer.Start();
+        _ = RefreshPetsAsync();
+    }
+
+    /// <summary>
+    /// Looks for pets again.
+    /// </summary>
+    /// <returns>
+    /// A task that completes when the list is up to date.
+    /// </returns>
+    private async Task RefreshPetsAsync()
+    {
+        await _viewModel.Pets.RefreshAsync();
+    }
+
+    /// <summary>
+    /// Moves the pet previews on by the time that really passed.
+    /// </summary>
+    /// <param name="sender">
+    /// The event source.
+    /// </param>
+    /// <param name="e">
+    /// Event data.
+    /// </param>
+    private void OnPreviewTick(object? sender, EventArgs e)
+    {
+        var delta = _previewWatch.Elapsed;
+        _previewWatch.Restart();
+        _viewModel.Pets.Tick(delta);
     }
 
     /// <summary>
