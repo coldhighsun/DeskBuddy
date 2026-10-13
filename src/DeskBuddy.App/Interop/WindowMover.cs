@@ -101,21 +101,51 @@ public static partial class WindowMover
     /// </param>
     public static void MoveTo(Window window, double left, double top)
     {
+        // Compared with where the window really is: Window.Left and Window.Top are in the scaling the window had when it
+        // was last moved, and can be out by the ratio of two scalings after it has moved onto another monitor.
         var dpi = VisualTreeHelper.GetDpi(window);
-        if (!TryGetMove(window.Left, window.Top, left, top, dpi.DpiScaleX, dpi.DpiScaleY, out var x, out var y))
+        var actual = MonitorHelper.GetWindowBoundsPixels(window);
+        if (!TryGetMove(
+            actual.Left / dpi.DpiScaleX,
+            actual.Top / dpi.DpiScaleY,
+            left,
+            top,
+            dpi.DpiScaleX,
+            dpi.DpiScaleY,
+            out var x,
+            out var y))
         {
             return;
         }
 
-        var handle = new WindowInteropHelper(window).Handle;
-        SetWindowPos(
-            handle,
-            0,
-            x,
-            y,
-            0,
-            0,
-            SwpNoSize | SwpNoZOrder | SwpNoRedraw | SwpNoActivate | SwpNoOwnerZOrder);
+        MoveToPixelsSettled(window, x, y);
+    }
+
+    /// <summary>
+    /// Moves a window to a position given in device pixels, and makes sure it ends up there. Moving the window onto a
+    /// monitor with another scaling makes Windows send a DPI change while it is being moved, and the window is then put
+    /// where Windows suggests, which can be a long way from where it was moved to (a pet seems to leap ahead). The move
+    /// is done again, now that the scaling has settled.
+    /// </summary>
+    /// <param name="window">
+    /// The window to move; it must already have a handle.
+    /// </param>
+    /// <param name="x">
+    /// The wanted left edge in device pixels.
+    /// </param>
+    /// <param name="y">
+    /// The wanted top edge in device pixels.
+    /// </param>
+    public static void MoveToPixelsSettled(Window window, int x, int y)
+    {
+        var before = VisualTreeHelper.GetDpi(window);
+        MoveToPixels(window, x, y);
+
+        var after = VisualTreeHelper.GetDpi(window);
+        if (after.DpiScaleX != before.DpiScaleX || after.DpiScaleY != before.DpiScaleY)
+        {
+            MoveToPixels(window, x, y);
+        }
     }
 
     /// <summary>
