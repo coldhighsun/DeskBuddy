@@ -20,6 +20,51 @@ public class AlphaMaskTests
     }
 
     /// <summary>
+    /// The sprite's top is the first row that has an opaque pixel, as a fraction of the frame height.
+    /// </summary>
+    [Fact]
+    public void TopOpaqueFraction_EmptyRowsAbove_ReturnsFirstOpaqueRow()
+    {
+        // Arrange
+        var mask = new AlphaMask(2, 4, [0, 0, 0, 0, 0, 255, 255, 255]);
+
+        // Act
+        var top = mask.TopOpaqueFraction();
+
+        // Assert
+        top.Should().Be(0.5);
+    }
+
+    /// <summary>
+    /// A sprite that touches the top edge starts at zero.
+    /// </summary>
+    [Fact]
+    public void TopOpaqueFraction_OpaqueFirstRow_ReturnsZero()
+    {
+        // Act
+        var top = CreateMask().TopOpaqueFraction();
+
+        // Assert
+        top.Should().Be(0);
+    }
+
+    /// <summary>
+    /// A frame with nothing opaque has no top, so it counts as zero.
+    /// </summary>
+    [Fact]
+    public void TopOpaqueFraction_FullyTransparent_ReturnsZero()
+    {
+        // Arrange
+        var mask = new AlphaMask(2, 2, [0, 0, 0, 0]);
+
+        // Act
+        var top = mask.TopOpaqueFraction();
+
+        // Assert
+        top.Should().Be(0);
+    }
+
+    /// <summary>
     /// An alpha buffer of the wrong size is rejected.
     /// </summary>
     [Fact]

@@ -148,4 +148,38 @@ public sealed class PixelGeometryTests
         // Assert
         top.Should().Be(0);
     }
+
+    /// <summary>
+    /// The bubble ends a small gap above the sprite, however much transparent space the skin leaves over its head.
+    /// </summary>
+    [Theory]
+    [InlineData(0.0, 4, -4)]
+    [InlineData(0.25, 4, 36)]
+    [InlineData(0.5, 0, 80)]
+    public void TailOverlap_SpriteStartsLowerInWindow_ReachesDownToSprite(double spriteTop, int gap, int expected)
+    {
+        // Act
+        var overlap = BubblePlacement.TailOverlap(160, spriteTop, gap);
+
+        // Assert
+        overlap.Should().Be(expected);
+    }
+
+    /// <summary>
+    /// The bubble's bottom edge lands just above the top of the sprite.
+    /// </summary>
+    [Fact]
+    public void Compute_OverlapFromSpriteTop_PlacesBubbleBottomAboveSprite()
+    {
+        // Arrange
+        var pet = new PixelRect(1000, 800, 1160, 960);
+        var workArea = new PixelRect(0, 0, 1920, 1040);
+        var overlap = BubblePlacement.TailOverlap(pet.Height, 0.25, 4);
+
+        // Act
+        var (_, top, _) = BubblePlacement.Compute(pet, 300, 100, overlap, workArea);
+
+        // Assert
+        (top + 100).Should().Be(pet.Top + 40 - 4);
+    }
 }

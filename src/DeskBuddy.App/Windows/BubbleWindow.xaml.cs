@@ -15,10 +15,10 @@ namespace DeskBuddy.App.Windows;
 public partial class BubbleWindow : Window
 {
     /// <summary>
-    /// How far, in device-independent pixels, the bubble's bottom edge reaches below the top of the pet window, so the
-    /// tail points at the pet's head rather than at empty transparent space above it.
+    /// How much room, in device-independent pixels, to leave between the bubble's bottom edge and the top of the pet's
+    /// sprite.
     /// </summary>
-    private const double TailOverlap = 28;
+    private const double SpriteGap = 2;
 
     /// <summary>
     /// Smallest distance between the tail and the bubble's rounded corners.
@@ -72,13 +72,16 @@ public partial class BubbleWindow : Window
     }
 
     /// <summary>
-    /// Puts the bubble above the pet, horizontally centered on it but kept inside the monitor's work area, with the
-    /// tail still pointing at the pet.
+    /// Puts the bubble above the pet's sprite, horizontally centered on it but kept inside the monitor's work area,
+    /// with the tail still pointing at the pet.
     /// </summary>
     /// <param name="pet">
     /// The pet window to anchor to.
     /// </param>
-    public void PositionAbove(Window pet)
+    /// <param name="spriteTop">
+    /// Where the sprite starts inside the pet window, as a fraction of the window height.
+    /// </param>
+    public void PositionAbove(Window pet, double spriteTop)
     {
         ArgumentNullException.ThrowIfNull(pet);
 
@@ -90,11 +93,15 @@ public partial class BubbleWindow : Window
         // Everything is worked out in device pixels of the pet's monitor, where the bubble is going to be, and not in
         // this window's own scale, which is still that of the monitor it was last shown on.
         var petScale = VisualTreeHelper.GetDpi(pet).DpiScaleX;
+        var petBounds = MonitorHelper.GetWindowBoundsPixels(pet);
         var placement = BubblePlacement.Compute(
-            MonitorHelper.GetWindowBoundsPixels(pet),
+            petBounds,
             (int)Math.Ceiling(size.Width * petScale),
             (int)Math.Ceiling(size.Height * petScale),
-            (int)Math.Round(TailOverlap * petScale, MidpointRounding.AwayFromZero),
+            BubblePlacement.TailOverlap(
+                petBounds.Height,
+                spriteTop,
+                (int)Math.Round(SpriteGap * petScale, MidpointRounding.AwayFromZero)),
             MonitorHelper.GetWorkAreaPixels(pet));
         WindowMover.MoveToPixels(this, placement.Left, placement.Top);
 
