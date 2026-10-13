@@ -239,11 +239,6 @@ internal static class Strings
     }
 
     /// <summary>
-    /// Gets the heading of the menu that previews the pet's animations.
-    /// </summary>
-    public static string MenuPreview => Get();
-
-    /// <summary>
     /// Gets the label of the language setting.
     /// </summary>
     public static string SettingsLanguage => Get();
@@ -292,20 +287,6 @@ internal static class Strings
     /// Gets the note that a language change needs a restart.
     /// </summary>
     public static string LanguageRestartHint => Get();
-
-    /// <summary>
-    /// Gets the short name of a state, for menus.
-    /// </summary>
-    /// <param name="state">
-    /// The state.
-    /// </param>
-    /// <returns>
-    /// The localized name, or the name of the enum value if there is none.
-    /// </returns>
-    public static string StateName(PetState state)
-    {
-        return Manager.GetString($"StateName{state}", CultureInfo.CurrentUICulture) ?? state.ToString();
-    }
 
     /// <summary>
     /// Gets the short explanation of what the pet is doing in a state, shown when the mouse rests on it.

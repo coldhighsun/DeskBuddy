@@ -282,8 +282,7 @@ public partial class App
                 OpenPanel,
                 _host.Services.GetRequiredService<MovementSelector>(),
                 _host.Services.GetRequiredService<ScenarioSwitches>(),
-                _host.Services.GetRequiredService<SettingsService>().Current.Size,
-                _host.Services.GetRequiredService<IConfiguration>().GetValue("Preview", false));
+                _host.Services.GetRequiredService<SettingsService>().Current.Size);
             _petWindow.SetClimbEdges(_host.Services.GetRequiredService<SettingsService>().Current.ClimbEdges);
             _petWindow.Show();
             var petWindow = _petWindow;

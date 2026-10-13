@@ -85,21 +85,6 @@ public partial class ResourceFilesTests
     }
 
     /// <summary>
-    /// Every state the preview menu offers has a short name.
-    /// </summary>
-    [Fact]
-    public void Resources_PreviewStates_HaveNames()
-    {
-        // Act
-        var keys = Enum.GetValues<PetState>()
-            .Where(state => state is not (PetState.Drag or PetState.Sleep or PetState.Alert))
-            .Select(state => $"StateName{state}");
-
-        // Assert
-        keys.Where(key => !_chinese.ContainsKey(key)).Should().BeEmpty();
-    }
-
-    /// <summary>
     /// Every casual remark the pet can make has a text.
     /// </summary>
     [Fact]

@@ -10,7 +10,7 @@ DeskBuddy 是一个 Windows 桌面宠物（WPF，.NET 10，仅 Windows 可构建
 dotnet build DeskBuddy.slnx
 dotnet test DeskBuddy.slnx
 dotnet test --project tests/DeskBuddy.Domain.Tests --filter "FullyQualifiedName~PetSettingsTests"   # 运行单个测试类/方法
-dotnet run --project src/DeskBuddy.App                  # 加 `--Preview true` 可在右键菜单中播放所有动画
+dotnet run --project src/DeskBuddy.App
 powershell -NoProfile -File tools/Build-Installer.ps1   # 发布并用 Inno Setup 7 打包安装程序（输出到 artifacts/installer）
 powershell -NoProfile -File tools/GenerateRobotSkin.ps1 # 重新生成 robot 皮肤的 PNG 帧
 powershell -NoProfile -File tools/GenerateCatSkin.ps1   # 重新生成 cat 皮肤的 PNG 帧（两个生成脚本共用 tools/SkinDrawing.ps1）

@@ -30,7 +30,7 @@
   挂在屏幕顶部横向移动，随后松手撑伞落下或爬回地面；把它拖到顶部或两侧松手会立即开始。
   这些图案都带小字标签（BLD、GIT、MTG、LOW 等），鼠标停在宠物上还会用文字说明它在做什么。
 - 支持简体中文和英文：界面默认跟随系统语言，也可以在设置里手动选择（重启后完全生效）。翻译文件在
-  `src/DeskBuddy.App/Resources`（`Strings.resx` 为中文，`Strings.en.resx` 为英文）。用 `--Preview true` 启动应用，右键菜单里可以逐个预览所有动画。
+  `src/DeskBuddy.App/Resources`（`Strings.resx` 为中文，`Strings.en.resx` 为英文）。
 - 托盘图标与单实例保护。
 
 ## 构建
