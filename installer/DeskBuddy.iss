@@ -29,6 +29,7 @@ PrivilegesRequiredOverridesAllowed=dialog
 DefaultDirName={autopf}\{#AppName}
 DefaultGroupName={#AppName}
 DisableProgramGroupPage=yes
+SetupIconFile=..\src\DeskBuddy.App\Assets\DeskBuddy.ico
 UninstallDisplayIcon={app}\{#AppExe}
 OutputDir={#OutputDir}
 OutputBaseFilename=DeskBuddy-Setup-{#AppVersion}

@@ -10,6 +10,7 @@
     <Description>A desktop pet for work computers.</Description>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\DeskBuddy.ico</ApplicationIcon>
     <!--
       Tiered compilation off: the runtime otherwise keeps re-compiling the code the pet runs every few milliseconds, which
       measured as about 6 s of CPU in the first minute against under 2 s with it off. Code runs fully optimised from its
@@ -30,6 +31,10 @@
     <PackageReference Include="H.NotifyIcon.Wpf" />
     <PackageReference Include="Microsoft.Extensions.Hosting" />
     <PackageReference Include="MinVer" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\DeskBuddy.ico" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,6 +1,6 @@
+using System.Drawing;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 using DeskBuddy.App.Presentation;
 using DeskBuddy.App.Resources;
 using DeskBuddy.App.Windows;
@@ -19,6 +19,11 @@ public sealed class TrayIconService : IDisposable
     /// The underlying notification-area icon.
     /// </summary>
     private readonly TaskbarIcon _icon;
+
+    /// <summary>
+    /// The icon the notification area shows; owned here and released on dispose.
+    /// </summary>
+    private readonly Icon _appIcon;
 
     /// <summary>
     /// The brain whose visibility the menu controls.
@@ -53,14 +58,10 @@ public sealed class TrayIconService : IDisposable
         _openPanel = openPanel;
         _onExit = onExit;
 
+        _appIcon = AppIcon.LoadSmall();
         _icon = new TaskbarIcon
         {
-            IconSource = new GeneratedIconSource
-            {
-                Text = "D",
-                Foreground = Brushes.White,
-                Background = Brushes.DarkOrange,
-            },
+            Icon = _appIcon,
             ToolTipText = Strings.AppName,
             ContextMenu = new ContextMenu(),
         };
@@ -78,6 +79,7 @@ public sealed class TrayIconService : IDisposable
     {
         _brain.VisibilityChanged -= OnStatusChanged;
         _icon.Dispose();
+        _appIcon.Dispose();
     }
 
     /// <summary>
