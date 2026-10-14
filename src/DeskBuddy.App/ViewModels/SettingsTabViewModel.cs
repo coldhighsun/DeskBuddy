@@ -2,6 +2,7 @@ using System.Globalization;
 using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DeskBuddy.App.Presentation;
 using DeskBuddy.App.Resources;
 using DeskBuddy.Application;
 using DeskBuddy.Application.Abstractions;
@@ -32,6 +33,17 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     /// The settings being edited.
     /// </summary>
     private readonly SettingsService _settings;
+
+    /// <summary>
+    /// The installed pets, whose pictures show what each size looks like; <see langword="null"/> if there are none to show.
+    /// </summary>
+    private readonly InstalledPets? _pets;
+
+    /// <summary>
+    /// What <see cref="SizeChoices"/> was made for: the pet in use, the size in use and the version of the pet list.
+    /// Only a change in one of them needs new choices, which rebuilds the buttons that show them.
+    /// </summary>
+    private (string PetName, PetSize Size, int PetsVersion)? _sizeChoicesFor;
 
     /// <summary>
     /// The boss key registration, to find out whether a new shortcut could be registered.
@@ -150,6 +162,12 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     private PetSize _selectedSize;
 
     /// <summary>
+    /// Gets or sets the sizes to choose from, each drawn with the pet in use at the size it gets on screen.
+    /// </summary>
+    [ObservableProperty]
+    private IReadOnlyList<SizeChoice> _sizeChoices = [];
+
+    /// <summary>
     /// Gets or sets a value indicating whether the pet may climb the sides of the screen and hang from its top edge.
     /// </summary>
     [ObservableProperty]
@@ -206,11 +224,16 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     /// <param name="openLogDirectory">
     /// Opens the log directory in the file manager.
     /// </param>
+    /// <param name="pets">
+    /// The installed pets, whose pictures show what each size looks like; <see langword="null"/> to show the sizes by
+    /// their names only.
+    /// </param>
     public SettingsTabViewModel(
         SettingsService settings,
         BossKeyController bossKey,
         IAutoStartService autoStart,
-        Action openLogDirectory)
+        Action openLogDirectory,
+        InstalledPets? pets = null)
     {
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(bossKey);
@@ -221,6 +244,7 @@ public sealed partial class SettingsTabViewModel : ObservableObject
         _settings = settings;
         _bossKey = bossKey;
         _autoStartService = autoStart;
+        _pets = pets;
 
         Scenarios =
         [
@@ -232,6 +256,10 @@ public sealed partial class SettingsTabViewModel : ObservableObject
 
         _settings.Changed += OnSettingsChanged;
         _bossKey.StatusChanged += OnBossKeyStatusChanged;
+        if (_pets is not null)
+        {
+            _pets.Changed += OnPetsChanged;
+        }
 
         if (_settings.LoadFailure is { } failure)
         {
@@ -490,16 +518,6 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     ];
 
     /// <summary>
-    /// Gets the pet sizes to choose from.
-    /// </summary>
-    public IReadOnlyList<PetSizeOption> Sizes { get; } =
-    [
-        new(PetSize.Small, Strings.PetSizeSmall),
-        new(PetSize.Medium, Strings.PetSizeMedium),
-        new(PetSize.Large, Strings.PetSizeLarge),
-    ];
-
-    /// <summary>
     /// Applies the chosen theme; it takes effect at once.
     /// </summary>
     /// <param name="value">
@@ -521,10 +539,41 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     /// </param>
     partial void OnSelectedSizeChanged(PetSize value)
     {
+        UpdateSizeChoices(_settings.Current.PetName);
         if (!_refreshing)
         {
             _ = ApplyAsync(settings => settings with { Size = value });
         }
+    }
+
+    /// <summary>
+    /// Chooses a size, which is applied at once; what the size buttons of the tab do when they are pressed.
+    /// </summary>
+    /// <param name="size">
+    /// The size.
+    /// </param>
+    [RelayCommand]
+    private void ChooseSize(PetSize size)
+    {
+        SelectedSize = size;
+    }
+
+    /// <summary>
+    /// Draws the sizes again, for the size chosen and the pet in use, if what they show has changed.
+    /// </summary>
+    /// <param name="petName">
+    /// The folder name of the pet in use.
+    /// </param>
+    private void UpdateSizeChoices(string petName)
+    {
+        var key = (petName, SelectedSize, PetsVersion: _pets?.Version ?? 0);
+        if (key == _sizeChoicesFor)
+        {
+            return;
+        }
+
+        _sizeChoicesFor = key;
+        SizeChoices = PetSizeChoices.For(_pets?.Entries ?? [], petName, SelectedSize);
     }
 
     /// <summary>
@@ -740,6 +789,21 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     }
 
     /// <summary>
+    /// Draws the sizes again when the pets that can be chosen changed, as the pet in use may have just become known.
+    /// </summary>
+    /// <param name="sender">
+    /// The event source.
+    /// </param>
+    /// <param name="e">
+    /// Event data.
+    /// </param>
+    private void OnPetsChanged(object? sender, EventArgs e)
+    {
+        // Only the pictures of the sizes depend on the pets; the rest of the tab may hold entries not applied yet.
+        UpdateSizeChoices(_settings.Current.PetName);
+    }
+
+    /// <summary>
     /// Fills the properties from the settings without treating that as an edit.
     /// </summary>
     /// <param name="settings">
@@ -764,6 +828,7 @@ public sealed partial class SettingsTabViewModel : ObservableObject
             SelectedLanguage = settings.Language;
             SelectedTheme = settings.Theme;
             SelectedSize = settings.Size;
+            UpdateSizeChoices(settings.PetName);
             ClimbEdges = settings.ClimbEdges;
             ClockOutTimeError = string.Empty;
             ClockOutTimeText = settings.ClockOutTime.ToString(@"hh\:mm", CultureInfo.InvariantCulture);
