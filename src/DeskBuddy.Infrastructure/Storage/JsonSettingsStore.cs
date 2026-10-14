@@ -106,11 +106,6 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
         public int Version { get; init; } = FormatVersion;
 
         /// <summary>
-        /// Gets the disturbance mode.
-        /// </summary>
-        public DisturbanceMode? Mode { get; init; }
-
-        /// <summary>
         /// Gets the pet name.
         /// </summary>
         public string? PetName { get; init; }
@@ -197,6 +192,12 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
         public bool? ClimbEdges { get; init; }
 
         /// <summary>
+        /// Gets whether the pet says something unprompted now and then; <see langword="null"/> in files from before the
+        /// option existed.
+        /// </summary>
+        public bool? ChatterEnabled { get; init; }
+
+        /// <summary>
         /// Creates the file shape from settings.
         /// </summary>
         /// <param name="settings">
@@ -209,7 +210,6 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
         {
             return new SettingsFile
             {
-                Mode = settings.Mode,
                 PetName = settings.PetName,
                 SleepAfter = settings.SleepAfter,
                 SedentaryReminderAfter = settings.SedentaryReminderAfter,
@@ -227,6 +227,7 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
                 Theme = settings.Theme.ToString(),
                 Size = settings.Size.ToString(),
                 ClimbEdges = settings.ClimbEdges,
+                ChatterEnabled = settings.ChatterEnabled,
             };
         }
 
@@ -241,7 +242,6 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
             var defaults = PetSettings.Default;
             return new PetSettings
             {
-                Mode = Mode ?? defaults.Mode,
                 PetName = PetName ?? defaults.PetName,
                 SleepAfter = SleepAfter ?? defaults.SleepAfter,
                 SedentaryReminderAfter = SedentaryReminderAfter ?? defaults.SedentaryReminderAfter,
@@ -265,6 +265,7 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
                     ? size
                     : defaults.Size,
                 ClimbEdges = ClimbEdges ?? defaults.ClimbEdges,
+                ChatterEnabled = ChatterEnabled ?? defaults.ChatterEnabled,
             };
         }
     }

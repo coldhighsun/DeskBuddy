@@ -33,33 +33,6 @@ internal static partial class MonitorHelper
     private const double DefaultDpi = 96;
 
     /// <summary>
-    /// Gets the work area (screen minus taskbar) of the monitor the window is on, in device-independent pixels.
-    /// </summary>
-    /// <param name="window">
-    /// The window, which must already have a handle.
-    /// </param>
-    /// <returns>
-    /// The work area in DIPs. Falls back to the primary work area if the monitor cannot be queried.
-    /// </returns>
-    public static Rect GetWorkAreaDip(Window window)
-    {
-        var handle = new WindowInteropHelper(window).Handle;
-        var monitor = MonitorFromWindow(handle, MonitorDefaultToNearest);
-        var info = new MonitorInfo { Size = Marshal.SizeOf<MonitorInfo>() };
-        if (monitor == 0 || !GetMonitorInfo(monitor, ref info))
-        {
-            return SystemParameters.WorkArea;
-        }
-
-        var dpi = VisualTreeHelper.GetDpi(window);
-        return new Rect(
-            info.Work.Left / dpi.DpiScaleX,
-            info.Work.Top / dpi.DpiScaleY,
-            (info.Work.Right - info.Work.Left) / dpi.DpiScaleX,
-            (info.Work.Bottom - info.Work.Top) / dpi.DpiScaleY);
-    }
-
-    /// <summary>
     /// Tells whether another monitor lies right beside the one the window is on, at the height of the window.
     /// </summary>
     /// <param name="window">
@@ -223,23 +196,6 @@ internal static partial class MonitorHelper
         }
 
         return 1;
-    }
-
-    /// <summary>
-    /// Gets the mouse cursor position on the screen, in device-independent pixels of the given window's DPI.
-    /// Reads the cursor directly instead of via WPF so values stay stable while the window itself is moving.
-    /// </summary>
-    /// <param name="window">
-    /// The window whose DPI is used for the conversion.
-    /// </param>
-    /// <returns>
-    /// The cursor position in DIPs.
-    /// </returns>
-    public static Point GetCursorPositionDip(Window window)
-    {
-        GetCursorPos(out var point);
-        var dpi = VisualTreeHelper.GetDpi(window);
-        return new Point(point.X / dpi.DpiScaleX, point.Y / dpi.DpiScaleY);
     }
 
     /// <summary>

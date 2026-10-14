@@ -64,11 +64,6 @@ public sealed record PetSettings
     public static PetSettings Default { get; } = new();
 
     /// <summary>
-    /// Gets how much room the pet takes up on the desktop.
-    /// </summary>
-    public DisturbanceMode Mode { get; init; } = DisturbanceMode.Docked;
-
-    /// <summary>
     /// Gets the name of the pet folder under <c>pets</c>.
     /// </summary>
     public string PetName { get; init; } = DefaultPetName;
@@ -148,6 +143,12 @@ public sealed record PetSettings
     public bool ClimbEdges { get; init; }
 
     /// <summary>
+    /// Gets a value indicating whether the pet now and then says something unprompted, a casual remark that is shown
+    /// briefly without raising the alert. Off by default.
+    /// </summary>
+    public bool ChatterEnabled { get; init; }
+
+    /// <summary>
     /// Gets the time of day, by the local clock, at which the working day ends and the pet looks at its watch.
     /// </summary>
     public TimeSpan ClockOutTime { get; init; } = TimeSpan.FromHours(18);
@@ -159,7 +160,7 @@ public sealed record PetSettings
     public IReadOnlyList<string> MeetingProcesses { get; init; } = DefaultMeetingProcesses;
 
     /// <summary>
-    /// Returns a copy with every value forced into its allowed range: durations are clamped, unknown modes, blank
+    /// Returns a copy with every value forced into its allowed range: durations are clamped, unknown choices, blank
     /// pet names and invalid shortcuts fall back to the defaults, and the process list is trimmed, stripped of
     /// <c>.exe</c> and de-duplicated ignoring case.
     /// </summary>
@@ -171,7 +172,6 @@ public sealed record PetSettings
         var defaults = Default;
         return this with
         {
-            Mode = Enum.IsDefined(Mode) ? Mode : defaults.Mode,
             PetName = string.IsNullOrWhiteSpace(PetName) ? DefaultPetName : PetName.Trim(),
             SleepAfter = Clamp(SleepAfter, MinSleepAfter, MaxSleepAfter),
             SedentaryReminderAfter = Clamp(SedentaryReminderAfter, MinSedentaryInterval, MaxSedentaryInterval),

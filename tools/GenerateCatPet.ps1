@@ -27,12 +27,13 @@ $textFont = New-Object System.Drawing.Font 'Consolas', 16, ([System.Drawing.Font
 # Renders one frame by running $Draw with a fresh canvas, then saves it. The cat's feet end two art pixels above the
 # bottom of the frame, so a grounded frame is lowered by two to stand on the bottom edge; a negative Dy is a jump. Air is
 # for frames in which the cat is not on the ground. Flip turns the picture upside down (hanging from the top of the
-# screen); Mirror turns it left to right (a side view drawn facing left that has to face right).
-function Save-Frame([string]$Name, [scriptblock]$Draw, [int]$Dy = 0, [switch]$Flip, [switch]$Mirror, [switch]$Air) {
+# screen); Mirror turns it left to right (a side view drawn facing left that has to face right). Tilt turns the picture
+# clockwise by that many degrees as drawn facing left, so a positive one raises the nose.
+function Save-Frame([string]$Name, [scriptblock]$Draw, [int]$Dy = 0, [switch]$Flip, [switch]$Mirror, [switch]$Air, [double]$Tilt = 0) {
     $bmp = New-Canvas
     $script:dy = if ($Air) { $Dy } else { [Math]::Min($Dy, 0) + 2 }
     & $Draw
-    Save-Canvas $bmp (Join-Path $outDir $Name) -Flip:$Flip -Mirror:$Mirror
+    Save-Canvas $bmp (Join-Path $outDir $Name) -Flip:$Flip -Mirror:$Mirror -Tilt $Tilt
 }
 
 # A small plus-shaped star centered on the given art pixel.
@@ -226,6 +227,15 @@ Save-Frame 'walk_1.png' -Mirror -Dy -1 { Add-CatSideWalk -D 0 -TipY 11 }
 Save-Frame 'walk_2.png' -Mirror { Add-CatSideWalk -D 3 -TipY 10 }
 Save-Frame 'walk_3.png' -Mirror -Dy -1 { Add-CatSideWalk -D 0 -TipY 9 }
 
+# Hop: a leap while walking, seen from the side. It crouches, pushes off nose up with the front legs reaching out, flies
+# level with the legs stretched, comes down nose first and lands. The window moves up and forward during the hop, so the
+# art supplies the angle of the body.
+Save-Frame 'hop_0.png' -Mirror -Dy 1 -Tilt -4 { Add-CatSideWalk -D 0 -TipY 12 }
+Save-Frame 'hop_1.png' -Mirror -Air -Dy -1 -Tilt 18 { Add-CatSideWalk -D -3 -TipY 8 }
+Save-Frame 'hop_2.png' -Mirror -Air -Dy -1 -Tilt 4 { Add-CatSideWalk -D -3 -TipY 9 }
+Save-Frame 'hop_3.png' -Mirror -Air -Dy 0 -Tilt -18 { Add-CatSideWalk -D -3 -TipY 10 }
+Save-Frame 'hop_4.png' -Mirror -Dy 1 -Tilt -6 { Add-CatSideWalk -D 0 -TipY 12 }
+
 # Sleep: curled up in a loaf, a floating z.
 Save-Frame 'sleep_0.png' { Add-CatLie }
 Save-Frame 'sleep_1.png' { Add-CatLie; Add-Text 'z' 'White' 98 18; Add-Text 'Z' 'White' 106 4 }
@@ -336,6 +346,7 @@ $manifest = @'
     "Climb":   { "fps": 6, "frames": ["climb_0.png", "climb_1.png", "climb_2.png", "climb_3.png"] },
     "ClimbDown": { "fps": 6, "frames": ["climbdown_0.png", "climbdown_1.png", "climbdown_2.png", "climbdown_3.png"] },
     "Ceiling": { "fps": 6, "frames": ["ceiling_0.png", "ceiling_1.png", "ceiling_2.png", "ceiling_3.png"] },
+    "Hop":     { "fps": 8, "frames": ["hop_0.png", "hop_1.png", "hop_2.png", "hop_3.png", "hop_4.png"] },
     "Idle.Left":  { "fps": 1, "frames": ["idle_left.png"] },
     "Idle.Right": { "fps": 1, "frames": ["idle_right.png"] },
     "Idle.Up":    { "fps": 1, "frames": ["idle_up.png"] },

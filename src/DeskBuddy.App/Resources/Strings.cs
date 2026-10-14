@@ -163,21 +163,6 @@ internal static class Strings
     public static string SettingsAppearance => Get();
 
     /// <summary>
-    /// Gets the label of the disturbance mode choice.
-    /// </summary>
-    public static string SettingsMode => Get();
-
-    /// <summary>
-    /// Gets the text of the docked mode.
-    /// </summary>
-    public static string ModeDocked => Get();
-
-    /// <summary>
-    /// Gets the text of the roaming mode.
-    /// </summary>
-    public static string ModeRoam => Get();
-
-    /// <summary>
     /// Gets the heading of the timing section.
     /// </summary>
     public static string SettingsTiming => Get();
@@ -317,6 +302,11 @@ internal static class Strings
     /// Gets the label of the setting that lets the pet climb the edges of the screen.
     /// </summary>
     public static string SettingsClimbEdges => Get();
+
+    /// <summary>
+    /// Gets the label of the setting that lets the pet say something unprompted now and then.
+    /// </summary>
+    public static string SettingsChatter => Get();
 
     /// <summary>
     /// Gets the name of the small pet size.

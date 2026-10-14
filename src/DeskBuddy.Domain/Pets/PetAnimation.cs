@@ -15,4 +15,9 @@ public sealed record PetAnimation(double Fps, IReadOnlyList<string> FramePaths)
     /// Gets the time each frame stays on screen.
     /// </summary>
     public TimeSpan FrameDuration => TimeSpan.FromSeconds(1 / Fps);
+
+    /// <summary>
+    /// Gets the time one run through all the frames takes.
+    /// </summary>
+    public TimeSpan Duration => FrameDuration * FramePaths.Count;
 }

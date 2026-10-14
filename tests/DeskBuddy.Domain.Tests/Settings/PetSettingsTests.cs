@@ -73,7 +73,7 @@ public class PetSettingsTests
         var settings = PetSettings.Default with
         {
             SleepAfter = TimeSpan.FromMinutes(50),
-            Mode = DisturbanceMode.Roam,
+            ChatterEnabled = true,
             PetName = "cat",
         };
 
@@ -82,21 +82,8 @@ public class PetSettingsTests
 
         // Assert
         normalized.SleepAfter.Should().Be(TimeSpan.FromMinutes(50));
-        normalized.Mode.Should().Be(DisturbanceMode.Roam);
+        normalized.ChatterEnabled.Should().BeTrue();
         normalized.PetName.Should().Be("cat");
-    }
-
-    /// <summary>
-    /// A mode that is not defined falls back to the default.
-    /// </summary>
-    [Fact]
-    public void Normalize_UnknownMode_FallsBackToDefault()
-    {
-        // Act
-        var normalized = (PetSettings.Default with { Mode = (DisturbanceMode)42 }).Normalize();
-
-        // Assert
-        normalized.Mode.Should().Be(PetSettings.Default.Mode);
     }
 
     /// <summary>
@@ -268,6 +255,29 @@ public class PetSettingsTests
     {
         // Assert
         PetSettings.Default.ClimbEdges.Should().BeFalse();
+    }
+
+    /// <summary>
+    /// Casual remarks are off until the user switches them on.
+    /// </summary>
+    [Fact]
+    public void Default_ChatterEnabled_IsOff()
+    {
+        // Assert
+        PetSettings.Default.ChatterEnabled.Should().BeFalse();
+    }
+
+    /// <summary>
+    /// Normalizing keeps the choice of casual remarks as it is.
+    /// </summary>
+    [Fact]
+    public void Normalize_ChatterEnabled_IsKept()
+    {
+        // Act
+        var normalized = (PetSettings.Default with { ChatterEnabled = true }).Normalize();
+
+        // Assert
+        normalized.ChatterEnabled.Should().BeTrue();
     }
 
     /// <summary>

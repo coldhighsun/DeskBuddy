@@ -111,23 +111,23 @@ public class SettingsApplierTests
     }
 
     /// <summary>
-    /// Casual remarks are enabled exactly while the pet roams.
+    /// Casual remarks are enabled exactly while the setting is on.
     /// </summary>
     [Fact]
-    public async Task Changed_Mode_EnablesChatterOnlyWhenRoaming()
+    public async Task Changed_ChatterEnabled_EnablesChatterOnlyWhileOn()
     {
         // Arrange
         _ = new SettingsApplier(_settings, _behavior, _sedentary, _visibility, _chatter, _devActivity, _scenarios, _meeting);
         var initially = _chatter.IsEnabled;
 
         // Act
-        await _settings.UpdateAsync(s => s with { Mode = DisturbanceMode.Roam }, TestContext.Current.CancellationToken);
-        var roaming = _chatter.IsEnabled;
-        await _settings.UpdateAsync(s => s with { Mode = DisturbanceMode.Docked }, TestContext.Current.CancellationToken);
+        await _settings.UpdateAsync(s => s with { ChatterEnabled = true }, TestContext.Current.CancellationToken);
+        var chatting = _chatter.IsEnabled;
+        await _settings.UpdateAsync(s => s with { ChatterEnabled = false }, TestContext.Current.CancellationToken);
 
         // Assert
         initially.Should().BeFalse();
-        roaming.Should().BeTrue();
+        chatting.Should().BeTrue();
         _chatter.IsEnabled.Should().BeFalse();
     }
 

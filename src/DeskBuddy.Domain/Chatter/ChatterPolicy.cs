@@ -1,7 +1,7 @@
 namespace DeskBuddy.Domain.Chatter;
 
 /// <summary>
-/// Decides when a roaming pet says something unprompted. Remarks are rare (once per <see cref="Interval"/> at most,
+/// Decides when a pet says something unprompted. Remarks are rare (once per <see cref="Interval"/> at most,
 /// with some jitter), never the same one twice in a row, and only while the policy is enabled and the user is free to
 /// be spoken to.
 /// </summary>
@@ -63,7 +63,7 @@ public sealed class ChatterPolicy(TimeProvider timeProvider, Random random)
 
         var now = timeProvider.GetUtcNow();
 
-        // The first remark comes after a while rather than the moment roaming is switched on.
+        // The first remark comes after a while rather than the moment chatting is switched on.
         _nextAt ??= now + Interval + (Jitter * random.NextDouble());
         if (!canSpeak || now < _nextAt)
         {

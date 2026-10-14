@@ -68,9 +68,6 @@
   <data name="TabBehavior" xml:space="preserve"><value>Behavior</value></data>
   <data name="TabSystem" xml:space="preserve"><value>System</value></data>
   <data name="SettingsAppearance" xml:space="preserve"><value>Appearance</value></data>
-  <data name="SettingsMode" xml:space="preserve"><value>Disturbance mode</value></data>
-  <data name="ModeDocked" xml:space="preserve"><value>Docked on the taskbar</value></data>
-  <data name="ModeRoam" xml:space="preserve"><value>Roam freely on the desktop</value></data>
   <data name="SettingsTiming" xml:space="preserve"><value>Timing (minutes)</value></data>
   <data name="SettingsSedentary" xml:space="preserve"><value>Sedentary reminder interval</value></data>
   <data name="SettingsSleep" xml:space="preserve"><value>Fall asleep after no input for</value></data>
@@ -101,12 +98,12 @@
   <data name="ScenarioHang" xml:space="preserve"><value>Hang on to the screen edge when you drop the pet at the left or right side</value></data>
   <data name="ClockOutTimeLabel" xml:space="preserve"><value>Clock-out time (e.g. 18:00)</value></data>
   <data name="ClockOutTimeInvalid" xml:space="preserve"><value>The clock-out time must be a time between 00:00 and 23:59, such as 18:00.</value></data>
-  <data name="RemarkMeal1" xml:space="preserve"><value>Lunch time! Eat first, code later~</value></data>
+  <data name="RemarkMeal1" xml:space="preserve"><value>Lunch time! Eat first, work later~</value></data>
   <data name="RemarkMeal2" xml:space="preserve"><value>Dinner time. Do not work on an empty stomach~</value></data>
   <data name="RemarkClockOut1" xml:space="preserve"><value>Time to clock out. Good work today~</value></data>
   <data name="RemarkClockOut2" xml:space="preserve"><value>It is Friday! Have a great weekend~</value></data>
   <data name="RemarkChime" xml:space="preserve"><value>It is {0}:00~</value></data>
-  <data name="RemarkFestive1" xml:space="preserve"><value>Happy New Year! May your code stay bug-free~</value></data>
+  <data name="RemarkFestive1" xml:space="preserve"><value>Happy New Year! Wishing you a smooth year ahead~</value></data>
   <data name="RemarkFestive2" xml:space="preserve"><value>Happy Programmers' Day! 1024~</value></data>
   <data name="RemarkFestive3" xml:space="preserve"><value>Merry Christmas!</value></data>
   <data name="RemarkFestive4" xml:space="preserve"><value>Happy Chinese New Year!</value></data>
@@ -132,6 +129,7 @@
   <data name="SettingsLanguage" xml:space="preserve"><value>Language</value></data>
   <data name="SettingsPetSize" xml:space="preserve"><value>Pet size</value></data>
   <data name="SettingsClimbEdges" xml:space="preserve"><value>Let the pet climb the sides of the screen and hang from its top (needs a pet that supports it)</value></data>
+  <data name="SettingsChatter" xml:space="preserve"><value>Let the pet say something unprompted now and then</value></data>
   <data name="StateHintClimb" xml:space="preserve"><value>Climbing along the screen edge</value></data>
   <data name="StateHintClimbDown" xml:space="preserve"><value>Climbing down the screen edge</value></data>
   <data name="StateHintCeiling" xml:space="preserve"><value>Hanging from the top of the screen</value></data>

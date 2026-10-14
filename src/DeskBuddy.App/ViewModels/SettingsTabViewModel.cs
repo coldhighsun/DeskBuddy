@@ -60,16 +60,10 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     private bool _applyingBossKey;
 
     /// <summary>
-    /// Whether the pet stays on the taskbar.
+    /// Whether the pet now and then says something unprompted.
     /// </summary>
     [ObservableProperty]
-    private bool _isDocked;
-
-    /// <summary>
-    /// Whether the pet roams the desktop.
-    /// </summary>
-    [ObservableProperty]
-    private bool _isRoam;
+    private bool _chatterEnabled;
 
     /// <summary>
     /// The sedentary reminder interval in minutes, as typed.
@@ -340,30 +334,16 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Applies the docked mode when it is chosen.
+    /// Applies the choice to let the pet say something unprompted now and then.
     /// </summary>
     /// <param name="value">
-    /// Whether the docked mode is chosen.
+    /// Whether the pet may chat.
     /// </param>
-    partial void OnIsDockedChanged(bool value)
+    partial void OnChatterEnabledChanged(bool value)
     {
-        if (!_refreshing && value)
+        if (!_refreshing)
         {
-            _ = ApplyAsync(settings => settings with { Mode = DisturbanceMode.Docked });
-        }
-    }
-
-    /// <summary>
-    /// Applies the roaming mode when it is chosen.
-    /// </summary>
-    /// <param name="value">
-    /// Whether the roaming mode is chosen.
-    /// </param>
-    partial void OnIsRoamChanged(bool value)
-    {
-        if (!_refreshing && value)
-        {
-            _ = ApplyAsync(settings => settings with { Mode = DisturbanceMode.Roam });
+            _ = ApplyAsync(settings => settings with { ChatterEnabled = value });
         }
     }
 
@@ -770,8 +750,7 @@ public sealed partial class SettingsTabViewModel : ObservableObject
         _refreshing = true;
         try
         {
-            IsDocked = settings.Mode == DisturbanceMode.Docked;
-            IsRoam = settings.Mode == DisturbanceMode.Roam;
+            ChatterEnabled = settings.ChatterEnabled;
             SedentaryText = Minutes(settings.SedentaryReminderAfter);
             SleepText = Minutes(settings.SleepAfter);
             BossKeyText = settings.BossKey.ToString();

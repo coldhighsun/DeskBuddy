@@ -22,6 +22,20 @@ public static class PetStateExtensions
     }
 
     /// <summary>
+    /// Tells whether the pet walks along in this state: plain walking, or hopping while it walks.
+    /// </summary>
+    /// <param name="state">
+    /// The state.
+    /// </param>
+    /// <returns>
+    /// <see langword="true"/> for <see cref="PetState.Walk"/> and <see cref="PetState.Hop"/>.
+    /// </returns>
+    public static bool IsWalking(this PetState state)
+    {
+        return state is PetState.Walk or PetState.Hop;
+    }
+
+    /// <summary>
     /// Tells whether the pet falls in this state: before its umbrella or parachute opens, or floating down with it.
     /// </summary>
     /// <param name="state">

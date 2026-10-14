@@ -109,7 +109,7 @@ public class SettingsTabViewModelTests
         // Arrange
         _store.Stored = PetSettings.Default with
         {
-            Mode = DisturbanceMode.Roam,
+            ChatterEnabled = true,
             SedentaryReminderAfter = TimeSpan.FromMinutes(60),
             SleepAfter = TimeSpan.FromMinutes(8),
             AutoHideWhenFullscreen = false,
@@ -121,8 +121,7 @@ public class SettingsTabViewModelTests
         await CreateAsync();
 
         // Assert
-        _viewModel.IsRoam.Should().BeTrue();
-        _viewModel.IsDocked.Should().BeFalse();
+        _viewModel.ChatterEnabled.Should().BeTrue();
         _viewModel.SedentaryText.Should().Be("60");
         _viewModel.SleepText.Should().Be("8");
         _viewModel.BossKeyText.Should().Be("Ctrl+Alt+H");
@@ -236,38 +235,37 @@ public class SettingsTabViewModelTests
     }
 
     /// <summary>
-    /// Choosing a mode applies it; the radio button that is switched off does not change anything.
+    /// Switching the casual remarks on applies and saves the choice.
     /// </summary>
     [Fact]
-    public async Task Mode_ChoosingRoam_AppliesRoamOnly()
+    public async Task ChatterEnabled_SwitchedOn_IsAppliedAndSaved()
     {
         // Arrange
         await CreateAsync();
 
         // Act
-        _viewModel.IsRoam = true;
+        _viewModel.ChatterEnabled = true;
 
         // Assert
-        _settings.Current.Mode.Should().Be(DisturbanceMode.Roam);
-        _viewModel.IsDocked.Should().BeFalse();
+        _settings.Current.ChatterEnabled.Should().BeTrue();
         _store.SaveCount.Should().Be(1);
     }
 
     /// <summary>
-    /// Choosing the docked mode again applies it.
+    /// Switching the casual remarks off again applies the choice.
     /// </summary>
     [Fact]
-    public async Task Mode_ChoosingDockedAfterRoam_AppliesDocked()
+    public async Task ChatterEnabled_SwitchedOffAgain_IsApplied()
     {
         // Arrange
-        _store.Stored = PetSettings.Default with { Mode = DisturbanceMode.Roam };
+        _store.Stored = PetSettings.Default with { ChatterEnabled = true };
         await CreateAsync();
 
         // Act
-        _viewModel.IsDocked = true;
+        _viewModel.ChatterEnabled = false;
 
         // Assert
-        _settings.Current.Mode.Should().Be(DisturbanceMode.Docked);
+        _settings.Current.ChatterEnabled.Should().BeFalse();
     }
 
     /// <summary>
@@ -635,11 +633,11 @@ public class SettingsTabViewModelTests
         _store.SaveException = new IOException("disk full");
 
         // Act
-        _viewModel.IsRoam = true;
+        _viewModel.ChatterEnabled = true;
 
         // Assert
         _viewModel.SaveError.Should().Contain("disk full");
-        _settings.Current.Mode.Should().Be(DisturbanceMode.Roam);
+        _settings.Current.ChatterEnabled.Should().BeTrue();
     }
 
     /// <summary>
@@ -651,7 +649,7 @@ public class SettingsTabViewModelTests
         // Arrange
         await CreateAsync();
         _store.SaveException = new IOException("disk full");
-        _viewModel.IsRoam = true;
+        _viewModel.ChatterEnabled = true;
         _store.SaveException = null;
 
         // Act
@@ -689,7 +687,7 @@ public class SettingsTabViewModelTests
         await CreateAsync();
 
         // Act
-        _viewModel.IsRoam = true;
+        _viewModel.ChatterEnabled = true;
 
         // Assert
         _store.SaveCount.Should().Be(0);

@@ -195,6 +195,17 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     private readonly Stopwatch _moveWatch = new();
 
     /// <summary>
+    /// Measures the time since the current hop began.
+    /// </summary>
+    private readonly Stopwatch _hopWatch = new();
+
+    /// <summary>
+    /// The lift of the current hop, kept apart from the walk: the movement strategy is given the position on the line the
+    /// pet walks along, never the raised one, so a hop never drifts the walk.
+    /// </summary>
+    private readonly HopLift _hop = new();
+
+    /// <summary>
     /// Number of movement ticks between refreshes of the cached work area (about one second).
     /// </summary>
     private const int WorkAreaRefreshEveryTicks = 30;
@@ -205,9 +216,9 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     private readonly Action<PanelTab?> _openPanel;
 
     /// <summary>
-    /// Picks how the pet moves for the current disturbance mode.
+    /// Decides where the pet walks: along the taskbar line.
     /// </summary>
-    private readonly MovementSelector _movement;
+    private readonly DockedMovement _movement;
 
     /// <summary>
     /// The speech bubble, created the first time a message needs showing.
@@ -311,7 +322,7 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     /// Opens the panel window; called on double-click and from the context menu.
     /// </param>
     /// <param name="movement">
-    /// Picks how the pet moves for the current disturbance mode.
+    /// Decides where the pet walks: along the taskbar line.
     /// </param>
     /// <param name="switches">
     /// Which scenarios the user has switched on.
@@ -322,7 +333,7 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
         PetBrain brain,
         PetBehaviorOptions options,
         Action<PanelTab?> openPanel,
-        MovementSelector movement,
+        DockedMovement movement,
         ScenarioSwitches switches,
         PetSize size)
     {
@@ -338,6 +349,8 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
         _player = new AnimationPlayer(pet);
         _frames = frames;
         _brain = brain;
+        _brain.HopDuration = pet.HopDuration;
+        _brain.CanHopNow = CanHopHere;
         _options = options;
         _crawl = new EdgeCrawl(options, Random.Shared);
         _openPanel = openPanel;
@@ -372,7 +385,6 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
             _moveTimer.Stop();
             _brain.MessageChanged -= OnMessageChanged;
             _brain.VisibilityChanged -= OnVisibilityChanged;
-            _movement.ModeChanged -= OnMovementModeChanged;
             _bubble?.Close();
             _umbrella.Close();
         };
@@ -383,7 +395,6 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
 
         _brain.MessageChanged += OnMessageChanged;
         _brain.VisibilityChanged += OnVisibilityChanged;
-        _movement.ModeChanged += OnMovementModeChanged;
         IsVisibleChanged += (_, _) => OnMessageChanged(this, EventArgs.Empty);
         LocationChanged += (_, _) =>
         {
@@ -443,6 +454,10 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
 
         _hanging = false;
         _moveTimer.Stop();
+        _brain.HopDuration = pet.HopDuration;
+
+        // The window is placed afresh below, so a hop that was under way has nothing left to be raised from.
+        _hop.Reset();
         _brain.ResetState();
         _shownState = _brain.State;
         _facing = 1;
@@ -663,8 +678,8 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
             }
         }
 
-        // Letting go of the edge: the pet falls back to where its mode lets it rest. Being picked up from the edge is
-        // not letting go; the drop decides.
+        // Letting go of the edge: the pet falls back to where it rests, on the taskbar line. Being picked up from the
+        // edge is not letting go; the drop decides.
         if (_hanging && state != PetState.Hang)
         {
             _hanging = false;
@@ -696,9 +711,24 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
         _animationWatch.Restart();
         _animationTimer.Interval = _player.Animation.FrameDuration;
 
-        if (state == PetState.Walk)
+        if (previousState == PetState.Hop && !state.IsWalking())
         {
-            BeginWalk();
+            LandFromHop();
+        }
+
+        if (state == PetState.Hop)
+        {
+            // A hop is part of the walk in progress: same direction, no new walk.
+            _hopWatch.Restart();
+            StartMoveTimerIfVisible();
+        }
+        else if (state == PetState.Walk)
+        {
+            if (previousState != PetState.Hop)
+            {
+                BeginWalk();
+            }
+
             StartMoveTimerIfVisible();
         }
         else if (state.IsFalling() || state.IsCrawl())
@@ -744,7 +774,7 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
                 _animationWatch.Restart();
                 _animationTimer.Start();
                 UpdatePointerTimer();
-                if (_shownState == PetState.Walk || _shownState.IsFalling() || _shownState.IsCrawl())
+                if (_shownState.IsWalking() || _shownState.IsFalling() || _shownState.IsCrawl())
                 {
                     StartMoveTimerIfVisible();
                 }
@@ -812,8 +842,7 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
             CurrentPosition(),
             new Point2(Width, Height),
             bounds,
-            ToPoint2(MonitorHelper.GetCursorPositionDip(this)),
-            _options.WalkSpeed);
+            _shownState == PetState.Hop ? _options.WalkSpeed * _options.HopSpeedFactor : _options.WalkSpeed);
     }
 
     /// <summary>
@@ -824,12 +853,13 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     /// moved by anything else, so that steps of less than a pixel are not lost.
     /// </summary>
     /// <returns>
-    /// The position of the window's top-left corner.
+    /// The position of the window's top-left corner, on the line the pet walks along: a hop that has raised the window is
+    /// not part of it.
     /// </returns>
     private Point2 CurrentPosition()
     {
         var dpi = VisualTreeHelper.GetDpi(this);
-        return _stepTracker.Resolve(WindowPixels(), dpi.DpiScaleX, dpi.DpiScaleY);
+        return _hop.ToWalkingLine(_stepTracker.Resolve(WindowPixels(), dpi.DpiScaleX, dpi.DpiScaleY));
     }
 
     /// <summary>
@@ -874,65 +904,58 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     }
 
     /// <summary>
-    /// Converts a WPF point.
-    /// </summary>
-    /// <param name="point">
-    /// The point to convert.
-    /// </param>
-    /// <returns>
-    /// The same point as a <see cref="Point2"/>.
-    /// </returns>
-    private static Point2 ToPoint2(Point point)
-    {
-        return new Point2(point.X, point.Y);
-    }
-
-    /// <summary>
     /// Lets the movement strategy prepare a new walk and turns the sprite the way it will go.
     /// </summary>
     private void BeginWalk()
     {
         RefreshWorkArea();
         _moveTicksSinceWorkAreaRefresh = 0;
-        _facing = _movement.Current.BeginWalk(CreateMovementContext(), _brain.WalkDirection);
+        _facing = _movement.BeginWalk(CreateMovementContext(), _brain.WalkDirection);
         ApplyFacing();
     }
 
     /// <summary>
-    /// Puts the pet where the current mode wants it after the mode changed: back on the taskbar line when docked, and
-    /// into a fresh walk when it is mid-walk, so the new strategy takes over cleanly.
+    /// Tells whether the pet has room for a hop where it is, in the direction it walks: the hop must not end against the
+    /// edge of the screen, and must not carry the pet over the seam between two monitors. Asked by the brain when a hop
+    /// is about to start.
     /// </summary>
-    /// <param name="sender">
-    /// The event source.
-    /// </param>
-    /// <param name="e">
-    /// Event data.
-    /// </param>
-    private void OnMovementModeChanged(object? sender, EventArgs e)
+    /// <returns>
+    /// <see langword="true"/> if the hop fits before the edge and does not cross a seam.
+    /// </returns>
+    private bool CanHopHere()
     {
-        if (_dragging)
+        if (_brain.HopDuration is not { } hopDuration)
+        {
+            return false;
+        }
+
+        var context = CreateMovementContext();
+        var room = HopRoom.Required(_options.WalkSpeed, _options.HopSpeedFactor, hopDuration);
+        if (!HopRoom.IsClear(context.Position, _facing, context.Bounds, room))
+        {
+            return false;
+        }
+
+        // A hop never carries the pet over the seam between two monitors, so it cannot come down on another taskbar line.
+        var bounds = WindowPixels();
+        var travel = (int)Math.Ceiling(room * VisualTreeHelper.GetDpi(this).DpiScaleX);
+        return !SeamGuard.CrossesSeam(bounds.Left, bounds.Right, _facing, travel, _seams);
+    }
+
+    /// <summary>
+    /// Puts the pet back on the line it walks along if a hop has raised it, so it is not left in mid-air. Whatever takes
+    /// the pet away from walking (crawling, falling, being picked up) calls it before it reads the pet's position.
+    /// </summary>
+    private void LandFromHop()
+    {
+        if (!_hop.IsLifted)
         {
             return;
         }
 
-        // A mode in which the pet rests wherever it is put has no ground to fall to: the pet stays in mid-air.
-        if (_fall is not null && !_movement.Current.FallsWhenDropped)
-        {
-            _brain.OnFallEnded();
-            ApplyState(_brain.State);
-        }
-
-        // A mode in which the pet does not walk along the taskbar has no edges to crawl along.
-        if (IsCrawling && !CanCrawl)
-        {
-            EndCrawl();
-        }
-
-        SettleInWorkArea();
-        if (_shownState == PetState.Walk)
-        {
-            BeginWalk();
-        }
+        var landed = CurrentPosition();
+        _hop.Reset();
+        MoveToStepPosition(landed);
     }
 
     /// <summary>
@@ -1145,7 +1168,7 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     }
 
     /// <summary>
-    /// Moves the pet one step as the movement strategy of the current mode directs.
+    /// Moves the pet one step along the taskbar line.
     /// </summary>
     /// <param name="sender">
     /// The event source.
@@ -1192,12 +1215,12 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
         RefreshWorkAreaPeriodically();
 
         var context = CreateMovementContext();
-        var step = _movement.Current.Step(context, delta);
+        var step = _movement.Step(context, delta);
 
         // Monitors side by side can have their taskbar lines at different heights. Onto a lower line the pet falls (under
         // its umbrella if it is high enough above it); onto a higher one it climbs up quickly, instead of jumping.
         var position = step.Position;
-        if (_rowAreas.Count > 1 && _movement.Current.FallsWhenDropped)
+        if (_rowAreas.Count > 1)
         {
             var change = VerticalEase.Classify(context.Position.Y, position.Y, _options.VerticalEaseTolerance);
             if (change == VerticalChange.Drop && TryStartFall(refreshWorkArea: false))
@@ -1218,6 +1241,15 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
             }
         }
 
+        // A hop lifts the window above the line it walks along, but never off the top of the screen.
+        position = _hop.Lift(
+            position,
+            _shownState == PetState.Hop ? _hopWatch.Elapsed : null,
+            _brain.HopDuration ?? TimeSpan.Zero,
+            Height,
+            _options.HopHeightRatio,
+            context.Bounds.MinY);
+
         // One cheap move for both coordinates, and none at all when the step stays within the same device pixel.
         MoveToStepPosition(position);
 
@@ -1225,6 +1257,13 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
         {
             _facing = step.Facing;
             ApplyFacing();
+        }
+
+        // A hop is played out to its end, then the walk goes on.
+        if (_shownState == PetState.Hop && HopArc.IsOver(_hopWatch.Elapsed, _brain.HopDuration ?? TimeSpan.Zero))
+        {
+            _brain.OnHopEnded();
+            ApplyState(_brain.State);
         }
 
         // The pet is off the seam: show what the brain wanted while it was on it, if that still holds (a short reaction
@@ -1236,12 +1275,7 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
             return;
         }
 
-        if (step.Arrived)
-        {
-            _brain.OnReachedPointer();
-            ApplyState(_brain.State);
-        }
-        else if (TryStartCrawlAtEnd(step.Position, context.Bounds))
+        if (TryStartCrawlAtEnd(step.Position, context.Bounds))
         {
             ApplyState(_brain.State);
         }
@@ -1265,12 +1299,11 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     private bool IsCrawling => _shownState.IsCrawl();
 
     /// <summary>
-    /// Gets a value indicating whether the pet may crawl along the edges of the screen now: the user allows it, the pet
-    /// walks along the taskbar, and the pet has the pictures for it.
+    /// Gets a value indicating whether the pet may crawl along the edges of the screen now: the user allows it and the
+    /// pet has the pictures for it.
     /// </summary>
     private bool CanCrawl =>
         _climbEdges
-        && _movement.Current.FallsWhenDropped
         && _pet.Animations.ContainsKey(PetState.Climb)
         && _pet.Animations.ContainsKey(PetState.Ceiling);
 
@@ -1316,6 +1349,7 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     /// </param>
     private void StartCrawl(CrawlStart start)
     {
+        LandFromHop();
         RefreshWorkArea();
         _moveTicksSinceWorkAreaRefresh = 0;
         var bounds = CreateMovementContext().Bounds;
@@ -1416,22 +1450,12 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     }
 
     /// <summary>
-    /// Works out the range the pet may take: the work area of the monitor it is on or, when it walks along the taskbar,
-    /// the whole row of monitors lying side by side with that one, so it can walk from one to the next. The taskbar line
-    /// and the top edge are those of the monitor the pet is on here; <see cref="CreateMovementContext"/> takes the other
-    /// monitors into account while the pet lies over several.
+    /// Works out the range the pet may take: the whole row of monitors lying side by side with the one it is on, so it
+    /// can walk from one to the next. The taskbar line and the top edge are those of the monitor the pet is on here;
+    /// <see cref="CreateMovementContext"/> takes the other monitors into account while the pet lies over several.
     /// </summary>
     private void RefreshWorkArea()
     {
-        if (!_movement.Current.FallsWhenDropped)
-        {
-            _workArea = MonitorHelper.GetWorkAreaDip(this);
-            _seams = [];
-            _rowAreas = [MonitorHelper.GetWorkAreaPixels(this)];
-            _workAreaMonitor = default;
-            return;
-        }
-
         var dpi = VisualTreeHelper.GetDpi(this);
         var range = MonitorHelper.GetWalkRangePixels(this);
 
@@ -1560,6 +1584,7 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
         if (!_dragging && moved >= DragThreshold * scale)
         {
             _dragging = true;
+            LandFromHop();
             _brain.OnDragStarted();
             ApplyState(_brain.State);
         }
@@ -1573,7 +1598,7 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     }
 
     /// <summary>
-    /// Ends a press: a drop settles the pet where its mode lets it rest, a short press counts as a click.
+    /// Ends a press: a drop settles the pet on the taskbar line, a short press counts as a click.
     /// </summary>
     /// <param name="sender">
     /// The event source.
@@ -1687,11 +1712,6 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     /// </returns>
     private bool TryStartFall(bool refreshWorkArea = true)
     {
-        if (!_movement.Current.FallsWhenDropped)
-        {
-            return false;
-        }
-
         if (refreshWorkArea)
         {
             RefreshWorkArea();
@@ -1769,8 +1789,7 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     }
 
     /// <summary>
-    /// Puts the pet where the current mode lets it rest, on the monitor it is on: on the taskbar line when docked,
-    /// anywhere inside the work area when roaming.
+    /// Puts the pet where it rests, on the monitor it is on: on the taskbar line.
     /// </summary>
     private void SettleInWorkArea()
     {
@@ -1792,7 +1811,7 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
             return;
         }
 
-        var rest = _movement.Current.Settle(CurrentPosition(), CreateMovementContext().Bounds);
+        var rest = _movement.Settle(CurrentPosition(), CreateMovementContext().Bounds);
         Left = rest.X;
         Top = rest.Y;
         NudgeOffSeam();

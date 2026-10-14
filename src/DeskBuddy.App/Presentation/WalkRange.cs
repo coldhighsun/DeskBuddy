@@ -299,7 +299,7 @@ public static class SeamGuard
     /// </returns>
     public static bool HoldsStateChange(PetState shown, PetState target, bool onSeam)
     {
-        return onSeam && shown == PetState.Walk && target != PetState.Walk && target != PetState.Drag && !target.IsFalling();
+        return onSeam && shown.IsWalking() && target != PetState.Walk && target != PetState.Drag && !target.IsFalling();
     }
 
     /// <summary>
@@ -322,6 +322,38 @@ public static class SeamGuard
         ArgumentNullException.ThrowIfNull(seams);
 
         return seams.Any(seam => left < seam && seam < right);
+    }
+
+    /// <summary>
+    /// Tells whether a window, as it moves a given distance in a direction, would lie across a seam at some point: it is
+    /// across one now, or it would reach one on the way.
+    /// </summary>
+    /// <param name="left">
+    /// The window's left edge, in device pixels.
+    /// </param>
+    /// <param name="right">
+    /// The window's right edge, in device pixels.
+    /// </param>
+    /// <param name="facing">
+    /// The direction of the move: <c>-1</c> for left, <c>1</c> for right.
+    /// </param>
+    /// <param name="travel">
+    /// How far the window moves, in device pixels.
+    /// </param>
+    /// <param name="seams">
+    /// The positions of the seams.
+    /// </param>
+    /// <returns>
+    /// <see langword="true"/> if a seam lies within the span the window sweeps over; a window that only touches a seam
+    /// and moves away from it does not cross it.
+    /// </returns>
+    public static bool CrossesSeam(int left, int right, int facing, int travel, IReadOnlyList<int> seams)
+    {
+        ArgumentNullException.ThrowIfNull(seams);
+
+        var sweptLeft = facing < 0 ? left - travel : left;
+        var sweptRight = facing < 0 ? right : right + travel;
+        return Straddles(sweptLeft, sweptRight, seams);
     }
 
     /// <summary>

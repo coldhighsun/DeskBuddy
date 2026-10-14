@@ -17,6 +17,7 @@
     "Climb":   { "fps": 6, "frames": ["climb_0.png", "climb_1.png", "climb_2.png", "climb_3.png"] },
     "ClimbDown": { "fps": 6, "frames": ["climbdown_0.png", "climbdown_1.png", "climbdown_2.png", "climbdown_3.png"] },
     "Ceiling": { "fps": 6, "frames": ["ceiling_0.png", "ceiling_1.png", "ceiling_2.png", "ceiling_3.png"] },
+    "Hop":     { "fps": 8, "frames": ["hop_0.png", "hop_1.png", "hop_2.png", "hop_3.png", "hop_4.png"] },
     "Idle.Left":  { "fps": 1, "frames": ["idle_left.png"] },
     "Idle.Right": { "fps": 1, "frames": ["idle_right.png"] },
     "Idle.Up":    { "fps": 1, "frames": ["idle_up.png"] },

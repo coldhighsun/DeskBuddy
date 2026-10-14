@@ -301,6 +301,61 @@ public class PetTests
     }
 
     /// <summary>
+    /// A pet with a Hop animation hops for one run through it: its frames times the time each stays on screen.
+    /// </summary>
+    [Fact]
+    public void HopDuration_PetWithHopAnimation_IsOneRunThroughIt()
+    {
+        // Arrange
+        var pet = new Pet("test", 128, 128, new Dictionary<PetState, PetAnimation>
+        {
+            [PetState.Idle] = Animation("idle.png"),
+            [PetState.Hop] = new PetAnimation(8, ["a.png", "b.png", "c.png", "d.png"]),
+        });
+
+        // Assert
+        pet.HopDuration.Should().Be(TimeSpan.FromSeconds(0.5));
+    }
+
+    /// <summary>
+    /// A pet without a Hop animation does not hop, instead of hopping with the walking pictures.
+    /// </summary>
+    [Fact]
+    public void HopDuration_PetWithoutHopAnimation_IsNull()
+    {
+        // Arrange
+        var pet = new Pet("test", 128, 128, new Dictionary<PetState, PetAnimation>
+        {
+            [PetState.Idle] = Animation("idle.png"),
+            [PetState.Walk] = Animation("walk.png"),
+        });
+
+        // Assert
+        pet.HopDuration.Should().BeNull();
+    }
+
+    /// <summary>
+    /// A hop shows the walking pictures when the pet has no Hop of its own, as for any other state.
+    /// </summary>
+    [Fact]
+    public void GetAnimation_HopMissing_UsesWalk()
+    {
+        // Arrange
+        var walk = Animation("walk.png");
+        var pet = new Pet("test", 128, 128, new Dictionary<PetState, PetAnimation>
+        {
+            [PetState.Idle] = Animation("idle.png"),
+            [PetState.Walk] = walk,
+        });
+
+        // Act
+        var result = pet.GetAnimation(PetState.Hop);
+
+        // Assert
+        result.Should().BeSameAs(walk);
+    }
+
+    /// <summary>
     /// Builds a single-frame animation for tests.
     /// </summary>
     /// <param name="name">

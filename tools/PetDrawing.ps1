@@ -59,8 +59,36 @@ function New-Canvas {
     return $bmp
 }
 
-# Finishes a frame: Flip turns the picture upside down, Mirror turns it left to right, then it is saved as a PNG.
-function Save-Canvas($Bitmap, [string]$Path, [switch]$Flip, [switch]$Mirror) {
+# Finishes a frame: Tilt turns the picture clockwise by that many degrees about the given art pixel (a pet leaping up
+# or coming down), staying on the art grid; Flip turns it upside down, Mirror turns it left to right, then it is saved
+# as a PNG.
+function Save-Canvas($Bitmap, [string]$Path, [switch]$Flip, [switch]$Mirror, [double]$Tilt = 0, [double]$PivotX = 16, [double]$PivotY = 24) {
+    if ($Tilt -ne 0) {
+        $grid = 128 / $S
+        $small = New-Object System.Drawing.Bitmap $grid, $grid
+        $gs = [System.Drawing.Graphics]::FromImage($small)
+        $gs.InterpolationMode = 'NearestNeighbor'
+        $gs.PixelOffsetMode = 'Half'
+        $gs.DrawImage($Bitmap, (New-Object System.Drawing.Rectangle 0, 0, $grid, $grid), 0, 0, 128, 128, [System.Drawing.GraphicsUnit]::Pixel)
+        $gs.Dispose()
+
+        $turned = New-Object System.Drawing.Bitmap $grid, $grid
+        $gt = [System.Drawing.Graphics]::FromImage($turned)
+        $gt.InterpolationMode = 'NearestNeighbor'
+        $gt.PixelOffsetMode = 'Half'
+        $gt.TranslateTransform([single]($PivotX + 0.5), [single]($PivotY + 0.5))
+        $gt.RotateTransform([single]$Tilt)
+        $gt.TranslateTransform([single](-($PivotX + 0.5)), [single](-($PivotY + 0.5)))
+        $gt.DrawImage($small, 0, 0, $grid, $grid)
+        $gt.Dispose()
+
+        $script:g.Clear([System.Drawing.Color]::Transparent)
+        $script:g.InterpolationMode = 'NearestNeighbor'
+        $script:g.PixelOffsetMode = 'Half'
+        $script:g.DrawImage($turned, (New-Object System.Drawing.Rectangle 0, 0, 128, 128), 0, 0, $grid, $grid, [System.Drawing.GraphicsUnit]::Pixel)
+        $small.Dispose()
+        $turned.Dispose()
+    }
     if ($Flip) { $Bitmap.RotateFlip([System.Drawing.RotateFlipType]::RotateNoneFlipY) }
     if ($Mirror) { $Bitmap.RotateFlip([System.Drawing.RotateFlipType]::RotateNoneFlipX) }
     $Bitmap.Save($Path, [System.Drawing.Imaging.ImageFormat]::Png)

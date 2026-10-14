@@ -26,7 +26,7 @@ powershell -NoProfile -File tools/GenerateAppIcon.ps1   # 重新生成应用/托
 
 四层，依赖方向 App → Application → Domain，Infrastructure 实现 Application 定义的接口：
 
-- **Domain**：纯逻辑，不依赖任何基础设施。宠物行为状态机（`Behavior/PetBehaviorStateMachine`）、移动策略（`Movement/`，docked / roam / 自由落体 / 沿屏幕边缘爬行，通过 `IScreenEdges` 抽象屏幕）、场景选择（`Scenarios/`）、宠物模型（`Pets/`）、设置（`Settings/PetSettings`）、久坐提醒等。所有宠物状态是 `PetState` 枚举。
+- **Domain**：纯逻辑，不依赖任何基础设施。宠物行为状态机（`Behavior/PetBehaviorStateMachine`）、移动策略（`Movement/`，沿任务栏行走 / 自由落体 / 沿屏幕边缘爬行 / 跳跃，通过 `IScreenEdges` 抽象屏幕）、场景选择（`Scenarios/`）、宠物模型（`Pets/`）、设置（`Settings/PetSettings`）、久坐提醒等。所有宠物状态是 `PetState` 枚举。
 - **Application**：用例与服务。`PetBrain` 汇总传感器输入和用户交互，是 UI 询问“宠物现在该做什么”的唯一入口；`SettingsService` 等；`Abstractions/` 定义传感器与存储的接口（`ISettingsStore`、`IPetLoader` 等）。
 - **Infrastructure**：接口的 Windows 实现——传感器（前台进程、进程列表、电源状态等）、JSON 存储（设置）、注册表开机自启、日志、`FolderPetLoader`/`FolderPetCatalog`。
 - **App**：WPF 外壳。`App.xaml.cs` 用通用主机（Generic Host）组装全部依赖；`Rendering/` 负责宠物帧缓存与热切换（`PetSwitcher`）、面板预览图解码（`PetPreviewFrames`）；面板第一个标签是“宠物”（`PetsTabViewModel`/`PetCardViewModel`）：列出 `pets/` 下所有宠物，动画预览只轮播宠物自己定义的状态，能力标签由 `Domain/Pets/PetCapabilities` 从 manifest 推导，不写死任何宠物；`Windows/`、`ViewModels/`、`Interop/`（Win32 互操作）、`TrayIconService`、`SingleInstanceGuard`（单实例互斥）。
@@ -35,7 +35,7 @@ powershell -NoProfile -File tools/GenerateAppIcon.ps1   # 重新生成应用/托
 
 - 宠物是 `pets/<name>/` 下的 PNG 帧加 `manifest.json`（`name`、`frameSize`、`states`：每个状态的 `fps` 与 `frames`；`Idle.Left/Right/Up/Down` 为视线方向帧）。`pets/` 在构建时被复制到 App 输出目录。
 - 默认宠物为 `robot`（`PetSettings.DefaultPetName`）。宠物找不到时回退到默认宠物。
-- 宠物不必提供全部状态：缺失的状态通过 `Domain/Pets/PetStateFallback` 回退到相近状态。给 `PetState` 新增状态时，要同时考虑回退规则，并更新 robot 的 manifest 与 `GenerateRobotPet.ps1`。
+- 宠物不必提供全部状态：缺失的状态通过 `Domain/Pets/PetStateFallback` 回退到相近状态。给 `PetState` 新增状态时，要同时考虑回退规则，并更新 robot 的 manifest 与 `GenerateRobotPet.ps1`。例外是可选状态：`Hop`（步行中随机跳一下）只有 manifest 里定义了它的宠物才会跳，没有定义就根本不会进入该状态（时长取自宠物自己的 `Hop` 动画，由窗口在播完时调用 `PetBrain.OnHopEnded`），所以 robot 故意没有 `Hop`，`PetCapabilities` 也不把它算进未定义宠物的状态总数。
 - `tests/DeskBuddy.Infrastructure.Tests/Pets/ShippedPetsTests` 会校验随仓库发布的宠物。
 
 ## 主题（深色 / 浅色）

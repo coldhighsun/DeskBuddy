@@ -103,6 +103,26 @@ public sealed class PetBrain(
     public int WalkDirection => stateMachine.WalkDirection;
 
     /// <summary>
+    /// Gets or sets how long one hop of the pet lasts, or <see langword="null"/> if it does not hop; set from the pet's
+    /// own Hop animation.
+    /// </summary>
+    public TimeSpan? HopDuration
+    {
+        get => stateMachine.HopDuration;
+        set => stateMachine.HopDuration = value;
+    }
+
+    /// <summary>
+    /// Gets or sets the question asked when a hop is about to start: whether the pet may hop here and now. The pet window
+    /// answers it from where the pet is.
+    /// </summary>
+    public Func<bool>? CanHopNow
+    {
+        get => stateMachine.CanHopNow;
+        set => stateMachine.CanHopNow = value;
+    }
+
+    /// <summary>
     /// Gets whether the pet is on screen and why not. Change it through <see cref="SetManuallyHidden"/> and
     /// <see cref="ToggleManuallyHidden"/>.
     /// </summary>
@@ -269,14 +289,6 @@ public sealed class PetBrain(
     }
 
     /// <summary>
-    /// Notifies the brain that the pet reached the mouse pointer it was chasing, which makes it happy.
-    /// </summary>
-    public void OnReachedPointer()
-    {
-        stateMachine.OnDelighted();
-    }
-
-    /// <summary>
     /// Hides or shows the pet at the user's request.
     /// </summary>
     /// <param name="hidden">
@@ -336,6 +348,14 @@ public sealed class PetBrain(
     public void OnFallEnded()
     {
         stateMachine.OnFallEnded();
+    }
+
+    /// <summary>
+    /// Notifies the brain that the pet has played its hop to the end and goes on walking.
+    /// </summary>
+    public void OnHopEnded()
+    {
+        stateMachine.OnHopEnded();
     }
 
     /// <summary>
