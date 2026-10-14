@@ -134,6 +134,24 @@ public class PetSwitcherTests
     }
 
     /// <summary>
+    /// A pet whose files cannot be read for lack of permission is a failure of that pet like any other: the old pet stays
+    /// and the reason is reported, instead of the error going on to whoever started the switch.
+    /// </summary>
+    [Fact]
+    public async Task SwitchAsync_ApplyDenied_KeepsOldPetAndReports()
+    {
+        // Arrange
+        _applyBehavior = _ => throw new UnauthorizedAccessException("no access");
+
+        // Act
+        await _switcher.SwitchAsync("cat");
+
+        // Assert
+        _failures.Should().Equal("no access");
+        _applied.Should().BeEmpty();
+    }
+
+    /// <summary>
     /// A pet that cannot be loaded leaves the old one, reports why, and puts the setting back.
     /// </summary>
     [Fact]
@@ -163,6 +181,61 @@ public class PetSwitcherTests
         _loader.Requested.Should().Equal("cat");
         _applied.Should().Equal("cat");
         _failures.Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// The slow preparation of a pet runs after it is loaded and before it is put on screen.
+    /// </summary>
+    [Fact]
+    public async Task SwitchAsync_WithPrepare_PreparesBeforeApplying()
+    {
+        // Arrange
+        var steps = new List<string>();
+        using var switcher = new PetSwitcher(
+            _settings,
+            _loader,
+            "pets",
+            PetSettings.DefaultPetName,
+            pet => steps.Add($"apply {pet.Name}"),
+            NullLogger<PetSwitcher>.Instance,
+            pet =>
+            {
+                steps.Add($"prepare {pet.Name}");
+                return Task.CompletedTask;
+            });
+
+        // Act
+        await switcher.SwitchAsync("cat");
+
+        // Assert
+        steps.Should().Equal("prepare cat", "apply cat");
+    }
+
+    /// <summary>
+    /// A pet whose preparation fails keeps the old pet on screen and reports why, like one that cannot be loaded.
+    /// </summary>
+    [Fact]
+    public async Task SwitchAsync_PrepareFails_KeepsOldPetAndReports()
+    {
+        // Arrange
+        var applied = false;
+        using var switcher = new PetSwitcher(
+            _settings,
+            _loader,
+            "pets",
+            PetSettings.DefaultPetName,
+            _ => applied = true,
+            NullLogger<PetSwitcher>.Instance,
+            _ => throw new NotSupportedException("bad image"));
+        var failures = new List<string>();
+        switcher.SwitchFailed += (_, reason) => failures.Add(reason);
+
+        // Act
+        await switcher.SwitchAsync("cat");
+
+        // Assert
+        failures.Should().Equal("bad image");
+        applied.Should().BeFalse();
     }
 
     /// <summary>

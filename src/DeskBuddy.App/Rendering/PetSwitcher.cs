@@ -40,6 +40,12 @@ public sealed class PetSwitcher : IDisposable
     private readonly ILogger<PetSwitcher> _logger;
 
     /// <summary>
+    /// Does the slow part of getting a pet ready (decoding its images) before <see cref="_apply"/>, so that it need not
+    /// run on the UI thread; <see langword="null"/> if there is nothing to prepare.
+    /// </summary>
+    private readonly Func<Pet, Task>? _prepare;
+
+    /// <summary>
     /// The name of the pet on screen.
     /// </summary>
     private string _currentName;
@@ -70,13 +76,18 @@ public sealed class PetSwitcher : IDisposable
     /// <param name="logger">
     /// Logger used to report a pet that could not be switched to.
     /// </param>
+    /// <param name="prepare">
+    /// Does the slow part of getting a pet ready before it is put on screen, off the caller's thread if it can; may throw
+    /// like <paramref name="apply"/> if the images cannot be decoded. <see langword="null"/> if there is nothing to prepare.
+    /// </param>
     public PetSwitcher(
         SettingsService settings,
         IPetLoader loader,
         string petsDirectory,
         string currentName,
         Action<Pet> apply,
-        ILogger<PetSwitcher> logger)
+        ILogger<PetSwitcher> logger,
+        Func<Pet, Task>? prepare = null)
     {
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(loader);
@@ -90,6 +101,7 @@ public sealed class PetSwitcher : IDisposable
         _requestedName = currentName;
         _apply = apply;
         _logger = logger;
+        _prepare = prepare;
 
         _settings.Changed += OnSettingsChanged;
     }
@@ -127,6 +139,10 @@ public sealed class PetSwitcher : IDisposable
         try
         {
             var pet = await _loader.LoadAsync(Path.Combine(_petsDirectory, name));
+            if (_prepare is not null)
+            {
+                await _prepare(pet);
+            }
 
             // A newer request has been made while this one was loading; let that one win.
             if (!string.Equals(name, _requestedName, StringComparison.Ordinal))
@@ -137,7 +153,7 @@ public sealed class PetSwitcher : IDisposable
             _apply(pet);
             _currentName = name;
         }
-        catch (Exception ex) when (ex is InvalidDataException or IOException or NotSupportedException or FormatException)
+        catch (Exception ex) when (PetLoadFailure.Is(ex))
         {
             _logger.LogWarning(ex, "Could not switch to the '{Pet}' pet; keeping '{Current}'.", name, _currentName);
 

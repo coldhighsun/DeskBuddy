@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using DeskBuddy.App.Diagnostics;
 using DeskBuddy.App.Interop;
@@ -16,6 +17,7 @@ using DeskBuddy.Domain.Behavior;
 using DeskBuddy.Domain.Chatter;
 using DeskBuddy.Domain.Messages;
 using DeskBuddy.Domain.Movement;
+using DeskBuddy.Domain.Pets;
 using DeskBuddy.Domain.Scenarios;
 using DeskBuddy.Domain.Schedule;
 using DeskBuddy.Domain.Sedentary;
@@ -297,13 +299,20 @@ public partial class App
                     petWindow.SetSize(settings.Size);
                     petWindow.SetClimbEdges(settings.ClimbEdges);
                 });
+            // Decoding all the pictures of a pet takes long enough to freeze the UI, so it is done on a thread of its own.
+            var preparedFrames = new ConditionalWeakTable<Pet, PetFrameCache>();
             _petSwitcher = new PetSwitcher(
                 _host.Services.GetRequiredService<SettingsService>(),
                 _host.Services.GetRequiredService<IPetLoader>(),
                 Path.Combine(AppContext.BaseDirectory, "pets"),
                 petName,
-                newPet => petWindow.SetPet(newPet, new PetFrameCache(newPet)),
-                _host.Services.GetRequiredService<ILogger<PetSwitcher>>());
+                newPet =>
+                {
+                    var frames = preparedFrames.TryGetValue(newPet, out var prepared) ? prepared : new PetFrameCache(newPet);
+                    petWindow.SetPet(newPet, frames);
+                },
+                _host.Services.GetRequiredService<ILogger<PetSwitcher>>(),
+                async newPet => preparedFrames.AddOrUpdate(newPet, await PetFrameCache.CreateAsync(newPet)));
             _tray = new TrayIconService(brain, OpenPanel, ExitApplication, themeService);
 
             _hotkeys = new Win32HotkeyService();

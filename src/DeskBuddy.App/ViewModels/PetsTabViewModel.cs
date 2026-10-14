@@ -272,7 +272,7 @@ public sealed partial class PetsTabViewModel : ObservableObject
             var pet = await _loader.LoadAsync(Path.Combine(_petsDirectory, name));
             return new PetCardViewModel(name, pet, _frames);
         }
-        catch (Exception ex) when (ex is InvalidDataException or IOException or UnauthorizedAccessException or NotSupportedException or FormatException)
+        catch (Exception ex) when (PetLoadFailure.Is(ex))
         {
             return new PetCardViewModel(name, ex.Message);
         }
