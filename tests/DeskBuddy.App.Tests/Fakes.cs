@@ -141,17 +141,22 @@ internal sealed class FakeAutoStartService : IAutoStartService
 }
 
 /// <summary>
-/// Pet catalog stub with a fixed list.
+/// Pet catalog stub with a list that tests can change.
 /// </summary>
 /// <param name="names">
-/// The pet names to report.
+/// The pet names to report at first.
 /// </param>
 internal sealed class FakePetCatalog(params string[] names) : IPetCatalog
 {
+    /// <summary>
+    /// Gets or sets the names of the installed pets.
+    /// </summary>
+    public IReadOnlyList<string> Names { get; set; } = names;
+
     /// <inheritdoc />
     public IReadOnlyList<string> GetPetNames()
     {
-        return names;
+        return Names;
     }
 }
 

@@ -127,6 +127,16 @@ public partial class App
     private Win32HotkeyService? _hotkeys;
 
     /// <summary>
+    /// Decodes the pictures the pet previews of the panel and the pet list of the tray menu show, once for both.
+    /// </summary>
+    private readonly PetPreviewFrames _previewFrames = new();
+
+    /// <summary>
+    /// The installed pets as the tray menu and the settings tab show them; <see langword="null"/> until startup completes.
+    /// </summary>
+    private InstalledPets? _installedPets;
+
+    /// <summary>
     /// The tray icon; <see langword="null"/> until startup completes.
     /// </summary>
     private TrayIconService? _tray;
@@ -299,6 +309,7 @@ public partial class App
                     petWindow.SetSize(settings.Size);
                     petWindow.SetClimbEdges(settings.ClimbEdges);
                 });
+
             // Decoding all the pictures of a pet takes long enough to freeze the UI, so it is done on a thread of its own.
             var preparedFrames = new ConditionalWeakTable<Pet, PetFrameCache>();
             _petSwitcher = new PetSwitcher(
@@ -313,7 +324,19 @@ public partial class App
                 },
                 _host.Services.GetRequiredService<ILogger<PetSwitcher>>(),
                 async newPet => preparedFrames.AddOrUpdate(newPet, await PetFrameCache.CreateAsync(newPet)));
-            _tray = new TrayIconService(brain, OpenPanel, ExitApplication, themeService);
+            _installedPets = new InstalledPets(
+                _host.Services.GetRequiredService<IPetCatalog>(),
+                _host.Services.GetRequiredService<IPetLoader>(),
+                Path.Combine(AppContext.BaseDirectory, "pets"),
+                _previewFrames.Get);
+            _tray = new TrayIconService(
+                brain,
+                OpenPanel,
+                ExitApplication,
+                themeService,
+                _host.Services.GetRequiredService<SettingsService>(),
+                _installedPets,
+                _host.Services.GetRequiredService<ILogger<TrayIconService>>());
 
             _hotkeys = new Win32HotkeyService();
             _bossKey = new BossKeyController(_host.Services.GetRequiredService<SettingsService>(), _hotkeys, brain);
@@ -364,7 +387,6 @@ public partial class App
         if (_panel is null && _host is not null && _petWindow is not null && _bossKey is not null && _petSwitcher is not null)
         {
             var services = _host.Services;
-            var previewFrames = new PetPreviewFrames();
             var viewModel = new PanelViewModel(
                 new SettingsTabViewModel(
                     services.GetRequiredService<SettingsService>(),
@@ -377,7 +399,7 @@ public partial class App
                     services.GetRequiredService<IPetLoader>(),
                     Path.Combine(AppContext.BaseDirectory, "pets"),
                     _petSwitcher,
-                    previewFrames.Get));
+                    _previewFrames.Get));
             _panel = new PanelWindow(viewModel);
             _themeService?.Register(_panel);
         }
