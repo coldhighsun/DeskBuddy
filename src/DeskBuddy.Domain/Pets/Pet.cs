@@ -94,6 +94,12 @@ public sealed class Pet
     public bool CanLookAround => _gazeAnimations.Count > 0;
 
     /// <summary>
+    /// Gets how long one hop of the pet lasts, which is one run through its own Hop animation, or
+    /// <see langword="null"/> if the pet has none and so does not hop.
+    /// </summary>
+    public TimeSpan? HopDuration => _animations.TryGetValue(PetState.Hop, out var hop) ? hop.Duration : null;
+
+    /// <summary>
     /// Gets the animation for a state. When the pet does not define it, the closest state it does define is used (see
     /// <see cref="PetStateFallback"/>), and in the end Idle.
     /// </summary>

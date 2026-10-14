@@ -155,7 +155,6 @@ public partial class App
         var behaviorOptions = new PetBehaviorOptions();
         var loadOptions = new SystemLoadOptions();
         var sedentaryOptions = new SedentaryOptions();
-        var roamOptions = new RoamOptions();
 
         // Timings can be forced through configuration, e.g. the environment variable Behavior__SleepAfter. These
         // overrides are for diagnostics and win over the user's saved settings, so they are re-applied after each change.
@@ -164,7 +163,6 @@ public partial class App
             builder.Configuration.GetSection("Behavior").Bind(behaviorOptions);
             builder.Configuration.GetSection("SystemLoad").Bind(loadOptions);
             builder.Configuration.GetSection("Sedentary").Bind(sedentaryOptions);
-            builder.Configuration.GetSection("Roam").Bind(roamOptions);
         }
 
         ApplyConfigurationOverrides();
@@ -212,14 +210,8 @@ public partial class App
             sp.GetRequiredService<PetBehaviorOptions>(),
             sp.GetRequiredService<TimeProvider>()));
         builder.Services.AddSingleton<DevScenarios>();
-        builder.Services.AddSingleton(roamOptions);
         builder.Services.AddSingleton(sp => new ChatterPolicy(sp.GetRequiredService<TimeProvider>(), Random.Shared));
         builder.Services.AddSingleton<DockedMovement>();
-        builder.Services.AddSingleton(sp => new RoamMovement(
-            sp.GetRequiredService<RoamOptions>(),
-            sp.GetRequiredService<TimeProvider>(),
-            Random.Shared));
-        builder.Services.AddSingleton<MovementSelector>();
         builder.Services.AddSingleton(sp => new PetVisibility(sp.GetRequiredService<TimeProvider>(), PetRestoreDelay));
         builder.Services.AddSingleton(sedentaryOptions);
         builder.Services.AddSingleton<SedentaryReminderPolicy>();
@@ -293,7 +285,7 @@ public partial class App
                 brain,
                 behaviorOptions,
                 OpenPanel,
-                _host.Services.GetRequiredService<MovementSelector>(),
+                _host.Services.GetRequiredService<DockedMovement>(),
                 _host.Services.GetRequiredService<ScenarioSwitches>(),
                 _host.Services.GetRequiredService<SettingsService>().Current.Size);
             _petWindow.SetClimbEdges(_host.Services.GetRequiredService<SettingsService>().Current.ClimbEdges);

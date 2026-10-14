@@ -380,6 +380,10 @@ public class WalkRangeTests
     [InlineData(PetState.Walk, PetState.Drag, true, false)]
     [InlineData(PetState.Walk, PetState.Fall, true, false)]
     [InlineData(PetState.Walk, PetState.Glide, true, false)]
+    [InlineData(PetState.Walk, PetState.Hop, true, true)]
+    [InlineData(PetState.Hop, PetState.Idle, true, true)]
+    [InlineData(PetState.Hop, PetState.Walk, true, false)]
+    [InlineData(PetState.Hop, PetState.Drag, true, false)]
     [InlineData(PetState.Walk, PetState.Idle, false, false)]
     [InlineData(PetState.Idle, PetState.Happy, true, false)]
     public void HoldsStateChange_Case_ReturnsExpected(PetState shown, PetState target, bool onSeam, bool expected)
@@ -389,6 +393,57 @@ public class WalkRangeTests
 
         // Assert
         holds.Should().Be(expected);
+    }
+
+    /// <summary>
+    /// A window moving a distance crosses a seam if the seam lies in the span it sweeps over, or if it is across one
+    /// already; one that only touches a seam and moves away from it does not.
+    /// </summary>
+    /// <param name="left">
+    /// The window's left edge.
+    /// </param>
+    /// <param name="right">
+    /// The window's right edge.
+    /// </param>
+    /// <param name="facing">
+    /// The direction of the move.
+    /// </param>
+    /// <param name="travel">
+    /// How far the window moves.
+    /// </param>
+    /// <param name="expected">
+    /// Whether it crosses the seam at 1000.
+    /// </param>
+    [Theory]
+    [InlineData(500, 600, 1, 100, false)]
+    [InlineData(800, 900, 1, 99, false)]
+    [InlineData(800, 900, 1, 101, true)]
+    [InlineData(1100, 1200, -1, 99, false)]
+    [InlineData(1100, 1200, -1, 101, true)]
+    [InlineData(950, 1050, 1, 0, true)]
+    [InlineData(900, 1000, 1, 0, false)]
+    [InlineData(1000, 1100, 1, 300, false)]
+    [InlineData(900, 1000, -1, 300, false)]
+    public void CrossesSeam_Case_ReturnsExpected(int left, int right, int facing, int travel, bool expected)
+    {
+        // Arrange & Act
+        var crosses = SeamGuard.CrossesSeam(left, right, facing, travel, [1000]);
+
+        // Assert
+        crosses.Should().Be(expected);
+    }
+
+    /// <summary>
+    /// With a single monitor there are no seams, so nothing is crossed.
+    /// </summary>
+    [Fact]
+    public void CrossesSeam_NoSeams_ReturnsFalse()
+    {
+        // Act
+        var crosses = SeamGuard.CrossesSeam(0, 100, 1, 5000, []);
+
+        // Assert
+        crosses.Should().BeFalse();
     }
 
     /// <summary>

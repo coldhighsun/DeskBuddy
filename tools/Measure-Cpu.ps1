@@ -15,16 +15,13 @@
     Keep the pet walking for the whole run.
 .PARAMETER Still
     Keep the pet standing still for the whole run.
-.PARAMETER Roam
-    Use roam mode instead of docked (needs -Walk to be meaningful).
 #>
 param(
     [Parameter(Mandatory)] [string] $Exe,
     [int] $Seconds = 60,
     [int] $IntervalSeconds = 5,
     [switch] $Walk,
-    [switch] $Still,
-    [switch] $Roam
+    [switch] $Still
 )
 
 $data = Join-Path ([IO.Path]::GetTempPath()) ("DeskBuddyCpu-" + [Guid]::NewGuid().ToString("N"))
@@ -46,9 +43,6 @@ if ($Walk) {
 if ($Still) {
     $env:Behavior__IdleDwellMin = "01:00:00"
     $env:Behavior__IdleDwellMax = "01:00:00"
-}
-if ($Roam) {
-    '{"mode":"Roam"}' | Set-Content (Join-Path $data "settings.json")
 }
 
 $process = Start-Process -FilePath $Exe -PassThru

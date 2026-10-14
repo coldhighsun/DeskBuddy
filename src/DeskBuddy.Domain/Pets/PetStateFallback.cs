@@ -37,6 +37,7 @@ public static class PetStateFallback
             PetState.Climb => PetState.Walk,
             PetState.ClimbDown => PetState.Climb,
             PetState.Ceiling => PetState.Walk,
+            PetState.Hop => PetState.Walk,
             _ => null,
         };
     }

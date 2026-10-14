@@ -68,9 +68,6 @@
   <data name="TabBehavior" xml:space="preserve"><value>行为</value></data>
   <data name="TabSystem" xml:space="preserve"><value>系统</value></data>
   <data name="SettingsAppearance" xml:space="preserve"><value>外观</value></data>
-  <data name="SettingsMode" xml:space="preserve"><value>打扰模式</value></data>
-  <data name="ModeDocked" xml:space="preserve"><value>停靠在任务栏上</value></data>
-  <data name="ModeRoam" xml:space="preserve"><value>在桌面上自由活动</value></data>
   <data name="SettingsTiming" xml:space="preserve"><value>计时（单位：分钟）</value></data>
   <data name="SettingsSedentary" xml:space="preserve"><value>久坐提醒间隔</value></data>
   <data name="SettingsSleep" xml:space="preserve"><value>无操作多久后睡着</value></data>
@@ -101,12 +98,12 @@
   <data name="ScenarioHang" xml:space="preserve"><value>把宠物拖到屏幕左右边缘松手时，它会挂在边缘上</value></data>
   <data name="ClockOutTimeLabel" xml:space="preserve"><value>下班时间（如 18:00）</value></data>
   <data name="ClockOutTimeInvalid" xml:space="preserve"><value>下班时间需要是 00:00 到 23:59 之间的时刻，如 18:00。</value></data>
-  <data name="RemarkMeal1" xml:space="preserve"><value>午饭时间到～先吃饭再写代码吧！</value></data>
+  <data name="RemarkMeal1" xml:space="preserve"><value>午饭时间到～先吃饭再忙吧！</value></data>
   <data name="RemarkMeal2" xml:space="preserve"><value>晚饭时间到啦，别饿着肚子干活～</value></data>
   <data name="RemarkClockOut1" xml:space="preserve"><value>下班时间到了，今天辛苦啦～</value></data>
   <data name="RemarkClockOut2" xml:space="preserve"><value>周五下班啦！周末愉快～</value></data>
   <data name="RemarkChime" xml:space="preserve"><value>{0} 点整啦～</value></data>
-  <data name="RemarkFestive1" xml:space="preserve"><value>元旦快乐！新的一年，代码无 bug～</value></data>
+  <data name="RemarkFestive1" xml:space="preserve"><value>元旦快乐！新的一年，万事顺利～</value></data>
   <data name="RemarkFestive2" xml:space="preserve"><value>程序员节快乐！1024～</value></data>
   <data name="RemarkFestive3" xml:space="preserve"><value>圣诞快乐！</value></data>
   <data name="RemarkFestive4" xml:space="preserve"><value>新年快乐！恭喜发财～</value></data>
@@ -132,6 +129,7 @@
   <data name="SettingsLanguage" xml:space="preserve"><value>语言 / Language</value></data>
   <data name="SettingsPetSize" xml:space="preserve"><value>宠物大小</value></data>
   <data name="SettingsClimbEdges" xml:space="preserve"><value>允许宠物攀爬屏幕两侧并悬挂在屏幕顶部（需要宠物自身支持）</value></data>
+  <data name="SettingsChatter" xml:space="preserve"><value>允许宠物偶尔主动说一句话</value></data>
   <data name="StateHintClimb" xml:space="preserve"><value>正在爬屏幕边缘</value></data>
   <data name="StateHintClimbDown" xml:space="preserve"><value>正在沿屏幕边缘往下爬</value></data>
   <data name="StateHintCeiling" xml:space="preserve"><value>挂在屏幕顶部移动</value></data>

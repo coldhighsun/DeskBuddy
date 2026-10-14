@@ -131,7 +131,7 @@ public sealed class SettingsApplier
         _behavior.SleepAfter = settings.SleepAfter;
         _sedentary.ReminderAfter = settings.SedentaryReminderAfter;
         _visibility.AutoHideEnabled = settings.AutoHideWhenFullscreen;
-        _chatter.IsEnabled = settings.Mode == DisturbanceMode.Roam;
+        _chatter.IsEnabled = settings.ChatterEnabled;
         _devActivity.IsEnabled = settings.DevModeEnabled;
         _devActivity.Processes = settings.DevProcesses;
         _scenarios.IsEnabled = settings.ScenariosEnabled;

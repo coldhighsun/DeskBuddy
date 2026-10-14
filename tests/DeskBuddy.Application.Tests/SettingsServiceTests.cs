@@ -44,13 +44,13 @@ public class SettingsServiceTests
     public async Task InitializeAsync_SavedSettings_AreLoaded()
     {
         // Arrange
-        _store.Stored = PetSettings.Default with { Mode = DisturbanceMode.Roam };
+        _store.Stored = PetSettings.Default with { ClimbEdges = true };
 
         // Act
         await _service.InitializeAsync(TestContext.Current.CancellationToken);
 
         // Assert
-        _service.Current.Mode.Should().Be(DisturbanceMode.Roam);
+        _service.Current.ClimbEdges.Should().BeTrue();
         _service.LoadFailure.Should().BeNull();
     }
 
@@ -82,10 +82,10 @@ public class SettingsServiceTests
         _service.Changed += (_, settings) => announced = settings;
 
         // Act
-        var result = await _service.UpdateAsync(s => s with { Mode = DisturbanceMode.Roam }, TestContext.Current.CancellationToken);
+        var result = await _service.UpdateAsync(s => s with { ClimbEdges = true }, TestContext.Current.CancellationToken);
 
         // Assert
-        result.Mode.Should().Be(DisturbanceMode.Roam);
+        result.ClimbEdges.Should().BeTrue();
         _service.Current.Should().Be(result);
         announced.Should().Be(result);
         _store.Stored.Should().Be(result);
@@ -120,11 +120,11 @@ public class SettingsServiceTests
         _store.SaveException = new IOException("disk full");
 
         // Act
-        var act = () => _service.UpdateAsync(s => s with { Mode = DisturbanceMode.Roam });
+        var act = () => _service.UpdateAsync(s => s with { ClimbEdges = true });
 
         // Assert
         await act.Should().ThrowAsync<IOException>();
-        _service.Current.Mode.Should().Be(DisturbanceMode.Roam);
+        _service.Current.ClimbEdges.Should().BeTrue();
     }
 
     /// <summary>
@@ -155,7 +155,7 @@ public class SettingsServiceTests
         await _service.InitializeAsync(TestContext.Current.CancellationToken);
 
         // Act
-        var act = () => _service.UpdateAsync(s => s with { Mode = DisturbanceMode.Roam });
+        var act = () => _service.UpdateAsync(s => s with { ClimbEdges = true });
 
         // Assert
         await act.Should().ThrowAsync<InvalidOperationException>();

@@ -23,7 +23,7 @@ public class PetCapabilitiesTests
 
         // Assert
         capabilities.NativeStateCount.Should().Be(1);
-        capabilities.TotalStateCount.Should().Be(Enum.GetValues<PetState>().Length);
+        capabilities.TotalStateCount.Should().Be(Enum.GetValues<PetState>().Length - 1);
         capabilities.CanLookAround.Should().BeFalse();
         capabilities.Edges.Should().Be(new StateCoverage(0, 4));
         capabilities.Development.Should().Be(new StateCoverage(0, 6));
@@ -49,6 +49,26 @@ public class PetCapabilitiesTests
         capabilities.Development.Should().Be(new StateCoverage(1, 6));
         capabilities.Scenarios.Should().Be(new StateCoverage(1, 9));
         capabilities.Edges.IsSupported.Should().BeTrue();
+    }
+
+    /// <summary>
+    /// Hopping is opt-in: a pet that has it counts it as one more state, and one that has not is not short of it.
+    /// </summary>
+    [Fact]
+    public void Of_HopDefined_CountsItInTheTotal()
+    {
+        // Arrange
+        var withHop = CreatePet(PetState.Hop);
+        var withoutHop = CreatePet();
+
+        // Act
+        var with = PetCapabilities.Of(withHop);
+        var without = PetCapabilities.Of(withoutHop);
+
+        // Assert
+        with.TotalStateCount.Should().Be(without.TotalStateCount + 1);
+        with.NativeStateCount.Should().Be(without.NativeStateCount + 1);
+        with.TotalStateCount.Should().Be(Enum.GetValues<PetState>().Length);
     }
 
     /// <summary>

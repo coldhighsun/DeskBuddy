@@ -11,7 +11,7 @@ public enum PanelTab
     Pets = 0,
 
     /// <summary>
-    /// Size, language and movement mode.
+    /// Size, climbing, language and theme.
     /// </summary>
     Appearance = 1,
 

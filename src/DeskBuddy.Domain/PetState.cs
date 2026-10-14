@@ -151,4 +151,10 @@ public enum PetState
     /// The pet hangs from the top edge of the screen and moves along it.
     /// </summary>
     Ceiling,
+
+    /// <summary>
+    /// The pet hops once while it walks, and goes on walking in the same direction afterwards. Only a pet that defines
+    /// pictures for it hops; one without them (such as one that rolls on a tread) just keeps walking.
+    /// </summary>
+    Hop,
 }

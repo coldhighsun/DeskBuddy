@@ -25,7 +25,8 @@ public readonly record struct StateCoverage(int Supported, int Total)
 /// The number of states the pet defines pictures for.
 /// </param>
 /// <param name="TotalStateCount">
-/// The number of states there are.
+/// The number of states there are, not counting the opt-in ones (such as hopping) the pet does not define: a pet is not
+/// less complete for lacking something it never does.
 /// </param>
 /// <param name="CanLookAround">
 /// Whether the pet's eyes follow the mouse pointer.
@@ -47,6 +48,12 @@ public sealed record PetCapabilities(
     StateCoverage Development,
     StateCoverage Scenarios)
 {
+    /// <summary>
+    /// The states that only exist for a pet that defines them: without pictures the pet never enters them, instead of
+    /// showing other pictures, so they do not count against it.
+    /// </summary>
+    private static readonly PetState[] OptInStates = [PetState.Hop];
+
     /// <summary>
     /// The states of climbing along the edges of the screen.
     /// </summary>
@@ -96,7 +103,7 @@ public sealed record PetCapabilities(
 
         return new PetCapabilities(
             pet.Animations.Count,
-            Enum.GetValues<PetState>().Length,
+            Enum.GetValues<PetState>().Length - OptInStates.Count(state => !pet.Animations.ContainsKey(state)),
             pet.CanLookAround,
             Coverage(pet, EdgeStates),
             Coverage(pet, DevelopmentStates),

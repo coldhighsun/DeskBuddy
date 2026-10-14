@@ -32,7 +32,7 @@ public class DockedMovementTests
     /// </returns>
     private static MovementContext At(double x, double y = 800)
     {
-        return new MovementContext(new Point2(x, y), new Point2(128, 128), Bounds, Cursor: null, Speed: 100);
+        return new MovementContext(new Point2(x, y), new Point2(128, 128), Bounds, Speed: 100);
     }
 
     /// <summary>
@@ -52,16 +52,6 @@ public class DockedMovementTests
     }
 
     /// <summary>
-    /// A pet dropped high above the taskbar line falls down to it.
-    /// </summary>
-    [Fact]
-    public void FallsWhenDropped_Docked_IsTrue()
-    {
-        // Act & Assert
-        _movement.FallsWhenDropped.Should().BeTrue();
-    }
-
-    /// <summary>
     /// Walking moves horizontally at the given speed and stays on the taskbar line.
     /// </summary>
     [Fact]
@@ -76,7 +66,6 @@ public class DockedMovementTests
         // Assert
         step.Position.Should().Be(new Point2(550, 800));
         step.Facing.Should().Be(1);
-        step.Arrived.Should().BeFalse();
     }
 
     /// <summary>

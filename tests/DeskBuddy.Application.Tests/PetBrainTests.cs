@@ -676,7 +676,7 @@ public class PetBrainTests
     }
 
     /// <summary>
-    /// A roaming pet says something now and then, and it is shown briefly without raising the alert.
+    /// A chatting pet says something now and then, and it is shown briefly without raising the alert.
     /// </summary>
     [Fact]
     public void Tick_ChatterEnabled_ShowsShortRemarkWithoutAlert()
@@ -734,19 +734,6 @@ public class PetBrainTests
 
         // Assert
         message.Should().BeNull();
-    }
-
-    /// <summary>
-    /// Reaching the pointer makes the pet happy.
-    /// </summary>
-    [Fact]
-    public void OnReachedPointer_Idle_ThenHappy()
-    {
-        // Act
-        _brain.OnReachedPointer();
-
-        // Assert
-        _brain.State.Should().Be(PetState.Happy);
     }
 
     /// <summary>
@@ -1181,5 +1168,69 @@ public class PetBrainTests
         _clock.SetUtcNow(new DateTimeOffset(2026, 3, 11, 12, 0, 0, TimeSpan.Zero));
         _clockSwitches.IsEnabled = true;
         _clockSwitches.Disabled = [nameof(PetState.Chime)];
+    }
+
+    /// <summary>
+    /// A new brain does not hop, as it does not know of a pet that does.
+    /// </summary>
+    [Fact]
+    public void HopDuration_Default_IsNull()
+    {
+        // Assert
+        _brain.HopDuration.Should().BeNull();
+    }
+
+    /// <summary>
+    /// The hop duration the window sets from the pet's own animation reaches the state machine, and clearing it again
+    /// (a pet that does not hop) reaches it too.
+    /// </summary>
+    [Fact]
+    public void HopDuration_SetAndCleared_IsPassedOn()
+    {
+        // Arrange
+        var duration = TimeSpan.FromMilliseconds(625);
+
+        // Act
+        _brain.HopDuration = duration;
+        var whileSet = _brain.HopDuration;
+        _brain.HopDuration = null;
+
+        // Assert
+        whileSet.Should().Be(duration);
+        _brain.HopDuration.Should().BeNull();
+    }
+
+    /// <summary>
+    /// Ending a hop that is not going on leaves the brain as it is.
+    /// </summary>
+    [Fact]
+    public void OnHopEnded_NotHopping_IsIgnored()
+    {
+        // Arrange
+        var before = _brain.State;
+
+        // Act
+        _brain.OnHopEnded();
+
+        // Assert
+        _brain.State.Should().Be(before);
+    }
+
+    /// <summary>
+    /// A new brain has no question for hops, and the one the window sets reaches the state machine.
+    /// </summary>
+    [Fact]
+    public void CanHopNow_SetAndRead_IsPassedOn()
+    {
+        // Arrange
+        var byDefault = _brain.CanHopNow;
+        Func<bool> question = () => false;
+
+        // Act
+        _brain.CanHopNow = question;
+
+        // Assert
+        byDefault.Should().BeNull();
+        _brain.CanHopNow.Should().BeSameAs(question);
     }
 }

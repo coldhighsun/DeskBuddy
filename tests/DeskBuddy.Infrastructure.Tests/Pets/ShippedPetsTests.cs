@@ -38,7 +38,8 @@ public class ShippedPetsTests
 
     /// <summary>
     /// The robot pet loads, with every frame file present, and has its own animation for every state but falling, which
-    /// borrows the dragged one, including holding the umbrella and sitting at the computer.
+    /// borrows the dragged one, including holding the umbrella and sitting at the computer. It rolls on a tread and does
+    /// not hop, so it has none for that either.
     /// </summary>
     [Fact]
     public async Task Robot_Loads_WithAnimationForEveryState()
@@ -48,7 +49,7 @@ public class ShippedPetsTests
 
         // Assert
         pet.Name.Should().Be("robot");
-        pet.Animations.Keys.Should().BeEquivalentTo(Enum.GetValues<PetState>().Where(state => state != PetState.Fall));
+        pet.Animations.Keys.Should().BeEquivalentTo(Enum.GetValues<PetState>().Where(state => state is not (PetState.Fall or PetState.Hop)));
         pet.Animations[PetState.Coding].FramePaths.Should().HaveCountGreaterThan(1);
         pet.GazeAnimations.Keys.Should().BeEquivalentTo(
             [GazeDirection.Left, GazeDirection.Right, GazeDirection.Up, GazeDirection.Down]);
@@ -67,7 +68,7 @@ public class ShippedPetsTests
         // Assert
         pet.Name.Should().Be("cat");
         pet.Animations.Keys.Should().Contain(
-            [PetState.Idle, PetState.Walk, PetState.Sleep, PetState.Drag, PetState.Happy, PetState.Glide, PetState.Hang, PetState.Climb, PetState.ClimbDown, PetState.Ceiling]);
+            [PetState.Idle, PetState.Walk, PetState.Sleep, PetState.Drag, PetState.Happy, PetState.Glide, PetState.Hang, PetState.Climb, PetState.ClimbDown, PetState.Ceiling, PetState.Hop]);
         pet.Animations.Keys.Should().NotContain(PetState.Coding);
         pet.Animations[PetState.Idle].FramePaths.Should().HaveCountGreaterThan(1);
         pet.GazeAnimations.Keys.Should().BeEquivalentTo(

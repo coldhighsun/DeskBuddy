@@ -80,7 +80,7 @@ public sealed class JsonSettingsStoreTests : IDisposable
         // Arrange
         var settings = new PetSettings
         {
-            Mode = DisturbanceMode.Roam,
+            ChatterEnabled = true,
             PetName = "猫咪",
             SleepAfter = TimeSpan.FromMinutes(8),
             SedentaryReminderAfter = TimeSpan.FromMinutes(60),
@@ -115,11 +115,11 @@ public sealed class JsonSettingsStoreTests : IDisposable
     public async Task SaveAsync_WritesReadableFile()
     {
         // Act
-        await _store.SaveAsync(PetSettings.Default with { Mode = DisturbanceMode.Roam, PetName = "猫咪" }, TestContext.Current.CancellationToken);
+        await _store.SaveAsync(PetSettings.Default with { ChatterEnabled = true, PetName = "猫咪" }, TestContext.Current.CancellationToken);
 
         // Assert
         var json = await File.ReadAllTextAsync(DataPath, TestContext.Current.CancellationToken);
-        json.Should().Contain("\"mode\": \"Roam\"");
+        json.Should().Contain("\"chatterEnabled\": true");
         json.Should().Contain("\"bossKey\": \"Ctrl+Alt+H\"");
         json.Should().Contain("猫咪");
     }
@@ -144,14 +144,29 @@ public sealed class JsonSettingsStoreTests : IDisposable
     public async Task LoadAsync_PartialFile_FillsMissingWithDefaults()
     {
         // Arrange
-        await WriteRawAsync("""{"version":1,"mode":"Roam"}""");
+        await WriteRawAsync("""{"version":1,"chatterEnabled":true}""");
 
         // Act
         var settings = await _store.LoadAsync(TestContext.Current.CancellationToken);
 
         // Assert
-        settings.Mode.Should().Be(DisturbanceMode.Roam);
-        settings.Should().BeEquivalentTo(PetSettings.Default with { Mode = DisturbanceMode.Roam });
+        settings.Should().BeEquivalentTo(PetSettings.Default with { ChatterEnabled = true });
+    }
+
+    /// <summary>
+    /// A file from before the roaming mode was removed still loads: the old mode entry is ignored and the rest is kept.
+    /// </summary>
+    [Fact]
+    public async Task LoadAsync_FileWithRemovedModeEntry_IgnoresItAndKeepsTheRest()
+    {
+        // Arrange
+        await WriteRawAsync("""{"version":1,"mode":"Roam","petName":"cat"}""");
+
+        // Act
+        var settings = await _store.LoadAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        settings.Should().BeEquivalentTo(PetSettings.Default with { PetName = "cat" });
     }
 
     /// <summary>
@@ -178,14 +193,14 @@ public sealed class JsonSettingsStoreTests : IDisposable
     public async Task LoadAsync_UnparsableBossKey_FallsBackToDefaultKey()
     {
         // Arrange
-        await WriteRawAsync("""{"mode":"Roam","bossKey":"nonsense"}""");
+        await WriteRawAsync("""{"chatterEnabled":true,"bossKey":"nonsense"}""");
 
         // Act
         var settings = await _store.LoadAsync(TestContext.Current.CancellationToken);
 
         // Assert
         settings.BossKey.Should().Be(PetSettings.Default.BossKey);
-        settings.Mode.Should().Be(DisturbanceMode.Roam);
+        settings.ChatterEnabled.Should().BeTrue();
     }
 
     /// <summary>
@@ -219,24 +234,24 @@ public sealed class JsonSettingsStoreTests : IDisposable
     public async Task LoadAsync_UnknownThemeName_FallsBackToAuto(string theme)
     {
         // Arrange
-        await WriteRawAsync($$"""{"version":1,"mode":"Roam","theme":"{{theme}}"}""");
+        await WriteRawAsync($$"""{"version":1,"chatterEnabled":true,"theme":"{{theme}}"}""");
 
         // Act
         var settings = await _store.LoadAsync(TestContext.Current.CancellationToken);
 
         // Assert
         settings.Theme.Should().Be(AppTheme.Auto);
-        settings.Mode.Should().Be(DisturbanceMode.Roam);
+        settings.ChatterEnabled.Should().BeTrue();
     }
 
     /// <summary>
-    /// A value of the wrong type (an unknown mode name) makes the file count as corrupt.
+    /// A value of the wrong type (a duration that is not one) makes the file count as corrupt.
     /// </summary>
     [Fact]
-    public async Task LoadAsync_UnknownModeName_IsQuarantined()
+    public async Task LoadAsync_ValueOfTheWrongType_IsQuarantined()
     {
         // Arrange
-        await WriteRawAsync("""{"mode":"Banana"}""");
+        await WriteRawAsync("""{"sleepAfter":"Banana"}""");
 
         // Act
         var settings = await _store.LoadAsync(TestContext.Current.CancellationToken);

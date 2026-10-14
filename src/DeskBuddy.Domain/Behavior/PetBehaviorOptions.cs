@@ -208,4 +208,26 @@ public sealed class PetBehaviorOptions
     /// instead of crawling to a corner and climbing down.
     /// </summary>
     public double CeilingDropChance { get; set; } = 0.5;
+
+    /// <summary>
+    /// Gets or sets the shortest time a walking pet goes on before it hops.
+    /// </summary>
+    public TimeSpan HopIntervalMin { get; set; } = TimeSpan.FromSeconds(1.5);
+
+    /// <summary>
+    /// Gets or sets the longest time a walking pet goes on before it hops.
+    /// </summary>
+    public TimeSpan HopIntervalMax { get; set; } = TimeSpan.FromSeconds(5);
+
+    /// <summary>
+    /// Gets or sets how high the pet rises in a hop, as a fraction of its own height, so that it does not depend on the
+    /// size of any particular pet.
+    /// </summary>
+    public double HopHeightRatio { get; set; } = 0.3;
+
+    /// <summary>
+    /// Gets or sets how much faster than it walks the pet moves forward during a hop, so that it leaps along a slope
+    /// instead of straight up and down.
+    /// </summary>
+    public double HopSpeedFactor { get; set; } = 2;
 }

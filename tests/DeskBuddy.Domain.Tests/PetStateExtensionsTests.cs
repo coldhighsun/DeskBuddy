@@ -8,6 +8,29 @@ namespace DeskBuddy.Domain.Tests;
 public class PetStateExtensionsTests
 {
     /// <summary>
+    /// Walking and hopping count as walking; nothing else does.
+    /// </summary>
+    /// <param name="state">
+    /// The state.
+    /// </param>
+    /// <param name="expected">
+    /// Whether it counts as walking.
+    /// </param>
+    [Theory]
+    [InlineData(PetState.Walk, true)]
+    [InlineData(PetState.Hop, true)]
+    [InlineData(PetState.Idle, false)]
+    [InlineData(PetState.Ceiling, false)]
+    public void IsWalking_State_MatchesExpectation(PetState state, bool expected)
+    {
+        // Act
+        var result = state.IsWalking();
+
+        // Assert
+        result.Should().Be(expected);
+    }
+
+    /// <summary>
     /// Falling, with or without the umbrella open, counts as falling; nothing else does.
     /// </summary>
     /// <param name="state">

@@ -40,6 +40,16 @@ public sealed class PetBehaviorStateMachine
     private PetState? _ambientState;
 
     /// <summary>
+    /// The moment at which the walking pet next hops.
+    /// </summary>
+    private DateTimeOffset _nextHopAt;
+
+    /// <summary>
+    /// The moment at which the walk ends that a hop interrupts, so the pet walks on until then afterwards.
+    /// </summary>
+    private DateTimeOffset _walkEndsAt;
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="PetBehaviorStateMachine"/> class in the Idle state.
     /// </summary>
     /// <param name="options">
@@ -68,6 +78,22 @@ public sealed class PetBehaviorStateMachine
     /// Gets the current state.
     /// </summary>
     public PetState State { get; private set; }
+
+    /// <summary>
+    /// Gets or sets how long one hop lasts, which is how long the pet's own hop animation runs, or
+    /// <see langword="null"/> if the pet has none, such as one that rolls along on a tread, and keeps to plain walking.
+    /// A hop that would not be over before the walk ends is not made. The machine does not time the hop: it is held until
+    /// <see cref="OnHopEnded"/>, which the pet window calls when the hop has been played out.
+    /// </summary>
+    public TimeSpan? HopDuration { get; set; }
+
+    /// <summary>
+    /// Gets or sets the question asked when a hop is about to start: whether the pet may hop here and now. The pet window
+    /// answers <see langword="false"/> while the pet is close to the edge of the screen it walks towards, so a hop does
+    /// not end against it; the hop is then given up and the time of the next one is picked at random again. Without it
+    /// the pet always hops when its time has come.
+    /// </summary>
+    public Func<bool>? CanHopNow { get; set; }
 
     /// <summary>
     /// Gets the direction of the current or most recent walk: <c>-1</c> for left, <c>1</c> for right.
@@ -131,6 +157,12 @@ public sealed class PetBehaviorStateMachine
             return State;
         }
 
+        // A hop is played out to its end, whenever that is; only the above can cut it short.
+        if (State == PetState.Hop)
+        {
+            return State;
+        }
+
         var now = _timeProvider.GetUtcNow();
         if ((State == PetState.Happy || _momentActive) && now < _stateEndsAt)
         {
@@ -188,6 +220,20 @@ public sealed class PetBehaviorStateMachine
         {
             Enter(PetState.Idle);
             return State;
+        }
+
+        if (HopDuration is { } hopDuration && State == PetState.Walk && now >= _nextHopAt && _stateEndsAt - now > hopDuration)
+        {
+            if (CanHopNow?.Invoke() ?? true)
+            {
+                _walkEndsAt = _stateEndsAt;
+                State = PetState.Hop;
+                _stateEndsAt = DateTimeOffset.MaxValue;
+                return State;
+            }
+
+            // No room to hop here: try again at another random time.
+            ScheduleHop(now);
         }
 
         if (now >= _stateEndsAt)
@@ -279,6 +325,29 @@ public sealed class PetBehaviorStateMachine
     }
 
     /// <summary>
+    /// Notifies the machine that the pet has played its hop to the end. The pet walks on in the same direction for what is
+    /// left of the walk, or stands if the walk is over. Ignored if the pet is not hopping.
+    /// </summary>
+    public void OnHopEnded()
+    {
+        if (State != PetState.Hop)
+        {
+            return;
+        }
+
+        var now = _timeProvider.GetUtcNow();
+        if (now >= _walkEndsAt)
+        {
+            Enter(PetState.Idle);
+            return;
+        }
+
+        State = PetState.Walk;
+        _stateEndsAt = _walkEndsAt;
+        ScheduleHop(now);
+    }
+
+    /// <summary>
     /// Puts the pet back to standing, whatever it was doing: used when it is replaced by a new one.
     /// </summary>
     public void Reset()
@@ -352,6 +421,18 @@ public sealed class PetBehaviorStateMachine
         if (state == PetState.Walk)
         {
             WalkDirection = _random.Next(2) == 0 ? -1 : 1;
+            ScheduleHop(now);
         }
+    }
+
+    /// <summary>
+    /// Picks the moment at which the walking pet next hops.
+    /// </summary>
+    /// <param name="now">
+    /// The current time.
+    /// </param>
+    private void ScheduleHop(DateTimeOffset now)
+    {
+        _nextHopAt = now + _random.NextTimeSpan(_options.HopIntervalMin, _options.HopIntervalMax);
     }
 }

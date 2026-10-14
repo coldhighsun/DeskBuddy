@@ -25,7 +25,7 @@ public readonly record struct Point2(double X, double Y);
 /// Smallest allowed vertical position.
 /// </param>
 /// <param name="MaxY">
-/// Largest allowed vertical position; the taskbar line for a docked pet.
+/// Largest allowed vertical position; the taskbar line.
 /// </param>
 public readonly record struct MovementBounds(double MinX, double MaxX, double MinY, double MaxY)
 {
@@ -58,13 +58,10 @@ public readonly record struct MovementBounds(double MinX, double MaxX, double Mi
 /// <param name="Bounds">
 /// The range the window's top-left corner may take.
 /// </param>
-/// <param name="Cursor">
-/// The mouse pointer, or <see langword="null"/> if it is not known.
-/// </param>
 /// <param name="Speed">
 /// The walking speed in device-independent pixels per second.
 /// </param>
-public readonly record struct MovementContext(Point2 Position, Point2 Size, MovementBounds Bounds, Point2? Cursor, double Speed);
+public readonly record struct MovementContext(Point2 Position, Point2 Size, MovementBounds Bounds, double Speed);
 
 /// <summary>
 /// The result of one movement step.
@@ -75,7 +72,4 @@ public readonly record struct MovementContext(Point2 Position, Point2 Size, Move
 /// <param name="Facing">
 /// Which way the sprite faces: <c>-1</c> for left, <c>1</c> for right.
 /// </param>
-/// <param name="Arrived">
-/// <see langword="true"/> on the step in which the pet reached the mouse pointer it was chasing.
-/// </param>
-public readonly record struct MovementStep(Point2 Position, int Facing, bool Arrived = false);
+public readonly record struct MovementStep(Point2 Position, int Facing);
