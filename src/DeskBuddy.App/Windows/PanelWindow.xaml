@@ -215,12 +215,71 @@
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="{x:Static res:Strings.SettingsPetSize}" VerticalAlignment="Center" />
-                            <ComboBox Grid.Column="1"
-                                      ItemsSource="{Binding Sizes}"
-                                      DisplayMemberPath="Label"
-                                      SelectedValuePath="Value"
-                                      SelectedValue="{Binding SelectedSize}"
-                                      AutomationProperties.AutomationId="PetSizeBox" />
+                            <ItemsControl Grid.Column="1"
+                                          HorizontalAlignment="Left"
+                                          ItemsSource="{Binding SizeChoices}"
+                                          AutomationProperties.AutomationId="PetSizeList">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <!-- The Fluent RadioButton style has a minimum width, which would make the three buttons equally wide. -->
+                                        <RadioButton Margin="0,0,8,0"
+                                                     MinWidth="0"
+                                                     MinHeight="0"
+                                                     VerticalAlignment="Bottom"
+                                                     GroupName="PetSize"
+                                                     IsChecked="{Binding IsCurrent, Mode=OneWay}"
+                                                     Command="{Binding DataContext.ChooseSizeCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                     CommandParameter="{Binding Size}"
+                                                     ToolTip="{Binding Label}"
+                                                     AutomationProperties.Name="{Binding Label}">
+                                            <RadioButton.Template>
+                                                <ControlTemplate TargetType="RadioButton">
+                                                    <Border x:Name="Frame"
+                                                            Padding="10,8"
+                                                            BorderThickness="2"
+                                                            CornerRadius="6"
+                                                            Background="Transparent"
+                                                            BorderBrush="{DynamicResource PetCardBorderBrush}"
+                                                            Cursor="Hand">
+                                                        <ContentPresenter />
+                                                    </Border>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource PetCardSelectedBorderBrush}" />
+                                                        </Trigger>
+                                                        <Trigger Property="IsChecked" Value="True">
+                                                            <Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource PetCardSelectedBorderBrush}" />
+                                                            <Setter TargetName="Frame" Property="BorderThickness" Value="3" />
+                                                            <Setter TargetName="Frame" Property="Padding" Value="9,7" />
+                                                        </Trigger>
+                                                        <Trigger Property="IsPressed" Value="True">
+                                                            <Setter TargetName="Frame" Property="Opacity" Value="0.7" />
+                                                        </Trigger>
+                                                        <Trigger Property="IsEnabled" Value="False">
+                                                            <Setter TargetName="Frame" Property="Opacity" Value="0.5" />
+                                                            <Setter TargetName="Frame" Property="Cursor" Value="Arrow" />
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </RadioButton.Template>
+                                            <StackPanel>
+                                                <Image Source="{Binding Picture}"
+                                                       Width="{Binding Width}"
+                                                       Height="{Binding Height}"
+                                                       HorizontalAlignment="Center" />
+                                                <TextBlock Text="{Binding Label}"
+                                                           HorizontalAlignment="Center"
+                                                           Margin="0,4,0,0" />
+                                            </StackPanel>
+                                        </RadioButton>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
                         </Grid>
                         <CheckBox IsChecked="{Binding ClimbEdges}"
                                   Margin="0,8,0,0"

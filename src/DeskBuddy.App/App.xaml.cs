@@ -392,7 +392,8 @@ public partial class App
                     services.GetRequiredService<SettingsService>(),
                     _bossKey,
                     services.GetRequiredService<IAutoStartService>(),
-                    OpenLogDirectory),
+                    OpenLogDirectory,
+                    _installedPets),
                 new PetsTabViewModel(
                     services.GetRequiredService<SettingsService>(),
                     services.GetRequiredService<IPetCatalog>(),

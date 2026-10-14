@@ -1,5 +1,7 @@
 using System.IO;
+using System.Windows.Media;
 using AwesomeAssertions;
+using DeskBuddy.App.Presentation;
 using DeskBuddy.App.ViewModels;
 using DeskBuddy.Application;
 using DeskBuddy.Domain;
@@ -44,12 +46,20 @@ public class SettingsTabViewModelTests
     private SettingsTabViewModel _viewModel = null!;
 
     /// <summary>
+    /// A picture for the pets to show; its content does not matter to these tests.
+    /// </summary>
+    private static readonly ImageSource TestPicture = new DrawingImage();
+
+    /// <summary>
     /// Loads the settings and creates the view model over fakes.
     /// </summary>
+    /// <param name="pets">
+    /// The installed pets the sizes are drawn with, or <see langword="null"/> for none.
+    /// </param>
     /// <returns>
     /// A task that completes when the view model is ready.
     /// </returns>
-    private async Task CreateAsync()
+    private async Task CreateAsync(InstalledPets? pets = null)
     {
         _settings = new SettingsService(_store);
         await _settings.InitializeAsync();
@@ -59,7 +69,8 @@ public class SettingsTabViewModelTests
             _settings,
             bossKey,
             _autoStart,
-            () => LogDirectoryOpened++);
+            () => LogDirectoryOpened++,
+            pets);
     }
 
     /// <summary>
@@ -449,7 +460,161 @@ public class SettingsTabViewModelTests
         // Assert
         shownAtStart.Should().Be(PetSize.Large);
         _settings.Current.Size.Should().Be(PetSize.Small);
-        _viewModel.Sizes.Select(option => option.Value).Should().Equal(PetSize.Small, PetSize.Medium, PetSize.Large);
+        _viewModel.SizeChoices.Select(choice => choice.Size).Should().Equal(PetSize.Small, PetSize.Medium, PetSize.Large);
+    }
+
+    /// <summary>
+    /// Without installed pets the sizes are still offered, by name only.
+    /// </summary>
+    [Fact]
+    public async Task SizeChoices_NoPets_AreOfferedWithoutPictures()
+    {
+        // Arrange
+        await CreateAsync();
+
+        // Assert
+        _viewModel.SizeChoices.Should().HaveCount(3);
+        _viewModel.SizeChoices.Should().OnlyContain(choice => choice.Picture == null && choice.Width == 0);
+    }
+
+    /// <summary>
+    /// The sizes show the pet in use at the size each gives it, and follow the pet when another one is chosen.
+    /// </summary>
+    [Fact]
+    public async Task SizeChoices_PetChosen_ShowThatPetAtEachSize()
+    {
+        // Arrange
+        var catalog = new FakePetCatalog("cat", "mouse");
+        var loader = new FakePetLoader();
+        loader.Available.Add("cat");
+        loader.Available.Add("mouse");
+        var pets = new InstalledPets(catalog, loader, "pets", _ => TestPicture);
+        await pets.RefreshAsync();
+        await CreateAsync(pets);
+
+        // Act
+        var forDefaultPet = _viewModel.SizeChoices.Select(choice => choice.Width).ToList();
+        await _settings.UpdateAsync(settings => settings with { PetName = "mouse" }, TestContext.Current.CancellationToken);
+        var forMouse = _viewModel.SizeChoices.Select(choice => choice.Width).ToList();
+
+        // Assert
+        forDefaultPet.Should().OnlyContain(width => width == 0);
+        forMouse.Should().Equal(48, 72, 96);
+    }
+
+    /// <summary>
+    /// When the pets become known after the tab was made, the sizes are drawn again with the pet in use.
+    /// </summary>
+    [Fact]
+    public async Task SizeChoices_PetsFoundLater_AreDrawnAgain()
+    {
+        // Arrange
+        var catalog = new FakePetCatalog(PetSettings.DefaultPetName);
+        var loader = new FakePetLoader();
+        loader.Available.Add(PetSettings.DefaultPetName);
+        var pets = new InstalledPets(catalog, loader, "pets", _ => TestPicture);
+        await CreateAsync(pets);
+        var before = _viewModel.SizeChoices.Select(choice => choice.Width).ToList();
+
+        // Act
+        await pets.RefreshAsync();
+
+        // Assert
+        before.Should().OnlyContain(width => width == 0);
+        _viewModel.SizeChoices.Select(choice => choice.Width).Should().OnlyContain(width => width > 0);
+    }
+
+    /// <summary>
+    /// A change of the installed pets draws the sizes again, but leaves what the user is typing in the rest of the tab
+    /// as it is.
+    /// </summary>
+    [Fact]
+    public async Task SizeChoices_PetsChangedWhileEditing_KeepsUnappliedEntries()
+    {
+        // Arrange
+        var catalog = new FakePetCatalog();
+        var loader = new FakePetLoader();
+        loader.Available.Add(PetSettings.DefaultPetName);
+        var pets = new InstalledPets(catalog, loader, "pets", _ => TestPicture);
+        await CreateAsync(pets);
+        _viewModel.ClockOutTimeText = "99:99";
+
+        // Act
+        catalog.Names = [PetSettings.DefaultPetName];
+        await pets.RefreshAsync();
+
+        // Assert
+        _viewModel.ClockOutTimeText.Should().Be("99:99");
+        _viewModel.ClockOutTimeError.Should().NotBeEmpty();
+        _viewModel.SizeChoices.Should().OnlyContain(choice => choice.Width > 0);
+    }
+
+    /// <summary>
+    /// The sizes are made again only when something they show changed, not for every change of the settings.
+    /// </summary>
+    [Fact]
+    public async Task SizeChoices_UnrelatedSettingChanged_AreNotMadeAgain()
+    {
+        // Arrange
+        await CreateAsync();
+        var before = _viewModel.SizeChoices;
+
+        // Act
+        await _settings.UpdateAsync(settings => settings with { ChatterEnabled = !settings.ChatterEnabled }, TestContext.Current.CancellationToken);
+
+        // Assert
+        _viewModel.SizeChoices.Should().BeSameAs(before);
+    }
+
+    /// <summary>
+    /// Choosing another size makes the sizes again, once, so that the new one is marked.
+    /// </summary>
+    [Fact]
+    public async Task SizeChoices_SizeChosen_AreMadeAgain()
+    {
+        // Arrange
+        await CreateAsync();
+        var before = _viewModel.SizeChoices;
+
+        // Act
+        _viewModel.ChooseSizeCommand.Execute(PetSize.Large);
+
+        // Assert
+        _viewModel.SizeChoices.Should().NotBeSameAs(before);
+    }
+
+    /// <summary>
+    /// Pressing the button of a size stores that size, like choosing it any other way, and marks that size as the one in
+    /// use at once.
+    /// </summary>
+    [Fact]
+    public async Task ChooseSizeCommand_Executed_StoresSizeAndMarksIt()
+    {
+        // Arrange
+        await CreateAsync();
+
+        // Act
+        _viewModel.ChooseSizeCommand.Execute(PetSize.Large);
+
+        // Assert
+        _settings.Current.Size.Should().Be(PetSize.Large);
+        _viewModel.SizeChoices.Where(choice => choice.IsCurrent).Select(choice => choice.Size).Should().Equal(PetSize.Large);
+    }
+
+    /// <summary>
+    /// The size in use is marked among the choices when the tab is made.
+    /// </summary>
+    [Fact]
+    public async Task SizeChoices_StoredSize_IsMarkedAsCurrent()
+    {
+        // Arrange
+        _store.Stored = PetSettings.Default with { Size = PetSize.Small };
+
+        // Act
+        await CreateAsync();
+
+        // Assert
+        _viewModel.SizeChoices.Where(choice => choice.IsCurrent).Select(choice => choice.Size).Should().Equal(PetSize.Small);
     }
 
     /// <summary>
