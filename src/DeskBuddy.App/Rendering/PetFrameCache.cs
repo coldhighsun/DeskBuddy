@@ -46,6 +46,41 @@ public sealed class PetFrameCache
     }
 
     /// <summary>
+    /// Decodes the pictures of a pet on a thread of its own, so that the caller's thread is not held up. The pictures are
+    /// frozen, which is what lets the thread that asked use them. A thread is made for each pet rather than borrowing a
+    /// thread-pool one, which would keep a WPF dispatcher alive for every pool thread it decodes on.
+    /// </summary>
+    /// <param name="pet">
+    /// The pet.
+    /// </param>
+    /// <returns>
+    /// A task that completes with the cache, or fails with the error that made a picture undecodable.
+    /// </returns>
+    public static Task<PetFrameCache> CreateAsync(Pet pet)
+    {
+        var completion = new TaskCompletionSource<PetFrameCache>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                completion.SetResult(new PetFrameCache(pet));
+            }
+            catch (Exception ex)
+            {
+                // Not handled here: the error is handed on to whoever awaits the task.
+                completion.SetException(ex);
+            }
+        })
+        {
+            IsBackground = true,
+            Name = "Pet frame decoding",
+        };
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
+        return completion.Task;
+    }
+
+    /// <summary>
     /// Gets the decoded frame for a file path.
     /// </summary>
     /// <param name="path">
