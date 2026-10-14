@@ -27,7 +27,7 @@ public class PetsTabViewModelTests
     /// <summary>
     /// The pets the catalog lists.
     /// </summary>
-    private readonly ListedPets _catalog = new();
+    private readonly FakePetCatalog _catalog = new();
 
     /// <summary>
     /// The settings service.
@@ -420,23 +420,6 @@ public class PetsTabViewModelTests
         for (var i = 0; i < 200 && !condition(); i++)
         {
             await Task.Delay(10);
-        }
-    }
-
-    /// <summary>
-    /// A pet catalog whose list can change between refreshes.
-    /// </summary>
-    private sealed class ListedPets : IPetCatalog
-    {
-        /// <summary>
-        /// Gets or sets the names of the installed pets.
-        /// </summary>
-        public IReadOnlyList<string> Names { get; set; } = [];
-
-        /// <inheritdoc />
-        public IReadOnlyList<string> GetPetNames()
-        {
-            return Names;
         }
     }
 }

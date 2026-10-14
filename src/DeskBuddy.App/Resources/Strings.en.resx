@@ -22,6 +22,8 @@
   <data name="TrayExit" xml:space="preserve"><value>Exit</value></data>
 
   <data name="OpenPanel" xml:space="preserve"><value>Open panel</value></data>
+  <data name="TraySwitchPet" xml:space="preserve"><value>Switch pet</value></data>
+  <data name="TrayPetSize" xml:space="preserve"><value>Pet size</value></data>
 
 
 

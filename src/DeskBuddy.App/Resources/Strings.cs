@@ -63,6 +63,16 @@ internal static class Strings
     public static string OpenPanel => Get();
 
     /// <summary>
+    /// Gets the tray menu text of the submenu that switches the pet.
+    /// </summary>
+    public static string TraySwitchPet => Get();
+
+    /// <summary>
+    /// Gets the tray menu text of the submenu that changes the pet size.
+    /// </summary>
+    public static string TrayPetSize => Get();
+
+    /// <summary>
     /// Gets the bubble text reminding the user to take a break; <c>{0}</c> is how many minutes they have worked.
     /// </summary>
     public static string MessageSedentary => Get();

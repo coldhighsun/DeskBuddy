@@ -22,6 +22,8 @@
   <data name="TrayExit" xml:space="preserve"><value>退出</value></data>
 
   <data name="OpenPanel" xml:space="preserve"><value>打开面板</value></data>
+  <data name="TraySwitchPet" xml:space="preserve"><value>切换宠物</value></data>
+  <data name="TrayPetSize" xml:space="preserve"><value>宠物大小</value></data>
 
 
 
