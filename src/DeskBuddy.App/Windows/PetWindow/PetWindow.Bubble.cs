@@ -92,6 +92,6 @@ public partial class PetWindow
     /// </returns>
     private double SpriteTop()
     {
-        return _frames.GetMask(_player.CurrentFramePath).TopOpaqueFraction();
+        return _frames.GetMask(_player.CurrentFrameId).TopOpaqueFraction();
     }
 }

@@ -25,7 +25,7 @@ public class PetCardViewModelTests
         // Assert
         card.IsAvailable.Should().BeTrue();
         card.CurrentState.Should().Be(PetState.Idle);
-        card.CurrentFramePath.Should().Be("idle_0.png");
+        card.CurrentFrameId.Should().Be("idle_0.png");
         card.StateCaption.Should().NotBeNullOrEmpty().And.NotStartWith("!");
         _requestedFrames.Should().Equal("idle_0.png");
     }
@@ -57,7 +57,7 @@ public class PetCardViewModelTests
         card.Tick(TimeSpan.FromMilliseconds(500));
 
         // Assert
-        card.CurrentFramePath.Should().Be("idle_1.png");
+        card.CurrentFrameId.Should().Be("idle_1.png");
     }
 
     /// <summary>
@@ -73,8 +73,60 @@ public class PetCardViewModelTests
         card.Tick(PetCardViewModel.StateDuration);
 
         // Assert
-        card.CurrentState.Should().Be(PetState.Walk);
-        card.CurrentFramePath.Should().Be("Walk_0.png");
+        card.CurrentState.Should().BeOneOf(PetState.Walk, PetState.Sleep);
+        card.CurrentFrameId.Should().Be($"{card.CurrentState}_0.png");
+    }
+
+    /// <summary>
+    /// Every state is shown once in each round, in a random order that starts with Idle, and a new round does not start with
+    /// the state that ended the one before.
+    /// </summary>
+    [Fact]
+    public void Tick_ManyRounds_ShowsEveryStateOncePerRoundAndNeverTheSameTwiceInARow()
+    {
+        // Arrange
+        var states = new[] { PetState.Walk, PetState.Sleep, PetState.Happy, PetState.Alert, PetState.Tired };
+        var card = CreateCard(CreatePet(states), new Random(7));
+        var shown = new List<PetState> { card.CurrentState!.Value };
+
+        // Act
+        for (var step = 0; step < ((states.Length + 1) * 20) - 1; step++)
+        {
+            card.Tick(PetCardViewModel.StateDuration);
+            shown.Add(card.CurrentState!.Value);
+        }
+
+        // Assert
+        var rounds = shown.Chunk(states.Length + 1).ToList();
+        rounds[0][0].Should().Be(PetState.Idle);
+        rounds.Should().OnlyContain(round => round.Distinct().Count() == states.Length + 1);
+        shown.Zip(shown.Skip(1)).Should().OnlyContain(pair => pair.First != pair.Second);
+        rounds.Skip(1).Select(round => string.Join(',', round)).Distinct().Count().Should().BeGreaterThan(1);
+    }
+
+    /// <summary>
+    /// The order is not the same every time: restarting starts from Idle but goes on in another order.
+    /// </summary>
+    [Fact]
+    public void Restart_Repeatedly_StartsWithIdleAndVariesTheRest()
+    {
+        // Arrange
+        var card = CreateCard(
+            CreatePet(PetState.Walk, PetState.Sleep, PetState.Happy, PetState.Alert, PetState.Tired, PetState.Dizzy),
+            new Random(3));
+        var seconds = new HashSet<PetState?>();
+
+        // Act
+        for (var run = 0; run < 20; run++)
+        {
+            card.Restart();
+            card.CurrentState.Should().Be(PetState.Idle);
+            card.Tick(PetCardViewModel.StateDuration);
+            seconds.Add(card.CurrentState);
+        }
+
+        // Assert
+        seconds.Should().HaveCountGreaterThan(1);
     }
 
     /// <summary>
@@ -125,7 +177,7 @@ public class PetCardViewModelTests
 
         // Assert
         card.CurrentState.Should().Be(PetState.Idle);
-        card.CurrentFramePath.Should().Be("idle_0.png");
+        card.CurrentFrameId.Should().Be("idle_0.png");
     }
 
     /// <summary>
@@ -142,9 +194,33 @@ public class PetCardViewModelTests
         card.IsAvailable.Should().BeFalse();
         card.DisplayName.Should().Be("broken");
         card.LoadError.Should().Contain("manifest is missing");
-        card.CurrentFramePath.Should().BeNull();
+        card.CurrentFrameId.Should().BeNull();
         card.CurrentFrame.Should().BeNull();
         card.Tags.Should().BeEmpty();
+        card.Details.Should().BeNull();
+        card.HasPicture.Should().BeFalse();
+    }
+
+    /// <summary>
+    /// A card knows whether the first picture of its preview could be read, so the tab can load it again if not.
+    /// </summary>
+    /// <param name="pictureAvailable">
+    /// Whether the pictures can be read.
+    /// </param>
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void HasPicture_FirstPicture_TellsWhetherItCouldBeRead(bool pictureAvailable)
+    {
+        // Arrange
+        var picture = System.Windows.Media.Imaging.BitmapSource.Create(1, 1, 96, 96, System.Windows.Media.PixelFormats.Bgra32, null, new byte[4], 4);
+        picture.Freeze();
+
+        // Act
+        var card = new PetCardViewModel("folder", CreatePet(), _ => pictureAvailable ? picture : null);
+
+        // Assert
+        card.HasPicture.Should().Be(pictureAvailable);
     }
 
     /// <summary>
@@ -162,15 +238,37 @@ public class PetCardViewModelTests
     }
 
     /// <summary>
+    /// The tooltip of the card starts with the name and the size line, then lists every tag on a line of its own, checked if
+    /// the pet has the ability and crossed if not.
+    /// </summary>
+    [Fact]
+    public void Details_PetWithClimbing_ListsNameInfoAndEveryTagWithItsMark()
+    {
+        // Act
+        var card = CreateCard(CreatePet(PetState.Climb, PetState.Hang));
+
+        // Assert
+        var lines = card.Details!.Split(Environment.NewLine);
+        lines.Should().HaveCount(2 + card.Tags.Count);
+        lines[0].Should().Be(card.DisplayName);
+        lines[1].Should().Be(card.InfoText);
+        lines.Skip(2).Select(line => line[0]).Should().Equal('✗', '✓', '✗', '✗');
+        lines.Skip(2).Select(line => line[2..]).Should().Equal(card.Tags.Select(tag => tag.Text));
+    }
+
+    /// <summary>
     /// Creates a card whose pictures are looked up by file path and not decoded.
     /// </summary>
     /// <param name="pet">
     /// The pet.
     /// </param>
+    /// <param name="random">
+    /// The source of randomness for the order of the states, or <see langword="null"/> for the shared one.
+    /// </param>
     /// <returns>
     /// The card.
     /// </returns>
-    private PetCardViewModel CreateCard(Pet pet)
+    private PetCardViewModel CreateCard(Pet pet, Random? random = null)
     {
         return new PetCardViewModel(
             "folder",
@@ -179,7 +277,8 @@ public class PetCardViewModelTests
             {
                 _requestedFrames.Add(path);
                 return null;
-            });
+            },
+            random);
     }
 
     /// <summary>

@@ -31,7 +31,18 @@ public sealed partial class PetCardViewModel : ObservableObject
     private readonly IReadOnlyList<PetState> _showcase = [];
 
     /// <summary>
-    /// The position in <see cref="_showcase"/> of the state being shown.
+    /// The source of randomness for the order the states are shown in.
+    /// </summary>
+    private readonly Random _random = Random.Shared;
+
+    /// <summary>
+    /// The order the states are being shown in: Idle first after a start, then the others at random, and a new random order
+    /// each time all have been shown.
+    /// </summary>
+    private IReadOnlyList<PetState> _order = [];
+
+    /// <summary>
+    /// The position in <see cref="_order"/> of the state being shown.
     /// </summary>
     private int _showcaseIndex;
 
@@ -77,17 +88,22 @@ public sealed partial class PetCardViewModel : ObservableObject
     /// <param name="frames">
     /// Supplies the picture in a file.
     /// </param>
-    public PetCardViewModel(string folderName, Pet pet, Func<string, ImageSource?> frames)
+    /// <param name="random">
+    /// The source of randomness for the order the states are shown in, or <see langword="null"/> to use the shared one.
+    /// </param>
+    public PetCardViewModel(string folderName, Pet pet, Func<string, ImageSource?> frames, Random? random = null)
     {
         ArgumentException.ThrowIfNullOrEmpty(folderName);
         ArgumentNullException.ThrowIfNull(pet);
         ArgumentNullException.ThrowIfNull(frames);
 
         FolderName = folderName;
-        DisplayName = pet.Name;
+        DisplayName = pet.GetDisplayName(CultureInfo.CurrentUICulture);
         _frames = frames;
         _player = new AnimationPlayer(pet);
         _showcase = PetShowcase.NativeStatesOf(pet);
+        _random = random ?? Random.Shared;
+        _order = PetShowcase.RandomOrder(_showcase, _random, first: PetState.Idle);
 
         var capabilities = PetCapabilities.Of(pet);
         InfoText = string.Format(
@@ -105,7 +121,12 @@ public sealed partial class PetCardViewModel : ObservableObject
             new PetTag(Format(Strings.PetsCapScenarios, capabilities.Scenarios), capabilities.Scenarios.IsSupported),
         ];
 
+        Details = string.Join(
+            Environment.NewLine,
+            [DisplayName, InfoText, .. Tags.Select(tag => $"{(tag.IsSupported ? "✓" : "✗")} {tag.Text}")]);
+
         ShowState();
+        HasPicture = CurrentFrame is not null;
     }
 
     /// <summary>
@@ -148,6 +169,20 @@ public sealed partial class PetCardViewModel : ObservableObject
     public IReadOnlyList<PetTag> Tags { get; } = [];
 
     /// <summary>
+    /// Gets the text of the tooltip of the card: the name, the picture size and number of states, and then every tag on a
+    /// line of its own, marked with a check or a cross; <see langword="null"/> if the pet could not be loaded, so that no
+    /// tooltip is shown.
+    /// </summary>
+    public string? Details { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the first picture of the preview could be read. A pet that was loaded but whose
+    /// pictures could not be read (a corrupt or locked atlas) has none; the tab loads such a card again when it looks at the
+    /// pets, as the atlas may have been repaired since.
+    /// </summary>
+    public bool HasPicture { get; }
+
+    /// <summary>
     /// Gets why the pet could not be loaded, or empty if it could.
     /// </summary>
     public string LoadError { get; } = string.Empty;
@@ -158,14 +193,14 @@ public sealed partial class PetCardViewModel : ObservableObject
     public bool IsAvailable => _player is not null;
 
     /// <summary>
-    /// Gets the file path of the picture the preview shows now; <see langword="null"/> if the pet could not be loaded.
+    /// Gets the name of the picture the preview shows now (see <see cref="FrameId"/>); <see langword="null"/> if the pet could not be loaded.
     /// </summary>
-    public string? CurrentFramePath => _player?.CurrentFramePath;
+    public string? CurrentFrameId => _player?.CurrentFrameId;
 
     /// <summary>
     /// Gets the state the preview is showing.
     /// </summary>
-    public PetState? CurrentState => _player is null ? null : _showcase[_showcaseIndex];
+    public PetState? CurrentState => _player is null ? null : _order[_showcaseIndex];
 
     /// <summary>
     /// Moves the preview on: plays the animation, and after <see cref="StateDuration"/> goes to the next state.
@@ -184,7 +219,14 @@ public sealed partial class PetCardViewModel : ObservableObject
         if (_timeOnState >= StateDuration && _showcase.Count > 1)
         {
             _timeOnState = TimeSpan.Zero;
-            _showcaseIndex = (_showcaseIndex + 1) % _showcase.Count;
+            _showcaseIndex++;
+            if (_showcaseIndex >= _order.Count)
+            {
+                // Everything has been shown: a new random order, which does not start with the state just shown.
+                _order = PetShowcase.RandomOrder(_showcase, _random, notFirst: _order[^1]);
+                _showcaseIndex = 0;
+            }
+
             ShowState();
             return;
         }
@@ -196,7 +238,7 @@ public sealed partial class PetCardViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Starts the preview over from the first state.
+    /// Starts the preview over from Idle, followed by the other states in a new random order.
     /// </summary>
     public void Restart()
     {
@@ -206,6 +248,7 @@ public sealed partial class PetCardViewModel : ObservableObject
         }
 
         _timeOnState = TimeSpan.Zero;
+        _order = PetShowcase.RandomOrder(_showcase, _random, first: PetState.Idle);
         _showcaseIndex = 0;
         ShowState();
     }
@@ -237,7 +280,7 @@ public sealed partial class PetCardViewModel : ObservableObject
             return;
         }
 
-        var state = _showcase[_showcaseIndex];
+        var state = _order[_showcaseIndex];
         _player.SetState(state);
         StateCaption = Strings.PetStateName(state);
         UpdateFrame();
@@ -250,7 +293,7 @@ public sealed partial class PetCardViewModel : ObservableObject
     {
         if (_player is not null && _frames is not null)
         {
-            CurrentFrame = _frames(_player.CurrentFramePath);
+            CurrentFrame = _frames(_player.CurrentFrameId);
         }
     }
 }

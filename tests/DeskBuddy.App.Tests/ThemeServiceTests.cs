@@ -216,7 +216,7 @@ public class ThemeServiceTests
         StaThread.Run(() =>
         {
             // Arrange
-            var logger = new RecordingLogger();
+            var logger = new RecordingLogger<ThemeService>();
             using var fixture = new Fixture(AppTheme.Dark, logger: logger, fluentPrefix: "pack://application:,,,/NoSuchAssembly;component/Themes/Fluent.");
             var menu = new ContextMenu();
 
@@ -242,7 +242,7 @@ public class ThemeServiceTests
             // Arrange
             var settings = new SettingsService(new FakeSettingsStore());
             settings.InitializeAsync().GetAwaiter().GetResult();
-            var logger = new RecordingLogger();
+            var logger = new RecordingLogger<ThemeService>();
             var resources = new ResourceDictionary();
             using var service = new ThemeService(resources, Dispatcher.CurrentDispatcher, settings, logger);
             var menu = new ContextMenu();
@@ -267,7 +267,7 @@ public class ThemeServiceTests
         StaThread.Run(() =>
         {
             // Arrange
-            var logger = new RecordingLogger();
+            var logger = new RecordingLogger<ThemeService>();
             using var fixture = new Fixture(AppTheme.Auto, logger: logger, systemLightTheme: null);
 
             // Act
@@ -289,7 +289,7 @@ public class ThemeServiceTests
         StaThread.Run(() =>
         {
             // Arrange
-            var logger = new RecordingLogger();
+            var logger = new RecordingLogger<ThemeService>();
             using var fixture = new Fixture(AppTheme.Dark, highContrast: true, logger: logger, highContrastAnswers: false);
 
             // Act
@@ -500,36 +500,6 @@ public class ThemeServiceTests
         public void Dispose()
         {
             Service.Dispose();
-        }
-    }
-
-    /// <summary>
-    /// A logger that remembers the levels it was asked to log at.
-    /// </summary>
-    private sealed class RecordingLogger : ILogger<ThemeService>
-    {
-        /// <summary>
-        /// Gets the levels logged so far.
-        /// </summary>
-        public List<LogLevel> Levels { get; } = [];
-
-        /// <inheritdoc />
-        public IDisposable? BeginScope<TState>(TState state)
-            where TState : notnull
-        {
-            return null;
-        }
-
-        /// <inheritdoc />
-        public bool IsEnabled(LogLevel logLevel)
-        {
-            return true;
-        }
-
-        /// <inheritdoc />
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
-        {
-            Levels.Add(logLevel);
         }
     }
 }

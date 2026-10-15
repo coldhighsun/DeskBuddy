@@ -1,0 +1,35 @@
+﻿{
+  "name": "penguin",
+  "names": { "en": "Penguin", "zh": "企鹅" },
+  "frameSize": [64, 64],
+  "atlas": { "image": "atlas.png", "cell": [128, 128], "columns": 10 },
+  "states": {
+    "Idle":    { "fps": 2, "frames": [0, 1, 0, 2] },
+    "Walk":    { "fps": 8, "frames": [3, 4, 5, 6] },
+    "Sleep":   { "fps": 1, "frames": [7, 8] },
+    "Drag":    { "fps": 6, "frames": [9, 9] },
+    "Glide":   { "fps": 4, "frames": [10, 10] },
+    "Tired":   { "fps": 2, "frames": [11, 12] },
+    "Alert":   { "fps": 4, "frames": [13, 14] },
+    "Happy":   { "fps": 5, "frames": [15, 16] },
+    "Welcome": { "fps": 4, "frames": [17, 18, 17, 19] },
+    "Meal":    { "fps": 3, "frames": [20, 21, 22, 23] },
+    "Dizzy":   { "fps": 6, "frames": [24, 25, 26, 27] },
+    "Hang":    { "fps": 2, "frames": [28, 28] },
+    "Climb":   { "fps": 6, "frames": [29, 30, 31, 32] },
+    "ClimbDown": { "fps": 6, "frames": [33, 34, 35, 36] },
+    "Ceiling": { "fps": 6, "frames": [37, 38, 39, 40] },
+    "Coding":  { "fps": 4, "frames": [41, 42, 43, 42] },
+    "NightCoding": { "fps": 3, "frames": [44, 45, 46, 45] },
+    "Building": { "fps": 4, "frames": [47, 48, 49, 50] },
+    "Focus":   { "fps": 3, "frames": [51, 52] },
+    "Reading": { "fps": 2, "frames": [53, 54, 55, 54] },
+    "Meeting": { "fps": 3, "frames": [56, 57, 58, 59] },
+    "Chatting": { "fps": 3, "frames": [60, 61, 62, 63] },
+    "Idle.Left":  { "fps": 1, "frames": [64] },
+    "Idle.Right": { "fps": 1, "frames": [65] },
+    "Idle.Up":    { "fps": 1, "frames": [66] },
+    "Idle.Down":  { "fps": 1, "frames": [67] }
+  }
+}
+

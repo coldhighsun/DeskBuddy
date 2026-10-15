@@ -1,3 +1,4 @@
+using System.Globalization;
 using DeskBuddy.Domain.Gaze;
 
 namespace DeskBuddy.Domain.Tests.Pets;
@@ -21,6 +22,81 @@ public class PetTests
 
         // Assert
         act.Should().Throw<ArgumentException>();
+    }
+
+    /// <summary>
+    /// The name shown comes from the manifest entry for the culture, else for its language, else it is the pet's own name.
+    /// </summary>
+    /// <param name="culture">
+    /// The language to show the name in.
+    /// </param>
+    /// <param name="expected">
+    /// The name that is expected.
+    /// </param>
+    [Theory]
+    [InlineData("zh-CN", "猫")]
+    [InlineData("zh", "猫")]
+    [InlineData("en-US", "Cat")]
+    [InlineData("en-GB", "British cat")]
+    [InlineData("fr-FR", "cat")]
+    public void GetDisplayName_Culture_PicksTheBestMatch(string culture, string expected)
+    {
+        // Arrange
+        var pet = new Pet(
+            "cat",
+            128,
+            128,
+            new Dictionary<PetState, PetAnimation> { [PetState.Idle] = Animation("idle.png") },
+            null,
+            new Dictionary<string, string> { ["ZH"] = "猫", ["en"] = "Cat", ["en-GB"] = "British cat", ["de"] = " " });
+
+        // Act
+        var name = pet.GetDisplayName(CultureInfo.GetCultureInfo(culture));
+
+        // Assert
+        name.Should().Be(expected);
+    }
+
+    /// <summary>
+    /// Keys that differ only by case or surrounding blanks name the same language and do not make the pet fail to be made;
+    /// the last one wins.
+    /// </summary>
+    [Fact]
+    public void Constructor_LocalizedNamesWithDuplicateKeys_LastOneWins()
+    {
+        // Act
+        var pet = new Pet(
+            "cat",
+            128,
+            128,
+            new Dictionary<PetState, PetAnimation> { [PetState.Idle] = Animation("idle.png") },
+            null,
+            new Dictionary<string, string> { ["zh"] = "猫", ["ZH"] = "小猫", [" zh "] = "猫咪" });
+
+        // Assert
+        pet.GetDisplayName(CultureInfo.GetCultureInfo("zh-CN")).Should().Be("猫咪");
+    }
+
+    /// <summary>
+    /// A blank entry is ignored, so the name falls back to the pet's own.
+    /// </summary>
+    [Fact]
+    public void GetDisplayName_BlankEntry_FallsBackToName()
+    {
+        // Arrange
+        var pet = new Pet(
+            "cat",
+            128,
+            128,
+            new Dictionary<PetState, PetAnimation> { [PetState.Idle] = Animation("idle.png") },
+            null,
+            new Dictionary<string, string> { ["de"] = " " });
+
+        // Act
+        var name = pet.GetDisplayName(CultureInfo.GetCultureInfo("de-DE"));
+
+        // Assert
+        name.Should().Be("cat");
     }
 
     /// <summary>

@@ -1,3 +1,4 @@
+using System.Globalization;
 using DeskBuddy.Domain.Gaze;
 
 namespace DeskBuddy.Domain.Pets;
@@ -11,6 +12,11 @@ public sealed class Pet
     /// Animations keyed by the state they represent.
     /// </summary>
     private readonly IReadOnlyDictionary<PetState, PetAnimation> _animations;
+
+    /// <summary>
+    /// The name of the pet in other languages, by culture name or language.
+    /// </summary>
+    private readonly Dictionary<string, string> _localizedNames;
 
     /// <summary>
     /// The Idle animations for looking in a direction, if the pet has any.
@@ -36,6 +42,10 @@ public sealed class Pet
     /// Variants of the Idle animation for looking left, right, up or down, or <see langword="null"/> if the pet has
     /// none.
     /// </param>
+    /// <param name="localizedNames">
+    /// The name of the pet in other languages, keyed by culture name (<c>zh-CN</c>) or language (<c>zh</c>), or
+    /// <see langword="null"/> if it has none.
+    /// </param>
     /// <exception cref="ArgumentException">
     /// Thrown when <paramref name="animations"/> has no <see cref="PetState.Idle"/> entry.
     /// </exception>
@@ -44,7 +54,8 @@ public sealed class Pet
         int frameWidth,
         int frameHeight,
         IReadOnlyDictionary<PetState, PetAnimation> animations,
-        IReadOnlyDictionary<GazeDirection, PetAnimation>? gazeAnimations = null)
+        IReadOnlyDictionary<GazeDirection, PetAnimation>? gazeAnimations = null,
+        IReadOnlyDictionary<string, string>? localizedNames = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(frameWidth);
@@ -61,12 +72,47 @@ public sealed class Pet
         FrameHeight = frameHeight;
         _animations = animations;
         _gazeAnimations = gazeAnimations ?? new Dictionary<GazeDirection, PetAnimation>();
+        _localizedNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var (key, value) in localizedNames ?? new Dictionary<string, string>())
+        {
+            // Keys that differ only by case or surrounding blanks name the same language; the last one wins, as a
+            // cosmetic duplicate in a manifest must not make the pet unusable.
+            if (!string.IsNullOrWhiteSpace(key) && !string.IsNullOrWhiteSpace(value))
+            {
+                _localizedNames[key.Trim()] = value.Trim();
+            }
+        }
     }
 
     /// <summary>
     /// Gets the display name of the pet.
     /// </summary>
     public string Name { get; }
+
+    /// <summary>
+    /// Gets the name of the pet to show in a language: the one the manifest gives for the culture, else for its parent
+    /// cultures (<c>zh-CN</c>, then <c>zh-Hans</c>, then <c>zh</c>), else <see cref="Name"/>.
+    /// </summary>
+    /// <param name="culture">
+    /// The language to show the name in.
+    /// </param>
+    /// <returns>
+    /// The name.
+    /// </returns>
+    public string GetDisplayName(CultureInfo culture)
+    {
+        ArgumentNullException.ThrowIfNull(culture);
+
+        for (var current = culture; current.Name.Length > 0; current = current.Parent)
+        {
+            if (_localizedNames.TryGetValue(current.Name, out var name))
+            {
+                return name;
+            }
+        }
+
+        return Name;
+    }
 
     /// <summary>
     /// Gets the frame width in device-independent pixels.

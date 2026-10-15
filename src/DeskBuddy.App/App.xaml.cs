@@ -119,6 +119,11 @@ public partial class App
     private InstalledPets? _installedPets;
 
     /// <summary>
+    /// The view model of the panel, created when the application is idle after start-up or when the panel is first opened.
+    /// </summary>
+    private PanelViewModel? _panelViewModel;
+
+    /// <summary>
     /// The tray icon; <see langword="null"/> until startup completes.
     /// </summary>
     private TrayIconService? _tray;
@@ -312,7 +317,8 @@ public partial class App
                 _host.Services.GetRequiredService<IPetCatalog>(),
                 _host.Services.GetRequiredService<IPetLoader>(),
                 Path.Combine(AppContext.BaseDirectory, "pets"),
-                _previewFrames.Get);
+                _previewFrames.Get,
+                _previewFrames.PreloadAsync);
             _tray = new TrayIconService(
                 brain,
                 OpenPanel,
@@ -331,6 +337,9 @@ public partial class App
                     _host.Services.GetRequiredService<SettingsService>().Current.BossKey,
                     hotkeyError);
             }
+
+            // The panel's list of pets takes a moment to load; do it while nothing else needs the thread.
+            _ = Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ApplicationIdle, () => PreparePanelViewModel());
         }
         catch (InvalidDataException ex)
         {
@@ -356,6 +365,7 @@ public partial class App
         _bossKey?.Dispose();
         _hotkeys?.Dispose();
         _tray?.Dispose();
+        _previewFrames.Dispose();
 
         if (_host is not null)
         {
@@ -376,10 +386,28 @@ public partial class App
     /// </param>
     private void OpenPanel(PanelTab? tab)
     {
-        if (_panel is null && _host is not null && _petWindow is not null && _bossKey is not null && _petSwitcher is not null)
+        if (_panel is null && PreparePanelViewModel() is { } viewModel)
+        {
+            _panel = new PanelWindow(viewModel);
+            _themeService?.Register(_panel);
+        }
+
+        _panel?.ShowPanel(tab);
+    }
+
+    /// <summary>
+    /// Creates the view model of the panel the first time, and starts looking at the pets in it, so that they are ready
+    /// when the panel is opened. Called once the application is idle after start-up, and again when the panel opens.
+    /// </summary>
+    /// <returns>
+    /// The view model, or <see langword="null"/> if the application is not up yet.
+    /// </returns>
+    private PanelViewModel? PreparePanelViewModel()
+    {
+        if (_panelViewModel is null && _host is not null && _petWindow is not null && _bossKey is not null && _petSwitcher is not null)
         {
             var services = _host.Services;
-            var viewModel = new PanelViewModel(
+            _panelViewModel = new PanelViewModel(
                 new SettingsTabViewModel(
                     services.GetRequiredService<SettingsService>(),
                     _bossKey,
@@ -392,12 +420,12 @@ public partial class App
                     services.GetRequiredService<IPetLoader>(),
                     Path.Combine(AppContext.BaseDirectory, "pets"),
                     _petSwitcher,
-                    _previewFrames.Get));
-            _panel = new PanelWindow(viewModel);
-            _themeService?.Register(_panel);
+                    _previewFrames.Get,
+                    _previewFrames.PreloadAsync));
+            _ = _panelViewModel.Pets.RefreshQuietlyAsync(services.GetRequiredService<ILogger<App>>());
         }
 
-        _panel?.ShowPanel(tab);
+        return _panelViewModel;
     }
 
     /// <summary>

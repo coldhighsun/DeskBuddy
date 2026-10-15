@@ -56,6 +56,7 @@
   <data name="PetsCapScenarios" xml:space="preserve"><value>情境动作 {0}/{1}</value></data>
   <data name="PetsLoadFailed" xml:space="preserve"><value>无法加载：{0}</value></data>
   <data name="PetsEmpty" xml:space="preserve"><value>没有找到宠物。</value></data>
+  <data name="PetsLoading" xml:space="preserve"><value>正在加载宠物…</value></data>
   <data name="PetStateNameIdle" xml:space="preserve"><value>待机</value></data>
   <data name="PetStateNameWalk" xml:space="preserve"><value>走路</value></data>
   <data name="PetStateNameSleep" xml:space="preserve"><value>睡觉</value></data>

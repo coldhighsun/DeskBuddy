@@ -47,9 +47,9 @@ public sealed class AnimationPlayer
     public int FrameIndex { get; private set; }
 
     /// <summary>
-    /// Gets the file path of the current frame image.
+    /// Gets the name of the current frame picture (see <see cref="FrameId"/>).
     /// </summary>
-    public string CurrentFramePath => Animation.FramePaths[FrameIndex];
+    public string CurrentFrameId => Animation.FrameIds[FrameIndex];
 
     /// <summary>
     /// Switches to the animation of a state. Playback restarts only if the resolved animation actually changes.
@@ -90,7 +90,7 @@ public sealed class AnimationPlayer
     /// </returns>
     public bool Advance(TimeSpan delta)
     {
-        if (delta <= TimeSpan.Zero || Animation.FramePaths.Count <= 1)
+        if (delta <= TimeSpan.Zero || Animation.FrameIds.Count <= 1)
         {
             return false;
         }
@@ -106,7 +106,7 @@ public sealed class AnimationPlayer
 
         _elapsedOnFrame -= frameDuration * framesToAdvance;
 
-        var newIndex = (FrameIndex + framesToAdvance) % Animation.FramePaths.Count;
+        var newIndex = (FrameIndex + framesToAdvance) % Animation.FrameIds.Count;
         var changed = newIndex != FrameIndex;
         FrameIndex = newIndex;
         return changed;

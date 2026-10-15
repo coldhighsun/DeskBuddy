@@ -2,7 +2,9 @@ using System.IO;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using DeskBuddy.App.Presentation;
 using DeskBuddy.App.Rendering;
+using DeskBuddy.Domain.Pets;
 
 namespace DeskBuddy.App.ViewModels;
 
@@ -38,9 +40,20 @@ public sealed partial class PetsTabViewModel : ObservableObject
     private readonly Func<string, ImageSource?> _frames;
 
     /// <summary>
+    /// Cuts the pictures of the previews out ahead of time, off the UI thread; <see langword="null"/> if they are not
+    /// prepared ahead.
+    /// </summary>
+    private readonly Func<IEnumerable<string>, Task>? _preload;
+
+    /// <summary>
     /// Lets one refresh at a time run, as a refresh is slow enough for the user to open the tab again during it.
     /// </summary>
     private readonly SemaphoreSlim _refreshGate = new(1, 1);
+
+    /// <summary>
+    /// Whether the first look at the pets is over.
+    /// </summary>
+    private bool _isLoaded;
 
     /// <summary>
     /// The cards that were loaded, by folder name, so a pet is not loaded again each time the tab is shown.
@@ -86,13 +99,18 @@ public sealed partial class PetsTabViewModel : ObservableObject
     /// <param name="frames">
     /// Supplies the pictures of the previews.
     /// </param>
+    /// <param name="preload">
+    /// Cuts the pictures of the previews out ahead of time on another thread, or <see langword="null"/> to leave that to
+    /// <paramref name="frames"/>.
+    /// </param>
     public PetsTabViewModel(
         SettingsService settings,
         IPetCatalog catalog,
         IPetLoader loader,
         string petsDirectory,
         PetSwitcher petSwitcher,
-        Func<string, ImageSource?> frames)
+        Func<string, ImageSource?> frames,
+        Func<IEnumerable<string>, Task>? preload = null)
     {
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(catalog);
@@ -106,19 +124,25 @@ public sealed partial class PetsTabViewModel : ObservableObject
         _loader = loader;
         _petsDirectory = petsDirectory;
         _frames = frames;
+        _preload = preload;
 
         _settings.Changed += OnSettingsChanged;
         petSwitcher.SwitchFailed += OnPetSwitchFailed;
     }
 
     /// <summary>
-    /// Gets a value indicating whether no pet is installed.
+    /// Gets a value indicating whether the pets have not been looked at yet, so the list is not empty, only not known.
     /// </summary>
-    public bool IsEmpty => Cards.Count == 0;
+    public bool IsLoading => !_isLoaded;
+
+    /// <summary>
+    /// Gets a value indicating whether the pets have been looked at and none is installed.
+    /// </summary>
+    public bool IsEmpty => _isLoaded && Cards.Count == 0;
 
     /// <summary>
     /// Looks for pets again: new ones appear, removed ones go, and a pet that could not be loaded gets another try.
-    /// Pets that were loaded fine are kept. Call when the tab is shown.
+    /// Pets that were loaded fine, with their pictures, are kept. Call when the tab is shown.
     /// </summary>
     /// <returns>
     /// A task that completes when the list is up to date.
@@ -129,9 +153,10 @@ public sealed partial class PetsTabViewModel : ObservableObject
         try
         {
             var cards = new List<PetCardViewModel>();
-            foreach (var name in _catalog.GetPetNames())
+            // Listing the folders reads the disk, which should not hold up the UI thread.
+            foreach (var name in await Task.Run(_catalog.GetPetNames))
             {
-                cards.Add(_known.TryGetValue(name, out var existing) && existing.IsAvailable
+                cards.Add(_known.TryGetValue(name, out var existing) && existing.IsAvailable && existing.HasPicture
                     ? existing
                     : await LoadCardAsync(name));
             }
@@ -140,11 +165,38 @@ public sealed partial class PetsTabViewModel : ObservableObject
             MarkCurrent(_settings.Current.PetName);
             Cards = cards;
             SelectCard(PickSelection(cards, SelectedCard?.FolderName));
-            OnPropertyChanged(nameof(IsEmpty));
         }
         finally
         {
+            _isLoaded = true;
+            OnPropertyChanged(nameof(IsLoading));
+            OnPropertyChanged(nameof(IsEmpty));
             _refreshGate.Release();
+        }
+    }
+
+    /// <summary>
+    /// Looks at the pets, as <see cref="RefreshAsync"/> does, but a failure is only logged:
+    /// it is meant to be started without anything waiting for it, and the panel looks at the pets again when it is opened,
+    /// and shows what is wrong then.
+    /// </summary>
+    /// <param name="logger">
+    /// Reports the failure.
+    /// </param>
+    /// <returns>
+    /// A task that completes when the pets have been looked at; it does not fail.
+    /// </returns>
+    public async Task RefreshQuietlyAsync(ILogger logger)
+    {
+        ArgumentNullException.ThrowIfNull(logger);
+
+        try
+        {
+            await RefreshAsync();
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.LogWarning(ex, "The pets for the panel could not be listed ahead of time.");
         }
     }
 
@@ -265,6 +317,11 @@ public sealed partial class PetsTabViewModel : ObservableObject
         try
         {
             var pet = await _loader.LoadAsync(Path.Combine(_petsDirectory, name));
+            if (_preload is not null)
+            {
+                await _preload(PetShowcase.NativeStatesOf(pet).SelectMany(state => pet.GetAnimation(state).FrameIds));
+            }
+
             return new PetCardViewModel(name, pet, _frames);
         }
         catch (Exception ex) when (PetLoadFailure.Is(ex))

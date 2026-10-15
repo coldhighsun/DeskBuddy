@@ -1,4 +1,4 @@
-# Drawing helpers shared by the pet generators (GenerateRobotPet.ps1, GenerateCatPet.ps1). Dot-source this file; the
+# Drawing helpers shared by the pet generators (GenerateRobotPet.ps1, GenerateCatPet.ps1, and the four that use PetAnimations.ps1). Dot-source this file; the
 # caller defines $pal (a hashtable of brushes made with New-Brush) and $textFont before it draws anything.
 Add-Type -AssemblyName System.Drawing
 
@@ -107,5 +107,18 @@ function Write-PetManifest([string]$Path, [string]$Text) {
             if ($attempt -eq 10) { throw }
             Start-Sleep -Milliseconds 500
         }
+    }
+}
+
+# Saves the pet's tray icon, icon.png in its folder: the part of a frame that shows its head, given in art pixels as the
+# top-left corner and the size (kept square, so it fills the icon), at the full resolution of the frame.
+function Save-PetIcon([string]$Frame, [string]$Path, [int[]]$Box) {
+    $source = New-Object System.Drawing.Bitmap $Frame
+    try {
+        $area = New-Object System.Drawing.Rectangle ($Box[0] * $S), ($Box[1] * $S), ($Box[2] * $S), ($Box[3] * $S)
+        $icon = $source.Clone($area, $source.PixelFormat)
+        try { $icon.Save($Path, [System.Drawing.Imaging.ImageFormat]::Png) } finally { $icon.Dispose() }
+    } finally {
+        $source.Dispose()
     }
 }
