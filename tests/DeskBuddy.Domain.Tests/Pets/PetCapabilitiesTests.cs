@@ -27,7 +27,7 @@ public class PetCapabilitiesTests
         capabilities.CanLookAround.Should().BeFalse();
         capabilities.Edges.Should().Be(new StateCoverage(0, 4));
         capabilities.Development.Should().Be(new StateCoverage(0, 6));
-        capabilities.Scenarios.Should().Be(new StateCoverage(0, 9));
+        capabilities.Scenarios.Should().Be(new StateCoverage(0, 10));
         capabilities.Edges.IsSupported.Should().BeFalse();
     }
 
@@ -47,7 +47,7 @@ public class PetCapabilitiesTests
         capabilities.NativeStateCount.Should().Be(6);
         capabilities.Edges.Should().Be(new StateCoverage(2, 4));
         capabilities.Development.Should().Be(new StateCoverage(1, 6));
-        capabilities.Scenarios.Should().Be(new StateCoverage(1, 9));
+        capabilities.Scenarios.Should().Be(new StateCoverage(1, 10));
         capabilities.Edges.IsSupported.Should().BeTrue();
     }
 

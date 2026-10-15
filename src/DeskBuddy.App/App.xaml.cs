@@ -201,6 +201,7 @@ public partial class App
             ProcessListInterval));
         builder.Services.AddSingleton<IPowerStatusProvider, WindowsPowerStatusProvider>();
         builder.Services.AddSingleton<MeetingPolicy>();
+        builder.Services.AddSingleton<ChatPolicy>();
         builder.Services.AddSingleton(sp => new WelcomeBackPolicy(sp.GetRequiredService<PetBehaviorOptions>()));
         builder.Services.AddSingleton(sp => new PowerPolicy(sp.GetRequiredService<PetBehaviorOptions>()));
         builder.Services.AddSingleton(sp => new ScheduleClock(
@@ -249,6 +250,7 @@ public partial class App
             sp.GetRequiredService<DevActivityPolicy>(),
             sp.GetRequiredService<ScenarioSwitches>(),
             sp.GetRequiredService<MeetingPolicy>(),
+            sp.GetRequiredService<ChatPolicy>(),
             ApplyConfigurationOverrides));
 
         _host = builder.Build();
@@ -476,5 +478,7 @@ public partial class App
         {
             logger.LogError(settingsFailure, "The saved settings could not be read; defaults are used and changes are disabled.");
         }
+
+        SettingsLog.LogRemovedProcessNames(logger, settings.RemovedAtLoad);
     }
 }

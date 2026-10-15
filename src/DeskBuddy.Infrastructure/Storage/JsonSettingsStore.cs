@@ -141,11 +141,6 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
         public List<string>? BlacklistedProcesses { get; init; }
 
         /// <summary>
-        /// Gets whether the pet sits down at its computer while the user is developing.
-        /// </summary>
-        public bool? DevModeEnabled { get; init; }
-
-        /// <summary>
         /// Gets the process names that count as development tools.
         /// </summary>
         public List<string>? DevProcesses { get; init; }
@@ -164,6 +159,11 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
         /// Gets the process names that count as meeting applications.
         /// </summary>
         public List<string>? MeetingProcesses { get; init; }
+
+        /// <summary>
+        /// Gets the process names that count as chat applications.
+        /// </summary>
+        public List<string>? ChatProcesses { get; init; }
 
         /// <summary>
         /// Gets the time of day at which the working day ends.
@@ -217,11 +217,11 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
                 AutoHideWhenFullscreen = settings.AutoHideWhenFullscreen,
                 DetectCoveredMonitor = settings.DetectCoveredMonitor,
                 BlacklistedProcesses = [.. settings.BlacklistedProcesses],
-                DevModeEnabled = settings.DevModeEnabled,
                 DevProcesses = [.. settings.DevProcesses],
                 ScenariosEnabled = settings.ScenariosEnabled,
                 DisabledScenarios = [.. settings.DisabledScenarios],
                 MeetingProcesses = [.. settings.MeetingProcesses],
+                ChatProcesses = [.. settings.ChatProcesses],
                 ClockOutTime = settings.ClockOutTime,
                 Language = settings.Language.ToString(),
                 Theme = settings.Theme.ToString(),
@@ -232,7 +232,9 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
         }
 
         /// <summary>
-        /// Converts to settings, using the default for every missing or unparsable entry.
+        /// Converts to settings, using the default for every missing or unparsable single value. A missing list is empty,
+        /// not the default one: the defaults are for a first start without a settings file, and a file that exists holds
+        /// what the user has.
         /// </summary>
         /// <returns>
         /// The settings, not yet normalized.
@@ -248,12 +250,12 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
                 BossKey = HotkeyGesture.TryParse(BossKey, out var gesture) ? gesture : defaults.BossKey,
                 AutoHideWhenFullscreen = AutoHideWhenFullscreen ?? defaults.AutoHideWhenFullscreen,
                 DetectCoveredMonitor = DetectCoveredMonitor ?? defaults.DetectCoveredMonitor,
-                BlacklistedProcesses = BlacklistedProcesses ?? defaults.BlacklistedProcesses,
-                DevModeEnabled = DevModeEnabled ?? defaults.DevModeEnabled,
-                DevProcesses = DevProcesses ?? defaults.DevProcesses,
+                BlacklistedProcesses = BlacklistedProcesses ?? [],
+                DevProcesses = DevProcesses ?? [],
                 ScenariosEnabled = ScenariosEnabled ?? defaults.ScenariosEnabled,
-                DisabledScenarios = DisabledScenarios ?? defaults.DisabledScenarios,
-                MeetingProcesses = MeetingProcesses ?? defaults.MeetingProcesses,
+                DisabledScenarios = DisabledScenarios ?? [],
+                MeetingProcesses = MeetingProcesses ?? [],
+                ChatProcesses = ChatProcesses ?? [],
                 ClockOutTime = ClockOutTime ?? defaults.ClockOutTime,
                 Language = Enum.TryParse<AppLanguage>(Language, ignoreCase: true, out var language) && Enum.IsDefined(language)
                     ? language

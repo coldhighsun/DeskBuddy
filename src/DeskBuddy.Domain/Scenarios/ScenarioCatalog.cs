@@ -8,10 +8,10 @@ public static class ScenarioCatalog
 {
     /// <summary>
     /// Gets the ranking of the scenarios that last for as long as they apply, for when several apply at once: a meeting
-    /// first, as the pet must then keep still and quiet, then a running build, then the rest.
+    /// first, as the pet must then keep still and quiet, then chatting, then a running build, then the rest.
     /// </summary>
     public static ScenarioSelector AmbientRanking { get; } = new(
-        [PetState.Meeting, PetState.Building, PetState.LowBattery, PetState.Reading, PetState.NightCoding]);
+        [PetState.Meeting, PetState.Chatting, PetState.Building, PetState.LowBattery, PetState.Reading, PetState.NightCoding]);
 
     /// <summary>
     /// Gets every scenario, in the order they are listed in the settings.
@@ -23,10 +23,11 @@ public static class ScenarioCatalog
         PetState.GitPush,
         PetState.NightCoding,
         PetState.Reading,
-        PetState.Welcome,
         PetState.Meeting,
+        PetState.Chatting,
         PetState.LowBattery,
         PetState.Charging,
+        PetState.Welcome,
         PetState.Meal,
         PetState.ClockOut,
         PetState.Chime,

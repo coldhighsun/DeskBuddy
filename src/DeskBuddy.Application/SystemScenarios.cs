@@ -41,6 +41,9 @@ public readonly record struct SystemScenarioResult(
 /// <param name="meeting">
 /// Decides whether a meeting application is in front.
 /// </param>
+/// <param name="chat">
+/// Decides whether a chat application is in front.
+/// </param>
 /// <param name="welcome">
 /// Notices the user coming back.
 /// </param>
@@ -57,6 +60,7 @@ public sealed class SystemScenarios(
     IForegroundAppDetector foregroundApp,
     IPowerStatusProvider power,
     MeetingPolicy meeting,
+    ChatPolicy chat,
     WelcomeBackPolicy welcome,
     PowerPolicy powerPolicy,
     ScheduleClock clock,
@@ -122,9 +126,20 @@ public sealed class SystemScenarios(
         PetState? remark = null;
         var remarkVariant = 0;
 
-        if (switches.Allows(PetState.Meeting) && meeting.IsInMeeting(foregroundApp.GetForegroundProcessName()))
+        var wantsMeeting = switches.Allows(PetState.Meeting);
+        var wantsChatting = switches.Allows(PetState.Chatting);
+        if (wantsMeeting || wantsChatting)
         {
-            active.Add(PetState.Meeting);
+            var foreground = foregroundApp.GetForegroundProcessName();
+            if (wantsMeeting && meeting.IsInMeeting(foreground))
+            {
+                active.Add(PetState.Meeting);
+            }
+
+            if (wantsChatting && chat.IsChatting(foreground))
+            {
+                active.Add(PetState.Chatting);
+            }
         }
 
         if (!switches.Allows(PetState.Welcome))

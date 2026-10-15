@@ -79,6 +79,7 @@ public sealed record PetCapabilities(
     [
         PetState.Welcome,
         PetState.Meeting,
+        PetState.Chatting,
         PetState.LowBattery,
         PetState.Charging,
         PetState.Meal,

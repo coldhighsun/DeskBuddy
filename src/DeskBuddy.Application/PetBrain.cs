@@ -192,14 +192,15 @@ public sealed class PetBrain(
         var ambient = ScenarioCatalog.AmbientRanking.Pick([.. new[] { dev.Ambient, system.Ambient }.OfType<PetState>()]);
 
         // A casual remark is only worth making when nothing else is on screen or waiting and the user is at the desk
-        // and not in a meeting.
-        var canChat = visibility.IsVisible
+        // and not in a meeting or a chat.
+        var canSpeakUnprompted = visibility.IsVisible
             && level == DoNotDisturbLevel.None
             && ambient != PetState.Meeting
+            && ambient != PetState.Chatting
             && userIdle < ChatterPresenceLimit
             && messages.Current is null
             && messages.WaitingCount == 0;
-        if (chatter.Update(canChat) is { } remark)
+        if (chatter.Update(canSpeakUnprompted) is { } remark)
         {
             messages.Enqueue(new PetMessage(PetMessageKind.Chatter, [], Count: remark, Lifetime: ChatterLifetime));
         }

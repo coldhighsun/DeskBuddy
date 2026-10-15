@@ -60,6 +60,7 @@ public class SystemScenariosTests
             _foreground,
             _power,
             new MeetingPolicy { Processes = PetSettings.DefaultMeetingProcesses },
+            new ChatPolicy { Processes = PetSettings.DefaultChatProcesses },
             new WelcomeBackPolicy(_options),
             new PowerPolicy(_options),
             new ScheduleClock(_options, _time, _clockSwitches),
@@ -99,13 +100,13 @@ public class SystemScenariosTests
     }
 
     /// <summary>
-    /// With the meeting scenario off the foreground window is not even looked at.
+    /// With the meeting and chatting scenarios off the foreground window is not even looked at.
     /// </summary>
     [Fact]
-    public void Evaluate_MeetingOff_DoesNotLookAtForegroundWindow()
+    public void Evaluate_MeetingAndChattingOff_DoesNotLookAtForegroundWindow()
     {
         // Arrange
-        _switches.Disabled = [nameof(PetState.Meeting)];
+        _switches.Disabled = [nameof(PetState.Meeting), nameof(PetState.Chatting)];
         _foreground.ProcessName = "Zoom";
 
         // Act
@@ -114,6 +115,64 @@ public class SystemScenariosTests
         // Assert
         result.Ambient.Should().BeNull();
         _foreground.QueryCount.Should().Be(0);
+    }
+
+    /// <summary>
+    /// A chat application in front makes the pet chat along.
+    /// </summary>
+    [Fact]
+    public void Evaluate_ChatApplicationInFront_AmbientIsChatting()
+    {
+        // Arrange
+        _foreground.ProcessName = "Weixin";
+
+        // Act
+        var result = _scenarios.Evaluate(TimeSpan.Zero);
+
+        // Assert
+        result.Ambient.Should().Be(PetState.Chatting);
+    }
+
+    /// <summary>
+    /// With the chatting scenario off a chat application in front changes nothing.
+    /// </summary>
+    [Fact]
+    public void Evaluate_ChattingOff_NoAmbient()
+    {
+        // Arrange
+        _switches.Disabled = [nameof(PetState.Chatting)];
+        _foreground.ProcessName = "Weixin";
+
+        // Act
+        var result = _scenarios.Evaluate(TimeSpan.Zero);
+
+        // Assert
+        result.Ambient.Should().BeNull();
+    }
+
+    /// <summary>
+    /// A process that is both a meeting and a chat application counts as the meeting, which ranks higher.
+    /// </summary>
+    [Fact]
+    public void Evaluate_MeetingAndChatBoth_MeetingWins()
+    {
+        // Arrange
+        var scenarios = new SystemScenarios(
+            _foreground,
+            _power,
+            new MeetingPolicy { Processes = ["Weixin"] },
+            new ChatPolicy { Processes = ["Weixin"] },
+            new WelcomeBackPolicy(_options),
+            new PowerPolicy(_options),
+            new ScheduleClock(_options, _time, _clockSwitches),
+            _switches);
+        _foreground.ProcessName = "Weixin";
+
+        // Act
+        var result = scenarios.Evaluate(TimeSpan.Zero);
+
+        // Assert
+        result.Ambient.Should().Be(PetState.Meeting);
     }
 
     /// <summary>

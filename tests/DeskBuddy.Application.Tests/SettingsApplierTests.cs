@@ -57,6 +57,11 @@ public class SettingsApplierTests
     private readonly MeetingPolicy _meeting = new();
 
     /// <summary>
+    /// The chat detection being updated.
+    /// </summary>
+    private readonly ChatPolicy _chat = new();
+
+    /// <summary>
     /// Creating the applier copies the current settings immediately.
     /// </summary>
     [Fact]
@@ -66,7 +71,7 @@ public class SettingsApplierTests
         await _settings.UpdateAsync(s => s with { SedentaryReminderAfter = TimeSpan.FromMinutes(50), SleepAfter = TimeSpan.FromMinutes(9) }, TestContext.Current.CancellationToken);
 
         // Act
-        _ = new SettingsApplier(_settings, _behavior, _sedentary, _visibility, _chatter, _devActivity, _scenarios, _meeting);
+        _ = new SettingsApplier(_settings, _behavior, _sedentary, _visibility, _chatter, _devActivity, _scenarios, _meeting, _chat);
 
         // Assert
         _sedentary.ReminderAfter.Should().Be(TimeSpan.FromMinutes(50));
@@ -80,7 +85,7 @@ public class SettingsApplierTests
     public async Task Changed_NewSettings_UpdateAllOptions()
     {
         // Arrange
-        _ = new SettingsApplier(_settings, _behavior, _sedentary, _visibility, _chatter, _devActivity, _scenarios, _meeting);
+        _ = new SettingsApplier(_settings, _behavior, _sedentary, _visibility, _chatter, _devActivity, _scenarios, _meeting, _chat);
 
         // Act
         await _settings.UpdateAsync(s => s with
@@ -101,7 +106,7 @@ public class SettingsApplierTests
     public async Task Changed_AutoHideSetting_UpdatesVisibility()
     {
         // Arrange
-        _ = new SettingsApplier(_settings, _behavior, _sedentary, _visibility, _chatter, _devActivity, _scenarios, _meeting);
+        _ = new SettingsApplier(_settings, _behavior, _sedentary, _visibility, _chatter, _devActivity, _scenarios, _meeting, _chat);
 
         // Act
         await _settings.UpdateAsync(s => s with { AutoHideWhenFullscreen = false }, TestContext.Current.CancellationToken);
@@ -117,7 +122,7 @@ public class SettingsApplierTests
     public async Task Changed_ChatterEnabled_EnablesChatterOnlyWhileOn()
     {
         // Arrange
-        _ = new SettingsApplier(_settings, _behavior, _sedentary, _visibility, _chatter, _devActivity, _scenarios, _meeting);
+        _ = new SettingsApplier(_settings, _behavior, _sedentary, _visibility, _chatter, _devActivity, _scenarios, _meeting, _chat);
         var initially = _chatter.IsEnabled;
 
         // Act
@@ -132,6 +137,23 @@ public class SettingsApplierTests
     }
 
     /// <summary>
+    /// The chat applications in the settings reach the chat detection.
+    /// </summary>
+    [Fact]
+    public async Task Changed_ChatProcesses_UpdatesChatPolicy()
+    {
+        // Arrange
+        _ = new SettingsApplier(_settings, _behavior, _sedentary, _visibility, _chatter, _devActivity, _scenarios, _meeting, _chat);
+
+        // Act
+        await _settings.UpdateAsync(s => s with { ChatProcesses = ["Signal"] }, TestContext.Current.CancellationToken);
+
+        // Assert
+        _chat.IsChatting("Signal").Should().BeTrue();
+        _chat.IsChatting("Weixin").Should().BeFalse();
+    }
+
+    /// <summary>
     /// Forced overrides are put back after every application of the settings, so they keep winning.
     /// </summary>
     [Fact]
@@ -139,7 +161,7 @@ public class SettingsApplierTests
     {
         // Arrange
         void Override() => _behavior.SleepAfter = TimeSpan.FromSeconds(30);
-        _ = new SettingsApplier(_settings, _behavior, _sedentary, _visibility, _chatter, _devActivity, _scenarios, _meeting, Override);
+        _ = new SettingsApplier(_settings, _behavior, _sedentary, _visibility, _chatter, _devActivity, _scenarios, _meeting, _chat, Override);
 
         // Act
         await _settings.UpdateAsync(s => s with { SleepAfter = TimeSpan.FromMinutes(10), SedentaryReminderAfter = TimeSpan.FromMinutes(40) }, TestContext.Current.CancellationToken);

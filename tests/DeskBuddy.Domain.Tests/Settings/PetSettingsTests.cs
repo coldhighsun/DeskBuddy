@@ -124,14 +124,14 @@ public class PetSettingsTests
         // Arrange
         var settings = PetSettings.Default with
         {
-            BlacklistedProcesses = ["  Zoom.exe ", "zoom", "", "   ", "Teams.EXE", ".exe", "wemeetapp"],
+            BlacklistedProcesses = ["  Game.exe ", "game", "", "   ", "Teams.EXE", ".exe", "launcher"],
         };
 
         // Act
         var normalized = settings.Normalize();
 
         // Assert
-        normalized.BlacklistedProcesses.Should().Equal("Zoom", "Teams", "wemeetapp");
+        normalized.BlacklistedProcesses.Should().Equal("Game", "Teams", "launcher");
     }
 
     /// <summary>
@@ -148,13 +148,12 @@ public class PetSettingsTests
     }
 
     /// <summary>
-    /// Development detection is on by default and recognizes common editors and terminals.
+    /// Common editors and terminals are recognized as development tools by default.
     /// </summary>
     [Fact]
-    public void Default_DevelopmentDetection_IsOnWithCommonTools()
+    public void Default_DevProcesses_ContainCommonTools()
     {
         // Assert
-        PetSettings.Default.DevModeEnabled.Should().BeTrue();
         PetSettings.Default.DevProcesses.Should().Contain(["Code", "devenv", "rider64", "WindowsTerminal"]);
     }
 
@@ -182,6 +181,32 @@ public class PetSettingsTests
 
         // Assert
         normalized.MeetingProcesses.Should().Equal("Zoom", "Teams");
+    }
+
+    /// <summary>
+    /// Common chat applications are recognized by default.
+    /// </summary>
+    [Fact]
+    public void Default_ChatProcesses_ContainCommonApplications()
+    {
+        // Assert
+        PetSettings.Default.ChatProcesses.Should().Contain(["Weixin", "WhatsApp"]);
+    }
+
+    /// <summary>
+    /// The list of chat applications is cleaned up like the other process lists.
+    /// </summary>
+    [Fact]
+    public void Normalize_ChatProcesses_AreCleanedUp()
+    {
+        // Arrange
+        var settings = PetSettings.Default with { ChatProcesses = [" Weixin.exe ", "weixin", "", "Line.EXE"] };
+
+        // Act
+        var normalized = settings.Normalize();
+
+        // Assert
+        normalized.ChatProcesses.Should().Equal("Weixin", "Line");
     }
 
     /// <summary>

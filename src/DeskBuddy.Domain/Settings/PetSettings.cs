@@ -54,6 +54,12 @@ public sealed record PetSettings
         ["Zoom", "wemeetapp"];
 
     /// <summary>
+    /// The chat applications recognized before the user edits the list.
+    /// </summary>
+    public static readonly IReadOnlyList<string> DefaultChatProcesses =
+        ["Weixin", "WeChat", "WhatsApp", "WhatsApp.Root", "Telegram", "QQ"];
+
+    /// <summary>
     /// The scenarios that start switched off because they would soon become annoying: the chime on the hour.
     /// </summary>
     public static readonly IReadOnlyList<string> DefaultDisabledScenarios = [nameof(PetState.Chime)];
@@ -99,11 +105,6 @@ public sealed record PetSettings
     /// Gets the names of processes (without <c>.exe</c>) that count as full screen whenever they are in front.
     /// </summary>
     public IReadOnlyList<string> BlacklistedProcesses { get; init; } = [];
-
-    /// <summary>
-    /// Gets a value indicating whether the pet sits down at its computer while the user is developing.
-    /// </summary>
-    public bool DevModeEnabled { get; init; } = true;
 
     /// <summary>
     /// Gets the names of processes (without <c>.exe</c>) that count as development tools whenever they are in front.
@@ -160,9 +161,15 @@ public sealed record PetSettings
     public IReadOnlyList<string> MeetingProcesses { get; init; } = DefaultMeetingProcesses;
 
     /// <summary>
+    /// Gets the names of processes (without <c>.exe</c>) that count as chat applications whenever they are in front.
+    /// </summary>
+    public IReadOnlyList<string> ChatProcesses { get; init; } = DefaultChatProcesses;
+
+    /// <summary>
     /// Returns a copy with every value forced into its allowed range: durations are clamped, unknown choices, blank
     /// pet names and invalid shortcuts fall back to the defaults, and the process list is trimmed, stripped of
-    /// <c>.exe</c> and de-duplicated ignoring case.
+    /// <c>.exe</c> and de-duplicated ignoring case; see <see cref="ProcessListRules.Enforce"/> for what
+    /// is done about names a list must not hold.
     /// </summary>
     /// <returns>
     /// The normalized settings.
@@ -170,7 +177,7 @@ public sealed record PetSettings
     public PetSettings Normalize()
     {
         var defaults = Default;
-        return this with
+        var normalized = this with
         {
             PetName = string.IsNullOrWhiteSpace(PetName) ? DefaultPetName : PetName.Trim(),
             SleepAfter = Clamp(SleepAfter, MinSleepAfter, MaxSleepAfter),
@@ -186,7 +193,10 @@ public sealed record PetSettings
                 ? defaults.ClockOutTime
                 : TimeSpan.FromMinutes(Math.Floor(ClockOutTime.TotalMinutes)),
             MeetingProcesses = NormalizeProcessNames(MeetingProcesses),
+            ChatProcesses = NormalizeProcessNames(ChatProcesses),
         };
+
+        return normalized;
     }
 
     /// <summary>
@@ -244,7 +254,7 @@ public sealed record PetSettings
     /// <returns>
     /// The distinct, non-blank names without surrounding spaces or <c>.exe</c>.
     /// </returns>
-    private static string[] NormalizeProcessNames(IReadOnlyList<string>? names)
+    internal static string[] NormalizeProcessNames(IReadOnlyList<string>? names)
     {
         if (names is null)
         {

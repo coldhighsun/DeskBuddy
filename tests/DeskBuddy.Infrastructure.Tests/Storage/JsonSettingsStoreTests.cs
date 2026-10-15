@@ -87,12 +87,12 @@ public sealed class JsonSettingsStoreTests : IDisposable
             BossKey = new HotkeyGesture(HotkeyModifiers.Control | HotkeyModifiers.Shift, 0x7B),
             AutoHideWhenFullscreen = false,
             DetectCoveredMonitor = true,
-            BlacklistedProcesses = ["Zoom", "Teams"],
-            DevModeEnabled = false,
+            BlacklistedProcesses = ["Game", "Teams"],
             DevProcesses = ["Code", "zed"],
             ScenariosEnabled = false,
             DisabledScenarios = ["BuildDone", "Reading"],
             MeetingProcesses = ["Zoom", "Slack"],
+            ChatProcesses = ["Weixin", "Signal"],
             ClockOutTime = new TimeSpan(17, 30, 0),
             Language = AppLanguage.En,
             Theme = AppTheme.Dark,
@@ -141,7 +141,7 @@ public sealed class JsonSettingsStoreTests : IDisposable
     /// Entries missing from the file take their default value, so older files keep working when settings are added.
     /// </summary>
     [Fact]
-    public async Task LoadAsync_PartialFile_FillsMissingWithDefaults()
+    public async Task LoadAsync_PartialFile_FillsMissingValuesWithDefaultsAndMissingListsWithNothing()
     {
         // Arrange
         await WriteRawAsync("""{"version":1,"chatterEnabled":true}""");
@@ -150,7 +150,7 @@ public sealed class JsonSettingsStoreTests : IDisposable
         var settings = await _store.LoadAsync(TestContext.Current.CancellationToken);
 
         // Assert
-        settings.Should().BeEquivalentTo(PetSettings.Default with { ChatterEnabled = true });
+        settings.Should().BeEquivalentTo(DefaultsWithoutLists with { ChatterEnabled = true });
     }
 
     /// <summary>
@@ -166,8 +166,54 @@ public sealed class JsonSettingsStoreTests : IDisposable
         var settings = await _store.LoadAsync(TestContext.Current.CancellationToken);
 
         // Assert
-        settings.Should().BeEquivalentTo(PetSettings.Default with { PetName = "cat" });
+        settings.Should().BeEquivalentTo(DefaultsWithoutLists with { PetName = "cat" });
     }
+
+    /// <summary>
+    /// Once a settings file exists its lists are what the user has: a list missing from it is empty, not the default
+    /// one, so an older file never gets new default entries that could clash with its own lists.
+    /// </summary>
+    [Fact]
+    public async Task LoadAsync_FileWithoutChatList_ChatListIsEmptyAndOthersAreKept()
+    {
+        // Arrange
+        await WriteRawAsync("""{"meetingProcesses":["Zoom","Weixin"]}""");
+
+        // Act
+        var settings = await _store.LoadAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        settings.ChatProcesses.Should().BeEmpty();
+        settings.MeetingProcesses.Should().Equal("Zoom", "Weixin");
+        settings.DevProcesses.Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// Without a settings file the defaults apply, lists included.
+    /// </summary>
+    [Fact]
+    public async Task LoadAsync_NoFile_ListsAreTheDefaultOnes()
+    {
+        // Act
+        var settings = await _store.LoadAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        settings.ChatProcesses.Should().Equal(PetSettings.DefaultChatProcesses);
+        settings.MeetingProcesses.Should().Equal(PetSettings.DefaultMeetingProcesses);
+        settings.DevProcesses.Should().Equal(PetSettings.DefaultDevProcesses);
+    }
+
+    /// <summary>
+    /// Gets the defaults as a file that exists loads them: the lists the file does not have are empty.
+    /// </summary>
+    private static PetSettings DefaultsWithoutLists => PetSettings.Default with
+    {
+        BlacklistedProcesses = [],
+        DevProcesses = [],
+        MeetingProcesses = [],
+        ChatProcesses = [],
+        DisabledScenarios = [],
+    };
 
     /// <summary>
     /// A hand-edited value outside the allowed range is corrected on load.
@@ -176,14 +222,14 @@ public sealed class JsonSettingsStoreTests : IDisposable
     public async Task LoadAsync_OutOfRangeValue_IsNormalized()
     {
         // Arrange
-        await WriteRawAsync("""{"sleepAfter":"00:00:01","blacklistedProcesses":["Zoom.exe","zoom"]}""");
+        await WriteRawAsync("""{"sleepAfter":"00:00:01","blacklistedProcesses":["Game.exe","game"]}""");
 
         // Act
         var settings = await _store.LoadAsync(TestContext.Current.CancellationToken);
 
         // Assert
         settings.SleepAfter.Should().Be(PetSettings.MinSleepAfter);
-        settings.BlacklistedProcesses.Should().Equal("Zoom");
+        settings.BlacklistedProcesses.Should().Equal("Game");
     }
 
     /// <summary>
