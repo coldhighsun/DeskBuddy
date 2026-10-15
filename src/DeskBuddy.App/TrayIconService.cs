@@ -28,9 +28,32 @@ public sealed class TrayIconService : IDisposable
     private readonly TaskbarIcon _icon;
 
     /// <summary>
-    /// The icon the notification area shows; owned here and released on dispose.
+    /// The application's own icon, which the notification area shows when the pet in use has no picture; owned here and
+    /// released on dispose.
     /// </summary>
     private readonly Icon _appIcon;
+
+    /// <summary>
+    /// The icon made of the pet in use, shown in the notification area while there is one; owned here and released when
+    /// it is replaced and on dispose.
+    /// </summary>
+    private Icon? _petIcon;
+
+    /// <summary>
+    /// The picture the notification-area icon was made from; <see langword="null"/> while it shows the application icon.
+    /// </summary>
+    private ImageSource? _iconPicture;
+
+    /// <summary>
+    /// Whether the icon has been put in the notification area. That waits until the pets are known, so the icon appears
+    /// as the pet in use from the start, instead of as the application icon that changes a moment later.
+    /// </summary>
+    private bool _iconShown;
+
+    /// <summary>
+    /// Whether the service has been disposed, after which the icon is not shown any more.
+    /// </summary>
+    private bool _disposed;
 
     /// <summary>
     /// The brain whose visibility the menu controls.
@@ -128,7 +151,6 @@ public sealed class TrayIconService : IDisposable
 
         theme.Register(_icon.ContextMenu);
         Refresh();
-        _icon.ForceCreate();
 
         // The menu depends on pet visibility, the pet and its size; build it again when one of them changes.
         _brain.VisibilityChanged += OnStatusChanged;
@@ -138,16 +160,19 @@ public sealed class TrayIconService : IDisposable
         _icon.PreviewTrayContextMenuOpen += OnPreviewMenuOpen;
         _icon.ContextMenu.Closed += OnMenuClosed;
 
+        _ = ShowIconForPetInUseAsync();
         _ = RefreshPetsAsync();
     }
 
     /// <inheritdoc />
     public void Dispose()
     {
+        _disposed = true;
         _brain.VisibilityChanged -= OnStatusChanged;
         _settings.Changed -= OnSettingsChanged;
         _anchor?.Close();
         _icon.Dispose();
+        _petIcon?.Dispose();
         _appIcon.Dispose();
     }
 
@@ -346,7 +371,11 @@ public sealed class TrayIconService : IDisposable
     /// </param>
     private void OnSettingsChanged(object? sender, PetSettings settings)
     {
-        _icon.Dispatcher.BeginInvoke(RebuildIfNeeded);
+        _icon.Dispatcher.BeginInvoke(() =>
+        {
+            UpdateIcon(_pets.Entries);
+            RebuildIfNeeded();
+        });
     }
 
     /// <summary>
@@ -378,10 +407,89 @@ public sealed class TrayIconService : IDisposable
             {
                 RebuildIfNeeded();
             }
+
+            UpdateIcon(_pets.Entries);
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             _logger.LogWarning(ex, "The pets of the tray menu could not be listed.");
+        }
+        finally
+        {
+            ShowIcon();
+        }
+    }
+
+    /// <summary>
+    /// Puts the icon in the notification area, the first time it is called, showing the pet in use if it is known by now
+    /// (and the application icon if the pets could not be listed).
+    /// </summary>
+    private void ShowIcon()
+    {
+        if (_iconShown || _disposed)
+        {
+            return;
+        }
+
+        UpdateIcon(_pets.Entries);
+        _icon.ForceCreate();
+        _iconShown = true;
+    }
+
+    /// <summary>
+    /// Puts the icon in the notification area as soon as the pet in use is loaded, without waiting for the other pets to be
+    /// loaded: only that pet is needed for the icon. If it cannot be loaded here, the icon is put there when the whole list
+    /// has been looked at. Never throws, as it is started without anything waiting for it.
+    /// </summary>
+    /// <returns>
+    /// A task that completes when the icon has been put in the notification area or it was found that it cannot be yet.
+    /// </returns>
+    private async Task ShowIconForPetInUseAsync()
+    {
+        try
+        {
+            var entry = await _pets.LoadAsync(_settings.Current.PetName);
+            if (entry is not null && !_iconShown && !_disposed)
+            {
+                UpdateIcon([entry]);
+                _icon.ForceCreate();
+                _iconShown = true;
+            }
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogWarning(ex, "The tray icon could not be made from the pet in use ahead of the other pets.");
+        }
+    }
+
+    /// <summary>
+    /// Makes the notification-area icon show the pet in use (the icon picture the pet brings, else its idle picture), or the
+    /// application icon if that pet has no picture; does nothing if the icon already shows the picture of that pet. Never
+    /// throws: if the picture cannot be made into an icon, the icon stays as it was.
+    /// </summary>
+    /// <param name="entries">
+    /// The pets to take the pet in use from: all of them, or only the pet in use while the others are still being loaded.
+    /// </param>
+    private void UpdateIcon(IReadOnlyList<InstalledPet> entries)
+    {
+        var choice = TrayIconModel.Choose(entries, _settings.Current.PetName, PetSettings.DefaultPetName);
+        var picture = choice.Picture;
+        if (ReferenceEquals(picture, _iconPicture))
+        {
+            return;
+        }
+
+        try
+        {
+            var icon = picture is null ? null : choice.IsIconPicture ? AppIcon.FromIconPicture(picture) : AppIcon.FromPicture(picture);
+            _icon.Icon = icon ?? _appIcon;
+            _petIcon?.Dispose();
+            _petIcon = icon;
+            _iconPicture = picture;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogWarning(ex, "The tray icon could not be made from the picture of the pet.");
         }
     }
 

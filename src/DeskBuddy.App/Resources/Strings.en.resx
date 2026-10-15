@@ -56,6 +56,7 @@
   <data name="PetsCapScenarios" xml:space="preserve"><value>Situations {0}/{1}</value></data>
   <data name="PetsLoadFailed" xml:space="preserve"><value>Cannot load: {0}</value></data>
   <data name="PetsEmpty" xml:space="preserve"><value>No pets found.</value></data>
+  <data name="PetsLoading" xml:space="preserve"><value>Loading pets…</value></data>
   <data name="PetStateNameIdle" xml:space="preserve"><value>Idle</value></data>
   <data name="PetStateNameWalk" xml:space="preserve"><value>Walking</value></data>
   <data name="PetStateNameSleep" xml:space="preserve"><value>Sleeping</value></data>

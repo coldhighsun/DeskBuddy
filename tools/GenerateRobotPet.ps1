@@ -633,6 +633,7 @@ foreach ($f in 0..3) {
 $manifest = @'
 {
   "name": "robot",
+  "names": { "en": "Robot", "zh": "机器人" },
   "frameSize": [64, 64],
   "states": {
     "Idle":   { "fps": 2, "frames": ["idle_0.png", "idle_1.png", "idle_2.png", "idle_3.png"] },
@@ -673,5 +674,13 @@ $manifest = @'
 '@
 
 Write-PetManifest (Join-Path $outDir 'manifest.json') $manifest
+
+# The tray icon: the antenna and the head.
+Save-PetIcon (Join-Path $outDir 'idle_0.png') (Join-Path $outDir 'icon.png') @(8, 3, 16, 16)
+
+# Pack the single frames into the atlas the program reads.
+. (Join-Path $PSScriptRoot 'PackPetAtlas.ps1')
+Invoke-PetAtlasPacking $outDir
+
 
 Write-Host "Robot pet written to $outDir"

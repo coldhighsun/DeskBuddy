@@ -10,12 +10,12 @@ namespace DeskBuddy.App.Rendering;
 public sealed class PetFrameCache
 {
     /// <summary>
-    /// Decoded frames keyed by their file path.
+    /// Decoded frames keyed by their name (see <see cref="FrameId"/>).
     /// </summary>
     private readonly Dictionary<string, BitmapSource> _frames;
 
     /// <summary>
-    /// Alpha masks keyed by frame file path, used for click-through hit testing.
+    /// Alpha masks keyed by frame name, used for click-through hit testing.
     /// </summary>
     private readonly Dictionary<string, AlphaMask> _masks;
 
@@ -31,15 +31,29 @@ public sealed class PetFrameCache
 
         var paths = pet.Animations.Values
             .Concat(pet.GazeAnimations.Values)
-            .SelectMany(animation => animation.FramePaths)
+            .SelectMany(animation => animation.FrameIds)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToList();
 
         _frames = new Dictionary<string, BitmapSource>(StringComparer.OrdinalIgnoreCase);
         _masks = new Dictionary<string, AlphaMask>(StringComparer.OrdinalIgnoreCase);
+
+        // The frames are areas of the atlas, which is decoded once, however many frames it holds.
+        var files = new Dictionary<string, BitmapSource>(StringComparer.OrdinalIgnoreCase);
         foreach (var path in paths)
         {
-            var bitmap = Decode(path);
+            var bitmap = FrameImages.Cut(
+                path,
+                file =>
+                {
+                    if (!files.TryGetValue(file, out var image))
+                    {
+                        image = FrameImages.Load(file);
+                        files[file] = image;
+                    }
+
+                    return image;
+                });
             _frames[path] = bitmap;
             _masks[path] = BuildMask(bitmap);
         }
@@ -126,25 +140,5 @@ public sealed class PetFrameCache
         var pixels = new byte[stride * height];
         converted.CopyPixels(pixels, stride, 0);
         return AlphaMask.FromBgra32(width, height, pixels, stride);
-    }
-
-    /// <summary>
-    /// Decodes an image file into a frozen bitmap, fully loaded so the file handle is released.
-    /// </summary>
-    /// <param name="path">
-    /// Image file path.
-    /// </param>
-    /// <returns>
-    /// The frozen bitmap.
-    /// </returns>
-    private static BitmapImage Decode(string path)
-    {
-        var bitmap = new BitmapImage();
-        bitmap.BeginInit();
-        bitmap.CacheOption = BitmapCacheOption.OnLoad;
-        bitmap.UriSource = new Uri(path, UriKind.Absolute);
-        bitmap.EndInit();
-        bitmap.Freeze();
-        return bitmap;
     }
 }

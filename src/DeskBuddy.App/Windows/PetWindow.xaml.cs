@@ -476,7 +476,7 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
                 u = 1 - u;
             }
 
-            hit = _frames.GetMask(_player.CurrentFramePath).IsOpaqueAtNormalized(u, y / heightPx);
+            hit = _frames.GetMask(_player.CurrentFrameId).IsOpaqueAtNormalized(u, y / heightPx);
         }
 
         handled = true;
@@ -500,6 +500,6 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     /// </summary>
     private void ShowFrame()
     {
-        SpriteImage.Source = _frames.Get(_player.CurrentFramePath);
+        SpriteImage.Source = _frames.Get(_player.CurrentFrameId);
     }
 }

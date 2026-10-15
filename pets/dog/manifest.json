@@ -1,0 +1,36 @@
+﻿{
+  "name": "dog",
+  "names": { "en": "Dog", "zh": "狗" },
+  "frameSize": [64, 64],
+  "atlas": { "image": "atlas.png", "cell": [128, 128], "columns": 10 },
+  "states": {
+    "Idle":    { "fps": 2, "frames": [0, 1, 2, 3] },
+    "Walk":    { "fps": 8, "frames": [4, 5, 6, 7] },
+    "Sleep":   { "fps": 1, "frames": [8, 9] },
+    "Drag":    { "fps": 6, "frames": [10, 11] },
+    "Glide":   { "fps": 4, "frames": [12, 13] },
+    "Tired":   { "fps": 2, "frames": [14, 15] },
+    "Alert":   { "fps": 4, "frames": [16, 17] },
+    "Happy":   { "fps": 5, "frames": [18, 19] },
+    "Welcome": { "fps": 4, "frames": [20, 21, 22, 23] },
+    "Meal":    { "fps": 3, "frames": [24, 25, 26, 27] },
+    "Dizzy":   { "fps": 6, "frames": [28, 29, 30, 31] },
+    "Hang":    { "fps": 2, "frames": [32, 33] },
+    "Climb":   { "fps": 6, "frames": [34, 35, 36, 37] },
+    "ClimbDown": { "fps": 6, "frames": [38, 39, 40, 41] },
+    "Ceiling": { "fps": 6, "frames": [42, 43, 44, 45] },
+    "Hop":     { "fps": 8, "frames": [46, 47, 48, 49, 50] },
+    "Coding":  { "fps": 4, "frames": [51, 52, 53, 54] },
+    "NightCoding": { "fps": 3, "frames": [55, 56, 57, 58] },
+    "Building": { "fps": 4, "frames": [59, 60, 61, 62] },
+    "Focus":   { "fps": 3, "frames": [63, 64] },
+    "Reading": { "fps": 2, "frames": [65, 66, 67, 68] },
+    "Meeting": { "fps": 3, "frames": [69, 70, 71, 72] },
+    "Chatting": { "fps": 3, "frames": [73, 74, 75, 76] },
+    "Idle.Left":  { "fps": 1, "frames": [77] },
+    "Idle.Right": { "fps": 1, "frames": [78] },
+    "Idle.Up":    { "fps": 1, "frames": [79] },
+    "Idle.Down":  { "fps": 1, "frames": [80] }
+  }
+}
+

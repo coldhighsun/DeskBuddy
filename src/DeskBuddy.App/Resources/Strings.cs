@@ -137,6 +137,11 @@ internal static class Strings
     public static string PetsEmpty => Get();
 
     /// <summary>
+    /// Gets the text shown while the pets are being looked at for the first time.
+    /// </summary>
+    public static string PetsLoading => Get();
+
+    /// <summary>
     /// Gets the name of a state, shown under the pet preview.
     /// </summary>
     /// <param name="state">

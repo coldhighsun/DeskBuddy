@@ -20,7 +20,7 @@ public class AnimationPlayerTests
         // Assert
         changed.Should().BeTrue();
         player.FrameIndex.Should().Be(1);
-        player.CurrentFramePath.Should().Be("idle_1.png");
+        player.CurrentFrameId.Should().Be("idle_1.png");
     }
 
     /// <summary>
@@ -128,7 +128,7 @@ public class AnimationPlayerTests
         // Assert
         changed.Should().BeTrue();
         player.FrameIndex.Should().Be(0);
-        player.CurrentFramePath.Should().Be("sleep_0.png");
+        player.CurrentFrameId.Should().Be("sleep_0.png");
     }
 
     /// <summary>

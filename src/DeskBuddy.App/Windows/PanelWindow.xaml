@@ -61,6 +61,10 @@
                     </Grid.RowDefinitions>
                     <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
                         <StackPanel Margin="0,0,12,0">
+                        <TextBlock Text="{x:Static res:Strings.PetsLoading}"
+                                   Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibility}}"
+                                   Opacity="0.65"
+                                   TextWrapping="Wrap" />
                         <TextBlock Text="{x:Static res:Strings.PetsEmpty}"
                                    Visibility="{Binding IsEmpty, Converter={StaticResource BooleanToVisibility}}"
                                    Opacity="0.65"
@@ -74,7 +78,10 @@
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <Border Width="176"
-                                            Height="330"
+                                            Height="190"
+                                            ToolTip="{Binding Details}"
+                                            AutomationProperties.Name="{Binding DisplayName}"
+                                            AutomationProperties.HelpText="{Binding Details}"
                                             Margin="0,0,8,8"
                                             Padding="10"
                                             BorderThickness="2"
@@ -118,56 +125,22 @@
                                                            FontSize="11"
                                                            VerticalAlignment="Center"
                                                            Visibility="{Binding IsCurrent, Converter={StaticResource BooleanToVisibility}}" />
+                                                <!-- The name is in the tooltip; a pet that could not be loaded has no tooltip, so it shows it. -->
                                                 <TextBlock Text="{Binding DisplayName}"
                                                            FontWeight="SemiBold"
-                                                           TextTrimming="CharacterEllipsis" />
+                                                           TextTrimming="CharacterEllipsis">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsAvailable}" Value="False">
+                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
                                             </DockPanel>
-                                            <TextBlock Text="{Binding InfoText}"
-                                                       Opacity="0.65"
-                                                       FontSize="11"
-                                                       TextWrapping="Wrap"
-                                                       Margin="0,2,0,6" />
-                                            <ItemsControl ItemsSource="{Binding Tags}" Focusable="False">
-                                                <ItemsControl.ItemsPanel>
-                                                    <ItemsPanelTemplate>
-                                                        <WrapPanel />
-                                                    </ItemsPanelTemplate>
-                                                </ItemsControl.ItemsPanel>
-                                                <ItemsControl.ItemTemplate>
-                                                    <DataTemplate>
-                                                        <Border Margin="0,0,4,4"
-                                                                Padding="5,1"
-                                                                CornerRadius="3"
-                                                                BorderThickness="1">
-                                                            <Border.Style>
-                                                                <Style TargetType="Border">
-                                                                    <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
-                                                                    <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
-                                                                    <Style.Triggers>
-                                                                        <DataTrigger Binding="{Binding IsSupported}" Value="False">
-                                                                            <Setter Property="Background" Value="Transparent" />
-                                                                            <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}" />
-                                                                            <Setter Property="Opacity" Value="0.55" />
-                                                                        </DataTrigger>
-                                                                    </Style.Triggers>
-                                                                </Style>
-                                                            </Border.Style>
-                                                            <TextBlock Text="{Binding Text}" FontSize="11">
-                                                                <TextBlock.Style>
-                                                                    <Style TargetType="TextBlock">
-                                                                        <!-- Unsupported tags keep the themed text color of the window. -->
-                                                                        <Style.Triggers>
-                                                                            <DataTrigger Binding="{Binding IsSupported}" Value="True">
-                                                                                <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}" />
-                                                                            </DataTrigger>
-                                                                        </Style.Triggers>
-                                                                    </Style>
-                                                                </TextBlock.Style>
-                                                            </TextBlock>
-                                                        </Border>
-                                                    </DataTemplate>
-                                                </ItemsControl.ItemTemplate>
-                                            </ItemsControl>
                                             <TextBlock Text="{Binding LoadError}"
                                                        ToolTip="{Binding LoadError}"
                                                        Style="{StaticResource ErrorTextStyle}"

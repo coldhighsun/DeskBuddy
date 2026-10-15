@@ -326,9 +326,14 @@ Save-Frame 'idle_right.png' { Add-Cat -EyeShift 1 }
 Save-Frame 'idle_up.png'    { Add-Cat -EyeDy -1 }
 Save-Frame 'idle_down.png'  { Add-Cat -EyeDy 1 }
 
+# The situations the pet reacts to (writing code, reading, meetings and so on), drawn by the shared PetScenarios.ps1.
+function Add-ScenarioPet { Add-Cat @args }
+. (Join-Path $PSScriptRoot 'PetScenarios.ps1')
+
 $manifest = @'
 {
   "name": "cat",
+  "names": { "en": "Cat", "zh": "猫" },
   "frameSize": [64, 64],
   "states": {
     "Idle":    { "fps": 2, "frames": ["idle_0.png", "idle_1.png", "idle_2.png", "idle_3.png"] },
@@ -355,7 +360,17 @@ $manifest = @'
 }
 '@
 
+$manifest = $manifest.Replace('    "Idle.Left"', $ScenarioManifest + '    "Idle.Left"')
+
 $manifestPath = Join-Path $outDir 'manifest.json'
 Write-PetManifest $manifestPath $manifest
+
+# The tray icon: the ears and the head.
+Save-PetIcon (Join-Path $outDir 'idle_0.png') (Join-Path $outDir 'icon.png') @(8, 4, 16, 16)
+
+# Pack the single frames into the atlas the program reads.
+. (Join-Path $PSScriptRoot 'PackPetAtlas.ps1')
+Invoke-PetAtlasPacking $outDir
+
 
 Write-Host "Cat pet written to $outDir"

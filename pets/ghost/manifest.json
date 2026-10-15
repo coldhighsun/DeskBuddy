@@ -1,0 +1,35 @@
+﻿{
+  "name": "ghost",
+  "names": { "en": "Ghost", "zh": "幽灵" },
+  "frameSize": [64, 64],
+  "atlas": { "image": "atlas.png", "cell": [128, 128], "columns": 10 },
+  "states": {
+    "Idle":    { "fps": 2, "frames": [0, 1, 0, 2] },
+    "Walk":    { "fps": 8, "frames": [3, 4, 5, 4] },
+    "Sleep":   { "fps": 1, "frames": [6, 7] },
+    "Drag":    { "fps": 6, "frames": [8, 8] },
+    "Glide":   { "fps": 4, "frames": [9, 9] },
+    "Tired":   { "fps": 2, "frames": [10, 11] },
+    "Alert":   { "fps": 4, "frames": [12, 13] },
+    "Happy":   { "fps": 5, "frames": [14, 15] },
+    "Welcome": { "fps": 4, "frames": [16, 17, 16, 17] },
+    "Meal":    { "fps": 3, "frames": [18, 19, 20, 21] },
+    "Dizzy":   { "fps": 6, "frames": [22, 23, 24, 25] },
+    "Hang":    { "fps": 2, "frames": [26, 26] },
+    "Climb":   { "fps": 6, "frames": [27, 28, 29, 28] },
+    "ClimbDown": { "fps": 6, "frames": [30, 31, 32, 31] },
+    "Ceiling": { "fps": 6, "frames": [33, 34, 35, 34] },
+    "Coding":  { "fps": 4, "frames": [36, 37, 38, 37] },
+    "NightCoding": { "fps": 3, "frames": [39, 40, 41, 40] },
+    "Building": { "fps": 4, "frames": [42, 43, 44, 45] },
+    "Focus":   { "fps": 3, "frames": [46, 47] },
+    "Reading": { "fps": 2, "frames": [48, 49, 50, 49] },
+    "Meeting": { "fps": 3, "frames": [51, 52, 53, 54] },
+    "Chatting": { "fps": 3, "frames": [55, 56, 57, 58] },
+    "Idle.Left":  { "fps": 1, "frames": [59] },
+    "Idle.Right": { "fps": 1, "frames": [60] },
+    "Idle.Up":    { "fps": 1, "frames": [61] },
+    "Idle.Down":  { "fps": 1, "frames": [62] }
+  }
+}
+

@@ -1,3 +1,5 @@
+using System.IO;
+using Microsoft.Extensions.Logging;
 using DeskBuddy.App.Rendering;
 using DeskBuddy.App.ViewModels;
 using DeskBuddy.Application.Abstractions;
@@ -23,6 +25,26 @@ public class PetsTabViewModelTests
     /// The pets the catalog lists.
     /// </summary>
     private readonly FakePetCatalog _catalog = new();
+
+    /// <summary>
+    /// The names of the pictures the tab asked to have cut out ahead of time.
+    /// </summary>
+    private readonly List<string> _preloaded = [];
+
+    /// <summary>
+    /// What the preload fails with, or <see langword="null"/> if it works.
+    /// </summary>
+    private Exception? _preloadFailure;
+
+    /// <summary>
+    /// A picture to give for any file, as the pictures that were read.
+    /// </summary>
+    private static readonly System.Windows.Media.Imaging.BitmapSource Picture = MakePicture();
+
+    /// <summary>
+    /// Whether the pictures can be read: when not, the pets load but have no picture, as with a corrupt atlas.
+    /// </summary>
+    private bool _picturesAvailable = true;
 
     /// <summary>
     /// The settings service.
@@ -66,6 +88,28 @@ public class PetsTabViewModelTests
 
         // Assert
         _viewModel.Cards.Should().BeEmpty();
+        _viewModel.IsEmpty.Should().BeTrue();
+    }
+
+    /// <summary>
+    /// Before the first look at the pets the tab is loading, and does not claim that no pet is installed; afterwards it is
+    /// not loading any more.
+    /// </summary>
+    [Fact]
+    public async Task IsLoading_BeforeAndAfterFirstRefresh_IsTrueThenFalseWithoutBeingEmpty()
+    {
+        // Arrange
+        await CreateAsync();
+
+        // Assert
+        _viewModel.IsLoading.Should().BeTrue();
+        _viewModel.IsEmpty.Should().BeFalse();
+
+        // Act
+        await _viewModel.RefreshAsync();
+
+        // Assert
+        _viewModel.IsLoading.Should().BeFalse();
         _viewModel.IsEmpty.Should().BeTrue();
     }
 
@@ -372,6 +416,132 @@ public class PetsTabViewModelTests
     }
 
     /// <summary>
+    /// A failure to list the pets in a quiet refresh is only logged; the task completes and the tab stops loading, so nothing is
+    /// left unobserved to show up as a crash.
+    /// </summary>
+    [Fact]
+    public async Task RefreshQuietlyAsync_CatalogFails_LogsAndCompletes()
+    {
+        // Arrange
+        await CreateAsync();
+        var failing = new PetsTabViewModel(
+            _settings,
+            new FailingCatalog(),
+            _loader,
+            "pets",
+            new PetSwitcher(_settings, _loader, "pets", _settings.Current.PetName, _ => { }, NullLogger<PetSwitcher>.Instance),
+            _ => null);
+        var logger = new RecordingLogger<PetsTabViewModel>();
+
+        // Act
+        await failing.RefreshQuietlyAsync(logger);
+
+        // Assert
+        logger.Levels.Should().Equal(LogLevel.Warning);
+        failing.IsLoading.Should().BeFalse();
+    }
+
+    /// <summary>
+    /// A pet that loaded but whose pictures could not be read is loaded again by the next refresh, and has its picture once it
+    /// can be read (the atlas has been repaired).
+    /// </summary>
+    [Fact]
+    public async Task RefreshAsync_PetWithoutPicture_IsLoadedAgainAndPickedUpOnceRepaired()
+    {
+        // Arrange
+        _picturesAvailable = false;
+        await CreateAsync("cat");
+        await _viewModel.RefreshAsync();
+        _viewModel.Cards.Single().HasPicture.Should().BeFalse();
+        _loader.Requested.Clear();
+        _picturesAvailable = true;
+
+        // Act
+        await _viewModel.RefreshAsync();
+
+        // Assert
+        _loader.Requested.Should().Equal("cat");
+        _viewModel.Cards.Single().HasPicture.Should().BeTrue();
+        _viewModel.Cards.Single().CurrentFrame.Should().BeSameAs(Picture);
+    }
+
+    /// <summary>
+    /// Makes a small frozen picture.
+    /// </summary>
+    /// <returns>
+    /// The picture.
+    /// </returns>
+    private static System.Windows.Media.Imaging.BitmapSource MakePicture()
+    {
+        var picture = System.Windows.Media.Imaging.BitmapSource.Create(1, 1, 96, 96, System.Windows.Media.PixelFormats.Bgra32, null, new byte[4], 4);
+        picture.Freeze();
+        return picture;
+    }
+
+    /// <summary>
+    /// A quiet refresh that works lists the pets like a refresh does.
+    /// </summary>
+    [Fact]
+    public async Task RefreshQuietlyAsync_PetsInstalled_ListsThem()
+    {
+        // Arrange
+        await CreateAsync("cat");
+
+        // Act
+        await _viewModel.RefreshQuietlyAsync(NullLogger.Instance);
+
+        // Assert
+        _viewModel.Cards.Select(card => card.FolderName).Should().Equal("cat");
+    }
+
+    /// <summary>
+    /// The pictures of the previews are asked to be cut out ahead of time, before the card is made, so the UI thread does
+    /// not decode the atlas.
+    /// </summary>
+    [Fact]
+    public async Task RefreshAsync_Pet_PreloadsItsPreviewPictures()
+    {
+        // Arrange
+        await CreateAsync("cat");
+
+        // Act
+        await _viewModel.RefreshAsync();
+
+        // Assert
+        _preloaded.Should().Contain("idle.png");
+    }
+
+    /// <summary>
+    /// A pet whose pictures cannot be read ahead of time is shown as one that cannot be used, with the reason.
+    /// </summary>
+    [Fact]
+    public async Task RefreshAsync_PreloadFails_ShowsPetAsBroken()
+    {
+        // Arrange
+        await CreateAsync("cat");
+        _preloadFailure = new IOException("atlas unreadable");
+
+        // Act
+        await _viewModel.RefreshAsync();
+
+        // Assert
+        _viewModel.Cards.Single().IsAvailable.Should().BeFalse();
+        _viewModel.Cards.Single().LoadError.Should().Contain("atlas unreadable");
+    }
+
+    /// <summary>
+    /// A catalog that cannot be read.
+    /// </summary>
+    private sealed class FailingCatalog : IPetCatalog
+    {
+        /// <inheritdoc />
+        public IReadOnlyList<string> GetPetNames()
+        {
+            throw new IOException("the pets folder cannot be read");
+        }
+    }
+
+    /// <summary>
     /// Creates the view model over fakes.
     /// </summary>
     /// <param name="pets">
@@ -398,7 +568,18 @@ public class PetsTabViewModelTests
             _settings.Current.PetName,
             _ => { },
             NullLogger<PetSwitcher>.Instance);
-        _viewModel = new PetsTabViewModel(_settings, _catalog, _loader, "pets", switcher, _ => null);
+        _viewModel = new PetsTabViewModel(
+            _settings,
+            _catalog,
+            _loader,
+            "pets",
+            switcher,
+            _ => _picturesAvailable ? Picture : null,
+            names =>
+            {
+                _preloaded.AddRange(names);
+                return _preloadFailure is null ? Task.CompletedTask : Task.FromException(_preloadFailure);
+            });
     }
 
     /// <summary>

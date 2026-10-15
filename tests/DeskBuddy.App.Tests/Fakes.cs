@@ -11,6 +11,7 @@ using DeskBuddy.Domain.Sedentary;
 using DeskBuddy.Domain.Pets;
 using DeskBuddy.Domain.SystemLoad;
 using DeskBuddy.Domain.Visibility;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Time.Testing;
 
 namespace DeskBuddy.App.Tests;
@@ -383,5 +384,38 @@ internal static class TestBrain
         {
             return DoNotDisturbLevel.None;
         }
+    }
+}
+
+/// <summary>
+/// A logger that remembers the levels it was asked to log at.
+/// </summary>
+/// <typeparam name="T">
+/// The type the logger is for.
+/// </typeparam>
+internal sealed class RecordingLogger<T> : ILogger<T>
+{
+    /// <summary>
+    /// Gets the levels logged so far.
+    /// </summary>
+    public List<LogLevel> Levels { get; } = [];
+
+    /// <inheritdoc />
+    public IDisposable? BeginScope<TState>(TState state)
+        where TState : notnull
+    {
+        return null;
+    }
+
+    /// <inheritdoc />
+    public bool IsEnabled(LogLevel logLevel)
+    {
+        return true;
+    }
+
+    /// <inheritdoc />
+    public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+    {
+        Levels.Add(logLevel);
     }
 }
