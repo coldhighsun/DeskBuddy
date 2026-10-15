@@ -14,6 +14,7 @@ dotnet run --project src/DeskBuddy.App
 powershell -NoProfile -File tools/Build-Installer.ps1   # 发布并用 Inno Setup 7 打包安装程序（输出到 artifacts/installer）
 powershell -NoProfile -File tools/GenerateRobotPet.ps1 # 重新生成 robot 宠物的 PNG 帧
 powershell -NoProfile -File tools/GenerateCatPet.ps1   # 重新生成 cat 宠物的 PNG 帧（两个生成脚本共用 tools/PetDrawing.ps1）
+powershell -NoProfile -File tools/GenerateDogPet.ps1   # 重新生成 dog / rabbit / penguin / ghost 的 PNG 帧（对应 GenerateRabbitPet / GeneratePenguinPet / GenerateGhostPet；这四个共用 tools/PetAnimations.ps1 里的动画模板，各脚本只画姿势）
 powershell -NoProfile -File tools/GenerateAppIcon.ps1   # 重新生成应用/托盘图标 src/DeskBuddy.App/Assets/DeskBuddy.ico
 ```
 
@@ -29,11 +30,13 @@ powershell -NoProfile -File tools/GenerateAppIcon.ps1   # 重新生成应用/托
 - **Domain**：纯逻辑，不依赖任何基础设施。宠物行为状态机（`Behavior/PetBehaviorStateMachine`）、移动策略（`Movement/`，沿任务栏行走 / 自由落体 / 沿屏幕边缘爬行 / 跳跃，通过 `IScreenEdges` 抽象屏幕）、场景选择（`Scenarios/`）、宠物模型（`Pets/`）、设置（`Settings/PetSettings`）、久坐提醒等。所有宠物状态是 `PetState` 枚举。
 - **Application**：用例与服务。`PetBrain` 汇总传感器输入和用户交互，是 UI 询问“宠物现在该做什么”的唯一入口；按目录分组：`Settings/`（`SettingsService`、`SettingsApplier`）、`Scenarios/`（`DevScenarios`、`SystemScenarios`）、`Sensors/`（带缓存/节流的传感器包装）、`Hotkeys/`（`BossKeyController`）；`Abstractions/` 定义传感器与存储的接口（`ISettingsStore`、`IPetLoader` 等）。
 - **Infrastructure**：接口的 Windows 实现——传感器（前台进程、进程列表、电源状态等）、JSON 存储（设置）、注册表开机自启、日志、`FolderPetLoader`/`FolderPetCatalog`。
-- **App**：WPF 外壳。`App.xaml.cs` 用通用主机（Generic Host）组装全部依赖；`Rendering/` 负责宠物帧缓存与热切换（`PetSwitcher`）、面板预览图解码（`PetPreviewFrames`）；面板第一个标签是“宠物”（`PetsTabViewModel`/`PetCardViewModel`）：列出 `pets/` 下所有宠物，动画预览只轮播宠物自己定义的状态，能力标签由 `Domain/Pets/PetCapabilities` 从 manifest 推导，不写死任何宠物；`Windows/`、`ViewModels/`、`Interop/`（Win32 互操作）、`TrayIconService`、`SingleInstanceGuard`（单实例互斥）。
+- **App**：WPF 外壳。`App.xaml.cs` 用通用主机（Generic Host）组装全部依赖；`Rendering/` 负责宠物帧缓存与热切换（`PetSwitcher`）、面板预览图解码（`PetPreviewFrames`）；面板第一个标签是“宠物”（`PetsTabViewModel`/`PetCardViewModel`）：列出 `pets/` 下所有宠物，动画预览只轮播宠物自己定义的状态（每次先显示 Idle，其余按随机顺序，每轮不重复、不连着重复；`PetShowcase.RandomOrder`），能力标签由 `Domain/Pets/PetCapabilities` 从 manifest 推导，不写死任何宠物；`Windows/`、`ViewModels/`、`Interop/`（Win32 互操作）、`TrayIconService`、`SingleInstanceGuard`（单实例互斥）。
 
 ## 宠物
 
-- 宠物是 `pets/<name>/` 下的 PNG 帧加 `manifest.json`（`name`、`frameSize`、`states`：每个状态的 `fps` 与 `frames`；`Idle.Left/Right/Up/Down` 为视线方向帧）。`pets/` 在构建时被复制到 App 输出目录。
+- 宠物是 `pets/<name>/` 下的一张精灵图集 `atlas.png`（所有帧按相同大小的格子排成网格）加 `manifest.json`，只有这一种写法，不再支持“一帧一个 PNG”（`name`、可选的 `names`（各语言的显示名，键为语言如 `zh`、`en` 或区域如 `zh-CN`，面板和托盘按界面语言取，缺失回退到 `name`）、`frameSize`、必填的 `atlas`（`image` 图集文件名、`cell` 单格像素大小 `[宽,高]`、可选 `columns` 每行格数，缺省取图集宽度能放下的列数）、`states`：每个状态的 `fps` 与 `frames`，`frames` 是图集格子编号，按行从左上角开始数；`Idle.Left/Right/Up/Down` 为视线方向帧）。`pets/` 在构建时被复制到 App 输出目录。
+- 帧在 Domain 里仍是字符串 id：`Domain/Pets/FrameId` 把“图集路径 + 格子矩形”编码成 `路径#x,y,w,h`（`FolderPetLoader` 生成，并用 PNG 头校验图集尺寸和格子编号）；`PetFrameCache` / `PetPreviewFrames` 共用 `Rendering/FrameImages`：每个图集只解码一次，再按矩形切出独立复制的帧（不拖着整张图集）；面板预览用的帧由 `PetPreviewFrames.PreloadAsync` 在专用 STA 线程提前切好（`PetsTabViewModel`、`InstalledPets` 加载宠物时调用），界面线程不解码图集。加载器还会校验图集格子与 `frameSize` 比例一致。托盘图标用哪张图由纯函数 `Presentation/TrayIconModel.Choose` 决定，托盘图标等宠物列表读完后才创建，避免先显示默认图标再变。
+- 宠物文件夹里可放 `icon.png` 作为托盘图标（只画头部，尽量撑满；`InstalledPets.IconFileName`）。没有它时托盘图标回退为 Idle 第一帧的上部（`AppIcon.FocusArea`）。随仓库的宠物由各自的生成脚本一并生成它（`PetDrawing.ps1` 的 `Save-PetIcon`，头部范围写在脚本里）。生成脚本先画出单帧 PNG，最后由 `tools/PackPetAtlas.ps1` 按内容去重拼成 `atlas.png`、把 manifest 的帧名换成格子编号并删掉单帧文件，所以每只宠物目录里只有 `manifest.json`、`atlas.png`、`icon.png`。
 - 默认宠物为 `robot`（`PetSettings.DefaultPetName`）。宠物找不到时回退到默认宠物。
 - 宠物不必提供全部状态：缺失的状态通过 `Domain/Pets/PetStateFallback` 回退到相近状态。给 `PetState` 新增状态时，要同时考虑回退规则，并更新 robot 的 manifest 与 `GenerateRobotPet.ps1`。例外是可选状态：`Hop`（步行中随机跳一下）只有 manifest 里定义了它的宠物才会跳，没有定义就根本不会进入该状态（时长取自宠物自己的 `Hop` 动画，由窗口在播完时调用 `PetBrain.OnHopEnded`），所以 robot 故意没有 `Hop`，`PetCapabilities` 也不把它算进未定义宠物的状态总数。
 - `tests/DeskBuddy.Infrastructure.Tests/Pets/ShippedPetsTests` 会校验随仓库发布的宠物。
@@ -61,4 +64,4 @@ powershell -NoProfile -File tools/GenerateAppIcon.ps1   # 重新生成应用/托
 
 ## 设计要求
 
-- 【必须遵守】软件设计必须便于方便地扩展各种宠物：新增宠物只需在 `pets/` 下放入 PNG 帧和 `manifest.json`，不得修改代码；任何功能都不得写死某个具体宠物的名称、尺寸、帧数或朝向，一律通过宠物 manifest 与 `Pet` 模型获取，并为宠物缺少的动画/状态提供合理回退。
+- 【必须遵守】软件设计必须便于方便地扩展各种宠物：新增宠物只需在 `pets/` 下放入 `atlas.png` 和 `manifest.json`，不得修改代码；任何功能都不得写死某个具体宠物的名称、尺寸、帧数或朝向，一律通过宠物 manifest 与 `Pet` 模型获取，并为宠物缺少的动画/状态提供合理回退。
