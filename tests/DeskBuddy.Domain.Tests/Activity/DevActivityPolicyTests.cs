@@ -189,26 +189,6 @@ public class DevActivityPolicyTests
     }
 
     /// <summary>
-    /// With detection off nothing counts as development, and switching it back on starts from scratch.
-    /// </summary>
-    [Fact]
-    public void Update_DetectionDisabled_IsNeverDeveloping()
-    {
-        // Arrange
-        _policy.Update("Code", TimeSpan.Zero);
-        _policy.IsEnabled = false;
-
-        // Act
-        var whileOff = _policy.Update("Code", TimeSpan.Zero);
-        _policy.IsEnabled = true;
-        var afterOn = _policy.Update("chrome", TimeSpan.Zero);
-
-        // Assert
-        whileOff.Should().BeFalse();
-        afterOn.Should().BeFalse();
-    }
-
-    /// <summary>
     /// Lets time pass while feeding the same reading once a second, as the application does.
     /// </summary>
     /// <param name="duration">

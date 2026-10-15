@@ -87,6 +87,11 @@ public class PetBrainTests
     private readonly MeetingPolicy _meeting = new() { Processes = PetSettings.DefaultMeetingProcesses };
 
     /// <summary>
+    /// The chat detection, knowing the default chat applications.
+    /// </summary>
+    private readonly ChatPolicy _chat = new() { Processes = PetSettings.DefaultChatProcesses };
+
+    /// <summary>
     /// The clock shared by every time-dependent component.
     /// </summary>
     private readonly FakeTimeProvider _clock = new();
@@ -134,6 +139,7 @@ public class PetBrainTests
             _foreground,
             _power,
             _meeting,
+            _chat,
             new WelcomeBackPolicy(behavior),
             new PowerPolicy(behavior),
             new ScheduleClock(behavior, _clock, _clockSwitches),
@@ -843,26 +849,6 @@ public class PetBrainTests
     }
 
     /// <summary>
-    /// With development detection and the meeting scenario both off the pet never codes and the foreground window is
-    /// not even looked at.
-    /// </summary>
-    [Fact]
-    public void Tick_DevelopmentDetectionOff_DoesNotLookAtForegroundWindow()
-    {
-        // Arrange
-        _devActivity.IsEnabled = false;
-        _switches.Disabled = [nameof(PetState.Meeting)];
-        _foreground.ProcessName = "Code";
-
-        // Act
-        var state = _brain.Tick();
-
-        // Assert
-        state.Should().NotBe(PetState.Coding);
-        _foreground.QueryCount.Should().Be(0);
-    }
-
-    /// <summary>
     /// A meeting application in front makes the pet keep company in a headset.
     /// </summary>
     [Fact]
@@ -886,6 +872,38 @@ public class PetBrainTests
     {
         // Arrange
         _foreground.ProcessName = "Zoom";
+
+        // Act
+        var message = RunUntilChatter(60);
+
+        // Assert
+        message.Should().BeNull();
+    }
+
+    /// <summary>
+    /// A chat application in front puts the pet into chatting.
+    /// </summary>
+    [Fact]
+    public void Tick_ChatApplicationInFront_PetIsChatting()
+    {
+        // Arrange
+        _foreground.ProcessName = "Weixin";
+
+        // Act
+        var state = _brain.Tick();
+
+        // Assert
+        state.Should().Be(PetState.Chatting);
+    }
+
+    /// <summary>
+    /// The pet keeps quiet while the user chats, however long it waits.
+    /// </summary>
+    [Fact]
+    public void Tick_Chatting_NoChatter()
+    {
+        // Arrange
+        _foreground.ProcessName = "Weixin";
 
         // Act
         var message = RunUntilChatter(60);

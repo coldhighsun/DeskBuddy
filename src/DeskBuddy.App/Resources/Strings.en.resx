@@ -70,36 +70,36 @@
   <data name="TabBehavior" xml:space="preserve"><value>Behavior</value></data>
   <data name="TabSystem" xml:space="preserve"><value>System</value></data>
   <data name="SettingsAppearance" xml:space="preserve"><value>Appearance</value></data>
-  <data name="SettingsTiming" xml:space="preserve"><value>Timing (minutes)</value></data>
-  <data name="SettingsSedentary" xml:space="preserve"><value>Sedentary reminder interval</value></data>
-  <data name="SettingsSleep" xml:space="preserve"><value>Fall asleep after no input for</value></data>
+  <data name="SettingsTiming" xml:space="preserve"><value>Time</value></data>
+  <data name="SettingsSedentary" xml:space="preserve"><value>Sedentary reminder interval (minutes)</value></data>
+  <data name="SettingsSleep" xml:space="preserve"><value>Fall asleep after no input (minutes)</value></data>
   <data name="SettingsBossKey" xml:space="preserve"><value>Boss key (hide or show the pet)</value></data>
   <data name="BossKeyHint" xml:space="preserve"><value>Click the box, then press the new shortcut (it must include Ctrl, Alt, Shift or Win).</value></data>
   <data name="BossKeyFailed" xml:space="preserve"><value>The shortcut {0} cannot be used: {1}</value></data>
   <data name="BossKeyInvalid" xml:space="preserve"><value>This shortcut cannot be the boss key: include Ctrl, Alt, Shift or Win together with a letter, a digit or F1–F24.</value></data>
-  <data name="SettingsFullscreen" xml:space="preserve"><value>Full screen and meetings</value></data>
+  <data name="SettingsFullscreen" xml:space="preserve"><value>Full screen</value></data>
   <data name="AutoHide" xml:space="preserve"><value>Hide the pet automatically for full-screen or presenting apps</value></data>
   <data name="CoveredMonitor" xml:space="preserve"><value>Also treat a foreground window that covers a whole monitor as full screen</value></data>
-  <data name="BlacklistLabel" xml:space="preserve"><value>These programs count as full screen when in front (one process name per line, e.g. zoom)</value></data>
+  <data name="BlacklistLabel" xml:space="preserve"><value>Programs that count as full screen when in front, e.g. zoom</value></data>
   <data name="SettingsScenarios" xml:space="preserve"><value>Scenarios</value></data>
-  <data name="ScenariosEnabled" xml:space="preserve"><value>Let the pet act out situations by itself (needs a pet that supports it)</value></data>
+  <data name="ScenariosEnabled" xml:space="preserve"><value>Let the pet act out situations by itself</value></data>
   <data name="ScenarioBuilding" xml:space="preserve"><value>Show a loading ring while a compiler keeps the CPU busy</value></data>
   <data name="ScenarioBuildDone" xml:space="preserve"><value>Cheer when a build ends (it cannot tell success from failure)</value></data>
   <data name="ScenarioGitPush" xml:space="preserve"><value>Ship a parcel when git talks to a remote</value></data>
-  <data name="ScenarioNightCoding" xml:space="preserve"><value>Drink coffee after coding for hours late at night (needs the development option above)</value></data>
-  <data name="ScenarioReading" xml:space="preserve"><value>Put on glasses when looking things up in a browser right after coding (needs the development option above)</value></data>
+  <data name="ScenarioNightCoding" xml:space="preserve"><value>Drink coffee after hours of late-night development</value></data>
+  <data name="ScenarioReading" xml:space="preserve"><value>Wear glasses when looking things up right after developing</value></data>
   <data name="ScenarioWelcome" xml:space="preserve"><value>Wave hello when you are back after a long time away</value></data>
   <data name="ScenarioMeeting" xml:space="preserve"><value>Put on a headset and keep quiet while a meeting app is in front</value></data>
+  <data name="ScenarioChatting" xml:space="preserve"><value>Chat along while a chat app is in front</value></data>
   <data name="ScenarioLowBattery" xml:space="preserve"><value>Hold up an empty battery when the battery is low and unplugged</value></data>
   <data name="ScenarioCharging" xml:space="preserve"><value>Charge up happily when the power cable is plugged in</value></data>
   <data name="ScenarioMeal" xml:space="preserve"><value>Hold up a bowl at lunch and dinner time, once per meal</value></data>
   <data name="ScenarioClockOut" xml:space="preserve"><value>Check its watch at clock-out time, once a day</value></data>
-  <data name="ScenarioChime" xml:space="preserve"><value>Ring a little bell on the hour during the day (off by default)</value></data>
+  <data name="ScenarioChime" xml:space="preserve"><value>Ring a little bell on the hour during the day</value></data>
   <data name="ScenarioFestive" xml:space="preserve"><value>Wear a party hat on New Year's Day, Spring Festival, Programmers' Day and Christmas</value></data>
-  <data name="ScenarioDizzy" xml:space="preserve"><value>Get dizzy when you shake the mouse hard (the eyes also follow the pointer; needs a pet that supports it)</value></data>
-  <data name="ScenarioHang" xml:space="preserve"><value>Hang on to the screen edge when you drop the pet at the left or right side</value></data>
-  <data name="ClockOutTimeLabel" xml:space="preserve"><value>Clock-out time (e.g. 18:00)</value></data>
-  <data name="ClockOutTimeInvalid" xml:space="preserve"><value>The clock-out time must be a time between 00:00 and 23:59, such as 18:00.</value></data>
+  <data name="ScenarioDizzy" xml:space="preserve"><value>Get dizzy when you shake the mouse hard; the eyes follow the pointer</value></data>
+  <data name="ScenarioHang" xml:space="preserve"><value>Hang on to the screen edge when dropped there</value></data>
+  <data name="ClockOutTimeLabel" xml:space="preserve"><value>Clock-out time</value></data>
   <data name="RemarkMeal1" xml:space="preserve"><value>Lunch time! Eat first, work later~</value></data>
   <data name="RemarkMeal2" xml:space="preserve"><value>Dinner time. Do not work on an empty stomach~</value></data>
   <data name="RemarkClockOut1" xml:space="preserve"><value>Time to clock out. Good work today~</value></data>
@@ -109,13 +109,12 @@
   <data name="RemarkFestive2" xml:space="preserve"><value>Happy Programmers' Day! 1024~</value></data>
   <data name="RemarkFestive3" xml:space="preserve"><value>Merry Christmas!</value></data>
   <data name="RemarkFestive4" xml:space="preserve"><value>Happy Chinese New Year!</value></data>
-  <data name="MeetingProcessesLabel" xml:space="preserve"><value>These programs count as a meeting when in front (one process name per line, e.g. Zoom)</value></data>
+  <data name="MeetingProcessesLabel" xml:space="preserve"><value>Meeting apps, e.g. Zoom</value></data>
+  <data name="ChatProcessesLabel" xml:space="preserve"><value>Chat apps, e.g. Weixin</value></data>
   <data name="RemarkWelcome" xml:space="preserve"><value>Welcome back~</value></data>
   <data name="RemarkLowBattery" xml:space="preserve"><value>Battery is low. Time to charge~</value></data>
   <data name="RemarkNightCoding" xml:space="preserve"><value>It is late. Do not stay up too long~</value></data>
-  <data name="SettingsDev" xml:space="preserve"><value>Development</value></data>
-  <data name="DevMode" xml:space="preserve"><value>Let the pet sit at its computer while I develop (this pet must support it)</value></data>
-  <data name="DevProcessesLabel" xml:space="preserve"><value>These programs count as development when in front and I am active (one process name per line, e.g. Code)</value></data>
+  <data name="DevProcessesLabel" xml:space="preserve"><value>Development tools (in front while I am active), e.g. Code</value></data>
   <data name="SettingsSystem" xml:space="preserve"><value>System</value></data>
   <data name="AutoStart" xml:space="preserve"><value>Start with Windows</value></data>
   <data name="AutoStartFailed" xml:space="preserve"><value>Could not change start with Windows: {0}</value></data>
@@ -130,8 +129,8 @@
 
   <data name="SettingsLanguage" xml:space="preserve"><value>Language</value></data>
   <data name="SettingsPetSize" xml:space="preserve"><value>Pet size</value></data>
-  <data name="SettingsClimbEdges" xml:space="preserve"><value>Let the pet climb the sides of the screen and hang from its top (needs a pet that supports it)</value></data>
-  <data name="SettingsChatter" xml:space="preserve"><value>Let the pet say something unprompted now and then</value></data>
+  <data name="SettingsClimbEdges" xml:space="preserve"><value>Climb the screen sides and hang from the top</value></data>
+  <data name="SettingsChatter" xml:space="preserve"><value>Say something unprompted now and then</value></data>
   <data name="StateHintClimb" xml:space="preserve"><value>Climbing along the screen edge</value></data>
   <data name="StateHintClimbDown" xml:space="preserve"><value>Climbing down the screen edge</value></data>
   <data name="StateHintCeiling" xml:space="preserve"><value>Hanging from the top of the screen</value></data>
@@ -155,6 +154,7 @@
   <data name="StateHintReading" xml:space="preserve"><value>Looking something up</value></data>
   <data name="StateHintWelcome" xml:space="preserve"><value>Welcome back</value></data>
   <data name="StateHintMeeting" xml:space="preserve"><value>In a meeting, keeping quiet</value></data>
+  <data name="StateHintChatting" xml:space="preserve"><value>Chatting</value></data>
   <data name="StateHintLowBattery" xml:space="preserve"><value>Battery low, please charge</value></data>
   <data name="StateHintCharging" xml:space="preserve"><value>Plugged in, charging</value></data>
   <data name="StateHintMeal" xml:space="preserve"><value>Mealtime</value></data>
@@ -165,4 +165,17 @@
   <data name="StateHintHang" xml:space="preserve"><value>Hanging on to the screen edge</value></data>
   <data name="StateHintFall" xml:space="preserve"><value>Falling from a height</value></data>
   <data name="StateHintGlide" xml:space="preserve"><value>Floating down holding an umbrella</value></data>
+  <data name="SettingsPrograms" xml:space="preserve"><value>Recognized programs</value></data>
+  <data name="ProgramsHint" xml:space="preserve"><value>One process name per line, no spaces. A process can be in one list only.</value></data>
+  <data name="SettingsActions" xml:space="preserve"><value>Actions</value></data>
+  <data name="PetSupportNote" xml:space="preserve"><value>Some actions need the pet's own animations; a similar one is shown when it has none.</value></data>
+  <data name="ProcessNameHasSpace" xml:space="preserve"><value>Process names cannot contain spaces: {0}</value></data>
+  <data name="ProcessNameInOtherList" xml:space="preserve"><value>"{0}" is already in the {1} list</value></data>
+  <data name="ProcessListFullscreen" xml:space="preserve"><value>full screen</value></data>
+  <data name="ProcessListDevelopment" xml:space="preserve"><value>development tools</value></data>
+  <data name="ProcessListMeeting" xml:space="preserve"><value>meeting apps</value></data>
+  <data name="ProcessListChat" xml:space="preserve"><value>chat apps</value></data>
+  <data name="ProcessesRemovedNotice" xml:space="preserve"><value>These process names broke the rules and were removed when the settings were loaded:</value></data>
+  <data name="ProcessRemovedHasSpace" xml:space="preserve"><value>"{0}" has a space and was removed from the {1} list</value></data>
+  <data name="ProcessRemovedInOtherList" xml:space="preserve"><value>"{0}" is already in the {2} list and was removed from the {1} list</value></data>
 </root>

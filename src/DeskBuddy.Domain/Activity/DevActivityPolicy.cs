@@ -36,12 +36,6 @@ public sealed class DevActivityPolicy(PetBehaviorOptions options, TimeProvider t
     private DateTimeOffset? _lastDevelopingAt;
 
     /// <summary>
-    /// Gets or sets a value indicating whether development is detected at all. While off, <see cref="Update"/> always
-    /// reports <see langword="false"/>.
-    /// </summary>
-    public bool IsEnabled { get; set; } = true;
-
-    /// <summary>
     /// Gets or sets the names of the processes (without <c>.exe</c>) that count as development tools.
     /// </summary>
     public IReadOnlyList<string> Processes { get; set; } = [];
@@ -73,15 +67,6 @@ public sealed class DevActivityPolicy(PetBehaviorOptions options, TimeProvider t
     /// </returns>
     public bool Update(string? foregroundProcess, TimeSpan userIdle)
     {
-        if (!IsEnabled)
-        {
-            _isDeveloping = false;
-            _unmetSince = null;
-            _sessionSince = null;
-            _lastDevelopingAt = null;
-            return false;
-        }
-
         var conditionsMet = foregroundProcess is not null
             && userIdle < options.DevActiveWindow
             && Processes.Contains(foregroundProcess, StringComparer.OrdinalIgnoreCase);

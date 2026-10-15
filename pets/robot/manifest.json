@@ -19,6 +19,7 @@
     "Reading":     { "fps": 3, "frames": ["reading_0.png", "reading_1.png", "reading_2.png", "reading_3.png"] },
     "Welcome":     { "fps": 4, "frames": ["welcome_0.png", "welcome_1.png", "welcome_2.png", "welcome_3.png"] },
     "Meeting":     { "fps": 2, "frames": ["meeting_0.png", "meeting_1.png", "meeting_2.png", "meeting_3.png"] },
+    "Chatting":    { "fps": 3, "frames": ["chatting_0.png", "chatting_1.png", "chatting_2.png", "chatting_3.png"] },
     "LowBattery":  { "fps": 2, "frames": ["lowbattery_0.png", "lowbattery_1.png"] },
     "Charging":    { "fps": 3, "frames": ["charging_0.png", "charging_1.png", "charging_2.png", "charging_3.png"] },
     "Meal":        { "fps": 3, "frames": ["meal_0.png", "meal_1.png", "meal_2.png", "meal_3.png"] },

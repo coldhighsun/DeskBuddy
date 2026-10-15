@@ -255,4 +255,52 @@ public class SettingsServiceTests
             }
         }
     }
+
+    /// <summary>
+    /// Loading settings that break the rules for the process lists takes the offending names out and says which.
+    /// </summary>
+    [Fact]
+    public async Task InitializeAsync_ListsBreakingTheRules_AreFixedAndReported()
+    {
+        // Arrange
+        _store.Stored = PetSettings.Default with { MeetingProcesses = ["Zoom", "Weixin"], BlacklistedProcesses = ["zoom", "Game", "My Game"] };
+
+        // Act
+        await _service.InitializeAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        _service.Current.BlacklistedProcesses.Should().Equal("Game");
+        _service.Current.ChatProcesses.Should().NotContain("Weixin");
+        _service.RemovedAtLoad.Select(item => item.Name).Should().BeEquivalentTo(["Weixin", "zoom", "My Game"]);
+    }
+
+    /// <summary>
+    /// Settings that follow the rules load with nothing reported.
+    /// </summary>
+    [Fact]
+    public async Task InitializeAsync_DefaultSettings_ReportNothing()
+    {
+        // Act
+        await _service.InitializeAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        _service.RemovedAtLoad.Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// A change that would put a process in two lists is made to follow the rules before it is stored.
+    /// </summary>
+    [Fact]
+    public async Task UpdateAsync_ChangeBreakingTheListRules_IsEnforced()
+    {
+        // Arrange
+        await _service.InitializeAsync(TestContext.Current.CancellationToken);
+
+        // Act
+        await _service.UpdateAsync(s => s with { MeetingProcesses = ["Zoom", "Signal"], ChatProcesses = ["signal", "Weixin"] }, TestContext.Current.CancellationToken);
+
+        // Assert
+        _service.Current.MeetingProcesses.Should().Equal("Zoom", "Signal");
+        _service.Current.ChatProcesses.Should().Equal("Weixin");
+    }
 }

@@ -98,7 +98,7 @@ public sealed class DevScenarios(
     /// </returns>
     public DevScenarioResult Evaluate(TimeSpan userIdle, SystemLoadSnapshot load)
     {
-        var foreground = devActivity.IsEnabled ? foregroundApp.GetForegroundProcessName() : null;
+        var foreground = foregroundApp.GetForegroundProcessName();
         var isDeveloping = devActivity.Update(foreground, userIdle);
 
         var wantsBuild = switches.Allows(PetState.Building) || switches.Allows(PetState.BuildDone);

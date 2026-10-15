@@ -35,6 +35,12 @@ public sealed class SettingsService(ISettingsStore store)
     public Exception? LoadFailure { get; private set; }
 
     /// <summary>
+    /// Gets the process names that were taken out of the lists when the settings were loaded, because they broke the
+    /// rules for the lists; empty if there were none.
+    /// </summary>
+    public IReadOnlyList<RemovedProcessName> RemovedAtLoad { get; private set; } = [];
+
+    /// <summary>
     /// Loads the saved settings. A storage problem is recorded in <see cref="LoadFailure"/> instead of thrown, so the
     /// application can still start.
     /// </summary>
@@ -48,7 +54,9 @@ public sealed class SettingsService(ISettingsStore store)
     {
         try
         {
-            Current = (await store.LoadAsync(cancellationToken)).Normalize();
+            var enforced = ProcessListRules.Enforce((await store.LoadAsync(cancellationToken)).Normalize());
+            Current = enforced.Settings;
+            RemovedAtLoad = enforced.Removed;
             LoadFailure = null;
             Changed?.Invoke(this, Current);
         }
@@ -90,7 +98,7 @@ public sealed class SettingsService(ISettingsStore store)
         await _gate.WaitAsync(cancellationToken);
         try
         {
-            Current = change(Current).Normalize();
+            Current = ProcessListRules.Enforce(change(Current).Normalize()).Settings;
             Changed?.Invoke(this, Current);
             await store.SaveAsync(Current, cancellationToken);
             return Current;

@@ -52,6 +52,11 @@ public sealed class SettingsApplier
     private readonly MeetingPolicy _meeting;
 
     /// <summary>
+    /// The chat detection to update.
+    /// </summary>
+    private readonly ChatPolicy _chat;
+
+    /// <summary>
     /// Runs after the settings were copied, to put back values that are forced from outside (such as configuration
     /// overrides used for diagnostics); <see langword="null"/> if there are none.
     /// </summary>
@@ -84,6 +89,9 @@ public sealed class SettingsApplier
     /// <param name="meeting">
     /// The meeting detection to update.
     /// </param>
+    /// <param name="chat">
+    /// The chat detection to update.
+    /// </param>
     /// <param name="reapplyOverrides">
     /// Runs after each application of the settings; <see langword="null"/> if nothing overrides them.
     /// </param>
@@ -96,6 +104,7 @@ public sealed class SettingsApplier
         DevActivityPolicy devActivity,
         ScenarioSwitches scenarios,
         MeetingPolicy meeting,
+        ChatPolicy chat,
         Action? reapplyOverrides = null)
     {
         ArgumentNullException.ThrowIfNull(settings);
@@ -106,6 +115,7 @@ public sealed class SettingsApplier
         ArgumentNullException.ThrowIfNull(devActivity);
         ArgumentNullException.ThrowIfNull(scenarios);
         ArgumentNullException.ThrowIfNull(meeting);
+        ArgumentNullException.ThrowIfNull(chat);
 
         _behavior = behavior;
         _sedentary = sedentary;
@@ -114,6 +124,7 @@ public sealed class SettingsApplier
         _devActivity = devActivity;
         _scenarios = scenarios;
         _meeting = meeting;
+        _chat = chat;
         _reapplyOverrides = reapplyOverrides;
 
         Apply(settings.Current);
@@ -132,11 +143,11 @@ public sealed class SettingsApplier
         _sedentary.ReminderAfter = settings.SedentaryReminderAfter;
         _visibility.AutoHideEnabled = settings.AutoHideWhenFullscreen;
         _chatter.IsEnabled = settings.ChatterEnabled;
-        _devActivity.IsEnabled = settings.DevModeEnabled;
         _devActivity.Processes = settings.DevProcesses;
         _scenarios.IsEnabled = settings.ScenariosEnabled;
         _scenarios.Disabled = settings.DisabledScenarios;
         _meeting.Processes = settings.MeetingProcesses;
+        _chat.Processes = settings.ChatProcesses;
         _behavior.ClockOutTime = settings.ClockOutTime;
 
         _reapplyOverrides?.Invoke();

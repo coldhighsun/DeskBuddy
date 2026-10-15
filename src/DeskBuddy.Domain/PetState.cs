@@ -86,6 +86,11 @@ public enum PetState
     Meeting,
 
     /// <summary>
+    /// A chat application is in front; the pet chats along with a speech bubble.
+    /// </summary>
+    Chatting,
+
+    /// <summary>
     /// The battery is low and the computer is not plugged in; the pet shows an empty battery.
     /// </summary>
     LowBattery,

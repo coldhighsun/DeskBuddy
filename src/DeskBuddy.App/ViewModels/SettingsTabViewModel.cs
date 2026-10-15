@@ -25,11 +25,6 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     private const int MinMinutes = 1;
 
     /// <summary>
-    /// The ways a time of day may be written: <c>18:00</c> or <c>8:30</c>.
-    /// </summary>
-    private static readonly string[] ClockOutTimeFormats = [@"h\:mm", @"hh\:mm"];
-
-    /// <summary>
     /// The settings being edited.
     /// </summary>
     private readonly SettingsService _settings;
@@ -59,6 +54,27 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     /// Opens the directory the log files are written to.
     /// </summary>
     private readonly Action _openLogDirectory;
+
+    /// <summary>
+    /// How to reach the text and the explanation of each process list, as the lists are handled alike.
+    /// </summary>
+    private readonly Dictionary<ProcessListKind, ProcessListBox> _processLists;
+
+    /// <summary>
+    /// What was taken out of the process lists when the settings were loaded.
+    /// </summary>
+    private readonly IReadOnlyList<RemovedProcessName> _removedAtLoad;
+
+    /// <summary>
+    /// The process lists the user has changed since, whose removed names the notice no longer lists.
+    /// </summary>
+    private readonly HashSet<ProcessListKind> _editedLists = [];
+
+    /// <summary>
+    /// How many times each process list was edited, indexed by <see cref="ProcessListKind"/>, to tell whether an edit
+    /// is still the newest when its update finishes.
+    /// </summary>
+    private readonly int[] _processListEdits = new int[Enum.GetValues<ProcessListKind>().Length];
 
     /// <summary>
     /// Whether the properties are being filled from the settings, in which case changing them must not be treated as
@@ -114,16 +130,22 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     private string _blacklistText = string.Empty;
 
     /// <summary>
-    /// Gets or sets a value indicating whether the pet sits down at its computer while the user is developing.
+    /// Gets or sets the explanation shown when the full-screen list cannot be used; empty when it is fine.
     /// </summary>
     [ObservableProperty]
-    private bool _devModeEnabled;
+    private string _blacklistError = string.Empty;
 
     /// <summary>
     /// Gets or sets the development tools, one process name per line.
     /// </summary>
     [ObservableProperty]
     private string _devProcessesText = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the explanation shown when the list of development tools cannot be used; empty when it is fine.
+    /// </summary>
+    [ObservableProperty]
+    private string _devProcessesError = string.Empty;
 
     /// <summary>
     /// Gets or sets a value indicating whether the pet acts out situations by itself.
@@ -138,10 +160,22 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     private string _meetingProcessesText = string.Empty;
 
     /// <summary>
-    /// Gets or sets the explanation shown when the clock-out time is not a time of day; empty when it is fine.
+    /// Gets or sets the explanation shown when the list of meeting applications cannot be used; empty when it is fine.
     /// </summary>
     [ObservableProperty]
-    private string _clockOutTimeError = string.Empty;
+    private string _meetingProcessesError = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the chat applications, one process name per line.
+    /// </summary>
+    [ObservableProperty]
+    private string _chatProcessesText = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the explanation shown when the list of chat applications cannot be used; empty when it is fine.
+    /// </summary>
+    [ObservableProperty]
+    private string _chatProcessesError = string.Empty;
 
     /// <summary>
     /// Gets or sets the language of the user interface.
@@ -174,10 +208,23 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     private bool _climbEdges;
 
     /// <summary>
-    /// Gets or sets the time of day the working day ends, as <c>HH:mm</c>.
+    /// Gets or sets the hour of the time of day the working day ends.
     /// </summary>
     [ObservableProperty]
-    private string _clockOutTimeText = string.Empty;
+    private int _clockOutHour;
+
+    /// <summary>
+    /// Gets or sets the minute of the time of day the working day ends.
+    /// </summary>
+    [ObservableProperty]
+    private int _clockOutMinute;
+
+    /// <summary>
+    /// Gets or sets the minutes to choose from for the end of the working day: every ten minutes, plus the minute in
+    /// use if an older version of the settings left it off that grid.
+    /// </summary>
+    [ObservableProperty]
+    private IReadOnlyList<int> _minuteChoices = ClockOutMinuteChoices(0);
 
     /// <summary>
     /// Whether the application starts at sign-in.
@@ -246,10 +293,21 @@ public sealed partial class SettingsTabViewModel : ObservableObject
         _autoStartService = autoStart;
         _pets = pets;
 
+        _processLists = new Dictionary<ProcessListKind, ProcessListBox>
+        {
+            [ProcessListKind.Fullscreen] = new(() => BlacklistText, text => BlacklistText = text, () => BlacklistError, error => BlacklistError = error),
+            [ProcessListKind.Development] = new(() => DevProcessesText, text => DevProcessesText = text, () => DevProcessesError, error => DevProcessesError = error),
+            [ProcessListKind.Meeting] = new(() => MeetingProcessesText, text => MeetingProcessesText = text, () => MeetingProcessesError, error => MeetingProcessesError = error),
+            [ProcessListKind.Chat] = new(() => ChatProcessesText, text => ChatProcessesText = text, () => ChatProcessesError, error => ChatProcessesError = error),
+        };
+
         Scenarios =
         [
             .. ScenarioCatalog.All.Select(state => new ScenarioToggleViewModel(state, Strings.ScenarioLabel(state), OnScenarioToggled)),
         ];
+
+        _removedAtLoad = settings.RemovedAtLoad;
+        UpdateProcessListNotice();
 
         Refresh(settings.Current);
         RefreshExternalState();
@@ -436,33 +494,16 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Applies the edited process list.
+    /// Applies the edited list of full-screen programs.
     /// </summary>
     /// <param name="value">
     /// The text entered, one process name per line.
     /// </param>
     partial void OnBlacklistTextChanged(string value)
     {
-        if (_refreshing)
-        {
-            return;
-        }
-
-        var names = value.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
-        _ = ApplyAsync(settings => settings with { BlacklistedProcesses = names });
-    }
-
-    /// <summary>
-    /// Applies the development detection choice.
-    /// </summary>
-    /// <param name="value">
-    /// Whether the pet sits down at its computer while the user is developing.
-    /// </param>
-    partial void OnDevModeEnabledChanged(bool value)
-    {
         if (!_refreshing)
         {
-            _ = ApplyAsync(settings => settings with { DevModeEnabled = value });
+            ApplyProcessList(ProcessListKind.Fullscreen, value);
         }
     }
 
@@ -488,14 +529,38 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     /// </param>
     partial void OnMeetingProcessesTextChanged(string value)
     {
-        if (_refreshing)
+        if (!_refreshing)
         {
-            return;
+            ApplyProcessList(ProcessListKind.Meeting, value);
         }
-
-        var names = value.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
-        _ = ApplyAsync(settings => settings with { MeetingProcesses = names });
     }
+
+    /// <summary>
+    /// Applies the edited list of chat applications.
+    /// </summary>
+    /// <param name="value">
+    /// The text entered, one process name per line.
+    /// </param>
+    partial void OnChatProcessesTextChanged(string value)
+    {
+        if (!_refreshing)
+        {
+            ApplyProcessList(ProcessListKind.Chat, value);
+        }
+    }
+
+    /// <summary>
+    /// Gets or sets what was taken out of the process lists when the settings were loaded, for the user to know; empty
+    /// if nothing was. Names drop out of it once the user edits their list or the one they stayed in.
+    /// </summary>
+    [ObservableProperty]
+    private string _processListNotice = string.Empty;
+
+    /// <summary>
+    /// Gets the hours to choose from for the end of the working day.
+    /// </summary>
+    public IReadOnlyList<int> HourChoices { get; } = [.. Enumerable.Range(0, 24)];
+
 
     /// <summary>
     /// Gets the languages to choose from.
@@ -605,27 +670,38 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Applies the edited time at which the working day ends. Text that is not a time of day is not applied and is
-    /// explained until it becomes one.
+    /// Applies the chosen hour at which the working day ends.
     /// </summary>
     /// <param name="value">
-    /// The text entered, such as <c>18:00</c>.
+    /// The hour, 0 to 23.
     /// </param>
-    partial void OnClockOutTimeTextChanged(string value)
+    partial void OnClockOutHourChanged(int value)
+    {
+        ApplyClockOutTime();
+    }
+
+    /// <summary>
+    /// Applies the chosen minute at which the working day ends.
+    /// </summary>
+    /// <param name="value">
+    /// The minute, 0 to 59.
+    /// </param>
+    partial void OnClockOutMinuteChanged(int value)
+    {
+        ApplyClockOutTime();
+    }
+
+    /// <summary>
+    /// Applies the time at which the working day ends from the chosen hour and minute.
+    /// </summary>
+    private void ApplyClockOutTime()
     {
         if (_refreshing)
         {
             return;
         }
 
-        if (!TimeSpan.TryParseExact(value.Trim(), ClockOutTimeFormats, CultureInfo.InvariantCulture, out var time)
-            || time >= TimeSpan.FromHours(24))
-        {
-            ClockOutTimeError = Strings.ClockOutTimeInvalid;
-            return;
-        }
-
-        ClockOutTimeError = string.Empty;
+        var time = new TimeSpan(ClockOutHour, ClockOutMinute, 0);
         _ = ApplyAsync(settings => settings with { ClockOutTime = time });
     }
 
@@ -664,13 +740,10 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     /// </param>
     partial void OnDevProcessesTextChanged(string value)
     {
-        if (_refreshing)
+        if (!_refreshing)
         {
-            return;
+            ApplyProcessList(ProcessListKind.Development, value);
         }
-
-        var names = value.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
-        _ = ApplyAsync(settings => settings with { DevProcesses = names });
     }
 
     /// <summary>
@@ -749,6 +822,135 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     }
 
     /// <summary>
+    /// Applies an edited process list, unless a name is in another list; then it is not applied and the reason is shown
+    /// until the text is fixed.
+    /// </summary>
+    /// <param name="kind">
+    /// The list.
+    /// </param>
+    /// <param name="text">
+    /// The text entered, one process name per line.
+    /// </param>
+    private void ApplyProcessList(ProcessListKind kind, string text)
+    {
+        _ = ApplyProcessListAsync(kind, text);
+    }
+
+    /// <summary>
+    /// Checks and applies an edited process list. The check is made once on what is shown and once more inside the
+    /// update, on the settings as they are when it runs, as an earlier save may still have been under way before. A
+    /// newer edit of the same list takes over the explanation, so an update that finishes late does not overwrite it.
+    /// </summary>
+    /// <param name="kind">
+    /// The list.
+    /// </param>
+    /// <param name="text">
+    /// The text entered, one process name per line.
+    /// </param>
+    /// <returns>
+    /// A task that completes when the list has been applied or refused.
+    /// </returns>
+    private async Task ApplyProcessListAsync(ProcessListKind kind, string text)
+    {
+        var edit = ++_processListEdits[(int)kind];
+        var names = ProcessListRules.Clean(text.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries));
+        var check = ProcessListRules.Check(_settings.Current, kind, names);
+        if (check.IsValid)
+        {
+            var ran = false;
+            var refused = check;
+            await ApplyAsync(settings =>
+            {
+                ran = true;
+                refused = ProcessListRules.Check(settings, kind, names);
+                return refused.IsValid ? ProcessListRules.With(settings, kind, names) : settings;
+            });
+            if (!ran)
+            {
+                // The settings failed to load, so nothing was applied and there is nothing to say about the list.
+                return;
+            }
+
+            check = refused;
+        }
+
+        if (edit == _processListEdits[(int)kind])
+        {
+            _processLists[kind].SetError(check.IsValid ? string.Empty : Describe(check));
+        }
+
+        if (check.IsValid)
+        {
+            // The list in use changed, whether or not this is still the newest edit, so what it held back may fit now.
+            _editedLists.Add(kind);
+            UpdateProcessListNotice();
+            RecheckProcessLists(kind);
+        }
+    }
+
+    /// <summary>
+    /// Checks the lists held back by an error again after another list changed, as the change may have removed the
+    /// clash.
+    /// </summary>
+    /// <param name="changed">
+    /// The list that was just applied.
+    /// </param>
+    private void RecheckProcessLists(ProcessListKind changed)
+    {
+        foreach (var kind in ProcessListRules.All.Where(kind => kind != changed && _processLists[kind].GetError().Length > 0).ToList())
+        {
+            ApplyProcessList(kind, _processLists[kind].GetText());
+        }
+    }
+
+    /// <summary>
+    /// Shows what was taken out at load, leaving out the names whose list, or the list they stayed in, the user has
+    /// edited since: the note may no longer be true for them.
+    /// </summary>
+    private void UpdateProcessListNotice()
+    {
+        ProcessListNotice = DescribeRemoved([.. _removedAtLoad.Where(item => !_editedLists.Contains(item.List) && (item.KeptIn is null || !_editedLists.Contains(item.KeptIn.Value)))]);
+    }
+
+    /// <summary>
+    /// Tells what was taken out of the process lists at load.
+    /// </summary>
+    /// <param name="removed">
+    /// The names taken out.
+    /// </param>
+    /// <returns>
+    /// A heading and one line for each name; empty if nothing was taken out.
+    /// </returns>
+    private static string DescribeRemoved(IReadOnlyList<RemovedProcessName> removed)
+    {
+        if (removed.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        var lines = removed.Select(item => item.Reason == ProcessListProblem.ContainsSpace
+            ? string.Format(CultureInfo.CurrentCulture, Strings.ProcessRemovedHasSpace, item.Name, Strings.ProcessListName(item.List))
+            : string.Format(CultureInfo.CurrentCulture, Strings.ProcessRemovedInOtherList, item.Name, Strings.ProcessListName(item.List), Strings.ProcessListName(item.KeptIn!.Value)));
+        return string.Join(Environment.NewLine, [Strings.ProcessesRemovedNotice, .. lines]);
+    }
+
+    /// <summary>
+    /// Explains why a process list cannot be used.
+    /// </summary>
+    /// <param name="check">
+    /// The failed check.
+    /// </param>
+    /// <returns>
+    /// The explanation.
+    /// </returns>
+    private static string Describe(ProcessListCheck check)
+    {
+        return check.Problem == ProcessListProblem.ContainsSpace
+            ? string.Format(CultureInfo.CurrentCulture, Strings.ProcessNameHasSpace, check.Name)
+            : string.Format(CultureInfo.CurrentCulture, Strings.ProcessNameInOtherList, check.Name, Strings.ProcessListName(check.OtherList!.Value));
+    }
+
+    /// <summary>
     /// Changes the settings and shows a failed save.
     /// </summary>
     /// <param name="change">
@@ -804,6 +1006,39 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     }
 
     /// <summary>
+    /// Works out the minutes to choose from for the end of the working day.
+    /// </summary>
+    /// <param name="current">
+    /// The minute in use.
+    /// </param>
+    /// <returns>
+    /// Every ten minutes of the hour, with the current minute added if it is not one of them.
+    /// </returns>
+    private static IReadOnlyList<int> ClockOutMinuteChoices(int current)
+    {
+        return [.. Enumerable.Range(0, 6).Select(step => step * 10).Append(current).Distinct().Order()];
+    }
+
+    /// <summary>
+    /// Shows a process list from the settings, unless the text typed for it is held back by an error: that text is
+    /// still being fixed and must not be replaced by the list in use.
+    /// </summary>
+    /// <param name="kind">
+    /// The list.
+    /// </param>
+    /// <param name="settings">
+    /// The settings to show.
+    /// </param>
+    private void ShowProcessList(ProcessListKind kind, PetSettings settings)
+    {
+        var list = _processLists[kind];
+        if (list.GetError().Length == 0)
+        {
+            list.SetText(string.Join(Environment.NewLine, ProcessListRules.Get(settings, kind)));
+        }
+    }
+
+    /// <summary>
     /// Fills the properties from the settings without treating that as an edit.
     /// </summary>
     /// <param name="settings">
@@ -820,18 +1055,26 @@ public sealed partial class SettingsTabViewModel : ObservableObject
             BossKeyText = settings.BossKey.ToString();
             AutoHideWhenFullscreen = settings.AutoHideWhenFullscreen;
             DetectCoveredMonitor = settings.DetectCoveredMonitor;
-            BlacklistText = string.Join(Environment.NewLine, settings.BlacklistedProcesses);
-            DevModeEnabled = settings.DevModeEnabled;
-            DevProcessesText = string.Join(Environment.NewLine, settings.DevProcesses);
+            ShowProcessList(ProcessListKind.Fullscreen, settings);
+            ShowProcessList(ProcessListKind.Development, settings);
+            ShowProcessList(ProcessListKind.Meeting, settings);
+            ShowProcessList(ProcessListKind.Chat, settings);
             ScenariosEnabled = settings.ScenariosEnabled;
-            MeetingProcessesText = string.Join(Environment.NewLine, settings.MeetingProcesses);
             SelectedLanguage = settings.Language;
             SelectedTheme = settings.Theme;
             SelectedSize = settings.Size;
             UpdateSizeChoices(settings.PetName);
             ClimbEdges = settings.ClimbEdges;
-            ClockOutTimeError = string.Empty;
-            ClockOutTimeText = settings.ClockOutTime.ToString(@"hh\:mm", CultureInfo.InvariantCulture);
+            ClockOutHour = settings.ClockOutTime.Hours;
+            var minuteChoices = ClockOutMinuteChoices(settings.ClockOutTime.Minutes);
+            if (!minuteChoices.SequenceEqual(MinuteChoices))
+            {
+                // Replacing the list clears the selection of the box showing it, so only do it when it really changed.
+                MinuteChoices = minuteChoices;
+            }
+
+            ClockOutMinute = settings.ClockOutTime.Minutes;
+            OnPropertyChanged(nameof(ClockOutMinute));
             foreach (var toggle in Scenarios)
             {
                 toggle.Show(!settings.DisabledScenarios.Contains(toggle.State.ToString(), StringComparer.OrdinalIgnoreCase));
@@ -879,4 +1122,21 @@ public sealed partial class SettingsTabViewModel : ObservableObject
             ? string.Format(CultureInfo.CurrentCulture, Strings.BossKeyFailed, _settings.Current.BossKey, reason)
             : string.Empty;
     }
+
+    /// <summary>
+    /// Reaches the text and the explanation of one process list.
+    /// </summary>
+    /// <param name="GetText">
+    /// Reads the text typed.
+    /// </param>
+    /// <param name="SetText">
+    /// Shows a text.
+    /// </param>
+    /// <param name="GetError">
+    /// Reads the explanation shown.
+    /// </param>
+    /// <param name="SetError">
+    /// Shows an explanation.
+    /// </param>
+    private sealed record ProcessListBox(Func<string> GetText, Action<string> SetText, Func<string> GetError, Action<string> SetError);
 }

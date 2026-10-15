@@ -31,6 +31,7 @@ public static class PetStateFallback
             PetState.Festive => PetState.Happy,
             PetState.Dizzy => PetState.Tired,
             PetState.Meeting => PetState.Focus,
+            PetState.Chatting => PetState.Happy,
             PetState.LowBattery => PetState.Tired,
             PetState.Fall => PetState.Drag,
             PetState.Glide => PetState.Fall,

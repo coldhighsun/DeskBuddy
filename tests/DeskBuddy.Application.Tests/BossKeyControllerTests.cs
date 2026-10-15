@@ -69,6 +69,7 @@ public class BossKeyControllerTests
                 new FakeForegroundApp(),
                 new FakePowerStatusProvider(),
                 new MeetingPolicy(),
+                new ChatPolicy(),
                 new WelcomeBackPolicy(behavior),
                 new PowerPolicy(behavior),
                 new ScheduleClock(behavior, clock, new ScenarioSwitches { IsEnabled = false }),

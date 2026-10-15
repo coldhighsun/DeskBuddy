@@ -49,17 +49,26 @@ internal sealed class FakeSettingsStore : ISettingsStore
         return LoadException is null ? Task.FromResult(Stored) : Task.FromException<PetSettings>(LoadException);
     }
 
+    /// <summary>
+    /// Gets or sets a task that <see cref="SaveAsync"/> waits for before it finishes, to hold a save in flight.
+    /// </summary>
+    public Task? SaveBlocker { get; set; }
+
     /// <inheritdoc />
-    public Task SaveAsync(PetSettings settings, CancellationToken cancellationToken = default)
+    public async Task SaveAsync(PetSettings settings, CancellationToken cancellationToken = default)
     {
+        if (SaveBlocker is not null)
+        {
+            await SaveBlocker;
+        }
+
         if (SaveException is not null)
         {
-            return Task.FromException(SaveException);
+            throw SaveException;
         }
 
         SaveCount++;
         Stored = settings;
-        return Task.CompletedTask;
     }
 }
 
@@ -290,6 +299,7 @@ internal static class TestBrain
                 new QuietForeground(),
                 new QuietPower(),
                 new MeetingPolicy(),
+                new ChatPolicy(),
                 new WelcomeBackPolicy(behavior),
                 new PowerPolicy(behavior),
                 new ScheduleClock(behavior, clock, new ScenarioSwitches { IsEnabled = false }),

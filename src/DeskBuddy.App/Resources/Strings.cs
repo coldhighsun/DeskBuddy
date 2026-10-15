@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Resources;
 using System.Runtime.CompilerServices;
 using DeskBuddy.Domain;
+using DeskBuddy.Domain.Settings;
 using DeskBuddy.Domain.Messages;
 
 namespace DeskBuddy.App.Resources;
@@ -228,14 +229,52 @@ internal static class Strings
     public static string BlacklistLabel => Get();
 
     /// <summary>
-    /// Gets the heading of the development section.
+    /// Gets the heading of the section with the lists of programs the pet recognizes.
     /// </summary>
-    public static string SettingsDev => Get();
+    public static string SettingsPrograms => Get();
 
     /// <summary>
-    /// Gets the text of the development detection switch.
+    /// Gets the hint under the heading of the program lists.
     /// </summary>
-    public static string DevMode => Get();
+    public static string ProgramsHint => Get();
+
+    /// <summary>
+    /// Gets the heading of the section with what the pet does on its own.
+    /// </summary>
+    public static string SettingsActions => Get();
+
+    /// <summary>
+    /// Gets the note that some actions need a pet with its own animations.
+    /// </summary>
+    public static string PetSupportNote => Get();
+
+    /// <summary>
+    /// Gets the heading of the note about process names taken out of the lists when the settings were loaded.
+    /// </summary>
+    public static string ProcessesRemovedNotice => Get();
+
+    /// <summary>
+    /// Gets the line for a process name taken out for having a space, with the name as <c>{0}</c> and the list as
+    /// <c>{1}</c>.
+    /// </summary>
+    public static string ProcessRemovedHasSpace => Get();
+
+    /// <summary>
+    /// Gets the line for a process name taken out of a list because it is in another one, with the name as <c>{0}</c>,
+    /// the list it was taken out of as <c>{1}</c> and the list it stays in as <c>{2}</c>.
+    /// </summary>
+    public static string ProcessRemovedInOtherList => Get();
+
+    /// <summary>
+    /// Gets the explanation for a process name with a space in it, with the name as <c>{0}</c>.
+    /// </summary>
+    public static string ProcessNameHasSpace => Get();
+
+    /// <summary>
+    /// Gets the explanation for a process name that is in another list, with the name as <c>{0}</c> and the list as
+    /// <c>{1}</c>.
+    /// </summary>
+    public static string ProcessNameInOtherList => Get();
 
     /// <summary>
     /// Gets the label of the development tool list.
@@ -393,14 +432,14 @@ internal static class Strings
     public static string MeetingProcessesLabel => Get();
 
     /// <summary>
+    /// Gets the label of the list of chat applications.
+    /// </summary>
+    public static string ChatProcessesLabel => Get();
+
+    /// <summary>
     /// Gets the label of the box for the time the working day ends.
     /// </summary>
     public static string ClockOutTimeLabel => Get();
-
-    /// <summary>
-    /// Gets the explanation shown when the clock-out time is not a time of day.
-    /// </summary>
-    public static string ClockOutTimeInvalid => Get();
 
     /// <summary>
     /// Gets the text of the switch for all scenarios.
@@ -419,6 +458,20 @@ internal static class Strings
     public static string ScenarioLabel(PetState state)
     {
         return Manager.GetString($"Scenario{state}", CultureInfo.CurrentUICulture) ?? $"!Scenario{state}!";
+    }
+
+    /// <summary>
+    /// Gets the name of a process list, for saying where a process already is.
+    /// </summary>
+    /// <param name="kind">
+    /// The list.
+    /// </param>
+    /// <returns>
+    /// The localized name.
+    /// </returns>
+    public static string ProcessListName(ProcessListKind kind)
+    {
+        return Manager.GetString($"ProcessList{kind}", CultureInfo.CurrentUICulture) ?? $"!ProcessList{kind}!";
     }
 
     /// <summary>

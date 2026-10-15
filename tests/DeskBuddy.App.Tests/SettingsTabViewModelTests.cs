@@ -51,6 +51,25 @@ public class SettingsTabViewModelTests
     private static readonly ImageSource TestPicture = new DrawingImage();
 
     /// <summary>
+    /// Waits until a condition holds, for updates that finish on another thread after a held save is released; gives up
+    /// after a few seconds, leaving the assertions to say what is wrong.
+    /// </summary>
+    /// <param name="condition">
+    /// The condition to wait for.
+    /// </param>
+    /// <returns>
+    /// A task that completes when the condition holds or the time is up.
+    /// </returns>
+    private static async Task WaitUntilAsync(Func<bool> condition)
+    {
+        var deadline = DateTimeOffset.UtcNow + TimeSpan.FromSeconds(5);
+        while (!condition() && DateTimeOffset.UtcNow < deadline)
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(10), TestContext.Current.CancellationToken);
+        }
+    }
+
+    /// <summary>
     /// Loads the settings and creates the view model over fakes.
     /// </summary>
     /// <param name="pets">
@@ -125,7 +144,7 @@ public class SettingsTabViewModelTests
             SleepAfter = TimeSpan.FromMinutes(8),
             AutoHideWhenFullscreen = false,
             DetectCoveredMonitor = true,
-            BlacklistedProcesses = ["zoom", "teams"],
+            BlacklistedProcesses = ["game", "teams"],
         };
 
         // Act
@@ -138,7 +157,7 @@ public class SettingsTabViewModelTests
         _viewModel.BossKeyText.Should().Be("Ctrl+Alt+H");
         _viewModel.AutoHideWhenFullscreen.Should().BeFalse();
         _viewModel.DetectCoveredMonitor.Should().BeTrue();
-        _viewModel.BlacklistText.Should().Be($"zoom{Environment.NewLine}teams");
+        _viewModel.BlacklistText.Should().Be($"game{Environment.NewLine}teams");
         _viewModel.IsEditable.Should().BeTrue();
     }
 
@@ -307,44 +326,27 @@ public class SettingsTabViewModelTests
         await CreateAsync();
 
         // Act
-        _viewModel.BlacklistText = $"Zoom.exe\r\n  teams \n\n zoom\r\n";
+        _viewModel.BlacklistText = $"Game.exe\r\n  teams \n\n game\r\n";
 
         // Assert
-        _settings.Current.BlacklistedProcesses.Should().Equal("Zoom", "teams");
-        _viewModel.BlacklistText.Should().Be($"Zoom{Environment.NewLine}teams");
+        _settings.Current.BlacklistedProcesses.Should().Equal("Game", "teams");
+        _viewModel.BlacklistText.Should().Be($"Game{Environment.NewLine}teams");
     }
 
     /// <summary>
-    /// The tab shows the development detection switch and tool list from the saved settings.
+    /// The tab shows the development tool list from the saved settings.
     /// </summary>
     [Fact]
     public async Task Constructor_ShowsDevelopmentSettings()
     {
         // Arrange
-        _store.Stored = PetSettings.Default with { DevModeEnabled = false, DevProcesses = ["Code", "zed"] };
+        _store.Stored = PetSettings.Default with { DevProcesses = ["Code", "zed"] };
 
         // Act
         await CreateAsync();
 
         // Assert
-        _viewModel.DevModeEnabled.Should().BeFalse();
         _viewModel.DevProcessesText.Should().Be($"Code{Environment.NewLine}zed");
-    }
-
-    /// <summary>
-    /// Switching development detection off is applied to the settings.
-    /// </summary>
-    [Fact]
-    public async Task DevMode_Toggled_IsApplied()
-    {
-        // Arrange
-        await CreateAsync();
-
-        // Act
-        _viewModel.DevModeEnabled = false;
-
-        // Assert
-        _settings.Current.DevModeEnabled.Should().BeFalse();
     }
 
     /// <summary>
@@ -537,15 +539,15 @@ public class SettingsTabViewModelTests
         loader.Available.Add(PetSettings.DefaultPetName);
         var pets = new InstalledPets(catalog, loader, "pets", _ => TestPicture);
         await CreateAsync(pets);
-        _viewModel.ClockOutTimeText = "99:99";
+        _viewModel.ChatProcessesText = "My Chat";
 
         // Act
         catalog.Names = [PetSettings.DefaultPetName];
         await pets.RefreshAsync();
 
         // Assert
-        _viewModel.ClockOutTimeText.Should().Be("99:99");
-        _viewModel.ClockOutTimeError.Should().NotBeEmpty();
+        _viewModel.ChatProcessesText.Should().Be("My Chat");
+        _viewModel.ChatProcessesError.Should().NotBeEmpty();
         _viewModel.SizeChoices.Should().OnlyContain(choice => choice.Width > 0);
     }
 
@@ -636,48 +638,55 @@ public class SettingsTabViewModelTests
     }
 
     /// <summary>
-    /// An edited end of the working day is applied; text that is no time of day is ignored.
+    /// The end of the working day is shown as an hour and a minute, and a chosen hour or minute is applied.
     /// </summary>
     [Fact]
-    public async Task ClockOutTime_Edited_IsAppliedWhenValid()
+    public async Task ClockOutTime_Chosen_IsApplied()
     {
         // Arrange
         await CreateAsync();
-        var shownAtStart = _viewModel.ClockOutTimeText;
+        var hourAtStart = _viewModel.ClockOutHour;
+        var minuteAtStart = _viewModel.ClockOutMinute;
 
         // Act
-        _viewModel.ClockOutTimeText = "17:30";
-        var valid = _settings.Current.ClockOutTime;
-        _viewModel.ClockOutTimeText = "soon";
-        var afterGarbage = _settings.Current.ClockOutTime;
-        _viewModel.ClockOutTimeText = "25:00";
-        var afterOutOfRange = _settings.Current.ClockOutTime;
+        _viewModel.ClockOutHour = 17;
+        _viewModel.ClockOutMinute = 30;
 
         // Assert
-        shownAtStart.Should().Be("18:00");
-        valid.Should().Be(new TimeSpan(17, 30, 0));
-        afterGarbage.Should().Be(valid);
-        afterOutOfRange.Should().Be(valid);
+        hourAtStart.Should().Be(18);
+        minuteAtStart.Should().Be(0);
+        _settings.Current.ClockOutTime.Should().Be(new TimeSpan(17, 30, 0));
     }
 
     /// <summary>
-    /// Text that is no time of day is explained, and the explanation goes away once the text is a time.
+    /// The hours to choose from cover the whole day and the minutes are every ten minutes.
     /// </summary>
     [Fact]
-    public async Task ClockOutTime_Invalid_ShowsAnErrorUntilFixed()
+    public async Task ClockOutChoices_Listed_HoursAllDayAndMinutesEveryTen()
     {
         // Arrange
         await CreateAsync();
 
+        // Assert
+        _viewModel.HourChoices.Should().Equal(Enumerable.Range(0, 24));
+        _viewModel.MinuteChoices.Should().Equal(0, 10, 20, 30, 40, 50);
+    }
+
+    /// <summary>
+    /// A minute left over from an older version of the settings stays shown and chosen.
+    /// </summary>
+    [Fact]
+    public async Task ClockOutChoices_MinuteOffTheGrid_IsKept()
+    {
+        // Arrange
+        _store.Stored = PetSettings.Default with { ClockOutTime = new TimeSpan(17, 35, 0) };
+
         // Act
-        _viewModel.ClockOutTimeText = "6pm";
-        var afterGarbage = _viewModel.ClockOutTimeError;
-        _viewModel.ClockOutTimeText = "17:45";
-        var afterFix = _viewModel.ClockOutTimeError;
+        await CreateAsync();
 
         // Assert
-        afterGarbage.Should().NotBeEmpty();
-        afterFix.Should().BeEmpty();
+        _viewModel.MinuteChoices.Should().Equal(0, 10, 20, 30, 35, 40, 50);
+        _viewModel.ClockOutMinute.Should().Be(35);
     }
 
     /// <summary>
@@ -698,6 +707,329 @@ public class SettingsTabViewModelTests
         shownAtStart.Should().Be("Zoom");
         _settings.Current.MeetingProcesses.Should().Equal("Zoom", "Slack");
         _viewModel.MeetingProcessesText.Should().Be($"Zoom{Environment.NewLine}Slack");
+    }
+
+    /// <summary>
+    /// The list of chat applications is shown, and an edit is split into lines, cleaned up and shown back.
+    /// </summary>
+    [Fact]
+    public async Task ChatProcesses_Edited_IsCleanedAndShownBack()
+    {
+        // Arrange
+        _store.Stored = PetSettings.Default with { ChatProcesses = ["Weixin"] };
+        await CreateAsync();
+        var shownAtStart = _viewModel.ChatProcessesText;
+
+        // Act
+        _viewModel.ChatProcessesText = "Weixin.exe\r\n  Signal \n\n signal\r\n";
+
+        // Assert
+        shownAtStart.Should().Be("Weixin");
+        _settings.Current.ChatProcesses.Should().Equal("Weixin", "Signal");
+        _viewModel.ChatProcessesText.Should().Be($"Weixin{Environment.NewLine}Signal");
+    }
+
+    /// <summary>
+    /// A process name with a space in it is not applied and the reason is shown.
+    /// </summary>
+    [Fact]
+    public async Task ChatProcesses_NameWithSpace_IsNotAppliedAndExplained()
+    {
+        // Arrange
+        await CreateAsync();
+
+        // Act
+        _viewModel.ChatProcessesText = "Weixin\r\nMy Chat";
+
+        // Assert
+        _settings.Current.ChatProcesses.Should().Equal(PetSettings.DefaultChatProcesses);
+        _viewModel.ChatProcessesError.Should().Contain("My Chat");
+    }
+
+    /// <summary>
+    /// A process that is already in another list is not applied and the reason is shown.
+    /// </summary>
+    [Fact]
+    public async Task ChatProcesses_NameInAnotherList_IsNotAppliedAndExplained()
+    {
+        // Arrange
+        await CreateAsync();
+
+        // Act
+        _viewModel.ChatProcessesText = "Weixin\r\nzoom";
+
+        // Assert
+        _settings.Current.ChatProcesses.Should().Equal(PetSettings.DefaultChatProcesses);
+        _viewModel.ChatProcessesError.Should().Contain("zoom");
+    }
+
+    /// <summary>
+    /// Fixing the text applies the list and clears the explanation.
+    /// </summary>
+    [Fact]
+    public async Task ChatProcesses_FixedAfterError_IsAppliedAndErrorCleared()
+    {
+        // Arrange
+        await CreateAsync();
+        _viewModel.ChatProcessesText = "Weixin\r\nMy Chat";
+
+        // Act
+        _viewModel.ChatProcessesText = "Weixin";
+
+        // Assert
+        _settings.Current.ChatProcesses.Should().Equal("Weixin");
+        _viewModel.ChatProcessesError.Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// A list held back by an error keeps what the user typed while other settings change.
+    /// </summary>
+    [Fact]
+    public async Task ChatProcesses_HeldBackByError_KeepsTextWhenOtherSettingChanges()
+    {
+        // Arrange
+        await CreateAsync();
+        _viewModel.ChatProcessesText = "Weixin\r\nMy Chat";
+
+        // Act
+        _viewModel.ChatterEnabled = true;
+
+        // Assert
+        _viewModel.ChatProcessesText.Should().Be("Weixin\r\nMy Chat");
+    }
+
+    /// <summary>
+    /// Removing a process from the list it clashes with lets the held-back list through.
+    /// </summary>
+    [Fact]
+    public async Task MeetingProcesses_ClashRemovedFromOtherList_IsAppliedAfterwards()
+    {
+        // Arrange
+        await CreateAsync();
+        _viewModel.MeetingProcessesText = "Zoom\r\nWeixin";
+        var errorBefore = _viewModel.MeetingProcessesError;
+
+        // Act
+        _viewModel.ChatProcessesText = "WhatsApp";
+
+        // Assert
+        errorBefore.Should().NotBeEmpty();
+        _viewModel.MeetingProcessesError.Should().BeEmpty();
+        _settings.Current.MeetingProcesses.Should().Equal("Zoom", "Weixin");
+    }
+
+    /// <summary>
+    /// Showing the settings again after another change keeps the same list of minutes, as replacing it would clear the
+    /// choice shown in the box.
+    /// </summary>
+    [Fact]
+    public async Task ClockOutChoices_OtherSettingChanges_KeepsTheSameList()
+    {
+        // Arrange
+        await CreateAsync();
+        var before = _viewModel.MinuteChoices;
+
+        // Act
+        _viewModel.ChatterEnabled = true;
+
+        // Assert
+        _viewModel.MinuteChoices.Should().BeSameAs(before);
+    }
+
+    /// <summary>
+    /// A clash that appears while an earlier save is still running is caught when the update runs, not let through
+    /// because the check saw settings that did not have the other list yet.
+    /// </summary>
+    [Fact]
+    public async Task ChatProcesses_ClashCreatedWhileSaveRunning_IsRefusedInsideTheUpdate()
+    {
+        // Arrange
+        await CreateAsync();
+        var release = new TaskCompletionSource();
+        _store.SaveBlocker = release.Task;
+        _viewModel.ChatterEnabled = true;
+        _viewModel.MeetingProcessesText = "Zoom\r\nSignal";
+        _viewModel.ChatProcessesText = "Weixin\r\nSignal";
+
+        // Act
+        release.SetResult();
+        await WaitUntilAsync(() => _viewModel.ChatProcessesError.Length > 0);
+
+        // Assert
+        _settings.Current.MeetingProcesses.Should().Equal("Zoom", "Signal");
+        _settings.Current.ChatProcesses.Should().Equal(PetSettings.DefaultChatProcesses);
+        _viewModel.ChatProcessesError.Should().Contain("Signal");
+    }
+
+    /// <summary>
+    /// An update that finishes after a newer, invalid edit does not wipe the explanation of that edit.
+    /// </summary>
+    [Fact]
+    public async Task ChatProcesses_EarlierUpdateFinishesLate_KeepsErrorOfNewerEdit()
+    {
+        // Arrange
+        await CreateAsync();
+        var release = new TaskCompletionSource();
+        _store.SaveBlocker = release.Task;
+        _viewModel.ChatterEnabled = true;
+        _viewModel.ChatProcessesText = "Weixin";
+
+        // Act
+        _viewModel.ChatProcessesText = "Weixin\r\nMy Chat";
+        release.SetResult();
+        await WaitUntilAsync(() => _settings.Current.ChatProcesses.SequenceEqual(["Weixin"]));
+
+        // Assert
+        _viewModel.ChatProcessesError.Should().Contain("My Chat");
+    }
+
+    /// <summary>
+    /// When the settings failed to load nothing is applied, so nothing is said about the list either.
+    /// </summary>
+    [Fact]
+    public async Task ChatProcesses_SettingsFailedToLoad_NoErrorAndNothingApplied()
+    {
+        // Arrange
+        _store.LoadException = new IOException("broken");
+        await CreateAsync();
+
+        // Act
+        _viewModel.ChatProcessesText = "Weixin\r\nSignal";
+
+        // Assert
+        _viewModel.ChatProcessesError.Should().BeEmpty();
+        _settings.Current.ChatProcesses.Should().Equal(PetSettings.DefaultChatProcesses);
+    }
+
+    /// <summary>
+    /// What was taken out of the lists at load is explained in the tab.
+    /// </summary>
+    [Fact]
+    public async Task Constructor_NamesTakenOutAtLoad_AreExplained()
+    {
+        // Arrange
+        _store.Stored = PetSettings.Default with { MeetingProcesses = ["Zoom", "My Meeting"], BlacklistedProcesses = ["zoom", "Game"] };
+
+        // Act
+        await CreateAsync();
+
+        // Assert
+        _viewModel.ProcessListNotice.Should().Contain("My Meeting").And.Contain("zoom");
+    }
+
+    /// <summary>
+    /// Nothing is said when nothing was taken out.
+    /// </summary>
+    [Fact]
+    public async Task Constructor_NothingTakenOut_NoNotice()
+    {
+        // Act
+        await CreateAsync();
+
+        // Assert
+        _viewModel.ProcessListNotice.Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// The note about names taken out at load goes on listing the lists the user has not edited, and drops the one that
+    /// was edited.
+    /// </summary>
+    [Fact]
+    public async Task ProcessListNotice_ListEdited_DropsOnlyThatListsNames()
+    {
+        // Arrange
+        _store.Stored = PetSettings.Default with { MeetingProcesses = ["Zoom", "My Meeting"], DevProcesses = ["Code", "My Editor"] };
+        await CreateAsync();
+        var before = _viewModel.ProcessListNotice;
+
+        // Act
+        _viewModel.MeetingProcessesText = "Teams";
+
+        // Assert
+        before.Should().Contain("My Meeting").And.Contain("My Editor");
+        _viewModel.ProcessListNotice.Should().Contain("My Editor").And.NotContain("My Meeting");
+    }
+
+    /// <summary>
+    /// Editing the list a name stayed in also drops that name from the note, as it may no longer be in it.
+    /// </summary>
+    [Fact]
+    public async Task ProcessListNotice_KeptInListEdited_DropsTheName()
+    {
+        // Arrange
+        _store.Stored = PetSettings.Default with { MeetingProcesses = ["Zoom"], BlacklistedProcesses = ["zoom", "Game"] };
+        await CreateAsync();
+        var before = _viewModel.ProcessListNotice;
+
+        // Act
+        _viewModel.MeetingProcessesText = "Teams";
+
+        // Assert
+        before.Should().Contain("zoom");
+        _viewModel.ProcessListNotice.Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// Once every list that lost names has been edited the note is gone.
+    /// </summary>
+    [Fact]
+    public async Task ProcessListNotice_AllAffectedListsEdited_IsEmpty()
+    {
+        // Arrange
+        _store.Stored = PetSettings.Default with { MeetingProcesses = ["Zoom", "My Meeting"] };
+        await CreateAsync();
+
+        // Act
+        _viewModel.MeetingProcessesText = "Teams";
+
+        // Assert
+        _viewModel.ProcessListNotice.Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// Editing a list that lost nothing leaves the note as it is.
+    /// </summary>
+    [Fact]
+    public async Task ProcessListNotice_UnrelatedListEdited_IsKept()
+    {
+        // Arrange
+        _store.Stored = PetSettings.Default with { MeetingProcesses = ["Zoom", "My Meeting"] };
+        await CreateAsync();
+        var before = _viewModel.ProcessListNotice;
+
+        // Act
+        _viewModel.ChatProcessesText = "Weixin";
+
+        // Assert
+        _viewModel.ProcessListNotice.Should().Be(before).And.NotBeEmpty();
+    }
+
+    /// <summary>
+    /// A list edit that a newer edit of the same list took over still lets the lists it held back through, as the
+    /// settings did change.
+    /// </summary>
+    [Fact]
+    public async Task ChatProcesses_EditSupersededByNewerOne_StillRechecksHeldBackLists()
+    {
+        // Arrange
+        _store.Stored = PetSettings.Default with { ChatProcesses = ["Signal"] };
+        await CreateAsync();
+        _viewModel.MeetingProcessesText = "Zoom\r\nSignal";
+        var heldBack = _viewModel.MeetingProcessesError;
+        var release = new TaskCompletionSource();
+        _store.SaveBlocker = release.Task;
+        _viewModel.ChatterEnabled = true;
+        _viewModel.ChatProcessesText = "Weixin";
+
+        // Act
+        _viewModel.ChatProcessesText = "Weixin\r\nMy Chat";
+        release.SetResult();
+        await WaitUntilAsync(() => _viewModel.MeetingProcessesError.Length == 0 && _settings.Current.MeetingProcesses.Contains("Signal"));
+
+        // Assert
+        heldBack.Should().NotBeEmpty();
+        _viewModel.MeetingProcessesError.Should().BeEmpty();
+        _settings.Current.MeetingProcesses.Should().Equal("Zoom", "Signal");
     }
 
     /// <summary>

@@ -407,6 +407,18 @@ foreach ($f in 0..3) {
     Save-Frame "meeting_$f.png" -Tag 'MTG' -TagColor Red $draw
 }
 
+# Chatting: a speech bubble beside the head whose dots fill up one by one, the robot nodding along happily.
+foreach ($f in 0..3) {
+    $dots = $f
+    $nod = @(0, 1, 0, 1)[$f]
+    $draw = {
+        Add-Robot -Eyes happy
+        Px Outline 22 2 9 7; Px White 23 3 7 5; Px Outline 23 9 2 1; Px White 23 8 1 1
+        for ($i = 0; $i -lt $dots; $i++) { Px Cyan (24 + 2 * $i) 5 1 1 }
+    }.GetNewClosure()
+    Save-Frame "chatting_$f.png" -Tag 'CHT' -TagColor Cyan -Dy $nod $draw
+}
+
 # LowBattery: slouching, heavy eyes, an almost empty battery on the chest that blinks red.
 Save-Frame 'lowbattery_0.png' -Tag 'LOW' -TagColor Red -Dy 1 { Add-Robot -Eyes tired -Lamp Red -Light CyanDim -Battery -BatteryBars 1 -BatteryColor Red }
 Save-Frame 'lowbattery_1.png' -Tag 'LOW' -TagColor Red -Dy 1 { Add-Robot -Eyes tired -Lamp SteelDark -Light CyanDim -Battery -BatteryBars 0 -BatteryColor Red }
@@ -640,6 +652,7 @@ $manifest = @'
     "Reading":     { "fps": 3, "frames": ["reading_0.png", "reading_1.png", "reading_2.png", "reading_3.png"] },
     "Welcome":     { "fps": 4, "frames": ["welcome_0.png", "welcome_1.png", "welcome_2.png", "welcome_3.png"] },
     "Meeting":     { "fps": 2, "frames": ["meeting_0.png", "meeting_1.png", "meeting_2.png", "meeting_3.png"] },
+    "Chatting":    { "fps": 3, "frames": ["chatting_0.png", "chatting_1.png", "chatting_2.png", "chatting_3.png"] },
     "LowBattery":  { "fps": 2, "frames": ["lowbattery_0.png", "lowbattery_1.png"] },
     "Charging":    { "fps": 3, "frames": ["charging_0.png", "charging_1.png", "charging_2.png", "charging_3.png"] },
     "Meal":        { "fps": 3, "frames": ["meal_0.png", "meal_1.png", "meal_2.png", "meal_3.png"] },
