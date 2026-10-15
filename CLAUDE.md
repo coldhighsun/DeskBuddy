@@ -47,6 +47,13 @@ powershell -NoProfile -File tools/GenerateAppIcon.ps1   # 重新生成应用/托
 - 给控件写自己的 `Style` 时要加 `BasedOn`，或把样式放到外层元素上，否则会丢掉主题样式。
 - `ThemeMode` 在 .NET 10 里仍是实验性 API，项目对 `WPF0001` 做了 `NoWarn`。
 
+## 设置与进程列表
+
+- 设置存在 JSON 文件里（`Infrastructure/Storage/JsonSettingsStore`）。**默认值只在没有配置文件、第一次启动时有效**；只要配置文件已存在，文件里缺失的进程列表（开发、会议、聊天、全屏）和“关闭的场景”列表一律按空处理，不用默认值补，也不要在读取时再往里加新的默认项。单个值（开关、时间等）缺失时才用默认值。
+- 进程名列表有两条规则，由 `Domain/Settings/ProcessListRules` 统一管理：进程名不能含空格；同一个进程只能在一个列表里。设置页输入时用 `Check` 校验（有错就不应用并在框下显示原因）；读取配置文件和每次修改设置时由 `SettingsService` 调用 `Enforce` 强制，重复的名字只保留在更重要的列表里（会议软件 > 聊天软件 > 开发工具 > 全屏程序），去掉的名字写日志，并在设置页的“识别程序”下提示。新增进程列表时要同步更新 `ProcessListKind`、`ProcessListRules` 里的取值/赋值/顺序和设置页。
+- 新增场景（`PetState` 里的情境状态）要同时改：`ScenarioCatalog.All`（设置页的开关列表）和需要时的 `AmbientRanking`、`PetCapabilities` 的 `ScenarioStates`、`PetStateFallback`、两个 resx 里的 `Scenario*` / `StateHint*`、robot 的 manifest 与 `GenerateRobotPet.ps1`。
+- 数字输入框用 `Presentation/DigitsOnly` 限制只能输入数字；时刻（如下班时间）用小时、分钟两个下拉框选，不让手输。
+
 ## 本地化
 
 界面文字在 `src/DeskBuddy.App/Resources`：`Strings.resx` 是中文（默认），`Strings.en.resx` 是英文。新增文案两个文件都要加。
