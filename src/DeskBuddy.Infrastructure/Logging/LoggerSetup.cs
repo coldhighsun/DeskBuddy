@@ -26,7 +26,8 @@ public static class LoggerSetup
 
     /// <summary>
     /// Creates a logger that writes <c>deskbuddy-yyyyMMdd.log</c> files, starting a new file each day and whenever the
-    /// current one reaches the size limit. A failure to write is swallowed by Serilog, so logging cannot crash the pet.
+    /// current one reaches the size limit. Writing happens on a background thread so callers never block on disk I/O;
+    /// disposing the logger drains the queue. A failure to write is swallowed by Serilog, so logging cannot crash the pet.
     /// </summary>
     /// <param name="directory">
     /// The directory to write to; it is created when missing.
@@ -51,14 +52,14 @@ public static class LoggerSetup
     {
         return new LoggerConfiguration()
             .MinimumLevel.Is(ToSerilogLevel(minimumLevel))
-            .WriteTo.File(
+            .WriteTo.Async(sink => sink.File(
                 Path.Combine(directory, "deskbuddy-.log"),
                 outputTemplate: OutputTemplate,
                 rollingInterval: RollingInterval.Day,
                 fileSizeLimitBytes: fileSizeLimitBytes,
                 rollOnFileSizeLimit: true,
                 retainedFileCountLimit: retainedFileCount,
-                shared: true)
+                shared: true))
             .CreateLogger();
     }
 
