@@ -1,6 +1,3 @@
-using AwesomeAssertions;
-using DeskBuddy.Domain.Pets;
-
 namespace DeskBuddy.Domain.Tests.Pets;
 
 /// <summary>

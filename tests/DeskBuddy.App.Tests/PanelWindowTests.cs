@@ -4,16 +4,11 @@ using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
-using AwesomeAssertions;
-using DeskBuddy.App.Presentation;
 using DeskBuddy.App.Rendering;
 using DeskBuddy.App.Resources;
 using DeskBuddy.App.ViewModels;
 using DeskBuddy.App.Windows;
-using DeskBuddy.Application;
-using DeskBuddy.Domain.Settings;
 using DeskBuddy.Infrastructure.Pets;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace DeskBuddy.App.Tests;
 
@@ -32,7 +27,7 @@ public class PanelWindowTests
         StaThread.Run(() =>
         {
             // Arrange
-            var petsDirectory = FindPetsDirectory();
+            var petsDirectory = RepositoryPaths.Pets;
             var settings = new SettingsService(new FakeSettingsStore());
             settings.InitializeAsync().GetAwaiter().GetResult();
             var loader = new FolderPetLoader(NullLogger<FolderPetLoader>.Instance);
@@ -78,7 +73,7 @@ public class PanelWindowTests
         StaThread.Run(() =>
         {
             // Arrange
-            var petsDirectory = FindPetsDirectory();
+            var petsDirectory = RepositoryPaths.Pets;
             var settings = new SettingsService(new FakeSettingsStore());
             settings.InitializeAsync().GetAwaiter().GetResult();
             var loader = new FolderPetLoader(NullLogger<FolderPetLoader>.Instance);
@@ -171,25 +166,5 @@ public class PanelWindowTests
         }
 
         return found;
-    }
-
-    /// <summary>
-    /// Finds the shipped pets folder by walking up from the test output directory.
-    /// </summary>
-    /// <returns>
-    /// The path of the <c>pets</c> folder.
-    /// </returns>
-    private static string FindPetsDirectory()
-    {
-        for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
-        {
-            var candidate = Path.Combine(directory.FullName, "pets");
-            if (Directory.Exists(Path.Combine(candidate, "robot")))
-            {
-                return candidate;
-            }
-        }
-
-        throw new DirectoryNotFoundException("The repository's pets folder was not found above the test output.");
     }
 }

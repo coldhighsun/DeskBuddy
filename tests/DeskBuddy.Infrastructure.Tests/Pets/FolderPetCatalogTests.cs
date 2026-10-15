@@ -1,4 +1,3 @@
-using AwesomeAssertions;
 using DeskBuddy.Infrastructure.Pets;
 
 namespace DeskBuddy.Infrastructure.Tests.Pets;

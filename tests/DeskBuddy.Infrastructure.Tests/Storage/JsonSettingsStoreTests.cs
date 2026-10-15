@@ -1,7 +1,5 @@
-using AwesomeAssertions;
 using DeskBuddy.Domain.Settings;
 using DeskBuddy.Infrastructure.Storage;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace DeskBuddy.Infrastructure.Tests.Storage;
 

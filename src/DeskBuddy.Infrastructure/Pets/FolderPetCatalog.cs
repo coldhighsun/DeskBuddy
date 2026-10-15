@@ -1,5 +1,3 @@
-using DeskBuddy.Application.Abstractions;
-
 namespace DeskBuddy.Infrastructure.Pets;
 
 /// <summary>

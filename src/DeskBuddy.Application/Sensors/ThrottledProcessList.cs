@@ -1,6 +1,4 @@
-using DeskBuddy.Application.Abstractions;
-
-namespace DeskBuddy.Application;
+namespace DeskBuddy.Application.Sensors;
 
 /// <summary>
 /// Lists the running processes at most once per interval and hands out the last list in between, as walking all the

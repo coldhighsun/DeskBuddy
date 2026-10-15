@@ -1,8 +1,6 @@
 using System.IO;
 using System.Windows.Media;
 using DeskBuddy.App.Rendering;
-using DeskBuddy.Application.Abstractions;
-using DeskBuddy.Domain;
 
 namespace DeskBuddy.App.Presentation;
 

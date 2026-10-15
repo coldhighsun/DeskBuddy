@@ -1,6 +1,3 @@
-using System.Globalization;
-using DeskBuddy.App.Resources;
-using DeskBuddy.Domain;
 using DeskBuddy.Domain.Messages;
 
 namespace DeskBuddy.App.Presentation;

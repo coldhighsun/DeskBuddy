@@ -1,6 +1,4 @@
-using AwesomeAssertions;
 using DeskBuddy.App.Diagnostics;
-using DeskBuddy.Domain.Settings;
 using Microsoft.Extensions.Logging;
 
 namespace DeskBuddy.App.Tests;

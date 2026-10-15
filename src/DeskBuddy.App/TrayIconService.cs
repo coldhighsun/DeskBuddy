@@ -1,5 +1,4 @@
 using Icon = System.Drawing.Icon;
-using System.Globalization;
 using System.IO;
 using System.Windows;
 using System.Windows.Automation;
@@ -7,15 +6,9 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Interop;
 using System.Windows.Media;
-using DeskBuddy.App.Interop;
-using DeskBuddy.App.Presentation;
-using DeskBuddy.App.Resources;
 using DeskBuddy.App.Windows;
-using DeskBuddy.Application;
-using DeskBuddy.Domain.Settings;
 using H.NotifyIcon;
 using H.NotifyIcon.Core;
-using Microsoft.Extensions.Logging;
 
 namespace DeskBuddy.App;
 

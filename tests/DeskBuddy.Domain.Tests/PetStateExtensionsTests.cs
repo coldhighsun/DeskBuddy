@@ -1,5 +1,3 @@
-using AwesomeAssertions;
-
 namespace DeskBuddy.Domain.Tests;
 
 /// <summary>

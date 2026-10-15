@@ -1,8 +1,5 @@
-using System.Globalization;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
-using DeskBuddy.App.Resources;
-using DeskBuddy.Domain;
 using DeskBuddy.Domain.Pets;
 
 namespace DeskBuddy.App.ViewModels;

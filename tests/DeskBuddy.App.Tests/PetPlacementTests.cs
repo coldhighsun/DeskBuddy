@@ -1,6 +1,3 @@
-using AwesomeAssertions;
-using DeskBuddy.App.Presentation;
-
 namespace DeskBuddy.App.Tests;
 
 /// <summary>

@@ -1,5 +1,3 @@
-using DeskBuddy.Domain;
-
 namespace DeskBuddy.App.Presentation;
 
 /// <summary>

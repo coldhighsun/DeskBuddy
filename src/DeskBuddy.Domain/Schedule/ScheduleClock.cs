@@ -1,4 +1,3 @@
-using DeskBuddy.Domain.Behavior;
 using DeskBuddy.Domain.Scenarios;
 
 namespace DeskBuddy.Domain.Schedule;

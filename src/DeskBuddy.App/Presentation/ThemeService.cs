@@ -3,10 +3,6 @@ using System.Windows;
 using System.Windows.Markup;
 using System.Security;
 using System.Windows.Threading;
-using DeskBuddy.App.Interop;
-using DeskBuddy.Application;
-using DeskBuddy.Domain.Settings;
-using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 
 namespace DeskBuddy.App.Presentation;

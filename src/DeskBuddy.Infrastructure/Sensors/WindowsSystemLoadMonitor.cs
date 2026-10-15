@@ -1,5 +1,3 @@
-using System.Runtime.InteropServices;
-using DeskBuddy.Application.Abstractions;
 using DeskBuddy.Domain.SystemLoad;
 
 namespace DeskBuddy.Infrastructure.Sensors;

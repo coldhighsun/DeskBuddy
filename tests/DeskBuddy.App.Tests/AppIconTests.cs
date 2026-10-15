@@ -1,7 +1,6 @@
 using System.Buffers.Binary;
 using System.Drawing;
 using System.IO;
-using AwesomeAssertions;
 
 namespace DeskBuddy.App.Tests;
 
@@ -152,15 +151,6 @@ public class AppIconTests
     /// </returns>
     private static byte[] ReadIcon()
     {
-        for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
-        {
-            var path = Path.Combine(directory.FullName, "src", "DeskBuddy.App", "Assets", "DeskBuddy.ico");
-            if (File.Exists(path))
-            {
-                return File.ReadAllBytes(path);
-            }
-        }
-
-        throw new FileNotFoundException("DeskBuddy.ico was not found above the test output.");
+        return File.ReadAllBytes(RepositoryPaths.Combine("src", "DeskBuddy.App", "Assets", "DeskBuddy.ico"));
     }
 }

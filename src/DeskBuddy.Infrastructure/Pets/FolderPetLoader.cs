@@ -1,9 +1,7 @@
 using System.Text.Json;
-using DeskBuddy.Application.Abstractions;
 using DeskBuddy.Domain;
 using DeskBuddy.Domain.Gaze;
 using DeskBuddy.Domain.Pets;
-using Microsoft.Extensions.Logging;
 
 namespace DeskBuddy.Infrastructure.Pets;
 

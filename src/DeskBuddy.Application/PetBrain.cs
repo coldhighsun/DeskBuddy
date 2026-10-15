@@ -1,9 +1,6 @@
-using DeskBuddy.Application.Abstractions;
-using DeskBuddy.Domain;
 using DeskBuddy.Domain.Chatter;
 using DeskBuddy.Domain.Behavior;
 using DeskBuddy.Domain.Messages;
-using DeskBuddy.Domain.Scenarios;
 using DeskBuddy.Domain.Sedentary;
 using DeskBuddy.Domain.SystemLoad;
 using DeskBuddy.Domain.Visibility;

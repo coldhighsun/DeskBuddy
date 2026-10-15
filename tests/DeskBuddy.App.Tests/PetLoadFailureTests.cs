@@ -1,5 +1,4 @@
 using System.IO;
-using AwesomeAssertions;
 using DeskBuddy.App.Rendering;
 
 namespace DeskBuddy.App.Tests;

@@ -1,6 +1,3 @@
-using DeskBuddy.Domain.Settings;
-using Microsoft.Extensions.Logging;
-
 namespace DeskBuddy.App.Diagnostics;
 
 /// <summary>

@@ -1,9 +1,7 @@
 using System.IO;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using AwesomeAssertions;
 using DeskBuddy.App.Rendering;
-using DeskBuddy.Domain;
 using DeskBuddy.Domain.Pets;
 
 namespace DeskBuddy.App.Tests;

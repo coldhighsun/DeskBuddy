@@ -1,8 +1,4 @@
-using AwesomeAssertions;
-using DeskBuddy.Application.Abstractions;
-using DeskBuddy.Domain.Settings;
-
-namespace DeskBuddy.Application.Tests;
+namespace DeskBuddy.Application.Tests.Settings;
 
 /// <summary>
 /// Tests for <see cref="SettingsService"/>.

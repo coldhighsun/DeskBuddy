@@ -18,4 +18,13 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <!-- The build output can live anywhere (ArtifactsPath), so tests find the repository from this baked-in path. -->
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>RepositoryRoot</_Parameter1>
+      <_Parameter2>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', '..'))</_Parameter2>
+    </AssemblyAttribute>
+    <Compile Include="$(MSBuildThisFileDirectory)Shared\RepositoryPaths.cs" Link="RepositoryPaths.cs" />
+  </ItemGroup>
+
 </Project>

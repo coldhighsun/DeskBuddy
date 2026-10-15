@@ -1,8 +1,5 @@
-using System.Globalization;
 using System.Resources;
 using System.Runtime.CompilerServices;
-using DeskBuddy.Domain;
-using DeskBuddy.Domain.Settings;
 using DeskBuddy.Domain.Messages;
 
 namespace DeskBuddy.App.Resources;

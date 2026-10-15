@@ -1,4 +1,3 @@
-using AwesomeAssertions;
 using DeskBuddy.Infrastructure.Sensors;
 
 namespace DeskBuddy.Infrastructure.Tests.Sensors;

@@ -1,8 +1,5 @@
 using System.ComponentModel;
-using System.Runtime.InteropServices;
 using System.Windows.Interop;
-using DeskBuddy.Application.Abstractions;
-using DeskBuddy.Domain.Settings;
 
 namespace DeskBuddy.App.Interop;
 

@@ -1,17 +1,11 @@
-using System.Globalization;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using DeskBuddy.App.Diagnostics;
-using DeskBuddy.App.Interop;
-using DeskBuddy.App.Presentation;
 using DeskBuddy.App.Rendering;
-using DeskBuddy.App.Resources;
 using DeskBuddy.App.ViewModels;
 using DeskBuddy.App.Windows;
-using DeskBuddy.Application;
-using DeskBuddy.Application.Abstractions;
 using DeskBuddy.Domain.Activity;
 using DeskBuddy.Domain.Behavior;
 using DeskBuddy.Domain.Chatter;
@@ -21,7 +15,6 @@ using DeskBuddy.Domain.Pets;
 using DeskBuddy.Domain.Scenarios;
 using DeskBuddy.Domain.Schedule;
 using DeskBuddy.Domain.Sedentary;
-using DeskBuddy.Domain.Settings;
 using DeskBuddy.Domain.Visibility;
 using DeskBuddy.Domain.SystemLoad;
 using DeskBuddy.Infrastructure.Logging;
@@ -32,7 +25,6 @@ using DeskBuddy.Infrastructure.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace DeskBuddy.App;
 
@@ -52,24 +44,14 @@ public partial class App
     private static readonly TimeSpan PetRestoreDelay = TimeSpan.FromSeconds(2);
 
     /// <summary>
-    /// How many days of log files are kept.
-    /// </summary>
-    private const int LogRetentionDays = 7;
-
-    /// <summary>
-    /// How long to wait for pending log entries to reach the disk when the process is about to die.
-    /// </summary>
-    private static readonly TimeSpan LogFlushTimeout = TimeSpan.FromSeconds(2);
-
-    /// <summary>
     /// The directory the log files are written to; <see langword="null"/> until startup.
     /// </summary>
     private string? _logDirectory;
 
     /// <summary>
-    /// Writes the log files; <see langword="null"/> until startup.
+    /// Writes the rolling log files; <see langword="null"/> until startup.
     /// </summary>
-    private FileLoggerProvider? _fileLog;
+    private Serilog.Core.Logger? _fileLog;
 
     /// <summary>
     /// Handles errors nobody caught; <see langword="null"/> until startup.
@@ -161,8 +143,8 @@ public partial class App
 
         _logDirectory = Path.Combine(dataDirectory, "logs");
         var logLevel = builder.Configuration.GetValue("FileLog:MinimumLevel", LogLevel.Information);
-        _fileLog = new FileLoggerProvider(_logDirectory, TimeProvider.System, logLevel, LogRetentionDays);
-        builder.Logging.AddProvider(_fileLog);
+        _fileLog = LoggerSetup.Create(_logDirectory, logLevel);
+        Serilog.SerilogLoggingBuilderExtensions.AddSerilog(builder.Logging, _fileLog, dispose: true);
 
         var behaviorOptions = new PetBehaviorOptions();
         var loadOptions = new SystemLoadOptions();
@@ -419,7 +401,7 @@ public partial class App
             _host!.Services.GetRequiredService<ILogger<App>>(),
             TimeProvider.System,
             () => _tray?.ShowErrorNotice(Strings.CrashTitle, Strings.CrashMessage),
-            () => _fileLog?.Flush(LogFlushTimeout));
+            () => _fileLog?.Dispose());
 
         DispatcherUnhandledException += (_, args) =>
         {

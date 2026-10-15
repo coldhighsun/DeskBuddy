@@ -1,5 +1,3 @@
-using DeskBuddy.Domain.Settings;
-
 namespace DeskBuddy.App.ViewModels;
 
 /// <summary>

@@ -1,9 +1,7 @@
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using DeskBuddy.Application.Abstractions;
 using DeskBuddy.Domain.Settings;
-using Microsoft.Extensions.Logging;
 
 namespace DeskBuddy.Infrastructure.Storage;
 

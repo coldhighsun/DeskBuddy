@@ -1,5 +1,4 @@
 using System.Windows.Input;
-using DeskBuddy.Domain.Settings;
 
 namespace DeskBuddy.App.Presentation;
 

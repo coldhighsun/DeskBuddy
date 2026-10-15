@@ -1,12 +1,7 @@
 using System.IO;
 using System.Windows.Media;
-using AwesomeAssertions;
-using DeskBuddy.App.Presentation;
 using DeskBuddy.App.ViewModels;
-using DeskBuddy.Application;
-using DeskBuddy.Domain;
 using DeskBuddy.Domain.Scenarios;
-using DeskBuddy.Domain.Settings;
 
 namespace DeskBuddy.App.Tests;
 

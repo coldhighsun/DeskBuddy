@@ -1,0 +1,12 @@
+global using AwesomeAssertions;
+global using DeskBuddy.Application.Abstractions;
+global using DeskBuddy.Domain;
+global using DeskBuddy.Domain.Activity;
+global using DeskBuddy.Domain.Behavior;
+global using DeskBuddy.Domain.Scenarios;
+global using DeskBuddy.Domain.Settings;
+global using Microsoft.Extensions.Time.Testing;
+global using DeskBuddy.Application.Hotkeys;
+global using DeskBuddy.Application.Scenarios;
+global using DeskBuddy.Application.Sensors;
+global using DeskBuddy.Application.Settings;

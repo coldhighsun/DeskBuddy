@@ -1,5 +1,3 @@
-using DeskBuddy.Domain.Behavior;
-
 namespace DeskBuddy.Domain.Movement;
 
 /// <summary>

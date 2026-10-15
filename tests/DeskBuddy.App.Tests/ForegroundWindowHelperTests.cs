@@ -1,6 +1,5 @@
 using System.Windows;
 using System.Windows.Interop;
-using AwesomeAssertions;
 using DeskBuddy.App.Interop;
 
 namespace DeskBuddy.App.Tests;

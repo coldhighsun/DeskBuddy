@@ -2,8 +2,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Media;
-using DeskBuddy.App.Interop;
-using DeskBuddy.App.Presentation;
 using DeskBuddy.Domain.Messages;
 
 namespace DeskBuddy.App.Windows;

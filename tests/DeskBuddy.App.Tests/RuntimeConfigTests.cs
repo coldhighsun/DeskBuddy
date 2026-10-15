@@ -1,6 +1,5 @@
 using System.IO;
 using System.Text.Json;
-using AwesomeAssertions;
 
 namespace DeskBuddy.App.Tests;
 

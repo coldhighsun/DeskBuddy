@@ -1,18 +1,10 @@
-using AwesomeAssertions;
-using DeskBuddy.Application.Abstractions;
-using DeskBuddy.Domain;
-using DeskBuddy.Domain.Activity;
-using DeskBuddy.Domain.Behavior;
 using DeskBuddy.Domain.Chatter;
 using DeskBuddy.Domain.Messages;
-using DeskBuddy.Domain.Scenarios;
 using DeskBuddy.Domain.Schedule;
 using DeskBuddy.Domain.Power;
 using DeskBuddy.Domain.Sedentary;
-using DeskBuddy.Domain.Settings;
 using DeskBuddy.Domain.SystemLoad;
 using DeskBuddy.Domain.Visibility;
-using Microsoft.Extensions.Time.Testing;
 
 namespace DeskBuddy.Application.Tests;
 

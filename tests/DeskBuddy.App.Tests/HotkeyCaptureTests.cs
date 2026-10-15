@@ -1,7 +1,4 @@
 using System.Windows.Input;
-using AwesomeAssertions;
-using DeskBuddy.App.Presentation;
-using DeskBuddy.Domain.Settings;
 
 namespace DeskBuddy.App.Tests;
 

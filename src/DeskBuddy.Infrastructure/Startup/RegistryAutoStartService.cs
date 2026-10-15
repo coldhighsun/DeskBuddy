@@ -1,6 +1,5 @@
 using System.Runtime.Versioning;
 using System.Security;
-using DeskBuddy.Application.Abstractions;
 using Microsoft.Win32;
 
 namespace DeskBuddy.Infrastructure.Startup;

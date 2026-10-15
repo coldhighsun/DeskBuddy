@@ -1,4 +1,3 @@
-using AwesomeAssertions;
 using DeskBuddy.Domain.Settings;
 
 namespace DeskBuddy.Domain.Tests.Settings;

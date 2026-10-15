@@ -1,8 +1,6 @@
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
-using DeskBuddy.App.Presentation;
 using System.Windows.Media;
 
 namespace DeskBuddy.App.Interop;

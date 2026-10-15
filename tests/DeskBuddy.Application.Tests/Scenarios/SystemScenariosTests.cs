@@ -1,14 +1,7 @@
-using AwesomeAssertions;
-using DeskBuddy.Domain;
-using DeskBuddy.Domain.Activity;
-using DeskBuddy.Domain.Behavior;
 using DeskBuddy.Domain.Power;
-using DeskBuddy.Domain.Scenarios;
 using DeskBuddy.Domain.Schedule;
-using DeskBuddy.Domain.Settings;
-using Microsoft.Extensions.Time.Testing;
 
-namespace DeskBuddy.Application.Tests;
+namespace DeskBuddy.Application.Tests.Scenarios;
 
 /// <summary>
 /// Tests for <see cref="SystemScenarios"/>.

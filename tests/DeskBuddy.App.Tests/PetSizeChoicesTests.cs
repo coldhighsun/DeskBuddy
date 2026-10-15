@@ -1,8 +1,5 @@
 using System.Windows.Media;
-using AwesomeAssertions;
-using DeskBuddy.App.Presentation;
 using DeskBuddy.App.Resources;
-using DeskBuddy.Domain.Settings;
 
 namespace DeskBuddy.App.Tests;
 

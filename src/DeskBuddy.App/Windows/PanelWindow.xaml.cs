@@ -5,7 +5,6 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Threading;
-using DeskBuddy.App.Presentation;
 using DeskBuddy.App.ViewModels;
 
 namespace DeskBuddy.App.Windows;

@@ -1,0 +1,14 @@
+global using DeskBuddy.App.Interop;
+global using DeskBuddy.App.Presentation;
+global using DeskBuddy.App.Resources;
+global using DeskBuddy.Application;
+global using DeskBuddy.Application.Abstractions;
+global using DeskBuddy.Domain;
+global using DeskBuddy.Domain.Settings;
+global using Microsoft.Extensions.Logging;
+global using System.Globalization;
+global using System.Runtime.InteropServices;
+global using DeskBuddy.Application.Hotkeys;
+global using DeskBuddy.Application.Scenarios;
+global using DeskBuddy.Application.Sensors;
+global using DeskBuddy.Application.Settings;

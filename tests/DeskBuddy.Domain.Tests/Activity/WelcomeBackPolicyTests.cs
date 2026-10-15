@@ -1,7 +1,3 @@
-using AwesomeAssertions;
-using DeskBuddy.Domain.Activity;
-using DeskBuddy.Domain.Behavior;
-
 namespace DeskBuddy.Domain.Tests.Activity;
 
 /// <summary>

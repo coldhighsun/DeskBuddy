@@ -1,12 +1,10 @@
 using DeskBuddy.Domain.Activity;
 using DeskBuddy.Domain.Behavior;
 using DeskBuddy.Domain.Chatter;
-using DeskBuddy.Domain.Scenarios;
 using DeskBuddy.Domain.Sedentary;
-using DeskBuddy.Domain.Settings;
 using DeskBuddy.Domain.Visibility;
 
-namespace DeskBuddy.Application;
+namespace DeskBuddy.Application.Settings;
 
 /// <summary>
 /// Copies the user's settings into the shared option objects the behavior, sedentary, visibility, chatter and

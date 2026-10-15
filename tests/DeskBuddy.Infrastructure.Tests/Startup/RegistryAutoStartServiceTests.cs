@@ -1,5 +1,4 @@
 using System.Runtime.Versioning;
-using AwesomeAssertions;
 using DeskBuddy.Infrastructure.Startup;
 using Microsoft.Win32;
 

@@ -1,7 +1,4 @@
-using DeskBuddy.Application.Abstractions;
-using DeskBuddy.Domain.Settings;
-
-namespace DeskBuddy.Application;
+namespace DeskBuddy.Application.Settings;
 
 /// <summary>
 /// Holds the current settings and saves them after every change. Changes take effect in memory immediately, saves are

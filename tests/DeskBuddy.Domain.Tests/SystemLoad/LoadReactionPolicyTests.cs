@@ -1,6 +1,4 @@
-using AwesomeAssertions;
 using DeskBuddy.Domain.SystemLoad;
-using Microsoft.Extensions.Time.Testing;
 
 namespace DeskBuddy.Domain.Tests.SystemLoad;
 

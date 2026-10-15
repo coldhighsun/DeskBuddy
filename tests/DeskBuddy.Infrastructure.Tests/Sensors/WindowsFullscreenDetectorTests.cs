@@ -1,4 +1,3 @@
-using AwesomeAssertions;
 using DeskBuddy.Application;
 using DeskBuddy.Application.Abstractions;
 using DeskBuddy.Domain.Settings;

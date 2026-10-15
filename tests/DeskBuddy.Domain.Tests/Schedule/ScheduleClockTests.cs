@@ -1,8 +1,5 @@
-using AwesomeAssertions;
-using DeskBuddy.Domain.Behavior;
 using DeskBuddy.Domain.Scenarios;
 using DeskBuddy.Domain.Schedule;
-using Microsoft.Extensions.Time.Testing;
 
 namespace DeskBuddy.Domain.Tests.Schedule;
 

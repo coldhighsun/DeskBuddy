@@ -1,15 +1,8 @@
-using AwesomeAssertions;
-using DeskBuddy.Application.Abstractions;
-using DeskBuddy.Domain.Activity;
-using DeskBuddy.Domain.Behavior;
 using DeskBuddy.Domain.Chatter;
-using DeskBuddy.Domain.Scenarios;
 using DeskBuddy.Domain.Sedentary;
-using DeskBuddy.Domain.Settings;
 using DeskBuddy.Domain.Visibility;
-using Microsoft.Extensions.Time.Testing;
 
-namespace DeskBuddy.Application.Tests;
+namespace DeskBuddy.Application.Tests.Settings;
 
 /// <summary>
 /// Tests for <see cref="SettingsApplier"/>.

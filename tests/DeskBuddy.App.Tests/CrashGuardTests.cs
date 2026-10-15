@@ -1,6 +1,4 @@
-using AwesomeAssertions;
 using DeskBuddy.App.Diagnostics;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 
 namespace DeskBuddy.App.Tests;

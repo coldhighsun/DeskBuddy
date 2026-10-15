@@ -1,11 +1,7 @@
 using System.IO;
-using AwesomeAssertions;
 using DeskBuddy.App.Rendering;
 using DeskBuddy.App.ViewModels;
-using DeskBuddy.Application;
-using DeskBuddy.Domain.Settings;
 using DeskBuddy.Infrastructure.Pets;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace DeskBuddy.App.Tests;
 
@@ -24,7 +20,7 @@ public class PetPreviewFramesTests
         {
             // Arrange
             var frames = new PetPreviewFrames();
-            var path = Path.Combine(FindPetsDirectory(), "robot", "idle_0.png");
+            var path = Path.Combine(RepositoryPaths.Pets, "robot", "idle_0.png");
 
             // Act
             var first = frames.Get(path);
@@ -62,7 +58,7 @@ public class PetPreviewFramesTests
         StaThread.Run(() =>
         {
             // Arrange
-            var petsDirectory = FindPetsDirectory();
+            var petsDirectory = RepositoryPaths.Pets;
             var settings = new SettingsService(new FakeSettingsStore());
             settings.InitializeAsync().GetAwaiter().GetResult();
             var loader = new FolderPetLoader(NullLogger<FolderPetLoader>.Instance);
@@ -94,25 +90,5 @@ public class PetPreviewFramesTests
                 pets.Tick(PetCardViewModel.StateDuration);
             }
         });
-    }
-
-    /// <summary>
-    /// Finds the shipped pets folder by walking up from the test output directory.
-    /// </summary>
-    /// <returns>
-    /// The path of the <c>pets</c> folder.
-    /// </returns>
-    private static string FindPetsDirectory()
-    {
-        for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
-        {
-            var candidate = Path.Combine(directory.FullName, "pets");
-            if (Directory.Exists(Path.Combine(candidate, "robot")))
-            {
-                return candidate;
-            }
-        }
-
-        throw new DirectoryNotFoundException("The repository's pets folder was not found above the test output.");
     }
 }

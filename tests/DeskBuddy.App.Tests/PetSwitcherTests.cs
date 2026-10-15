@@ -1,9 +1,5 @@
-using AwesomeAssertions;
 using DeskBuddy.App.Rendering;
-using DeskBuddy.Application;
-using DeskBuddy.Domain.Settings;
 using DeskBuddy.Domain.Pets;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace DeskBuddy.App.Tests;
 

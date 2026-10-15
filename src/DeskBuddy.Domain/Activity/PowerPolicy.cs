@@ -1,4 +1,3 @@
-using DeskBuddy.Domain.Behavior;
 using DeskBuddy.Domain.Power;
 
 namespace DeskBuddy.Domain.Activity;

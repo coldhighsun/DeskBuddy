@@ -1,9 +1,5 @@
 using System.IO;
-using DeskBuddy.Application;
-using DeskBuddy.Application.Abstractions;
-using DeskBuddy.Domain.Settings;
 using DeskBuddy.Domain.Pets;
-using Microsoft.Extensions.Logging;
 
 namespace DeskBuddy.App.Rendering;
 

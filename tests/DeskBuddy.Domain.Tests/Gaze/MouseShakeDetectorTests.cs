@@ -1,4 +1,3 @@
-using AwesomeAssertions;
 using DeskBuddy.Domain.Gaze;
 
 namespace DeskBuddy.Domain.Tests.Gaze;

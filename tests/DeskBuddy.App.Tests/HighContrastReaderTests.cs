@@ -1,4 +1,3 @@
-using AwesomeAssertions;
 using DeskBuddy.App.Interop;
 
 namespace DeskBuddy.App.Tests;

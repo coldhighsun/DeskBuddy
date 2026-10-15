@@ -1,6 +1,4 @@
-using AwesomeAssertions;
 using DeskBuddy.App.ViewModels;
-using DeskBuddy.Domain;
 using DeskBuddy.Domain.Pets;
 
 namespace DeskBuddy.App.Tests;

@@ -1,4 +1,3 @@
-using AwesomeAssertions;
 using DeskBuddy.Domain.Schedule;
 
 namespace DeskBuddy.Domain.Tests.Schedule;

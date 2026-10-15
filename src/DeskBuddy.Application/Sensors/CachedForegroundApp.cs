@@ -1,6 +1,4 @@
-using DeskBuddy.Application.Abstractions;
-
-namespace DeskBuddy.Application;
+namespace DeskBuddy.Application.Sensors;
 
 /// <summary>
 /// Remembers which application is in front for a short while, so the several parts that ask in the same moment cost one

@@ -1,8 +1,6 @@
-using AwesomeAssertions;
 using DeskBuddy.Domain;
 using DeskBuddy.Domain.Gaze;
 using DeskBuddy.Infrastructure.Pets;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace DeskBuddy.Infrastructure.Tests.Pets;
 

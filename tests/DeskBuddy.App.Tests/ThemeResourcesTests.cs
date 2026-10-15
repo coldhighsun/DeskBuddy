@@ -1,8 +1,6 @@
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Windows;
-using AwesomeAssertions;
-using DeskBuddy.App.Presentation;
 
 namespace DeskBuddy.App.Tests;
 

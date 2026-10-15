@@ -1,5 +1,4 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using DeskBuddy.Domain;
 
 namespace DeskBuddy.App.ViewModels;
 

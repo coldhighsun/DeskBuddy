@@ -1,11 +1,6 @@
-using AwesomeAssertions;
 using DeskBuddy.App.Rendering;
 using DeskBuddy.App.ViewModels;
-using DeskBuddy.Application;
 using DeskBuddy.Application.Abstractions;
-using DeskBuddy.Domain;
-using DeskBuddy.Domain.Settings;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace DeskBuddy.App.Tests;
 

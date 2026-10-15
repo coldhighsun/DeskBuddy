@@ -1,7 +1,4 @@
-using DeskBuddy.Application.Abstractions;
-using DeskBuddy.Domain.Settings;
-
-namespace DeskBuddy.Application;
+namespace DeskBuddy.Application.Hotkeys;
 
 /// <summary>
 /// Keeps the global boss key registered with whatever shortcut the settings name, and hides or shows the pet when it

@@ -1,9 +1,7 @@
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
-using AwesomeAssertions;
 using DeskBuddy.App.Interop;
-using DeskBuddy.App.Presentation;
 using DeskBuddy.App.Windows;
 
 namespace DeskBuddy.App.Tests;

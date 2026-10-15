@@ -1,6 +1,3 @@
-using System.Globalization;
-using DeskBuddy.Domain.Settings;
-
 namespace DeskBuddy.App.Presentation;
 
 /// <summary>

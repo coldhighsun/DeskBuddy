@@ -1,5 +1,3 @@
-using DeskBuddy.Application.Abstractions;
-
 namespace DeskBuddy.Application.Tests;
 
 /// <summary>

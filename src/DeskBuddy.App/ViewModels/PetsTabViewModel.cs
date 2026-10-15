@@ -1,13 +1,8 @@
-using System.Globalization;
 using System.IO;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using DeskBuddy.App.Rendering;
-using DeskBuddy.App.Resources;
-using DeskBuddy.Application;
-using DeskBuddy.Application.Abstractions;
-using DeskBuddy.Domain.Settings;
 
 namespace DeskBuddy.App.ViewModels;
 

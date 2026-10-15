@@ -1,18 +1,11 @@
-using AwesomeAssertions;
-using DeskBuddy.Application.Abstractions;
-using DeskBuddy.Domain.Activity;
-using DeskBuddy.Domain.Behavior;
 using DeskBuddy.Domain.Chatter;
-using DeskBuddy.Domain.Scenarios;
 using DeskBuddy.Domain.Schedule;
 using DeskBuddy.Domain.Sedentary;
 using DeskBuddy.Domain.Messages;
-using DeskBuddy.Domain.Settings;
 using DeskBuddy.Domain.SystemLoad;
 using DeskBuddy.Domain.Visibility;
-using Microsoft.Extensions.Time.Testing;
 
-namespace DeskBuddy.Application.Tests;
+namespace DeskBuddy.Application.Tests.Hotkeys;
 
 /// <summary>
 /// Tests for <see cref="BossKeyController"/>.

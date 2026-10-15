@@ -2,12 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
-using AwesomeAssertions;
-using DeskBuddy.App.Presentation;
-using DeskBuddy.Application;
-using DeskBuddy.Domain.Settings;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace DeskBuddy.App.Tests;
 

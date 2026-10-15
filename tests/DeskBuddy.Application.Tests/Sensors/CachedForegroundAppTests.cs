@@ -1,7 +1,4 @@
-using AwesomeAssertions;
-using Microsoft.Extensions.Time.Testing;
-
-namespace DeskBuddy.Application.Tests;
+namespace DeskBuddy.Application.Tests.Sensors;
 
 /// <summary>
 /// Tests for <see cref="CachedForegroundApp"/> and <see cref="ThrottledProcessList"/>.

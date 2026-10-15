@@ -1,8 +1,6 @@
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
-using AwesomeAssertions;
-using DeskBuddy.Domain;
 using DeskBuddy.Domain.Chatter;
 using DeskBuddy.Domain.Pets;
 using DeskBuddy.Domain.Scenarios;
@@ -122,18 +120,10 @@ public partial class ResourceFilesTests
     /// </returns>
     private static Dictionary<string, string> Read(string fileName)
     {
-        for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
-        {
-            var path = Path.Combine(directory.FullName, "src", "DeskBuddy.App", "Resources", fileName);
-            if (File.Exists(path))
-            {
-                return XDocument.Load(path).Root!.Elements("data").ToDictionary(
-                    element => (string)element.Attribute("name")!,
-                    element => (string?)element.Element("value") ?? string.Empty);
-            }
-        }
-
-        throw new FileNotFoundException($"{fileName} was not found above the test output.");
+        var path = RepositoryPaths.Combine("src", "DeskBuddy.App", "Resources", fileName);
+        return XDocument.Load(path).Root!.Elements("data").ToDictionary(
+            element => (string)element.Attribute("name")!,
+            element => (string?)element.Element("value") ?? string.Empty);
     }
 
     /// <summary>

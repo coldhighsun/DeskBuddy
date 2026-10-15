@@ -1,11 +1,8 @@
-using DeskBuddy.Application.Abstractions;
-using DeskBuddy.Domain;
 using DeskBuddy.Domain.Activity;
 using DeskBuddy.Domain.Behavior;
-using DeskBuddy.Domain.Scenarios;
 using DeskBuddy.Domain.SystemLoad;
 
-namespace DeskBuddy.Application;
+namespace DeskBuddy.Application.Scenarios;
 
 /// <summary>
 /// What <see cref="DevScenarios.Evaluate"/> found for one moment.

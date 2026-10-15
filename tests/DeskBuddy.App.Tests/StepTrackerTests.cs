@@ -1,5 +1,3 @@
-using AwesomeAssertions;
-using DeskBuddy.App.Presentation;
 using DeskBuddy.Domain.Movement;
 
 namespace DeskBuddy.App.Tests;

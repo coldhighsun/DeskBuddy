@@ -1,7 +1,5 @@
 using System.Windows;
 using System.Windows.Media;
-using DeskBuddy.App.Interop;
-using DeskBuddy.App.Presentation;
 
 namespace DeskBuddy.App.Windows;
 

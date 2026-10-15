@@ -1,6 +1,4 @@
 using System.Windows.Media;
-using DeskBuddy.App.Resources;
-using DeskBuddy.Domain.Settings;
 
 namespace DeskBuddy.App.Presentation;
 

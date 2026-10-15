@@ -1,7 +1,5 @@
 using System.Globalization;
-using AwesomeAssertions;
 using DeskBuddy.App.Resources;
-using DeskBuddy.Domain;
 using DeskBuddy.Domain.Messages;
 using DeskBuddy.Domain.Schedule;
 
