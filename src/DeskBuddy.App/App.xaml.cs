@@ -341,6 +341,14 @@ public partial class App
     }
 
     /// <inheritdoc />
+    protected override void OnSessionEnding(SessionEndingCancelEventArgs e)
+    {
+        // Signing out or shutting down must not be held up by the panel, which otherwise hides instead of closing.
+        _panel?.PrepareToExit();
+        base.OnSessionEnding(e);
+    }
+
+    /// <inheritdoc />
     protected override void OnExit(ExitEventArgs e)
     {
         _petSwitcher?.Dispose();

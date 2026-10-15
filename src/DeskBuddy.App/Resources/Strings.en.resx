@@ -124,6 +124,11 @@
   <data name="OpenLogs" xml:space="preserve"><value>Open log folder</value></data>
   <data name="MinutesRange" xml:space="preserve"><value>"{0}" needs a whole number of minutes between {1} and {2}.</value></data>
   <data name="SettingsSaveFailed" xml:space="preserve"><value>Could not save the settings: {0}</value></data>
+  <data name="SettingsSave" xml:space="preserve"><value>Save</value></data>
+  <data name="SettingsRevert" xml:space="preserve"><value>Revert</value></data>
+  <data name="SettingsUnsaved" xml:space="preserve"><value>Unsaved changes</value></data>
+  <data name="UnsavedCloseMessage" xml:space="preserve"><value>There are unsaved changes. Save them?</value></data>
+  <data name="UnsavedInvalidCloseMessage" xml:space="preserve"><value>Some entries cannot be saved. Discard the changes and close?</value></data>
   <data name="SettingsLoadFailed" xml:space="preserve"><value>Could not read the settings ({0}). To avoid overwriting them, changes are paused. Check the file and restart.</value></data>
   <data name="PetSwitchFailed" xml:space="preserve"><value>Could not switch the pet: {0}</value></data>
 

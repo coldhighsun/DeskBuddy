@@ -49,6 +49,7 @@ powershell -NoProfile -File tools/GenerateAppIcon.ps1   # 重新生成应用/托
 
 ## 设置与进程列表
 
+- **设置页是“草稿 + 保存”**：外观 / 行为 / 系统三个标签页的改动只写进 `Application/Settings/SettingsEditor` 的草稿（草稿 = 已保存设置 + 用户按字段的修改），点“保存”才经 `SettingsService.UpdateAsync` 生效，“还原”丢弃草稿；有未保存修改时关闭面板会询问。宠物标签页和托盘菜单仍是点击即生效。已保存设置在别处变化（如托盘改了尺寸）时，草稿里没改过的字段跟着变，改过的保持用户的值。有错误的输入（如不合法的分钟数、进程列表冲突）会阻止保存但保留已输入的文字；进程列表的互斥检查针对草稿。开机自启（注册表）和老板键（要向系统注册）不是纯设置：保存时才应用，失败时回滚并提示，其余设置照常保存。比较设置是否有改动用 `Domain/Settings/PetSettingsComparer`（record 自带的相等会按引用比较列表）。
 - 设置存在 JSON 文件里（`Infrastructure/Storage/JsonSettingsStore`）。**默认值只在没有配置文件、第一次启动时有效**；只要配置文件已存在，文件里缺失的进程列表（开发、会议、聊天、全屏）和“关闭的场景”列表一律按空处理，不用默认值补，也不要在读取时再往里加新的默认项。单个值（开关、时间等）缺失时才用默认值。
 - 进程名列表有两条规则，由 `Domain/Settings/ProcessListRules` 统一管理：进程名不能含空格；同一个进程只能在一个列表里。设置页输入时用 `Check` 校验（有错就不应用并在框下显示原因）；读取配置文件和每次修改设置时由 `SettingsService` 调用 `Enforce` 强制，重复的名字只保留在更重要的列表里（会议软件 > 聊天软件 > 开发工具 > 全屏程序），去掉的名字写日志，并在设置页的“识别程序”下提示。新增进程列表时要同步更新 `ProcessListKind`、`ProcessListRules` 里的取值/赋值/顺序和设置页。
 - 新增场景（`PetState` 里的情境状态）要同时改：`ScenarioCatalog.All`（设置页的开关列表）和需要时的 `AmbientRanking`、`PetCapabilities` 的 `ScenarioStates`、`PetStateFallback`、两个 resx 里的 `Scenario*` / `StateHint*`、robot 的 manifest 与 `GenerateRobotPet.ps1`。

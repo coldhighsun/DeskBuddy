@@ -124,6 +124,11 @@
   <data name="OpenLogs" xml:space="preserve"><value>打开日志目录</value></data>
   <data name="MinutesRange" xml:space="preserve"><value>“{0}”需要 {1}–{2} 之间的整数分钟数。</value></data>
   <data name="SettingsSaveFailed" xml:space="preserve"><value>设置保存失败：{0}</value></data>
+  <data name="SettingsSave" xml:space="preserve"><value>保存</value></data>
+  <data name="SettingsRevert" xml:space="preserve"><value>还原</value></data>
+  <data name="SettingsUnsaved" xml:space="preserve"><value>有未保存的修改</value></data>
+  <data name="UnsavedCloseMessage" xml:space="preserve"><value>有未保存的修改，要保存吗？</value></data>
+  <data name="UnsavedInvalidCloseMessage" xml:space="preserve"><value>有无法保存的输入。要放弃这些修改并关闭吗？</value></data>
   <data name="SettingsLoadFailed" xml:space="preserve"><value>设置读取失败（{0}）。为避免覆盖原有设置，已暂停修改，请检查文件后重启。</value></data>
   <data name="PetSwitchFailed" xml:space="preserve"><value>无法切换宠物：{0}</value></data>
 

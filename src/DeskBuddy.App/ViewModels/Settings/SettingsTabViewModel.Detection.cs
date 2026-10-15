@@ -26,12 +26,6 @@ public sealed partial class SettingsTabViewModel
     private readonly HashSet<ProcessListKind> _editedLists = [];
 
     /// <summary>
-    /// How many times each process list was edited, indexed by <see cref="ProcessListKind"/>, to tell whether an edit
-    /// is still the newest when its update finishes.
-    /// </summary>
-    private readonly int[] _processListEdits = new int[Enum.GetValues<ProcessListKind>().Length];
-
-    /// <summary>
     /// Whether the pet hides for full-screen applications.
     /// </summary>
     [ObservableProperty]
@@ -101,7 +95,7 @@ public sealed partial class SettingsTabViewModel
     {
         if (!_refreshing)
         {
-            _ = ApplyAsync(settings => settings with { AutoHideWhenFullscreen = value });
+            _editor.Set(nameof(PetSettings.AutoHideWhenFullscreen), settings => settings with { AutoHideWhenFullscreen = value });
         }
     }
 
@@ -115,7 +109,7 @@ public sealed partial class SettingsTabViewModel
     {
         if (!_refreshing)
         {
-            _ = ApplyAsync(settings => settings with { DetectCoveredMonitor = value });
+            _editor.Set(nameof(PetSettings.DetectCoveredMonitor), settings => settings with { DetectCoveredMonitor = value });
         }
     }
 
@@ -194,59 +188,36 @@ public sealed partial class SettingsTabViewModel
     /// </param>
     private void ApplyProcessList(ProcessListKind kind, string text)
     {
-        _ = ApplyProcessListAsync(kind, text);
+        var names = ProcessListRules.Clean(text.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries));
+        var check = ProcessListRules.Check(_editor.Draft, kind, names);
+        var key = ProcessListEditKey(kind);
+        _processLists[kind].SetError(check.IsValid ? string.Empty : Describe(check));
+        _editor.SetError(key, check.IsValid ? null : Describe(check));
+        if (!check.IsValid)
+        {
+            return;
+        }
+
+        _editor.Set(key, settings => ProcessListRules.With(settings, kind, names));
+
+        // The list in the draft changed, so what another list held back because of it may fit now.
+        _editedLists.Add(kind);
+        UpdateProcessListNotice();
+        RecheckProcessLists(kind);
     }
 
     /// <summary>
-    /// Checks and applies an edited process list. The check is made once on what is shown and once more inside the
-    /// update, on the settings as they are when it runs, as an earlier save may still have been under way before. A
-    /// newer edit of the same list takes over the explanation, so an update that finishes late does not overwrite it.
+    /// Names a process list in the draft.
     /// </summary>
     /// <param name="kind">
     /// The list.
     /// </param>
-    /// <param name="text">
-    /// The text entered, one process name per line.
-    /// </param>
     /// <returns>
-    /// A task that completes when the list has been applied or refused.
+    /// The key of the list's entry.
     /// </returns>
-    private async Task ApplyProcessListAsync(ProcessListKind kind, string text)
+    private static string ProcessListEditKey(ProcessListKind kind)
     {
-        var edit = ++_processListEdits[(int)kind];
-        var names = ProcessListRules.Clean(text.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries));
-        var check = ProcessListRules.Check(_settings.Current, kind, names);
-        if (check.IsValid)
-        {
-            var ran = false;
-            var refused = check;
-            await ApplyAsync(settings =>
-            {
-                ran = true;
-                refused = ProcessListRules.Check(settings, kind, names);
-                return refused.IsValid ? ProcessListRules.With(settings, kind, names) : settings;
-            });
-            if (!ran)
-            {
-                // The settings failed to load, so nothing was applied and there is nothing to say about the list.
-                return;
-            }
-
-            check = refused;
-        }
-
-        if (edit == _processListEdits[(int)kind])
-        {
-            _processLists[kind].SetError(check.IsValid ? string.Empty : Describe(check));
-        }
-
-        if (check.IsValid)
-        {
-            // The list in use changed, whether or not this is still the newest edit, so what it held back may fit now.
-            _editedLists.Add(kind);
-            UpdateProcessListNotice();
-            RecheckProcessLists(kind);
-        }
+        return $"List.{kind}";
     }
 
     /// <summary>
@@ -321,10 +292,16 @@ public sealed partial class SettingsTabViewModel
     /// <param name="settings">
     /// The settings to show.
     /// </param>
-    private void ShowProcessList(ProcessListKind kind, PetSettings settings)
+    /// <param name="keepTypedText">
+    /// Whether the text is left alone when it already lists the same process names, so it is not rewritten while the
+    /// user is typing.
+    /// </param>
+    private void ShowProcessList(ProcessListKind kind, PetSettings settings, bool keepTypedText)
     {
         var list = _processLists[kind];
-        if (list.GetError().Length == 0)
+        var shown = ProcessListRules.Get(settings, kind);
+        var typed = ProcessListRules.Clean(list.GetText().Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries));
+        if (list.GetError().Length == 0 && !(keepTypedText && typed.SequenceEqual(shown)))
         {
             list.SetText(string.Join(Environment.NewLine, ProcessListRules.Get(settings, kind)));
         }

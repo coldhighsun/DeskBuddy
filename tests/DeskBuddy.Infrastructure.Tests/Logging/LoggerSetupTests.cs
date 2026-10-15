@@ -74,10 +74,10 @@ public sealed class LoggerSetupTests : IDisposable
     }
 
     /// <summary>
-    /// The shipped limits are 10 MB per file and 5 files.
+    /// The limits used when none are given are 10 MB per file and 5 files.
     /// </summary>
     [Fact]
-    public void Defaults_AreTenMegabytesAndFiveFiles()
+    public void Create_DefaultLimits_AreTenMegabytesAndFiveFiles()
     {
         // Assert
         LoggerSetup.DefaultFileSizeLimitBytes.Should().Be(10 * 1024 * 1024);
