@@ -299,6 +299,31 @@ internal static class Strings
     public static string MinutesRange => Get();
 
     /// <summary>
+    /// Gets the text of the button that saves the settings.
+    /// </summary>
+    public static string SettingsSave => Get();
+
+    /// <summary>
+    /// Gets the text of the button that throws away unsaved changes.
+    /// </summary>
+    public static string SettingsRevert => Get();
+
+    /// <summary>
+    /// Gets the note shown while there are unsaved changes.
+    /// </summary>
+    public static string SettingsUnsaved => Get();
+
+    /// <summary>
+    /// Gets the question asked when the panel is closed with unsaved changes.
+    /// </summary>
+    public static string UnsavedCloseMessage => Get();
+
+    /// <summary>
+    /// Gets the question asked when the panel is closed while an entry cannot be saved.
+    /// </summary>
+    public static string UnsavedInvalidCloseMessage => Get();
+
+    /// <summary>
     /// Gets the message for a failed save; <c>{0}</c> is the reason.
     /// </summary>
     public static string SettingsSaveFailed => Get();

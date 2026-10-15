@@ -6,9 +6,9 @@ using DeskBuddy.Domain.Scenarios;
 namespace DeskBuddy.App.ViewModels;
 
 /// <summary>
-/// Backs the settings tab. Every change takes effect and is saved at once: choices when they are made, and text
-/// entries when the user leaves the box or presses Enter. A value that is not valid is not applied; the tab says what is
-/// expected instead of quietly correcting it.
+/// Backs the settings tabs. Changes only edit a draft held by a <see cref="SettingsEditor"/>; they take effect and are
+/// saved together when the user saves, and are thrown away when the user reverts. A value that is not valid blocks
+/// saving; the tab says what is expected instead of quietly correcting it.
 /// </summary>
 public sealed partial class SettingsTabViewModel : ObservableObject
 {
@@ -21,6 +21,11 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     /// The installed pets, whose pictures show what each size looks like; <see langword="null"/> if there are none to show.
     /// </summary>
     private readonly InstalledPets? _pets;
+
+    /// <summary>
+    /// The draft of the settings the user is editing.
+    /// </summary>
+    private readonly SettingsEditor _editor;
 
     /// <summary>
     /// Whether the properties are being filled from the settings, in which case changing them must not be treated as
@@ -71,6 +76,8 @@ public sealed partial class SettingsTabViewModel : ObservableObject
         _autoStartService = autoStart;
         _pets = pets;
 
+        _editor = new SettingsEditor(settings);
+
         _processLists = new Dictionary<ProcessListKind, ProcessListBox>
         {
             [ProcessListKind.Fullscreen] = new(() => BlacklistText, text => BlacklistText = text, () => BlacklistError, error => BlacklistError = error),
@@ -87,10 +94,11 @@ public sealed partial class SettingsTabViewModel : ObservableObject
         _removedAtLoad = settings.RemovedAtLoad;
         UpdateProcessListNotice();
 
-        Refresh(settings.Current);
+        Refresh(_editor.Draft);
         RefreshExternalState();
 
         _settings.Changed += OnSettingsChanged;
+        _editor.Changed += OnEditorChanged;
         _bossKey.StatusChanged += OnBossKeyStatusChanged;
         if (_pets is not null)
         {
@@ -118,34 +126,130 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     /// </summary>
     public string LoadFailureMessage { get; } = string.Empty;
 
+
     /// <summary>
-    /// Changes the settings and shows a failed save.
+    /// Gets a value indicating whether something was changed and not saved yet. An entry that cannot be saved counts too,
+    /// as it is still waiting to be fixed or reverted.
     /// </summary>
-    /// <param name="change">
-    /// Produces the new settings from the current ones.
-    /// </param>
+    public bool HasUnsavedChanges => _editor.IsDirty || _editor.HasErrors || AutoStart != _autoStartSaved;
+
+    /// <summary>
+    /// Gets a value indicating whether saving is possible: there is a change, nothing in it is invalid, and the saved
+    /// settings were read at startup.
+    /// </summary>
+    public bool CanSave => IsEditable && !_editor.HasErrors && HasUnsavedChanges;
+
+    /// <summary>
+    /// Saves what was changed. The start-at-sign-in switch goes first because it lives outside the settings; the boss key
+    /// is the other entry the system may refuse, in which case it goes back to the shortcut that works and the rest is
+    /// still saved.
+    /// </summary>
     /// <returns>
-    /// A task that completes when the change has been applied and saved.
+    /// <see langword="true"/> if everything was saved; <see langword="false"/> if there was nothing to save, an entry is
+    /// invalid, or a part could not be applied (the tab says which).
     /// </returns>
-    private async Task ApplyAsync(Func<PetSettings, PetSettings> change)
+    public async Task<bool> TrySaveAsync()
     {
+        if (!CanSave)
+        {
+            return false;
+        }
+
+        var succeeded = SaveAutoStart();
+        var bossKey = _editor.Draft.BossKey;
+        var previousBossKey = _editor.Baseline.BossKey;
+        var bossKeyChanged = bossKey != previousBossKey;
+
+        _applyingBossKey = true;
         try
         {
-            await _settings.UpdateAsync(change);
-            SaveError = string.Empty;
+            if (_editor.IsDirty)
+            {
+                succeeded &= await _editor.SaveAsync();
+                ShowSaveFailure();
+
+                if (bossKeyChanged && _bossKey.RegistrationError is { } reason)
+                {
+                    succeeded = false;
+                    var working = _bossKey.Registered ?? previousBossKey;
+                    _editor.Set(BossKeyEditKey, settings => settings with { BossKey = working });
+                    await _editor.SaveAsync();
+                    ShowSaveFailure();
+                    BossKeyError = string.Format(CultureInfo.CurrentCulture, Strings.BossKeyFailed, bossKey, reason);
+                }
+                else if (bossKeyChanged)
+                {
+                    BossKeyError = string.Empty;
+                }
+            }
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        finally
         {
-            SaveError = string.Format(CultureInfo.CurrentCulture, Strings.SettingsSaveFailed, ex.Message);
+            _applyingBossKey = false;
         }
-        catch (InvalidOperationException)
-        {
-            // Raised only after a failed load; the tab is disabled then and shows why, so there is nothing to add.
-        }
+
+        Refresh(_editor.Draft);
+        NotifyUnsavedChanged();
+        return succeeded;
     }
 
     /// <summary>
-    /// Shows settings that were changed elsewhere, such as a boss key that was put back.
+    /// Shows why the last write of the settings failed, or clears the message if it did not fail.
+    /// </summary>
+    private void ShowSaveFailure()
+    {
+        SaveError = _editor.SaveFailure is { } failure
+            ? string.Format(CultureInfo.CurrentCulture, Strings.SettingsSaveFailed, failure.Message)
+            : string.Empty;
+    }
+
+    /// <summary>
+    /// Throws away what was changed and shows the saved settings again.
+    /// </summary>
+    [RelayCommand]
+    public void Revert()
+    {
+        _editor.Revert();
+        _refreshing = true;
+        try
+        {
+            AutoStart = _autoStartSaved;
+        }
+        finally
+        {
+            _refreshing = false;
+        }
+
+        BossKeyError = string.Empty;
+        AutoStartError = string.Empty;
+        SaveError = string.Empty;
+        foreach (var kind in ProcessListRules.All)
+        {
+            _processLists[kind].SetError(string.Empty);
+        }
+
+        _editedLists.Clear();
+        UpdateProcessListNotice();
+
+        Refresh(_editor.Draft);
+        NotifyUnsavedChanged();
+    }
+
+    /// <summary>
+    /// Saves from the save button.
+    /// </summary>
+    /// <returns>
+    /// A task that completes when saving is done.
+    /// </returns>
+    [RelayCommand(CanExecute = nameof(CanSave))]
+    private Task SaveAsync()
+    {
+        return TrySaveAsync();
+    }
+
+    /// <summary>
+    /// Shows settings that were changed elsewhere, such as the size chosen in the tray menu. Entries the user has not
+    /// edited follow along; the ones they edited keep their value.
     /// </summary>
     /// <param name="sender">
     /// The event source.
@@ -155,30 +259,67 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     /// </param>
     private void OnSettingsChanged(object? sender, PetSettings settings)
     {
-        Refresh(settings);
+        Refresh(_editor.Draft, keepTypedText: true);
     }
 
     /// <summary>
-    /// Fills the properties from the settings without treating that as an edit.
+    /// Tells the tab that what can be saved may have changed.
+    /// </summary>
+    /// <param name="sender">
+    /// The event source.
+    /// </param>
+    /// <param name="e">
+    /// The event data.
+    /// </param>
+    private void OnEditorChanged(object? sender, EventArgs e)
+    {
+        NotifyUnsavedChanged();
+    }
+
+    /// <summary>
+    /// Raises the change notifications for the unsaved state and updates the save button.
+    /// </summary>
+    private void NotifyUnsavedChanged()
+    {
+        OnPropertyChanged(nameof(HasUnsavedChanges));
+        OnPropertyChanged(nameof(CanSave));
+        SaveCommand.NotifyCanExecuteChanged();
+    }
+
+    /// <summary>
+    /// Fills the properties from the draft without treating that as an edit. A box holding an entry that is not valid
+    /// keeps what the user typed.
     /// </summary>
     /// <param name="settings">
     /// The settings to show.
     /// </param>
-    private void Refresh(PetSettings settings)
+    /// <param name="keepTypedText">
+    /// Whether a text box whose text already means the value to show is left alone, so a change made elsewhere does not
+    /// rewrite what the user is typing; after saving or reverting the boxes show the cleaned-up values instead.
+    /// </param>
+    private void Refresh(PetSettings settings, bool keepTypedText = false)
     {
         _refreshing = true;
         try
         {
             ChatterEnabled = settings.ChatterEnabled;
-            SedentaryText = Minutes(settings.SedentaryReminderAfter);
-            SleepText = Minutes(settings.SleepAfter);
+            if (_editor.ErrorFor(SedentaryEditKey).Length == 0 && !(keepTypedText && MeansMinutes(SedentaryText, settings.SedentaryReminderAfter)))
+            {
+                SedentaryText = Minutes(settings.SedentaryReminderAfter);
+            }
+
+            if (_editor.ErrorFor(SleepEditKey).Length == 0 && !(keepTypedText && MeansMinutes(SleepText, settings.SleepAfter)))
+            {
+                SleepText = Minutes(settings.SleepAfter);
+            }
+
             BossKeyText = settings.BossKey.ToString();
             AutoHideWhenFullscreen = settings.AutoHideWhenFullscreen;
             DetectCoveredMonitor = settings.DetectCoveredMonitor;
-            ShowProcessList(ProcessListKind.Fullscreen, settings);
-            ShowProcessList(ProcessListKind.Development, settings);
-            ShowProcessList(ProcessListKind.Meeting, settings);
-            ShowProcessList(ProcessListKind.Chat, settings);
+            ShowProcessList(ProcessListKind.Fullscreen, settings, keepTypedText);
+            ShowProcessList(ProcessListKind.Development, settings, keepTypedText);
+            ShowProcessList(ProcessListKind.Meeting, settings, keepTypedText);
+            ShowProcessList(ProcessListKind.Chat, settings, keepTypedText);
             ScenariosEnabled = settings.ScenariosEnabled;
             SelectedLanguage = settings.Language;
             SelectedTheme = settings.Theme;
@@ -200,7 +341,7 @@ public sealed partial class SettingsTabViewModel : ObservableObject
                 toggle.Show(!settings.DisabledScenarios.Contains(toggle.State.ToString(), StringComparer.OrdinalIgnoreCase));
             }
 
-            TimingError = string.Empty;
+            UpdateTimingError();
         }
         finally
         {

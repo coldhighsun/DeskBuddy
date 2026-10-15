@@ -76,7 +76,7 @@ public sealed partial class SettingsTabViewModel
     {
         if (!_refreshing)
         {
-            _ = ApplyAsync(settings => settings with { Theme = value });
+            _editor.Set(nameof(PetSettings.Theme), settings => settings with { Theme = value });
         }
     }
 
@@ -88,10 +88,10 @@ public sealed partial class SettingsTabViewModel
     /// </param>
     partial void OnSelectedSizeChanged(PetSize value)
     {
-        UpdateSizeChoices(_settings.Current.PetName);
+        UpdateSizeChoices(_editor.Draft.PetName);
         if (!_refreshing)
         {
-            _ = ApplyAsync(settings => settings with { Size = value });
+            _editor.Set(nameof(PetSettings.Size), settings => settings with { Size = value });
         }
     }
 
@@ -135,7 +135,7 @@ public sealed partial class SettingsTabViewModel
     {
         if (!_refreshing)
         {
-            _ = ApplyAsync(settings => settings with { ClimbEdges = value });
+            _editor.Set(nameof(PetSettings.ClimbEdges), settings => settings with { ClimbEdges = value });
         }
     }
 
@@ -149,7 +149,7 @@ public sealed partial class SettingsTabViewModel
     {
         if (!_refreshing)
         {
-            _ = ApplyAsync(settings => settings with { Language = value });
+            _editor.Set(nameof(PetSettings.Language), settings => settings with { Language = value });
         }
     }
 
@@ -165,6 +165,6 @@ public sealed partial class SettingsTabViewModel
     private void OnPetsChanged(object? sender, EventArgs e)
     {
         // Only the pictures of the sizes depend on the pets; the rest of the tab may hold entries not applied yet.
-        UpdateSizeChoices(_settings.Current.PetName);
+        UpdateSizeChoices(_editor.Draft.PetName);
     }
 }

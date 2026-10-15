@@ -1,8 +1,8 @@
 using System.ComponentModel;
+using System.Runtime.ExceptionServices;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Threading;
 using DeskBuddy.App.ViewModels;
@@ -97,10 +97,84 @@ public partial class PanelWindow
         if (!_isExiting)
         {
             e.Cancel = true;
-            Hide();
+            if (_viewModel.Settings.HasUnsavedChanges)
+            {
+                ReportFaults(AskBeforeHidingAsync());
+            }
+            else
+            {
+                Hide();
+            }
         }
 
         base.OnClosing(e);
+    }
+
+    /// <summary>
+    /// Asks what to do with unsaved changes when the panel is closed: save them, drop them or keep the panel open. The
+    /// panel stays open if saving is not possible, so the user can see what is wrong.
+    /// </summary>
+    /// <returns>
+    /// A task that completes when the question is answered and acted on.
+    /// </returns>
+    private async Task AskBeforeHidingAsync()
+    {
+        if (!_viewModel.Settings.CanSave)
+        {
+            // Some entry cannot be saved, so there is nothing to offer but to drop the changes or to keep fixing them.
+            var discard = MessageBox.Show(
+                this,
+                Strings.UnsavedInvalidCloseMessage,
+                Strings.AppName,
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+            if (discard == MessageBoxResult.Yes)
+            {
+                _viewModel.Settings.Revert();
+                Hide();
+            }
+
+            return;
+        }
+
+        var answer = MessageBox.Show(
+            this,
+            Strings.UnsavedCloseMessage,
+            Strings.AppName,
+            MessageBoxButton.YesNoCancel,
+            MessageBoxImage.Question);
+
+        switch (answer)
+        {
+            case MessageBoxResult.Yes:
+                if (await _viewModel.Settings.TrySaveAsync())
+                {
+                    Hide();
+                }
+
+                break;
+
+            case MessageBoxResult.No:
+                _viewModel.Settings.Revert();
+                Hide();
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Hands an error of work started without waiting for it to the dispatcher, so it reaches the handler for unhandled
+    /// errors instead of vanishing with the unobserved task.
+    /// </summary>
+    /// <param name="work">
+    /// The work that was started.
+    /// </param>
+    private void ReportFaults(Task work)
+    {
+        _ = work.ContinueWith(
+            task => Dispatcher.BeginInvoke(() => ExceptionDispatchInfo.Capture(task.Exception!.GetBaseException()).Throw()),
+            CancellationToken.None,
+            TaskContinuationOptions.OnlyOnFaulted,
+            TaskScheduler.Default);
     }
 
     /// <summary>
@@ -125,7 +199,7 @@ public partial class PanelWindow
         switch (HotkeyCapture.TryCreate(e.Key, e.SystemKey, Keyboard.Modifiers, out var gesture))
         {
             case HotkeyCaptureResult.Accepted:
-                await _viewModel.Settings.ApplyBossKeyAsync(gesture);
+                _viewModel.Settings.SetBossKey(gesture);
                 break;
 
             case HotkeyCaptureResult.Rejected:
@@ -185,6 +259,7 @@ public partial class PanelWindow
         // Selection events of the lists inside the tabs bubble up to the tab control; only its own matter here.
         if (ReferenceEquals(e.OriginalSource, Tabs))
         {
+            SettingsBar.Visibility = Tabs.SelectedIndex == (int)PanelTab.Pets ? Visibility.Collapsed : Visibility.Visible;
             UpdatePreviews();
         }
     }
@@ -239,23 +314,5 @@ public partial class PanelWindow
         var delta = _previewWatch.Elapsed;
         _previewWatch.Restart();
         _viewModel.Pets.Tick(delta);
-    }
-
-    /// <summary>
-    /// Applies a number typed into a settings box when Enter is pressed, instead of waiting for the box to lose focus.
-    /// </summary>
-    /// <param name="sender">
-    /// The text box.
-    /// </param>
-    /// <param name="e">
-    /// Key event data.
-    /// </param>
-    private void OnSettingsTextBoxKeyDown(object sender, KeyEventArgs e)
-    {
-        if (e.Key == Key.Enter && sender is TextBox box)
-        {
-            BindingOperations.GetBindingExpression(box, TextBox.TextProperty)?.UpdateSource();
-            e.Handled = true;
-        }
     }
 }

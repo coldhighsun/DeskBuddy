@@ -31,6 +31,17 @@ public sealed partial class SettingsTabViewModel
     private bool _applyingBossKey;
 
     /// <summary>
+    /// Whether the application is registered to start at sign-in, which the switch is compared with to tell whether it
+    /// was changed.
+    /// </summary>
+    private bool _autoStartSaved;
+
+    /// <summary>
+    /// Names the boss key in the draft.
+    /// </summary>
+    private const string BossKeyEditKey = "BossKey";
+
+    /// <summary>
     /// The boss key as text, for example <c>Ctrl+Alt+H</c>.
     /// </summary>
     [ObservableProperty]
@@ -65,59 +76,48 @@ public sealed partial class SettingsTabViewModel
 
     /// <summary>
     /// Re-reads what can change without the application knowing: whether the application is registered to start at
-    /// sign-in (the user can switch that off in Task Manager). Call when the tab is shown.
+    /// sign-in (the user can switch that off in Task Manager). A switch the user has changed and not saved is kept.
+    /// Call when the tab is shown.
     /// </summary>
     public void RefreshExternalState()
     {
-        _refreshing = true;
-        try
+        var enabled = _autoStartService.IsEnabled();
+        var untouched = AutoStart == _autoStartSaved;
+        _autoStartSaved = enabled;
+        if (untouched)
         {
-            AutoStart = _autoStartService.IsEnabled();
+            _refreshing = true;
+            try
+            {
+                AutoStart = enabled;
+            }
+            finally
+            {
+                _refreshing = false;
+            }
         }
-        finally
-        {
-            _refreshing = false;
-        }
+
+        NotifyUnsavedChanged();
     }
 
     /// <summary>
-    /// Tries a new boss key. If the system refuses it (another program uses it) the setting goes back to the shortcut
-    /// that works, so the settings always name the shortcut that is active, and the reason is shown.
+    /// Takes the boss key the user entered into the draft. Whether the system accepts it is only known when the settings
+    /// are saved.
     /// </summary>
     /// <param name="gesture">
     /// The shortcut the user entered.
     /// </param>
-    /// <returns>
-    /// A task that completes when the shortcut has been applied or rejected.
-    /// </returns>
-    public async Task ApplyBossKeyAsync(HotkeyGesture gesture)
+    public void SetBossKey(HotkeyGesture gesture)
     {
-        var previous = _settings.Current.BossKey;
-        if (gesture == previous)
+        BossKeyError = string.Empty;
+        BossKeyText = gesture.ToString();
+        if (gesture == _editor.Baseline.BossKey)
         {
-            BossKeyError = string.Empty;
+            _editor.Clear(BossKeyEditKey);
             return;
         }
 
-        _applyingBossKey = true;
-        try
-        {
-            await ApplyAsync(settings => settings with { BossKey = gesture });
-            if (_bossKey.RegistrationError is { } reason)
-            {
-                var working = _bossKey.Registered ?? previous;
-                await ApplyAsync(settings => settings with { BossKey = working });
-                BossKeyError = string.Format(CultureInfo.CurrentCulture, Strings.BossKeyFailed, gesture, reason);
-            }
-            else
-            {
-                BossKeyError = string.Empty;
-            }
-        }
-        finally
-        {
-            _applyingBossKey = false;
-        }
+        _editor.Set(BossKeyEditKey, settings => settings with { BossKey = gesture });
     }
 
     /// <summary>
@@ -129,8 +129,7 @@ public sealed partial class SettingsTabViewModel
     }
 
     /// <summary>
-    /// Switches start at sign-in on or off. If the system does not allow it the switch goes back and the reason is
-    /// shown.
+    /// Notes that the start-at-sign-in switch was changed; it is applied when the settings are saved.
     /// </summary>
     /// <param name="value">
     /// Whether the application should start at sign-in.
@@ -142,32 +141,55 @@ public sealed partial class SettingsTabViewModel
             return;
         }
 
-        if (_autoStartService.TrySet(value, out var error))
+        AutoStartError = string.Empty;
+        NotifyUnsavedChanged();
+    }
+
+    /// <summary>
+    /// Registers or removes the start at sign-in when the switch differs from what is registered. If the system
+    /// refuses, the switch goes back to what is registered and the reason is shown.
+    /// </summary>
+    /// <returns>
+    /// <see langword="true"/> if there was nothing to change or the change worked.
+    /// </returns>
+    private bool SaveAutoStart()
+    {
+        if (AutoStart == _autoStartSaved)
         {
+            return true;
+        }
+
+        if (_autoStartService.TrySet(AutoStart, out var error))
+        {
+            _autoStartSaved = AutoStart;
             AutoStartError = string.Empty;
-            return;
+            return true;
         }
 
         AutoStartError = string.Format(CultureInfo.CurrentCulture, Strings.AutoStartFailed, error);
+        _autoStartSaved = _autoStartService.IsEnabled();
         _refreshing = true;
         try
         {
-            AutoStart = _autoStartService.IsEnabled();
+            AutoStart = _autoStartSaved;
         }
         finally
         {
             _refreshing = false;
         }
+
+        return false;
     }
 
     /// <summary>
-    /// Shows a boss key that could not be registered when that happens outside an entry by the user.
+    /// Shows the registration problem of the boss key when it appears or goes away on its own, for example when another
+    /// program frees the shortcut.
     /// </summary>
     /// <param name="sender">
     /// The event source.
     /// </param>
     /// <param name="e">
-    /// Event data.
+    /// The event data.
     /// </param>
     private void OnBossKeyStatusChanged(object? sender, EventArgs e)
     {

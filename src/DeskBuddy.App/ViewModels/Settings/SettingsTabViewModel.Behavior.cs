@@ -16,6 +16,16 @@ public sealed partial class SettingsTabViewModel
     private const int MinMinutes = 1;
 
     /// <summary>
+    /// Names the sedentary reminder interval in the draft.
+    /// </summary>
+    private const string SedentaryEditKey = "Sedentary";
+
+    /// <summary>
+    /// Names the time before the pet falls asleep in the draft.
+    /// </summary>
+    private const string SleepEditKey = "Sleep";
+
+    /// <summary>
     /// Whether the pet now and then says something unprompted.
     /// </summary>
     [ObservableProperty]
@@ -79,7 +89,7 @@ public sealed partial class SettingsTabViewModel
     {
         if (!_refreshing)
         {
-            _ = ApplyAsync(settings => settings with { ChatterEnabled = value });
+            _editor.Set(nameof(PetSettings.ChatterEnabled), settings => settings with { ChatterEnabled = value });
         }
     }
 
@@ -92,6 +102,7 @@ public sealed partial class SettingsTabViewModel
     partial void OnSedentaryTextChanged(string value)
     {
         CommitMinutes(
+            SedentaryEditKey,
             value,
             Strings.SettingsSedentary,
             MinMinutes,
@@ -108,6 +119,7 @@ public sealed partial class SettingsTabViewModel
     partial void OnSleepTextChanged(string value)
     {
         CommitMinutes(
+            SleepEditKey,
             value,
             Strings.SettingsSleep,
             MinMinutes,
@@ -125,7 +137,7 @@ public sealed partial class SettingsTabViewModel
     {
         if (!_refreshing)
         {
-            _ = ApplyAsync(settings => settings with { ScenariosEnabled = value });
+            _editor.Set(nameof(PetSettings.ScenariosEnabled), settings => settings with { ScenariosEnabled = value });
         }
     }
 
@@ -167,7 +179,7 @@ public sealed partial class SettingsTabViewModel
         }
 
         var time = new TimeSpan(ClockOutHour, ClockOutMinute, 0);
-        _ = ApplyAsync(settings => settings with { ClockOutTime = time });
+        _editor.Set(nameof(PetSettings.ClockOutTime), settings => settings with { ClockOutTime = time });
     }
 
     /// <summary>
@@ -187,7 +199,7 @@ public sealed partial class SettingsTabViewModel
         }
 
         var name = state.ToString();
-        _ = ApplyAsync(settings => settings with
+        _editor.Set($"Scenario.{name}", settings => settings with
         {
             DisabledScenarios =
             [
@@ -200,6 +212,9 @@ public sealed partial class SettingsTabViewModel
     /// <summary>
     /// Validates a number of minutes and applies it, or says what is expected.
     /// </summary>
+    /// <param name="key">
+    /// Names the entry in the draft.
+    /// </param>
     /// <param name="text">
     /// The text entered.
     /// </param>
@@ -216,6 +231,7 @@ public sealed partial class SettingsTabViewModel
     /// Puts the duration into the settings.
     /// </param>
     private void CommitMinutes(
+        string key,
         string text,
         string label,
         int min,
@@ -231,13 +247,42 @@ public sealed partial class SettingsTabViewModel
             || minutes < min
             || minutes > max)
         {
-            TimingError = string.Format(CultureInfo.CurrentCulture, Strings.MinutesRange, label, min, max);
+            _editor.SetError(key, string.Format(CultureInfo.CurrentCulture, Strings.MinutesRange, label, min, max));
+            UpdateTimingError();
             return;
         }
 
-        TimingError = string.Empty;
+        _editor.SetError(key, null);
         var duration = TimeSpan.FromMinutes(minutes);
-        _ = ApplyAsync(settings => apply(settings, duration));
+        _editor.Set(key, settings => apply(settings, duration));
+        UpdateTimingError();
+    }
+
+    /// <summary>
+    /// Tells whether a text typed for a number of minutes already means a duration.
+    /// </summary>
+    /// <param name="text">
+    /// The text typed.
+    /// </param>
+    /// <param name="duration">
+    /// The duration to compare with.
+    /// </param>
+    /// <returns>
+    /// <see langword="true"/> if the text is a number of minutes equal to the duration.
+    /// </returns>
+    private static bool MeansMinutes(string text, TimeSpan duration)
+    {
+        return int.TryParse(text.Trim(), NumberStyles.None, CultureInfo.InvariantCulture, out var minutes)
+            && minutes == (int)Math.Ceiling(duration.TotalMinutes);
+    }
+
+    /// <summary>
+    /// Shows the explanation of the first timing entry that cannot be saved, or nothing if they are all fine.
+    /// </summary>
+    private void UpdateTimingError()
+    {
+        var error = _editor.ErrorFor(SedentaryEditKey);
+        TimingError = error.Length > 0 ? error : _editor.ErrorFor(SleepEditKey);
     }
 
     /// <summary>

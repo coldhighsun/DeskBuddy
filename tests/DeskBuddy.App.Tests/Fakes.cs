@@ -51,9 +51,19 @@ internal sealed class FakeSettingsStore : ISettingsStore
     /// </summary>
     public Task? SaveBlocker { get; set; }
 
+    /// <summary>
+    /// Gets or sets how many saves succeed before every later one fails with an <see cref="IOException"/>.
+    /// </summary>
+    public int? FailSavesAfter { get; set; }
+
     /// <inheritdoc />
     public async Task SaveAsync(PetSettings settings, CancellationToken cancellationToken = default)
     {
+        if (FailSavesAfter is { } allowed && SaveCount >= allowed)
+        {
+            throw new IOException("disk full");
+        }
+
         if (SaveBlocker is not null)
         {
             await SaveBlocker;
