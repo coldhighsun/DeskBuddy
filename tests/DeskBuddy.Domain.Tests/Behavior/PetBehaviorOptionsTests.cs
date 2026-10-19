@@ -33,4 +33,32 @@ public class PetBehaviorOptionsTests
         options.VerticalEaseTolerance.Should().BeGreaterThanOrEqualTo(0);
         options.VerticalEaseTolerance.Should().BeLessThan(options.FallMinHeight);
     }
+
+    /// <summary>
+    /// The time before a stroll is a real range: not negative, and the shortest is not above the longest, as a random
+    /// time cannot be drawn from a range the wrong way round.
+    /// </summary>
+    [Fact]
+    public void StrollInterval_Default_IsAValidRange()
+    {
+        // Arrange & Act
+        var options = new PetBehaviorOptions();
+
+        // Assert
+        options.StrollIntervalMin.Should().BeGreaterThanOrEqualTo(TimeSpan.Zero);
+        options.StrollIntervalMax.Should().BeGreaterThanOrEqualTo(options.StrollIntervalMin);
+    }
+
+    /// <summary>
+    /// Strolls are on until the settings switch them off, so a pet that is never given the user's choice still moves.
+    /// </summary>
+    [Fact]
+    public void StrollEnabled_Default_IsOn()
+    {
+        // Arrange & Act
+        var options = new PetBehaviorOptions();
+
+        // Assert
+        options.StrollEnabled.Should().BeTrue();
+    }
 }

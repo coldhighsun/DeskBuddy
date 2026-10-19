@@ -36,6 +36,25 @@ public static class PetStateExtensions
     }
 
     /// <summary>
+    /// Tells whether the pet, held in this state for as long as its cause lasts, may leave it now and then for a short
+    /// walk and come back to it. A state that goes on for hours looks frozen otherwise; a weak pet (tired, low battery)
+    /// is better left where it is, and moments are over soon enough.
+    /// </summary>
+    /// <param name="state">
+    /// The state.
+    /// </param>
+    /// <returns>
+    /// <see langword="true"/> for <see cref="PetState.Coding"/>, <see cref="PetState.Building"/>,
+    /// <see cref="PetState.Reading"/>, <see cref="PetState.NightCoding"/>, <see cref="PetState.Meeting"/> and
+    /// <see cref="PetState.Chatting"/>.
+    /// </returns>
+    public static bool CanStroll(this PetState state)
+    {
+        return state is PetState.Coding or PetState.Building or PetState.Reading or PetState.NightCoding
+            or PetState.Meeting or PetState.Chatting;
+    }
+
+    /// <summary>
     /// Tells whether the pet falls in this state: before its umbrella or parachute opens, or floating down with it.
     /// </summary>
     /// <param name="state">

@@ -19,16 +19,16 @@ public partial class PetBehaviorStateMachineTests
     }
 
     /// <summary>
-    /// A pet at its computer stays there instead of wandering off.
+    /// A pet at its computer stays there instead of wandering off until it is time for a stroll.
     /// </summary>
     [Fact]
-    public void Update_DevelopingForLongTime_NeverWalks()
+    public void Update_DevelopingBeforeStrollInterval_StaysCoding()
     {
         // Arrange
         _machine.Update(Developing);
 
         // Act
-        _clock.Advance(IdleDwell + WalkDuration + IdleDwell);
+        _clock.Advance(StrollInterval - TimeSpan.FromSeconds(1));
         var state = _machine.Update(Developing);
 
         // Assert

@@ -21,6 +21,11 @@ public partial class PetBehaviorStateMachineTests
     private static readonly TimeSpan HappyDuration = TimeSpan.FromSeconds(2);
 
     /// <summary>
+    /// Fixed time a pet held in a state such as coding stays there before it strolls, in the test options.
+    /// </summary>
+    private static readonly TimeSpan StrollInterval = TimeSpan.FromMinutes(1);
+
+    /// <summary>
     /// Idle time after which the pet sleeps in the test options.
     /// </summary>
     private static readonly TimeSpan SleepAfter = TimeSpan.FromMinutes(5);
@@ -56,11 +61,28 @@ public partial class PetBehaviorStateMachineTests
     private readonly PetBehaviorStateMachine _machine;
 
     /// <summary>
+    /// The options of the machine under test, kept so that tests can change them.
+    /// </summary>
+    private readonly PetBehaviorOptions _options;
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="PetBehaviorStateMachineTests"/> class.
     /// </summary>
     public PetBehaviorStateMachineTests()
     {
-        var options = new PetBehaviorOptions
+        _options = CreateOptions();
+        _machine = new PetBehaviorStateMachine(_options, _clock, new Random(42));
+    }
+
+    /// <summary>
+    /// Makes the options every test machine starts from, with fixed timings so that behavior is deterministic.
+    /// </summary>
+    /// <returns>
+    /// The options.
+    /// </returns>
+    private static PetBehaviorOptions CreateOptions()
+    {
+        return new PetBehaviorOptions
         {
             SleepAfter = SleepAfter,
             IdleDwellMin = IdleDwell,
@@ -68,8 +90,9 @@ public partial class PetBehaviorStateMachineTests
             WalkDurationMin = WalkDuration,
             WalkDurationMax = WalkDuration,
             HappyDuration = HappyDuration,
+            StrollIntervalMin = StrollInterval,
+            StrollIntervalMax = StrollInterval,
         };
-        _machine = new PetBehaviorStateMachine(options, _clock, new Random(42));
     }
 
     /// <summary>
@@ -86,16 +109,9 @@ public partial class PetBehaviorStateMachineTests
     /// </returns>
     private PetBehaviorStateMachine CreateHoppingMachine(TimeSpan hopAfter, TimeSpan hopDuration)
     {
-        var options = new PetBehaviorOptions
-        {
-            SleepAfter = SleepAfter,
-            IdleDwellMin = IdleDwell,
-            IdleDwellMax = IdleDwell,
-            WalkDurationMin = WalkDuration,
-            WalkDurationMax = WalkDuration,
-            HopIntervalMin = hopAfter,
-            HopIntervalMax = hopAfter,
-        };
+        var options = CreateOptions();
+        options.HopIntervalMin = hopAfter;
+        options.HopIntervalMax = hopAfter;
         var machine = new PetBehaviorStateMachine(options, _clock, new Random(42)) { HopDuration = hopDuration };
         _clock.Advance(IdleDwell);
         machine.Update(Active);

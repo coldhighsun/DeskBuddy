@@ -120,6 +120,25 @@ public sealed class PetBehaviorOptions
     public TimeSpan ClockOutTime { get; set; } = TimeSpan.FromHours(18);
 
     /// <summary>
+    /// Gets or sets whether a pet held in a state such as coding or a meeting leaves it now and then for a short walk, so
+    /// that it does not stand frozen for hours. A walk already under way is finished.
+    /// </summary>
+    public bool StrollEnabled { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets the shortest time a pet held in a state such as coding or a meeting stays there before it takes a
+    /// short walk. The walk lasts as long as any other walk (<see cref="WalkDurationMin"/> to
+    /// <see cref="WalkDurationMax"/>).
+    /// </summary>
+    public TimeSpan StrollIntervalMin { get; set; } = TimeSpan.FromSeconds(10);
+
+    /// <summary>
+    /// Gets or sets the longest time a pet held in a state such as coding or a meeting stays there before it takes a
+    /// short walk.
+    /// </summary>
+    public TimeSpan StrollIntervalMax { get; set; } = TimeSpan.FromSeconds(20);
+
+    /// <summary>
     /// Gets or sets the walking speed in device-independent pixels per second.
     /// </summary>
     public double WalkSpeed { get; set; } = 36;
