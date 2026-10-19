@@ -50,6 +50,18 @@ public sealed class PetBehaviorStateMachine
     private DateTimeOffset _walkEndsAt;
 
     /// <summary>
+    /// The moment at which the pet, held in a state that <see cref="PetStateExtensions.CanStroll"/>, next leaves it for a
+    /// short walk.
+    /// </summary>
+    private DateTimeOffset _nextStrollAt;
+
+    /// <summary>
+    /// The state the pet left for a short walk and goes back to when the walk is over, or <see langword="null"/> if it is
+    /// not on such a walk.
+    /// </summary>
+    private PetState? _strollScene;
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="PetBehaviorStateMachine"/> class in the Idle state.
     /// </summary>
     /// <param name="options">
@@ -103,7 +115,8 @@ public sealed class PetBehaviorStateMachine
     /// <summary>
     /// Re-evaluates the state for the current time and the given inputs. Priority, highest first:
     /// Drag and Fall (which nothing interrupts), Alert, Sleep, moments (Happy and <see cref="OnMoment"/>), Ambient, Tired, Coding, then the
-    /// Idle/Walk cycle.
+    /// Idle/Walk cycle. A pet held in Ambient or Coding (see <see cref="PetStateExtensions.CanStroll"/>) leaves it now and
+    /// then for a short walk, then goes back to it.
     /// </summary>
     /// <param name="inputs">
     /// The current user presence, system condition and pending notices.
@@ -169,6 +182,19 @@ public sealed class PetBehaviorStateMachine
             return State;
         }
 
+        // A short walk out of a state such as coding goes on until it is over or its state goes away.
+        if (_strollScene is { } strollScene)
+        {
+            if (State == PetState.Walk && now < _stateEndsAt && SceneFor(inputs) == strollScene)
+            {
+                TryHop(now);
+                return State;
+            }
+
+            // Over: the branches below put the pet back into its state, or into the new one.
+            _strollScene = null;
+        }
+
         if (inputs.Ambient is { } ambient)
         {
             if (State != ambient)
@@ -177,6 +203,7 @@ public sealed class PetBehaviorStateMachine
             }
 
             _ambientState = ambient;
+            TryStartStroll(now);
             return State;
         }
 
@@ -213,6 +240,7 @@ public sealed class PetBehaviorStateMachine
                 Enter(PetState.Coding);
             }
 
+            TryStartStroll(now);
             return State;
         }
 
@@ -222,18 +250,10 @@ public sealed class PetBehaviorStateMachine
             return State;
         }
 
-        if (HopDuration is { } hopDuration && State == PetState.Walk && now >= _nextHopAt && _stateEndsAt - now > hopDuration)
+        TryHop(now);
+        if (State == PetState.Hop)
         {
-            if (CanHopNow?.Invoke() ?? true)
-            {
-                _walkEndsAt = _stateEndsAt;
-                State = PetState.Hop;
-                _stateEndsAt = DateTimeOffset.MaxValue;
-                return State;
-            }
-
-            // No room to hop here: try again at another random time.
-            ScheduleHop(now);
+            return State;
         }
 
         if (now >= _stateEndsAt)
@@ -338,6 +358,8 @@ public sealed class PetBehaviorStateMachine
         var now = _timeProvider.GetUtcNow();
         if (now >= _walkEndsAt)
         {
+            // On a stroll too: Update does not look at the inputs during a hop, so the pet stands until the next Update
+            // puts it into the state that holds it by then, which may no longer be the one it left.
             Enter(PetState.Idle);
             return;
         }
@@ -408,6 +430,7 @@ public sealed class PetBehaviorStateMachine
     {
         State = state;
         _momentActive = false;
+        _strollScene = null;
 
         var now = _timeProvider.GetUtcNow();
         _stateEndsAt = state switch
@@ -423,6 +446,80 @@ public sealed class PetBehaviorStateMachine
             WalkDirection = _random.Next(2) == 0 ? -1 : 1;
             ScheduleHop(now);
         }
+
+        if (state.CanStroll())
+        {
+            _nextStrollAt = now + _random.NextTimeSpan(_options.StrollIntervalMin, _options.StrollIntervalMax);
+        }
+    }
+
+    /// <summary>
+    /// Finds the state that holds the pet for the given inputs, if one does: the ambient state, tiredness or coding, in
+    /// the order of priority <see cref="Update"/> gives them.
+    /// </summary>
+    /// <param name="inputs">
+    /// The current user presence, system condition and pending notices.
+    /// </param>
+    /// <returns>
+    /// The state, or <see langword="null"/> if none holds the pet.
+    /// </returns>
+    private static PetState? SceneFor(PetInputs inputs)
+    {
+        if (inputs.Ambient is { } ambient)
+        {
+            return ambient;
+        }
+
+        if (inputs.IsSystemStrained)
+        {
+            return PetState.Tired;
+        }
+
+        return inputs.IsDeveloping ? PetState.Coding : null;
+    }
+
+    /// <summary>
+    /// Sends the pet on a short walk out of the state it is held in, if that is allowed and its time has come.
+    /// </summary>
+    /// <param name="now">
+    /// The current time.
+    /// </param>
+    private void TryStartStroll(DateTimeOffset now)
+    {
+        if (!_options.StrollEnabled || !State.CanStroll() || now < _nextStrollAt)
+        {
+            return;
+        }
+
+        var scene = State;
+        Enter(PetState.Walk);
+        _strollScene = scene;
+    }
+
+    /// <summary>
+    /// Makes the walking pet hop if its time has come and there is room for it.
+    /// </summary>
+    /// <param name="now">
+    /// The current time.
+    /// </param>
+    private void TryHop(DateTimeOffset now)
+    {
+        if (HopDuration is not { } hopDuration || State != PetState.Walk || now < _nextHopAt
+            || _stateEndsAt - now <= hopDuration)
+        {
+            return;
+        }
+
+        if (CanHopNow?.Invoke() ?? true)
+        {
+            _walkEndsAt = _stateEndsAt;
+            State = PetState.Hop;
+            _stateEndsAt = DateTimeOffset.MaxValue;
+            return;
+        }
+
+        // No room to hop here: try again at another random time.
+        ScheduleHop(now);
     }
 
     /// <summary>

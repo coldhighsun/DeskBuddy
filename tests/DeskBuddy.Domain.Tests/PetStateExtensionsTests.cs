@@ -29,6 +29,36 @@ public class PetStateExtensionsTests
     }
 
     /// <summary>
+    /// Only the long-lived states in which the pet could stand frozen for hours allow a stroll.
+    /// </summary>
+    /// <param name="state">
+    /// The state.
+    /// </param>
+    /// <param name="expected">
+    /// Whether the pet may stroll out of it.
+    /// </param>
+    [Theory]
+    [InlineData(PetState.Coding, true)]
+    [InlineData(PetState.Building, true)]
+    [InlineData(PetState.Reading, true)]
+    [InlineData(PetState.NightCoding, true)]
+    [InlineData(PetState.Meeting, true)]
+    [InlineData(PetState.Chatting, true)]
+    [InlineData(PetState.Tired, false)]
+    [InlineData(PetState.LowBattery, false)]
+    [InlineData(PetState.Sleep, false)]
+    [InlineData(PetState.Walk, false)]
+    [InlineData(PetState.BuildDone, false)]
+    public void CanStroll_State_MatchesExpectation(PetState state, bool expected)
+    {
+        // Act
+        var result = state.CanStroll();
+
+        // Assert
+        result.Should().Be(expected);
+    }
+
+    /// <summary>
     /// Falling, with or without the umbrella open, counts as falling; nothing else does.
     /// </summary>
     /// <param name="state">
