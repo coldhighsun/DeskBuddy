@@ -385,6 +385,11 @@ internal static class Strings
     public static string SettingsChatter => Get();
 
     /// <summary>
+    /// Gets the label of the setting that lets the pet take short walks while it is coding or in a meeting.
+    /// </summary>
+    public static string SettingsStrollWhileBusy => Get();
+
+    /// <summary>
     /// Gets the name of the small pet size.
     /// </summary>
     public static string PetSizeSmall => Get();

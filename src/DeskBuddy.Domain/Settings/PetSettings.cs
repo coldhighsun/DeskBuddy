@@ -150,6 +150,12 @@ public sealed record PetSettings
     public bool ChatterEnabled { get; init; }
 
     /// <summary>
+    /// Gets a value indicating whether a pet held at its computer, in a meeting or in a similar state leaves it now and
+    /// then for a short walk instead of standing still for hours. On by default.
+    /// </summary>
+    public bool StrollWhileBusy { get; init; } = true;
+
+    /// <summary>
     /// Gets the time of day, by the local clock, at which the working day ends and the pet looks at its watch.
     /// </summary>
     public TimeSpan ClockOutTime { get; init; } = TimeSpan.FromHours(18);

@@ -135,6 +135,7 @@
 
   <data name="SettingsLanguage" xml:space="preserve"><value>Language</value></data>
   <data name="SettingsPetSize" xml:space="preserve"><value>Pet size</value></data>
+  <data name="SettingsStrollWhileBusy" xml:space="preserve"><value>Get up and walk around every so often while coding or in a meeting</value></data>
   <data name="SettingsClimbEdges" xml:space="preserve"><value>Climb the screen sides and hang from the top</value></data>
   <data name="SettingsChatter" xml:space="preserve"><value>Say something unprompted now and then</value></data>
   <data name="StateHintClimb" xml:space="preserve"><value>Climbing along the screen edge</value></data>

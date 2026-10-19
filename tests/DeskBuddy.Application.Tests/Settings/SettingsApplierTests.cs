@@ -72,6 +72,24 @@ public class SettingsApplierTests
     }
 
     /// <summary>
+    /// The choice to let the pet stroll while it is busy reaches the behavior options, at start and after a change.
+    /// </summary>
+    [Fact]
+    public async Task Changed_StrollWhileBusy_UpdatesBehaviorOption()
+    {
+        // Arrange
+        _ = new SettingsApplier(_settings, _behavior, _sedentary, _visibility, _chatter, _devActivity, _scenarios, _meeting, _chat);
+        var atStart = _behavior.StrollEnabled;
+
+        // Act
+        await _settings.UpdateAsync(s => s with { StrollWhileBusy = false }, TestContext.Current.CancellationToken);
+
+        // Assert
+        atStart.Should().BeTrue();
+        _behavior.StrollEnabled.Should().BeFalse();
+    }
+
+    /// <summary>
     /// A later change reaches the options without recreating anything.
     /// </summary>
     [Fact]

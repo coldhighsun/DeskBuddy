@@ -147,6 +147,7 @@ public sealed class SettingsApplier
         _meeting.Processes = settings.MeetingProcesses;
         _chat.Processes = settings.ChatProcesses;
         _behavior.ClockOutTime = settings.ClockOutTime;
+        _behavior.StrollEnabled = settings.StrollWhileBusy;
 
         _reapplyOverrides?.Invoke();
     }

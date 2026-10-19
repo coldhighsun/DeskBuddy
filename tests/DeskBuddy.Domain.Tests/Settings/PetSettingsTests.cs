@@ -272,6 +272,16 @@ public class PetSettingsTests
     }
 
     /// <summary>
+    /// Strolling out of states such as coding or a meeting is on until the user switches it off.
+    /// </summary>
+    [Fact]
+    public void Default_StrollWhileBusy_IsOn()
+    {
+        // Assert
+        PetSettings.Default.StrollWhileBusy.Should().BeTrue();
+    }
+
+    /// <summary>
     /// Climbing along the edges of the screen is off until the user switches it on.
     /// </summary>
     [Fact]

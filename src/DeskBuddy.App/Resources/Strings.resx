@@ -135,6 +135,7 @@
 
   <data name="SettingsLanguage" xml:space="preserve"><value>语言 / Language</value></data>
   <data name="SettingsPetSize" xml:space="preserve"><value>宠物大小</value></data>
+  <data name="SettingsStrollWhileBusy" xml:space="preserve"><value>写代码、开会时每隔一会儿起身走几步</value></data>
   <data name="SettingsClimbEdges" xml:space="preserve"><value>攀爬屏幕两侧，悬挂在屏幕顶部</value></data>
   <data name="SettingsChatter" xml:space="preserve"><value>偶尔主动说一句话</value></data>
   <data name="StateHintClimb" xml:space="preserve"><value>正在爬屏幕边缘</value></data>
