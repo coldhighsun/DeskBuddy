@@ -196,6 +196,12 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
         public bool? ChatterEnabled { get; init; }
 
         /// <summary>
+        /// Gets whether the pet takes short walks out of states such as coding or a meeting; <see langword="null"/> in
+        /// files from before the option existed.
+        /// </summary>
+        public bool? StrollWhileBusy { get; init; }
+
+        /// <summary>
         /// Creates the file shape from settings.
         /// </summary>
         /// <param name="settings">
@@ -226,6 +232,7 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
                 Size = settings.Size.ToString(),
                 ClimbEdges = settings.ClimbEdges,
                 ChatterEnabled = settings.ChatterEnabled,
+                StrollWhileBusy = settings.StrollWhileBusy,
             };
         }
 
@@ -266,6 +273,7 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
                     : defaults.Size,
                 ClimbEdges = ClimbEdges ?? defaults.ClimbEdges,
                 ChatterEnabled = ChatterEnabled ?? defaults.ChatterEnabled,
+                StrollWhileBusy = StrollWhileBusy ?? defaults.StrollWhileBusy,
             };
         }
     }

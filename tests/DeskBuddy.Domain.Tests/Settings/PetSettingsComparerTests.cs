@@ -101,6 +101,7 @@ public class PetSettingsComparerTests
             [nameof(PetSettings.Size)] = baseline with { Size = PetSize.Large },
             [nameof(PetSettings.ClimbEdges)] = baseline with { ClimbEdges = !baseline.ClimbEdges },
             [nameof(PetSettings.ChatterEnabled)] = baseline with { ChatterEnabled = !baseline.ChatterEnabled },
+            [nameof(PetSettings.StrollWhileBusy)] = baseline with { StrollWhileBusy = !baseline.StrollWhileBusy },
             [nameof(PetSettings.ClockOutTime)] = baseline with { ClockOutTime = baseline.ClockOutTime + TimeSpan.FromMinutes(10) },
             [nameof(PetSettings.MeetingProcesses)] = baseline with { MeetingProcesses = ["x"] },
             [nameof(PetSettings.ChatProcesses)] = baseline with { ChatProcesses = ["x"] },

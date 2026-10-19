@@ -658,6 +658,26 @@ public class SettingsTabViewModelTests
     }
 
     /// <summary>
+    /// The choice to let the pet stroll while it is busy is shown from the stored settings (on by default) and stored
+    /// when changed.
+    /// </summary>
+    [Fact]
+    public async Task StrollWhileBusy_Changed_IsStored()
+    {
+        // Arrange
+        await CreateAsync();
+        var shownAtStart = _viewModel.StrollWhileBusy;
+
+        // Act
+        _viewModel.StrollWhileBusy = false;
+        await _viewModel.TrySaveAsync();
+
+        // Assert
+        shownAtStart.Should().BeTrue();
+        _settings.Current.StrollWhileBusy.Should().BeFalse();
+    }
+
+    /// <summary>
     /// The end of the working day is shown as an hour and a minute, and a chosen hour or minute is applied.
     /// </summary>
     [Fact]

@@ -32,6 +32,12 @@ public sealed partial class SettingsTabViewModel
     private bool _chatterEnabled;
 
     /// <summary>
+    /// Whether the pet takes short walks out of states such as coding or a meeting.
+    /// </summary>
+    [ObservableProperty]
+    private bool _strollWhileBusy;
+
+    /// <summary>
     /// The sedentary reminder interval in minutes, as typed.
     /// </summary>
     [ObservableProperty]
@@ -90,6 +96,20 @@ public sealed partial class SettingsTabViewModel
         if (!_refreshing)
         {
             _editor.Set(nameof(PetSettings.ChatterEnabled), settings => settings with { ChatterEnabled = value });
+        }
+    }
+
+    /// <summary>
+    /// Applies the choice to let the pet take short walks while it is busy.
+    /// </summary>
+    /// <param name="value">
+    /// Whether the pet may stroll.
+    /// </param>
+    partial void OnStrollWhileBusyChanged(bool value)
+    {
+        if (!_refreshing)
+        {
+            _editor.Set(nameof(PetSettings.StrollWhileBusy), settings => settings with { StrollWhileBusy = value });
         }
     }
 

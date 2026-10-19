@@ -96,6 +96,7 @@ public sealed class JsonSettingsStoreTests : IDisposable
             Theme = AppTheme.Dark,
             Size = PetSize.Large,
             ClimbEdges = true,
+            StrollWhileBusy = false,
         };
 
         // Act

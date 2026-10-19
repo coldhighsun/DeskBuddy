@@ -32,6 +32,8 @@ powershell -NoProfile -File tools/GenerateAppIcon.ps1   # 重新生成应用/托
 - **Infrastructure**：接口的 Windows 实现——传感器（前台进程、进程列表、电源状态等）、JSON 存储（设置）、注册表开机自启、日志、`FolderPetLoader`/`FolderPetCatalog`。
 - **App**：WPF 外壳。`App.xaml.cs` 用通用主机（Generic Host）组装全部依赖；`Rendering/` 负责宠物帧缓存与热切换（`PetSwitcher`）、面板预览图解码（`PetPreviewFrames`）；面板第一个标签是“宠物”（`PetsTabViewModel`/`PetCardViewModel`）：列出 `pets/` 下所有宠物，动画预览只轮播宠物自己定义的状态（每次先显示 Idle，其余按随机顺序，每轮不重复、不连着重复；`PetShowcase.RandomOrder`），能力标签由 `Domain/Pets/PetCapabilities` 从 manifest 推导，不写死任何宠物；`Windows/`、`ViewModels/`、`Interop/`（Win32 互操作）、`TrayIconService`、`SingleInstanceGuard`（单实例互斥）。
 
+- **长驻状态会“溜达”**：Coding 和长驻的情境状态（`PetStateExtensions.CanStroll`：Coding / Building / Reading / NightCoding / Meeting / Chatting；Tired、LowBattery 与瞬时状态不算）在状态机里会一直钉住，宠物不动。为避免几小时一动不动，`PetBehaviorStateMachine` 在这些状态里每隔 `StrollIntervalMin..Max`（默认 10–20 秒）临时进入普通 `Walk`（时长同普通散步，期间也会 Hop），走完再回到原状态，窗口层无需任何改动。开关是设置项 `PetSettings.StrollWhileBusy`（“行为”标签，默认开），经 `SettingsApplier` 写入 `PetBehaviorOptions.StrollEnabled`。新增长驻情境状态时，要同时决定它是否加进 `CanStroll`。
+
 ## 宠物
 
 - 宠物是 `pets/<name>/` 下的一张精灵图集 `atlas.png`（所有帧按相同大小的格子排成网格）加 `manifest.json`，只有这一种写法，不再支持“一帧一个 PNG”（`name`、可选的 `names`（各语言的显示名，键为语言如 `zh`、`en` 或区域如 `zh-CN`，面板和托盘按界面语言取，缺失回退到 `name`）、`frameSize`、必填的 `atlas`（`image` 图集文件名、`cell` 单格像素大小 `[宽,高]`、可选 `columns` 每行格数，缺省取图集宽度能放下的列数）、`states`：每个状态的 `fps` 与 `frames`，`frames` 是图集格子编号，按行从左上角开始数；`Idle.Left/Right/Up/Down` 为视线方向帧）。`pets/` 在构建时被复制到 App 输出目录。
