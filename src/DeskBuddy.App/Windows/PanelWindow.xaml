@@ -8,30 +8,37 @@
         Width="460"
         Height="610"
         ResizeMode="CanMinimize"
+        SnapsToDevicePixels="True"
+        UseLayoutRounding="True"
         WindowStartupLocation="CenterScreen">
     <Window.Resources>
-        <BooleanToVisibilityConverter x:Key="BooleanToVisibility" />
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/DeskBuddy;component/Themes/SecondaryText.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibility" />
 
-        <!-- A TextBlock that is collapsed while its text is empty, for optional messages. -->
-        <Style x:Key="OptionalTextStyle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
-            <Setter Property="TextWrapping" Value="Wrap" />
-            <Setter Property="Margin" Value="0,6,0,0" />
-            <Style.Triggers>
-                <Trigger Property="Text" Value="">
-                    <Setter Property="Visibility" Value="Collapsed" />
-                </Trigger>
-            </Style.Triggers>
-        </Style>
+            <!-- A TextBlock that is collapsed while its text is empty, for optional messages. -->
+            <Style x:Key="OptionalTextStyle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                <Setter Property="TextWrapping" Value="Wrap" />
+                <Setter Property="Margin" Value="0,6,0,0" />
+                <Style.Triggers>
+                    <Trigger Property="Text" Value="">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
 
-        <!-- An optional error message. -->
-        <Style x:Key="ErrorTextStyle" TargetType="TextBlock" BasedOn="{StaticResource OptionalTextStyle}">
-            <Setter Property="Foreground" Value="{DynamicResource ErrorTextBrush}" />
-        </Style>
+            <!-- An optional error message. -->
+            <Style x:Key="ErrorTextStyle" TargetType="TextBlock" BasedOn="{StaticResource OptionalTextStyle}">
+                <Setter Property="Foreground" Value="{DynamicResource ErrorTextBrush}" />
+            </Style>
 
-        <!-- An optional note that is no error. -->
-        <Style x:Key="NoticeTextStyle" TargetType="TextBlock" BasedOn="{StaticResource OptionalTextStyle}">
-            <Setter Property="FontSize" Value="11" />
-        </Style>
+            <!-- An optional note that is no error. -->
+            <Style x:Key="NoticeTextStyle" TargetType="TextBlock" BasedOn="{StaticResource OptionalTextStyle}">
+                <Setter Property="FontSize" Value="11" />
+            </Style>
+        </ResourceDictionary>
     </Window.Resources>
 
     <Grid DataContext="{Binding Settings}" IsEnabled="{Binding IsEditable}" Margin="12">
@@ -63,11 +70,11 @@
                         <StackPanel Margin="0,0,12,0">
                         <TextBlock Text="{x:Static res:Strings.PetsLoading}"
                                    Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibility}}"
-                                   Opacity="0.65"
+                                   Style="{StaticResource SecondaryTextStyle}"
                                    TextWrapping="Wrap" />
                         <TextBlock Text="{x:Static res:Strings.PetsEmpty}"
                                    Visibility="{Binding IsEmpty, Converter={StaticResource BooleanToVisibility}}"
-                                   Opacity="0.65"
+                                   Style="{StaticResource SecondaryTextStyle}"
                                    TextWrapping="Wrap" />
                         <ItemsControl ItemsSource="{Binding Cards}" AutomationProperties.AutomationId="PetCards">
                             <ItemsControl.ItemsPanel>
@@ -99,9 +106,6 @@
                                                     <DataTrigger Binding="{Binding IsAvailable}" Value="True">
                                                         <Setter Property="Cursor" Value="Hand" />
                                                     </DataTrigger>
-                                                    <DataTrigger Binding="{Binding IsAvailable}" Value="False">
-                                                        <Setter Property="Opacity" Value="0.6" />
-                                                    </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
                                         </Border.Style>
@@ -111,10 +115,20 @@
                                                    HorizontalAlignment="Center"
                                                    Source="{Binding CurrentFrame}"
                                                    Stretch="Uniform"
-                                                   RenderOptions.BitmapScalingMode="HighQuality" />
+                                                   RenderOptions.BitmapScalingMode="HighQuality">
+                                                <Image.Style>
+                                                    <Style TargetType="Image">
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsAvailable}" Value="False">
+                                                                <Setter Property="Opacity" Value="0.6" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Image.Style>
+                                            </Image>
                                             <TextBlock Text="{Binding StateCaption}"
                                                        HorizontalAlignment="Center"
-                                                       Opacity="0.6"
+                                                       Style="{StaticResource SecondaryTextStyle}"
                                                        FontSize="11"
                                                        MinHeight="16"
                                                        Margin="0,2,0,6" />
@@ -130,7 +144,7 @@
                                                            FontWeight="SemiBold"
                                                            TextTrimming="CharacterEllipsis">
                                                     <TextBlock.Style>
-                                                        <Style TargetType="TextBlock">
+                                                        <Style TargetType="TextBlock" BasedOn="{StaticResource SecondaryTextStyle}">
                                                             <Setter Property="Visibility" Value="Collapsed" />
                                                             <Style.Triggers>
                                                                 <DataTrigger Binding="{Binding IsAvailable}" Value="False">
@@ -230,7 +244,16 @@
                                                             Background="Transparent"
                                                             BorderBrush="{DynamicResource PetCardBorderBrush}"
                                                             Cursor="Hand">
-                                                        <ContentPresenter />
+                                                        <StackPanel>
+                                                            <Image x:Name="Picture"
+                                                                   Source="{Binding Picture}"
+                                                                   Width="{Binding Width}"
+                                                                   Height="{Binding Height}"
+                                                                   HorizontalAlignment="Center" />
+                                                            <TextBlock Text="{Binding Label}"
+                                                                       HorizontalAlignment="Center"
+                                                                       Margin="0,4,0,0" />
+                                                        </StackPanel>
                                                     </Border>
                                                     <ControlTemplate.Triggers>
                                                         <Trigger Property="IsMouseOver" Value="True">
@@ -241,25 +264,20 @@
                                                             <Setter TargetName="Frame" Property="BorderThickness" Value="3" />
                                                             <Setter TargetName="Frame" Property="Padding" Value="9,7" />
                                                         </Trigger>
+                                                        <!-- The label is greyed through its color, not its opacity, to keep ClearType. -->
                                                         <Trigger Property="IsPressed" Value="True">
-                                                            <Setter TargetName="Frame" Property="Opacity" Value="0.7" />
+                                                            <Setter TargetName="Picture" Property="Opacity" Value="0.7" />
+                                                            <Setter TargetName="Frame" Property="TextElement.Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
                                                         </Trigger>
                                                         <Trigger Property="IsEnabled" Value="False">
-                                                            <Setter TargetName="Frame" Property="Opacity" Value="0.5" />
+                                                            <Setter TargetName="Picture" Property="Opacity" Value="0.5" />
+                                                            <Setter TargetName="Frame" Property="TextElement.Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+                                                            <Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource PetCardBorderBrush}" />
                                                             <Setter TargetName="Frame" Property="Cursor" Value="Arrow" />
                                                         </Trigger>
                                                     </ControlTemplate.Triggers>
                                                 </ControlTemplate>
                                             </RadioButton.Template>
-                                            <StackPanel>
-                                                <Image Source="{Binding Picture}"
-                                                       Width="{Binding Width}"
-                                                       Height="{Binding Height}"
-                                                       HorizontalAlignment="Center" />
-                                                <TextBlock Text="{Binding Label}"
-                                                           HorizontalAlignment="Center"
-                                                           Margin="0,4,0,0" />
-                                            </StackPanel>
                                         </RadioButton>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
@@ -291,7 +309,7 @@
                                       SelectedValue="{Binding SelectedLanguage}"
                                       AutomationProperties.AutomationId="LanguageBox" />
                         </Grid>
-                        <TextBlock Text="{x:Static res:Strings.LanguageRestartHint}" Opacity="0.65" FontSize="11" TextWrapping="Wrap" Margin="0,2,0,0" />
+                        <TextBlock Text="{x:Static res:Strings.LanguageRestartHint}" Style="{StaticResource SecondaryTextStyle}" FontSize="11" TextWrapping="Wrap" Margin="0,2,0,0" />
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
@@ -381,7 +399,7 @@
 
                         <!-- Recognized programs -->
                         <TextBlock Text="{x:Static res:Strings.SettingsPrograms}" FontWeight="SemiBold" Margin="0,18,0,2" />
-                        <TextBlock Text="{x:Static res:Strings.ProgramsHint}" Opacity="0.65" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,2" />
+                        <TextBlock Text="{x:Static res:Strings.ProgramsHint}" Style="{StaticResource SecondaryTextStyle}" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,2" />
                         <TextBlock Text="{Binding ProcessListNotice}"
                                    Style="{StaticResource NoticeTextStyle}"
                                    AutomationProperties.AutomationId="ProcessListNotice" />
@@ -443,7 +461,7 @@
 
 
                         <!-- Note -->
-                        <TextBlock Text="{x:Static res:Strings.PetSupportNote}" Opacity="0.65" FontSize="11" TextWrapping="Wrap" Margin="0,18,0,0" />
+                        <TextBlock Text="{x:Static res:Strings.PetSupportNote}" Style="{StaticResource SecondaryTextStyle}" FontSize="11" TextWrapping="Wrap" Margin="0,18,0,0" />
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
@@ -470,7 +488,7 @@
                                  HorizontalAlignment="Left"
                                  Width="220"
                                  AutomationProperties.AutomationId="BossKeyBox" />
-                        <TextBlock Text="{x:Static res:Strings.BossKeyHint}" Opacity="0.6" TextWrapping="Wrap" Margin="0,4,0,0" />
+                        <TextBlock Text="{x:Static res:Strings.BossKeyHint}" Style="{StaticResource SecondaryTextStyle}" TextWrapping="Wrap" Margin="0,4,0,0" />
                         <TextBlock Text="{Binding BossKeyError}"
                                    Style="{StaticResource ErrorTextStyle}"
                                    AutomationProperties.AutomationId="BossKeyError" />
