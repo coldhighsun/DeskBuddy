@@ -66,6 +66,11 @@ public sealed class TrayIconService : IDisposable
     private readonly Action<PanelTab?> _openPanel;
 
     /// <summary>
+    /// Opens the about window.
+    /// </summary>
+    private readonly Action _openAbout;
+
+    /// <summary>
     /// Callback invoked when the user chooses Exit.
     /// </summary>
     private readonly Action _onExit;
@@ -110,6 +115,9 @@ public sealed class TrayIconService : IDisposable
     /// <param name="openPanel">
     /// Opens the panel window; called from the menu and on double-click of the icon.
     /// </param>
+    /// <param name="openAbout">
+    /// Opens the about window; called from the menu.
+    /// </param>
     /// <param name="onExit">
     /// Callback invoked when the user chooses Exit.
     /// </param>
@@ -128,6 +136,7 @@ public sealed class TrayIconService : IDisposable
     internal TrayIconService(
         PetBrain brain,
         Action<PanelTab?> openPanel,
+        Action openAbout,
         Action onExit,
         ThemeService theme,
         SettingsService settings,
@@ -136,6 +145,7 @@ public sealed class TrayIconService : IDisposable
     {
         _brain = brain;
         _openPanel = openPanel;
+        _openAbout = openAbout;
         _onExit = onExit;
         _settings = settings;
         _pets = pets;
@@ -624,9 +634,9 @@ public sealed class TrayIconService : IDisposable
         var items = _icon.ContextMenu!.Items;
         items.Clear();
 
-        var openPanel = new MenuItem { Header = Strings.OpenPanel };
-        openPanel.Click += (_, _) => _openPanel(null);
-        items.Add(openPanel);
+        var openSettings = new MenuItem { Header = Strings.TraySettings };
+        openSettings.Click += (_, _) => _openPanel(null);
+        items.Add(openSettings);
 
         items.Add(BuildPetsMenu(state));
         items.Add(BuildSizeMenu(state));
@@ -636,6 +646,10 @@ public sealed class TrayIconService : IDisposable
         var toggle = new MenuItem { Header = state.PetHidden ? Strings.TrayShowPet : Strings.TrayHidePet };
         toggle.Click += (_, _) => ToggleVisibility();
         items.Add(toggle);
+
+        var about = new MenuItem { Header = Strings.TrayAbout };
+        about.Click += (_, _) => _openAbout();
+        items.Add(about);
 
         var exit = new MenuItem { Header = Strings.TrayExit };
         exit.Click += (_, _) => _onExit();

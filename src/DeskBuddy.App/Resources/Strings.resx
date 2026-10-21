@@ -21,7 +21,8 @@
   <data name="TrayShowPet" xml:space="preserve"><value>显示宠物</value></data>
   <data name="TrayExit" xml:space="preserve"><value>退出</value></data>
 
-  <data name="OpenPanel" xml:space="preserve"><value>打开面板</value></data>
+  <data name="TraySettings" xml:space="preserve"><value>设置</value></data>
+  <data name="TrayAbout" xml:space="preserve"><value>关于</value></data>
   <data name="TraySwitchPet" xml:space="preserve"><value>切换宠物</value></data>
   <data name="TrayPetSize" xml:space="preserve"><value>宠物大小</value></data>
 
@@ -185,4 +186,10 @@
   <data name="ProcessesRemovedNotice" xml:space="preserve"><value>加载设置时，已移除以下不符合规则的进程名：</value></data>
   <data name="ProcessRemovedHasSpace" xml:space="preserve"><value>“{0}”含空格，已从{1}列表移除</value></data>
   <data name="ProcessRemovedInOtherList" xml:space="preserve"><value>“{0}”已在{2}列表中，已从{1}列表移除</value></data>
+  <data name="AboutTitle" xml:space="preserve"><value>关于 DeskBuddy</value></data>
+  <data name="AboutVersion" xml:space="preserve"><value>版本 {0}</value></data>
+  <data name="AboutDescription" xml:space="preserve"><value>一只住在 Windows 桌面上的宠物，陪你工作、提醒你休息。</value></data>
+  <data name="AboutProjectPage" xml:space="preserve"><value>项目主页</value></data>
+  <data name="AboutLicense" xml:space="preserve"><value>MIT 许可证 · © 2026 coldhighsun</value></data>
+  <data name="AboutClose" xml:space="preserve"><value>关闭</value></data>
 </root>

@@ -319,9 +319,18 @@ public partial class App
                 Path.Combine(AppContext.BaseDirectory, "pets"),
                 _previewFrames.Get,
                 _previewFrames.PreloadAsync);
+            var about = new SingleWindow<AboutWindow>(
+                () =>
+                {
+                    var window = new AboutWindow();
+                    themeService.Register(window);
+                    return window;
+                },
+                window => window.ShowAbout());
             _tray = new TrayIconService(
                 brain,
                 OpenPanel,
+                about.Open,
                 ExitApplication,
                 themeService,
                 _host.Services.GetRequiredService<SettingsService>(),
