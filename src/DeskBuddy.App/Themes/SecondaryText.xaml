@@ -1,0 +1,10 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Hint and caption text. It takes the Fluent theme's secondary color instead of an Opacity: text under an opacity is
+         drawn without ClearType, which looks thin and fuzzy on a light background. The style is merged into the themed
+         windows. It is not based on the implicit TextBlock style: the Fluent one only sets wrapping and trimming, which the
+         texts that use this style set themselves. -->
+    <Style x:Key="SecondaryTextStyle" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+    </Style>
+</ResourceDictionary>

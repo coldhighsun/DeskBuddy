@@ -56,9 +56,44 @@ internal static class Strings
     public static string TrayExit => Get();
 
     /// <summary>
-    /// Gets the menu text that opens the panel window.
+    /// Gets the tray menu text that opens the settings panel.
     /// </summary>
-    public static string OpenPanel => Get();
+    public static string TraySettings => Get();
+
+    /// <summary>
+    /// Gets the tray menu text that opens the about window.
+    /// </summary>
+    public static string TrayAbout => Get();
+
+    /// <summary>
+    /// Gets the title of the about window.
+    /// </summary>
+    public static string AboutTitle => Get();
+
+    /// <summary>
+    /// Gets the version line of the about window; <c>{0}</c> is the version.
+    /// </summary>
+    public static string AboutVersion => Get();
+
+    /// <summary>
+    /// Gets the short description in the about window.
+    /// </summary>
+    public static string AboutDescription => Get();
+
+    /// <summary>
+    /// Gets the text of the link to the project page in the about window.
+    /// </summary>
+    public static string AboutProjectPage => Get();
+
+    /// <summary>
+    /// Gets the license and copyright line of the about window.
+    /// </summary>
+    public static string AboutLicense => Get();
+
+    /// <summary>
+    /// Gets the text of the button that closes the about window.
+    /// </summary>
+    public static string AboutClose => Get();
 
     /// <summary>
     /// Gets the tray menu text of the submenu that switches the pet.

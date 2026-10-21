@@ -61,6 +61,17 @@ public partial class ResourceFilesTests
     }
 
     /// <summary>
+    /// The tray menu has entries for the settings and the about window in both languages, and the old panel entry is gone.
+    /// </summary>
+    [Fact]
+    public void Resources_TrayMenuEntries_SettingsAndAbout()
+    {
+        // Assert
+        _chinese.Should().ContainKeys("TraySettings", "TrayAbout").And.NotContainKey("OpenPanel");
+        _english.Should().ContainKeys("TraySettings", "TrayAbout").And.NotContainKey("OpenPanel");
+    }
+
+    /// <summary>
     /// Every scenario has a label for the settings and an explanation for when the mouse rests on the pet.
     /// </summary>
     [Fact]

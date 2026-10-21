@@ -21,7 +21,8 @@
   <data name="TrayShowPet" xml:space="preserve"><value>Show pet</value></data>
   <data name="TrayExit" xml:space="preserve"><value>Exit</value></data>
 
-  <data name="OpenPanel" xml:space="preserve"><value>Open panel</value></data>
+  <data name="TraySettings" xml:space="preserve"><value>Settings</value></data>
+  <data name="TrayAbout" xml:space="preserve"><value>About</value></data>
   <data name="TraySwitchPet" xml:space="preserve"><value>Switch pet</value></data>
   <data name="TrayPetSize" xml:space="preserve"><value>Pet size</value></data>
 
@@ -185,4 +186,10 @@
   <data name="ProcessesRemovedNotice" xml:space="preserve"><value>These process names broke the rules and were removed when the settings were loaded:</value></data>
   <data name="ProcessRemovedHasSpace" xml:space="preserve"><value>"{0}" has a space and was removed from the {1} list</value></data>
   <data name="ProcessRemovedInOtherList" xml:space="preserve"><value>"{0}" is already in the {2} list and was removed from the {1} list</value></data>
+  <data name="AboutTitle" xml:space="preserve"><value>About DeskBuddy</value></data>
+  <data name="AboutVersion" xml:space="preserve"><value>Version {0}</value></data>
+  <data name="AboutDescription" xml:space="preserve"><value>A pet that lives on your Windows desktop, keeps you company while you work and reminds you to take breaks.</value></data>
+  <data name="AboutProjectPage" xml:space="preserve"><value>Project page</value></data>
+  <data name="AboutLicense" xml:space="preserve"><value>MIT License · © 2026 coldhighsun</value></data>
+  <data name="AboutClose" xml:space="preserve"><value>Close</value></data>
 </root>
