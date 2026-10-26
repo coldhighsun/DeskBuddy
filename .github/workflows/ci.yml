@@ -47,12 +47,22 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      - name: Publish
-        run: dotnet publish src/DeskBuddy.App/DeskBuddy.App.csproj -c Release -r win-x64 --self-contained true -o artifacts/publish
-
-      - name: Zip
+      - name: Install Inno Setup 7
+        # The runner ships Inno Setup 6, which lacks the Chinese language file the installer script uses.
         shell: pwsh
-        run: Compress-Archive -Path artifacts/publish/* -DestinationPath "DeskBuddy-${{ github.ref_name }}-win-x64.zip"
+        run: |
+          winget install --id JRSoftware.InnoSetup.7 -e --silent --accept-source-agreements --accept-package-agreements
+          $iscc = Get-ChildItem "${env:ProgramFiles(x86)}", $env:ProgramFiles, "$env:LOCALAPPDATA\Programs" -Filter ISCC.exe -Recurse -ErrorAction SilentlyContinue |
+            Where-Object { $_.FullName -like '*Inno Setup 7*' } |
+            Select-Object -First 1
+          if (-not $iscc) {
+            throw "ISCC.exe of Inno Setup 7 was not found after installation."
+          }
+          "ISCC_PATH=$($iscc.FullName)" >> $env:GITHUB_ENV
+
+      - name: Build installer
+        shell: pwsh
+        run: ./tools/Build-Installer.ps1 -IsccPath $env:ISCC_PATH
 
       - name: Create release
         shell: pwsh
@@ -60,7 +70,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $tag = "${{ github.ref_name }}"
-          $ghArgs = @($tag, "DeskBuddy-$tag-win-x64.zip", "--title", "DeskBuddy $tag", "--generate-notes", "--verify-tag")
+          $setup = Get-ChildItem artifacts/installer -Filter "DeskBuddy-Setup-*.exe" | Select-Object -First 1
+          $ghArgs = @($tag, $setup.FullName, "--title", "DeskBuddy $tag", "--generate-notes", "--verify-tag")
           # A hyphen in the tag (v1.2.0-rc.1) marks a pre-release.
           if ($tag.Contains("-")) {
             $ghArgs += "--prerelease"
