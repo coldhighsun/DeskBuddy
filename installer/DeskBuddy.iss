@@ -13,6 +13,10 @@
   #define OutputDir "..\artifacts\installer"
 #endif
 
+; VersionInfoVersion must be numeric, so drop a pre-release suffix such as -rc.1 or -alpha.0.5.
+#define HyphenPos Pos("-", AppVersion)
+#define NumericVersion HyphenPos > 0 ? Copy(AppVersion, 1, HyphenPos - 1) : AppVersion
+
 #define AppName "DeskBuddy"
 #define AppExe "DeskBuddy.exe"
 
@@ -22,7 +26,7 @@ AppId={{15DEE168-F181-4422-95AC-BE381EC6B58C}
 AppName={#AppName}
 AppVersion={#AppVersion}
 AppPublisher={#AppName}
-VersionInfoVersion={#AppVersion}
+VersionInfoVersion={#NumericVersion}
 ; Per-user install: no administrator rights needed, which is what a locked-down work computer allows.
 PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
