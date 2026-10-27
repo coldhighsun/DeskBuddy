@@ -119,6 +119,25 @@
   <data name="DevProcessesLabel" xml:space="preserve"><value>Development tools (in front while I am active), e.g. Code</value></data>
   <data name="SettingsSystem" xml:space="preserve"><value>System</value></data>
   <data name="AutoStart" xml:space="preserve"><value>Start with Windows</value></data>
+  <data name="TrayCheckUpdates" xml:space="preserve"><value>Check for updates</value></data>
+  <data name="TrayUpdateTo" xml:space="preserve"><value>Update to {0}</value></data>
+  <data name="SettingsAutoCheckUpdates" xml:space="preserve"><value>Check for updates automatically</value></data>
+  <data name="AboutCheckUpdates" xml:space="preserve"><value>Check for updates</value></data>
+  <data name="UpdateChecking" xml:space="preserve"><value>Checking for updates…</value></data>
+  <data name="UpdateUpToDate" xml:space="preserve"><value>You are using the latest version.</value></data>
+  <data name="UpdateCheckFailed" xml:space="preserve"><value>Could not check for updates.</value></data>
+  <data name="UpdateAvailable" xml:space="preserve"><value>Version {0} is available</value></data>
+  <data name="UpdateNoInstaller" xml:space="preserve"><value>Version {0} was found, but its release has no installer to download.</value></data>
+  <data name="UpdateNoInstallerNotice" xml:space="preserve"><value>A newer version was found, but its release has no installer to download.</value></data>
+  <data name="UpdateErrorChecksum" xml:space="preserve"><value>The installer does not match its checksum, so it may be damaged or tampered with. The installation was cancelled.</value></data>
+  <data name="UpdateErrorUnverified" xml:space="preserve"><value>The downloaded installer could not be confirmed as complete and genuine (no checksum, a size mismatch or an incomplete download). The installation was cancelled.</value></data>
+  <data name="UpdateErrorLaunch" xml:space="preserve"><value>The installer could not be started.</value></data>
+  <data name="UpdateErrorGeneric" xml:space="preserve"><value>Something went wrong while downloading or installing. The log has the details.</value></data>
+  <data name="UpdateAvailableBody" xml:space="preserve"><value>Click here to download and install it.</value></data>
+  <data name="UpdateConfirmTitle" xml:space="preserve"><value>Update DeskBuddy</value></data>
+  <data name="UpdateConfirm" xml:space="preserve"><value>Version {0} is available (you have {1}). Download and install it now? DeskBuddy will close and start again after the installation.</value></data>
+  <data name="UpdateDownloading" xml:space="preserve"><value>Downloading version {0}…</value></data>
+  <data name="UpdateInstallFailed" xml:space="preserve"><value>The update failed: {0}</value></data>
   <data name="AutoStartFailed" xml:space="preserve"><value>Could not change start with Windows: {0}</value></data>
   <data name="CrashTitle" xml:space="preserve"><value>DeskBuddy ran into a problem</value></data>
   <data name="CrashMessage" xml:space="preserve"><value>An unhandled error occurred and was written to the log. The program keeps running. If it keeps happening, open the log folder in Settings.</value></data>

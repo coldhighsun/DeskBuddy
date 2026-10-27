@@ -678,6 +678,26 @@ public class SettingsTabViewModelTests
     }
 
     /// <summary>
+    /// The choice to look for updates by itself is shown from the stored settings (on by default) and stored when
+    /// changed.
+    /// </summary>
+    [Fact]
+    public async Task AutoCheckUpdates_Changed_IsStored()
+    {
+        // Arrange
+        await CreateAsync();
+        var shownAtStart = _viewModel.AutoCheckUpdates;
+
+        // Act
+        _viewModel.AutoCheckUpdates = false;
+        await _viewModel.TrySaveAsync();
+
+        // Assert
+        shownAtStart.Should().BeTrue();
+        _settings.Current.AutoCheckUpdates.Should().BeFalse();
+    }
+
+    /// <summary>
     /// The end of the working day is shown as an hour and a minute, and a chosen hour or minute is applied.
     /// </summary>
     [Fact]

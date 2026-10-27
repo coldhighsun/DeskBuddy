@@ -97,6 +97,7 @@ public sealed class JsonSettingsStoreTests : IDisposable
             Size = PetSize.Large,
             ClimbEdges = true,
             StrollWhileBusy = false,
+            AutoCheckUpdates = false,
         };
 
         // Act

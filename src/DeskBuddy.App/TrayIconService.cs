@@ -7,6 +7,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Interop;
 using System.Windows.Media;
 using DeskBuddy.App.Windows;
+using GitHubReleaseUpdater.AutoUpdate;
 using H.NotifyIcon;
 using H.NotifyIcon.Core;
 
@@ -76,6 +77,16 @@ public sealed class TrayIconService : IDisposable
     private readonly Action _onExit;
 
     /// <summary>
+    /// Looks for updates and installs them; the menu offers both. <see langword="null"/> if updates are not available in this build.
+    /// </summary>
+    private readonly UpdateController? _updates;
+
+    /// <summary>
+    /// Whether the notice last shown announces a new version, which installs it when clicked.
+    /// </summary>
+    private bool _updateNoticeShown;
+
+    /// <summary>
     /// The settings, which store the pet and its size.
     /// </summary>
     private readonly SettingsService _settings;
@@ -130,6 +141,9 @@ public sealed class TrayIconService : IDisposable
     /// <param name="pets">
     /// The pets the menu offers.
     /// </param>
+    /// <param name="updates">
+    /// Looks for updates and installs them; the menu offers both. <see langword="null"/> leaves the entries out.
+    /// </param>
     /// <param name="logger">
     /// Reports what went wrong when the pets could not be listed or a choice could not be saved.
     /// </param>
@@ -141,6 +155,7 @@ public sealed class TrayIconService : IDisposable
         ThemeService theme,
         SettingsService settings,
         InstalledPets pets,
+        UpdateController? updates,
         ILogger<TrayIconService> logger)
     {
         _brain = brain;
@@ -149,6 +164,7 @@ public sealed class TrayIconService : IDisposable
         _onExit = onExit;
         _settings = settings;
         _pets = pets;
+        _updates = updates;
         _logger = logger;
 
         _appIcon = AppIcon.LoadSmall();
@@ -165,6 +181,12 @@ public sealed class TrayIconService : IDisposable
         // The menu depends on pet visibility, the pet and its size; build it again when one of them changes.
         _brain.VisibilityChanged += OnStatusChanged;
         _settings.Changed += OnSettingsChanged;
+        if (_updates is not null)
+        {
+            _updates.Changed += OnStatusChanged;
+        }
+
+        _icon.TrayBalloonTipClicked += OnBalloonTipClicked;
         _icon.TrayMouseDoubleClick += OnTrayDoubleClick;
         _icon.ContextMenu.Opened += OnMenuOpened;
         _icon.PreviewTrayContextMenuOpen += OnPreviewMenuOpen;
@@ -180,6 +202,12 @@ public sealed class TrayIconService : IDisposable
         _disposed = true;
         _brain.VisibilityChanged -= OnStatusChanged;
         _settings.Changed -= OnSettingsChanged;
+        if (_updates is not null)
+        {
+            _updates.Changed -= OnStatusChanged;
+        }
+
+        _icon.TrayBalloonTipClicked -= OnBalloonTipClicked;
         _anchor?.Close();
         _icon.Dispose();
         _petIcon?.Dispose();
@@ -197,6 +225,7 @@ public sealed class TrayIconService : IDisposable
     /// </param>
     public void ShowErrorNotice(string title, string message)
     {
+        _updateNoticeShown = false;
         _icon.ShowNotification(title, message, NotificationIcon.Error);
     }
 
@@ -354,6 +383,68 @@ public sealed class TrayIconService : IDisposable
     private void OnTrayDoubleClick(object sender, RoutedEventArgs e)
     {
         _openPanel(null);
+    }
+
+    /// <summary>
+    /// Shows a balloon notice from the tray icon.
+    /// </summary>
+    /// <param name="title">
+    /// The notice title.
+    /// </param>
+    /// <param name="message">
+    /// The notice text.
+    /// </param>
+    /// <param name="installsUpdate">
+    /// <see langword="true"/> if clicking the notice should offer to install the version that was found.
+    /// </param>
+    public void ShowInfoNotice(string title, string message, bool installsUpdate = false)
+    {
+        _updateNoticeShown = installsUpdate;
+        _icon.ShowNotification(title, message, NotificationIcon.Info);
+    }
+
+    /// <summary>
+    /// Offers to install the new version when the notice announcing it is clicked.
+    /// </summary>
+    /// <param name="sender">
+    /// The event source.
+    /// </param>
+    /// <param name="e">
+    /// Event data.
+    /// </param>
+    private void OnBalloonTipClicked(object sender, RoutedEventArgs e)
+    {
+        if (_updateNoticeShown)
+        {
+            _updateNoticeShown = false;
+            _ = RunUpdateAsync(InstallUpdateAsync);
+        }
+    }
+
+    /// <summary>
+    /// Asks the user whether to install the version that was found, and installs it. Does nothing without an update
+    /// controller.
+    /// </summary>
+    /// <returns>
+    /// A task that completes when the installation was started, declined or failed.
+    /// </returns>
+    private Task InstallUpdateAsync()
+    {
+        return _updates is { } updates ? updates.InstallAsync() : Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Runs an update action started from the menu or a notice.
+    /// </summary>
+    /// <param name="action">
+    /// The action to run.
+    /// </param>
+    /// <returns>
+    /// A task that completes when the action is done.
+    /// </returns>
+    private Task RunUpdateAsync(Func<Task> action)
+    {
+        return UpdateRunner.RunAsync(action, _logger);
     }
 
     /// <summary>
@@ -523,7 +614,11 @@ public sealed class TrayIconService : IDisposable
     private TrayMenuState CurrentState()
     {
         var settings = _settings.Current;
-        return new TrayMenuState(settings.PetName, settings.Size, _brain.Visibility.IsManuallyHidden, _pets.Version);
+        return new TrayMenuState(settings.PetName,
+            settings.Size,
+            _brain.Visibility.IsManuallyHidden,
+            _pets.Version,
+            _updates is { CanInstall: true, Available: { } found } ? found.Version.ToString() : null);
     }
 
     /// <summary>
@@ -646,6 +741,20 @@ public sealed class TrayIconService : IDisposable
         var toggle = new MenuItem { Header = state.PetHidden ? Strings.TrayShowPet : Strings.TrayHidePet };
         toggle.Click += (_, _) => ToggleVisibility();
         items.Add(toggle);
+
+        if (state.UpdateVersion is { } version)
+        {
+            var install = new MenuItem { Header = string.Format(CultureInfo.CurrentCulture, Strings.TrayUpdateTo, version) };
+            install.Click += (_, _) => _ = RunUpdateAsync(InstallUpdateAsync);
+            items.Add(install);
+        }
+
+        if (_updates is not null)
+        {
+            var checkUpdates = new MenuItem { Header = Strings.TrayCheckUpdates };
+            checkUpdates.Click += (_, _) => _ = RunUpdateAsync(() => _updates.CheckAsync(manual: true));
+            items.Add(checkUpdates);
+        }
 
         var about = new MenuItem { Header = Strings.TrayAbout };
         about.Click += (_, _) => _openAbout();

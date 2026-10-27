@@ -54,6 +54,12 @@ public sealed partial class SettingsTabViewModel
     private bool _autoStart;
 
     /// <summary>
+    /// Whether the application looks for updates by itself.
+    /// </summary>
+    [ObservableProperty]
+    private bool _autoCheckUpdates;
+
+    /// <summary>
     /// A problem with the boss key, or empty.
     /// </summary>
     [ObservableProperty]
@@ -143,6 +149,20 @@ public sealed partial class SettingsTabViewModel
 
         AutoStartError = string.Empty;
         NotifyUnsavedChanged();
+    }
+
+    /// <summary>
+    /// Applies the choice to look for updates by itself.
+    /// </summary>
+    /// <param name="value">
+    /// Whether the application checks automatically.
+    /// </param>
+    partial void OnAutoCheckUpdatesChanged(bool value)
+    {
+        if (!_refreshing)
+        {
+            _editor.Set(nameof(PetSettings.AutoCheckUpdates), settings => settings with { AutoCheckUpdates = value });
+        }
     }
 
     /// <summary>

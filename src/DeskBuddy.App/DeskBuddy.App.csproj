@@ -31,6 +31,7 @@
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="GitHubReleaseUpdater" />
     <PackageReference Include="H.NotifyIcon.Wpf" />
     <PackageReference Include="Microsoft.Extensions.Hosting" />
     <PackageReference Include="MinVer" PrivateAssets="all" />

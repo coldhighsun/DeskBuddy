@@ -66,7 +66,10 @@ internal static class TrayMenuModel
 /// <param name="PetsVersion">
 /// The version of the list of pets that can be chosen.
 /// </param>
-internal sealed record TrayMenuState(string PetName, PetSize Size, bool PetHidden, int PetsVersion);
+/// <param name="UpdateVersion">
+/// The newer version of the application waiting to be installed, or <see langword="null"/> if there is none.
+/// </param>
+internal sealed record TrayMenuState(string PetName, PetSize Size, bool PetHidden, int PetsVersion, string? UpdateVersion = null);
 
 /// <summary>
 /// Decides when the tray menu has to be built again: only when what it shows has changed, and never while it is open,

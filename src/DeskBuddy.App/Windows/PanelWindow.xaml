@@ -477,6 +477,10 @@
                         <TextBlock Text="{Binding AutoStartError}"
                                    Style="{StaticResource ErrorTextStyle}"
                                    AutomationProperties.AutomationId="AutoStartError" />
+                        <CheckBox Content="{x:Static res:Strings.SettingsAutoCheckUpdates}"
+                                  IsChecked="{Binding AutoCheckUpdates}"
+                                  Margin="0,6,0,0"
+                                  AutomationProperties.AutomationId="AutoCheckUpdatesCheck" />
 
 
                         <!-- Boss key -->

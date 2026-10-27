@@ -156,6 +156,12 @@ public sealed record PetSettings
     public bool StrollWhileBusy { get; init; } = true;
 
     /// <summary>
+    /// Gets a value indicating whether the application looks for a newer release by itself, shortly after it starts and
+    /// then once a day. Checking by hand is always possible. On by default.
+    /// </summary>
+    public bool AutoCheckUpdates { get; init; } = true;
+
+    /// <summary>
     /// Gets the time of day, by the local clock, at which the working day ends and the pet looks at its watch.
     /// </summary>
     public TimeSpan ClockOutTime { get; init; } = TimeSpan.FromHours(18);
