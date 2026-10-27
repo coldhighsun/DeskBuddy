@@ -329,6 +329,101 @@ internal static class Strings
     public static string AutoStart => Get();
 
     /// <summary>
+    /// Gets the label of the tray menu entry that looks for a newer version.
+    /// </summary>
+    public static string TrayCheckUpdates => Get();
+
+    /// <summary>
+    /// Gets the format of the tray menu entry that installs a found version; <c>{0}</c> is the version.
+    /// </summary>
+    public static string TrayUpdateTo => Get();
+
+    /// <summary>
+    /// Gets the label of the setting that lets the application look for updates by itself.
+    /// </summary>
+    public static string SettingsAutoCheckUpdates => Get();
+
+    /// <summary>
+    /// Gets the label of the button in the about window that looks for a newer version.
+    /// </summary>
+    public static string AboutCheckUpdates => Get();
+
+    /// <summary>
+    /// Gets the status shown while the application looks for a newer version.
+    /// </summary>
+    public static string UpdateChecking => Get();
+
+    /// <summary>
+    /// Gets the status shown when there is no newer version.
+    /// </summary>
+    public static string UpdateUpToDate => Get();
+
+    /// <summary>
+    /// Gets the status shown when the check for a newer version failed.
+    /// </summary>
+    public static string UpdateCheckFailed => Get();
+
+    /// <summary>
+    /// Gets the format of the title announcing a newer version; <c>{0}</c> is the version.
+    /// </summary>
+    public static string UpdateAvailable => Get();
+
+    /// <summary>
+    /// Gets the format of the text shown when a newer version has no installer to download; <c>{0}</c> is the version.
+    /// </summary>
+    public static string UpdateNoInstaller => Get();
+
+    /// <summary>
+    /// Gets the text shown when a newer version has no installer to download.
+    /// </summary>
+    public static string UpdateNoInstallerNotice => Get();
+
+    /// <summary>
+    /// Gets the reason shown when the downloaded installer does not match its checksum.
+    /// </summary>
+    public static string UpdateErrorChecksum => Get();
+
+    /// <summary>
+    /// Gets the reason shown when the downloaded installer could not be confirmed as complete and genuine.
+    /// </summary>
+    public static string UpdateErrorUnverified => Get();
+
+    /// <summary>
+    /// Gets the reason shown when the installer could not be started.
+    /// </summary>
+    public static string UpdateErrorLaunch => Get();
+
+    /// <summary>
+    /// Gets the reason shown for a failure that has no text of its own.
+    /// </summary>
+    public static string UpdateErrorGeneric => Get();
+
+    /// <summary>
+    /// Gets the text of the notification announcing a newer version.
+    /// </summary>
+    public static string UpdateAvailableBody => Get();
+
+    /// <summary>
+    /// Gets the title of the dialog that asks whether to install a found version.
+    /// </summary>
+    public static string UpdateConfirmTitle => Get();
+
+    /// <summary>
+    /// Gets the format of the question whether to install a found version; <c>{0}</c> is the new and <c>{1}</c> the current version.
+    /// </summary>
+    public static string UpdateConfirm => Get();
+
+    /// <summary>
+    /// Gets the format of the status shown while the installer is downloaded; <c>{0}</c> is the version.
+    /// </summary>
+    public static string UpdateDownloading => Get();
+
+    /// <summary>
+    /// Gets the format of the message shown when the update could not be installed; <c>{0}</c> is the reason.
+    /// </summary>
+    public static string UpdateInstallFailed => Get();
+
+    /// <summary>
     /// Gets the message for a failed start-at-sign-in change; <c>{0}</c> is the reason.
     /// </summary>
     public static string AutoStartFailed => Get();

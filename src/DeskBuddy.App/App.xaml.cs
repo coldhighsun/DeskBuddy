@@ -22,6 +22,7 @@ using DeskBuddy.Infrastructure.Sensors;
 using DeskBuddy.Infrastructure.Startup;
 using DeskBuddy.Infrastructure.Pets;
 using DeskBuddy.Infrastructure.Storage;
+using GitHubReleaseUpdater.AutoUpdate;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -127,6 +128,11 @@ public partial class App
     /// The tray icon; <see langword="null"/> until startup completes.
     /// </summary>
     private TrayIconService? _tray;
+
+    /// <summary>
+    /// Ends the update controller's background loop when the application closes.
+    /// </summary>
+    private readonly CancellationTokenSource _updatesStopping = new();
 
     /// <inheritdoc />
     protected override async void OnStartup(StartupEventArgs e)
@@ -319,10 +325,19 @@ public partial class App
                 Path.Combine(AppContext.BaseDirectory, "pets"),
                 _previewFrames.Get,
                 _previewFrames.PreloadAsync);
+            var settingsService = _host.Services.GetRequiredService<SettingsService>();
+            var updateLogger = _host.Services.GetRequiredService<ILogger<TrayUpdatePresenter>>();
+            var updates = AppUpdates.Create(
+                AboutInfo.CurrentVersion(),
+                dataDirectory,
+                Path.Combine(Path.GetTempPath(), "DeskBuddy", "update"),
+                () => settingsService.Current.AutoCheckUpdates,
+                new TrayUpdatePresenter(() => _tray, ExitApplication, updateLogger),
+                updateLogger);
             var about = new SingleWindow<AboutWindow>(
                 () =>
                 {
-                    var window = new AboutWindow();
+                    var window = new AboutWindow(updates, updateLogger);
                     themeService.Register(window);
                     return window;
                 },
@@ -333,12 +348,17 @@ public partial class App
                 about.Open,
                 ExitApplication,
                 themeService,
-                _host.Services.GetRequiredService<SettingsService>(),
+                settingsService,
                 _installedPets,
+                updates,
                 _host.Services.GetRequiredService<ILogger<TrayIconService>>());
+            if (updates is not null)
+            {
+                _ = RunUpdatesAsync(updates, updateLogger);
+            }
 
             _hotkeys = new Win32HotkeyService();
-            _bossKey = new BossKeyController(_host.Services.GetRequiredService<SettingsService>(), _hotkeys, brain);
+            _bossKey = new BossKeyController(settingsService, _hotkeys, brain);
             if (_bossKey.RegistrationError is { } hotkeyError)
             {
                 logger.LogWarning(
@@ -366,6 +386,34 @@ public partial class App
         base.OnSessionEnding(e);
     }
 
+    /// <summary>
+    /// Runs the update controller's background loop until the application closes, and reports it if it fails.
+    /// </summary>
+    /// <param name="updates">
+    /// The update controller.
+    /// </param>
+    /// <param name="logger">
+    /// Reports why the loop ended.
+    /// </param>
+    /// <returns>
+    /// A task that completes when the loop has ended.
+    /// </returns>
+    private async Task RunUpdatesAsync(UpdateController updates, ILogger logger)
+    {
+        try
+        {
+            await updates.RunAsync(_updatesStopping.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            // The application is closing.
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "The automatic check for updates stopped.");
+        }
+    }
+
     /// <inheritdoc />
     protected override void OnExit(ExitEventArgs e)
     {
@@ -373,6 +421,8 @@ public partial class App
         _themeService?.Dispose();
         _bossKey?.Dispose();
         _hotkeys?.Dispose();
+        _updatesStopping.Cancel();
+        _updatesStopping.Dispose();
         _tray?.Dispose();
         _previewFrames.Dispose();
 

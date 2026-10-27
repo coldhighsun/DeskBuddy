@@ -202,6 +202,12 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
         public bool? StrollWhileBusy { get; init; }
 
         /// <summary>
+        /// Gets whether the application looks for updates by itself; <see langword="null"/> in files from before the
+        /// option existed.
+        /// </summary>
+        public bool? AutoCheckUpdates { get; init; }
+
+        /// <summary>
         /// Creates the file shape from settings.
         /// </summary>
         /// <param name="settings">
@@ -233,6 +239,7 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
                 ClimbEdges = settings.ClimbEdges,
                 ChatterEnabled = settings.ChatterEnabled,
                 StrollWhileBusy = settings.StrollWhileBusy,
+                AutoCheckUpdates = settings.AutoCheckUpdates,
             };
         }
 
@@ -274,6 +281,7 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
                 ClimbEdges = ClimbEdges ?? defaults.ClimbEdges,
                 ChatterEnabled = ChatterEnabled ?? defaults.ChatterEnabled,
                 StrollWhileBusy = StrollWhileBusy ?? defaults.StrollWhileBusy,
+                AutoCheckUpdates = AutoCheckUpdates ?? defaults.AutoCheckUpdates,
             };
         }
     }

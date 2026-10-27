@@ -282,6 +282,16 @@ public class PetSettingsTests
     }
 
     /// <summary>
+    /// Looking for updates by itself is on until the user switches it off.
+    /// </summary>
+    [Fact]
+    public void Default_AutoCheckUpdates_IsOn()
+    {
+        // Assert
+        PetSettings.Default.AutoCheckUpdates.Should().BeTrue();
+    }
+
+    /// <summary>
     /// Climbing along the edges of the screen is off until the user switches it on.
     /// </summary>
     [Fact]

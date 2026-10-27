@@ -119,6 +119,25 @@
   <data name="DevProcessesLabel" xml:space="preserve"><value>开发工具（前台且我在操作时算开发），如 Code</value></data>
   <data name="SettingsSystem" xml:space="preserve"><value>系统</value></data>
   <data name="AutoStart" xml:space="preserve"><value>开机自动启动</value></data>
+  <data name="TrayCheckUpdates" xml:space="preserve"><value>检查更新</value></data>
+  <data name="TrayUpdateTo" xml:space="preserve"><value>更新到 {0}</value></data>
+  <data name="SettingsAutoCheckUpdates" xml:space="preserve"><value>自动检查更新</value></data>
+  <data name="AboutCheckUpdates" xml:space="preserve"><value>检查更新</value></data>
+  <data name="UpdateChecking" xml:space="preserve"><value>正在检查更新…</value></data>
+  <data name="UpdateUpToDate" xml:space="preserve"><value>当前已是最新版本。</value></data>
+  <data name="UpdateCheckFailed" xml:space="preserve"><value>检查更新失败。</value></data>
+  <data name="UpdateAvailable" xml:space="preserve"><value>发现新版本 {0}</value></data>
+  <data name="UpdateNoInstaller" xml:space="preserve"><value>发现新版本 {0}，但发布页面没有可下载的安装程序。</value></data>
+  <data name="UpdateNoInstallerNotice" xml:space="preserve"><value>发现新版本，但发布页面没有可下载的安装程序。</value></data>
+  <data name="UpdateErrorChecksum" xml:space="preserve"><value>安装程序的校验值不符，文件可能已损坏或被篡改，已取消安装。</value></data>
+  <data name="UpdateErrorUnverified" xml:space="preserve"><value>无法确认下载的安装程序完整可信（缺少校验值、大小不符或下载不完整），已取消安装。</value></data>
+  <data name="UpdateErrorLaunch" xml:space="preserve"><value>无法启动安装程序。</value></data>
+  <data name="UpdateErrorGeneric" xml:space="preserve"><value>下载或安装时出错，详情见日志。</value></data>
+  <data name="UpdateAvailableBody" xml:space="preserve"><value>点击此处下载并安装。</value></data>
+  <data name="UpdateConfirmTitle" xml:space="preserve"><value>更新 DeskBuddy</value></data>
+  <data name="UpdateConfirm" xml:space="preserve"><value>发现新版本 {0}（当前为 {1}）。现在下载并安装吗？安装完成后 DeskBuddy 会自动重新启动。</value></data>
+  <data name="UpdateDownloading" xml:space="preserve"><value>正在下载版本 {0}…</value></data>
+  <data name="UpdateInstallFailed" xml:space="preserve"><value>更新失败：{0}</value></data>
   <data name="AutoStartFailed" xml:space="preserve"><value>无法更改开机自启：{0}</value></data>
   <data name="CrashTitle" xml:space="preserve"><value>DeskBuddy 遇到了问题</value></data>
   <data name="CrashMessage" xml:space="preserve"><value>发生了一个未处理的错误，已记录到日志，程序会继续运行。如果反复出现，请到“设置”里打开日志目录。</value></data>

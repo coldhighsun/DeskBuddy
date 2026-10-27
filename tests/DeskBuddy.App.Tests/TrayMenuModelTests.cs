@@ -72,6 +72,23 @@ public class TrayMenuModelTests
     }
 
     /// <summary>
+    /// An update becoming installable (or no longer being so) changes the menu, so it is built again.
+    /// </summary>
+    [Fact]
+    public void ShouldRebuild_UpdateVersionChanged_IsTrue()
+    {
+        // Arrange
+        var policy = new TrayMenuRebuildPolicy();
+        policy.MarkBuilt(new TrayMenuState("robot", PetSize.Medium, false, 0));
+
+        // Act
+        var result = policy.ShouldRebuild(new TrayMenuState("robot", PetSize.Medium, false, 0, "1.2.3"), menuOpen: false);
+
+        // Assert
+        result.Should().BeTrue();
+    }
+
+    /// <summary>
     /// A state the menu was built for does not make it be built again.
     /// </summary>
     [Fact]

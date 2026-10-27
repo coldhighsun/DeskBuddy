@@ -52,6 +52,21 @@
                    Style="{StaticResource SecondaryTextStyle}"
                    FontSize="11"
                    Margin="0,6,0,0" />
+        <StackPanel x:Name="UpdatePanel" Margin="0,14,0,0">
+            <Button x:Name="CheckUpdatesButton"
+                    Content="{x:Static res:Strings.AboutCheckUpdates}"
+                    Click="OnCheckUpdatesClick"
+                    HorizontalAlignment="Center"
+                    Padding="16,4"
+                    AutomationProperties.AutomationId="AboutCheckUpdatesButton" />
+            <TextBlock x:Name="UpdateStatusText"
+                       HorizontalAlignment="Center"
+                       TextAlignment="Center"
+                       TextWrapping="Wrap"
+                       Style="{StaticResource SecondaryTextStyle}"
+                       Margin="0,6,0,0"
+                       AutomationProperties.AutomationId="AboutUpdateStatus" />
+        </StackPanel>
         <Button x:Name="CloseButton"
                 Content="{x:Static res:Strings.AboutClose}"
                 IsCancel="True"
