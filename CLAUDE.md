@@ -60,6 +60,13 @@ powershell -NoProfile -File tools/GenerateAppIcon.ps1   # 重新生成应用/托
 - 新增场景（`PetState` 里的情境状态）要同时改：`ScenarioCatalog.All`（设置页的开关列表）和需要时的 `AmbientRanking`、`PetCapabilities` 的 `ScenarioStates`、`PetStateFallback`、两个 resx 里的 `Scenario*` / `StateHint*`、robot 的 manifest 与 `GenerateRobotPet.ps1`。
 - 数字输入框用 `Presentation/DigitsOnly` 限制只能输入数字；时刻（如下班时间）用小时、分钟两个下拉框选，不让手输。
 
+## 自动更新
+
+- 更新流程整个交给 NuGet 包 `GitHubReleaseUpdater`（`GitHubReleaseUpdater.AutoUpdate` 命名空间的 `UpdateController`）：查 `coldhighsun/DeskBuddy` 的最新**正式版** Release（不含预发布），资产里挑名字含 `Setup` 的 `.exe`（`PatternAssetSelector("*Setup*.exe")`；默认选择器要求文件名带系统/架构，装机程序名不满足），下载并校验后以 Inno `/SILENT` 启动，应用随即退出；更新器给安装程序加 `/RELAUNCH=1`，`.iss` 的 `[Run]` 用 `Check: ShouldLaunchApp`：静默安装只有带这个开关才会重启应用，其他静默安装（winget、脚本）不启动应用。
+- 只有 App 层有更新相关代码：`App/Presentation/AppUpdates.Create` 组装 `ReleaseUpdater` 和 `UpdateController`（版本号无法解析时返回 null，此时托盘不显示“检查更新”、关于窗口隐藏更新区）；`TrayUpdatePresenter` 实现 `IUpdatePresenter`（托盘气泡 + 确认框，`InstallerStarted` 时退出应用）。启动后 30 秒首次检查，之后每 24 小时；设置项 `AutoCheckUpdates` 经 `IsAutoCheckEnabled` 控制自动检查；开发版（没有 git tag 时 MinVer 给的 `0.0.0-alpha.0.N`，`AppUpdates.IsDevelopmentBuild`）永远不自动检查，免得提示把正在开发的进程换成正式版，手动检查仍可用。托盘菜单和关于窗口都有“检查更新”，手动检查无视 6 小时的节流（`update-state.json`，由包的 `JsonFileLastCheckStore` 写）。
+- 新版本没有可下载的安装程序时 `HasInstaller` 为 false：托盘不显示“更新到 x”，关于窗口显示 `UpdateNoInstaller`。`CleanDownloadDirectory` 已打开，下载目录（临时目录下的 DeskBuddy/update）只给更新用。
+- 发布流程只上传安装程序一个资产；`AppUpdates` 显式开启 `RequireVerifiedDownload`：校验依赖 GitHub API 返回的 asset `digest`，缺失时不会启动安装程序。包的异常信息是英文的，只写日志；给用户看的失败原因一律经 `UpdateErrorText.For` 换成界面语言（新增异常类型时在那里加一条）。
+
 ## 本地化
 
 界面文字在 `src/DeskBuddy.App/Resources`：`Strings.resx` 是中文（默认），`Strings.en.resx` 是英文。新增文案两个文件都要加。

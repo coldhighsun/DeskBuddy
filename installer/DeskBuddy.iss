@@ -74,7 +74,7 @@ Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueName: 
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run"; ValueName: "{#AppName}"; ValueType: none; Flags: dontcreatekey uninsdeletevalue
 
 [Run]
-Filename: "{app}\{#AppExe}"; Description: "{cm:RunAfterInstall}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\{#AppExe}"; Description: "{cm:RunAfterInstall}"; Flags: nowait postinstall; Check: ShouldLaunchApp
 
 [Code]
 const
@@ -86,12 +86,18 @@ var
   ResultCode: Integer;
 begin
   { taskkill reports 128 when there is no such process; then there is nothing to wait for. }
-  if Exec(ExpandConstant('{sys}	askkill.exe'), '/IM ' + ProcessName, '', SW_HIDE, ewWaitUntilTerminated, ResultCode)
+  if Exec(ExpandConstant('{sys}\taskkill.exe'), '/IM ' + ProcessName, '', SW_HIDE, ewWaitUntilTerminated, ResultCode)
     and (ResultCode <> 128) then
   begin
     Sleep(3000);
-    Exec(ExpandConstant('{sys}	askkill.exe'), '/F /IM ' + ProcessName, '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+    Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /IM ' + ProcessName, '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
   end;
+end;
+
+{ A silent install starts the app only when the updater asks for it (/RELAUNCH=1); a person or script running it silently does not get the app started. }
+function ShouldLaunchApp: Boolean;
+begin
+  Result := not WizardSilent or (ExpandConstant('{param:RELAUNCH|0}') = '1');
 end;
 
 function PrepareToInstall(var NeedsRestart: Boolean): String;
