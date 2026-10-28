@@ -73,6 +73,82 @@ public partial class PetBrainTests
     }
 
     /// <summary>
+    /// A reminder that comes due while the pet is falling is held back.
+    /// </summary>
+    [Fact]
+    public void Tick_FallingWhenReminderDue_HoldsMessageBack()
+    {
+        // Arrange
+        _brain.Tick();
+        _brain.OnFallStarted();
+        _clock.Advance(ReminderDelay);
+
+        // Act
+        _brain.Tick();
+
+        // Assert
+        _brain.CurrentMessage.Should().BeNull();
+    }
+
+    /// <summary>
+    /// A reminder held back during a fall appears once the pet has landed.
+    /// </summary>
+    [Fact]
+    public void Tick_FallEndsWithHeldReminder_ShowsMessage()
+    {
+        // Arrange
+        _brain.Tick();
+        _brain.OnFallStarted();
+        _clock.Advance(ReminderDelay);
+        _brain.Tick();
+        _brain.OnFallEnded();
+
+        // Act
+        _brain.Tick();
+
+        // Assert
+        _brain.CurrentMessage.Should().NotBeNull();
+    }
+
+    /// <summary>
+    /// A message on screen is pulled back when the pet starts to fall.
+    /// </summary>
+    [Fact]
+    public void Tick_FallStartsWhileShowing_HidesMessage()
+    {
+        // Arrange
+        _brain.Tick();
+        _clock.Advance(ReminderDelay);
+        _brain.Tick();
+        _brain.CurrentMessage.Should().NotBeNull();
+        _brain.OnFallStarted();
+
+        // Act
+        _brain.Tick();
+
+        // Assert
+        _brain.CurrentMessage.Should().BeNull();
+        _brain.State.Should().NotBe(PetState.Alert);
+    }
+
+    /// <summary>
+    /// A remark is not queued while the pet is falling, even if the fall began after the last tick.
+    /// </summary>
+    [Fact]
+    public void Say_WhileFalling_ReturnsFalse()
+    {
+        // Arrange
+        _brain.Tick();
+        _brain.OnFallStarted();
+
+        // Act
+        var queued = _brain.Say(PetState.Coding);
+
+        // Assert
+        queued.Should().BeFalse();
+    }
+
+    /// <summary>
     /// A full-screen application hides the pet at once and announces it.
     /// </summary>
     [Fact]

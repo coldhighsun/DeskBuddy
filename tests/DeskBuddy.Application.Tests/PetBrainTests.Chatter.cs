@@ -62,6 +62,60 @@ public partial class PetBrainTests
     }
 
     /// <summary>
+    /// A falling pet makes no casual remark.
+    /// </summary>
+    [Fact]
+    public void Tick_Falling_NoChatter()
+    {
+        // Arrange
+        _brain.OnFallStarted();
+
+        // Act
+        var message = RunUntilChatter(60);
+
+        // Assert
+        message.Should().BeNull();
+    }
+
+    /// <summary>
+    /// A casual remark on screen when the pet starts to fall is dropped and does not come back after landing.
+    /// </summary>
+    [Fact]
+    public void Tick_FallStartsWhileChatterShowing_DropsItForGood()
+    {
+        // Arrange
+        RunUntilChatter(20);
+        _brain.OnFallStarted();
+        _brain.Tick();
+        _brain.OnFallEnded();
+
+        // Act
+        _brain.Tick();
+
+        // Assert
+        _brain.CurrentMessage.Should().BeNull();
+    }
+
+    /// <summary>
+    /// A casual remark on screen when do-not-disturb starts is dropped and does not come back when it ends.
+    /// </summary>
+    [Fact]
+    public void Tick_DoNotDisturbStartsWhileChatterShowing_DropsItForGood()
+    {
+        // Arrange
+        RunUntilChatter(20);
+        _fullscreen.DoNotDisturb = true;
+        _brain.Tick();
+        _fullscreen.DoNotDisturb = false;
+
+        // Act
+        _brain.Tick();
+
+        // Assert
+        _brain.CurrentMessage.Should().BeNull();
+    }
+
+    /// <summary>
     /// A user who is away is not spoken to.
     /// </summary>
     [Fact]

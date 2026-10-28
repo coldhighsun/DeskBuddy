@@ -2,7 +2,8 @@ namespace DeskBuddy.Domain.Messages;
 
 /// <summary>
 /// Holds the message currently shown and the ones waiting behind it. Messages are shown one at a time, expire after a
-/// while, and are held back (not lost) while the user must not be disturbed.
+/// while, and are held back while the user must not be disturbed. Notices are kept for later; passing remarks, which
+/// would be stale by then, are dropped.
 /// </summary>
 public sealed class PetMessageQueue
 {
@@ -73,7 +74,8 @@ public sealed class PetMessageQueue
 
     /// <summary>
     /// Advances the queue: expires the current message, puts the next one on screen, or pulls the current one back
-    /// while the user must not be disturbed.
+    /// while the user must not be disturbed. Passing remarks (<see cref="PetMessage.IsCasual"/>) are dropped instead of
+    /// held, since they would be stale when shown later.
     /// </summary>
     /// <param name="suppressed">
     /// <see langword="true"/> while messages must not be shown (for example during a full-screen presentation).
@@ -86,11 +88,20 @@ public sealed class PetMessageQueue
         var now = _timeProvider.GetUtcNow();
         var changed = false;
 
+        if (suppressed)
+        {
+            DropWaitingCasual();
+        }
+
         if (Current is { } current)
         {
             if (suppressed)
             {
-                _waiting.AddFirst(current);
+                if (!current.IsCasual)
+                {
+                    _waiting.AddFirst(current);
+                }
+
                 Current = null;
                 return true;
             }
@@ -112,6 +123,24 @@ public sealed class PetMessageQueue
         }
 
         return changed;
+    }
+
+    /// <summary>
+    /// Removes the passing remarks (<see cref="PetMessage.IsCasual"/>) from the line of waiting messages.
+    /// </summary>
+    private void DropWaitingCasual()
+    {
+        var node = _waiting.First;
+        while (node is not null)
+        {
+            var following = node.Next;
+            if (node.Value.IsCasual)
+            {
+                _waiting.Remove(node);
+            }
+
+            node = following;
+        }
     }
 
     /// <summary>
