@@ -151,22 +151,24 @@ public sealed class PetBrain(
                 sedentary.StreakDuration));
         }
 
-        // The pet hides for a full-screen application; its messages are held back for that and for quieter
-        // situations such as Focus Assist, and for as long as the pet is hidden, then shown once it is back.
+        // The pet hides for a full-screen application; no message is shown for that, for quieter situations such as
+        // Focus Assist, for as long as the pet is hidden, or while it is falling. Reminders are held back and shown
+        // once the pet is back or has landed; casual remarks are dropped, as they would be stale by then.
+        var isFalling = stateMachine.State.IsFalling();
         var level = fullscreenDetector.GetLevel();
         if (visibility.UpdateFullscreen(level == DoNotDisturbLevel.Fullscreen))
         {
             VisibilityChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        _canSpeak = visibility.IsVisible && level == DoNotDisturbLevel.None;
+        _canSpeak = visibility.IsVisible && level == DoNotDisturbLevel.None && !isFalling;
 
         // What the user is doing and what is going on around them: some of it is acted out once, some for as long
         // as it lasts. A one-off from the system (a welcome) wins over one from development work.
         var dev = devScenarios.Evaluate(userIdle, load);
         var system = systemScenarios.Evaluate(
             userIdle,
-            canDisturb: _canSpeak && stateMachine.State is not (PetState.Drag or PetState.Alert or PetState.Sleep) && !stateMachine.State.IsFalling());
+            canDisturb: _canSpeak && stateMachine.State is not (PetState.Drag or PetState.Alert or PetState.Sleep));
         if (dev.Moment is { } devMoment)
         {
             stateMachine.OnMoment(devMoment.State, devMoment.Duration);
@@ -190,8 +192,7 @@ public sealed class PetBrain(
 
         // A casual remark is only worth making when nothing else is on screen or waiting and the user is at the desk
         // and not in a meeting or a chat.
-        var canSpeakUnprompted = visibility.IsVisible
-            && level == DoNotDisturbLevel.None
+        var canSpeakUnprompted = _canSpeak
             && ambient != PetState.Meeting
             && ambient != PetState.Chatting
             && userIdle < ChatterPresenceLimit
@@ -202,7 +203,7 @@ public sealed class PetBrain(
             messages.Enqueue(new PetMessage(PetMessageKind.Chatter, [], Count: remark, Lifetime: ChatterLifetime));
         }
 
-        if (messages.Update(level != DoNotDisturbLevel.None || !visibility.IsVisible))
+        if (messages.Update(suppressed: !_canSpeak))
         {
             MessageChanged?.Invoke(this, EventArgs.Empty);
         }
@@ -210,7 +211,7 @@ public sealed class PetBrain(
         var inputs = new PetInputs(
             userIdle,
             isStrained,
-            HasAlert: messages.Current is { Kind: not (PetMessageKind.Chatter or PetMessageKind.Remark) },
+            HasAlert: messages.Current is { IsCasual: false },
             IsDeveloping: dev.IsDeveloping,
             Ambient: ambient);
         return stateMachine.Update(inputs);
@@ -262,8 +263,8 @@ public sealed class PetBrain(
     }
 
     /// <summary>
-    /// Shows a short remark that goes with a state the pet is acting out, unless the pet is hidden or the user must
-    /// not be disturbed. Unlike a reminder it is not queued for later: a remark that is no longer about what just
+    /// Shows a short remark that goes with a state the pet is acting out, unless the pet is hidden or falling, or the
+    /// user must not be disturbed. Unlike a reminder it is not queued for later: a remark that is no longer about what just
     /// happened would be worse than none. Call from within a <see cref="Tick"/> or after one.
     /// </summary>
     /// <param name="state">
@@ -277,7 +278,7 @@ public sealed class PetBrain(
     /// </returns>
     public bool Say(PetState state, int variant = 0)
     {
-        if (!_canSpeak)
+        if (!_canSpeak || stateMachine.State.IsFalling())
         {
             return false;
         }

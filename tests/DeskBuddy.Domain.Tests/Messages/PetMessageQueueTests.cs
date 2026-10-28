@@ -265,6 +265,43 @@ public class PetMessageQueueTests
     }
 
     /// <summary>
+    /// A passing remark on screen when suppression starts is dropped, not held for later.
+    /// </summary>
+    [Fact]
+    public void Update_SuppressionStartsWhileShowingCasual_DropsIt()
+    {
+        // Arrange
+        _queue.Enqueue(new PetMessage(PetMessageKind.Chatter, [], Count: 1));
+        _queue.Update(suppressed: false);
+
+        // Act
+        var changed = _queue.Update(suppressed: true);
+
+        // Assert
+        changed.Should().BeTrue();
+        _queue.Current.Should().BeNull();
+        _queue.WaitingCount.Should().Be(0);
+    }
+
+    /// <summary>
+    /// Passing remarks waiting behind a notice are dropped on suppression while the notice itself is kept.
+    /// </summary>
+    [Fact]
+    public void Update_Suppressed_DropsWaitingCasualButKeepsNotice()
+    {
+        // Arrange
+        _queue.Enqueue(Message(1));
+        _queue.Enqueue(new PetMessage(PetMessageKind.Remark, [], Count: 2));
+        _queue.Enqueue(Message(3));
+
+        // Act
+        _queue.Update(suppressed: true);
+
+        // Assert
+        _queue.WaitingCount.Should().Be(2);
+    }
+
+    /// <summary>
     /// Once suppression ends the held-back message comes back first, with a fresh display time.
     /// </summary>
     [Fact]

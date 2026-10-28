@@ -62,4 +62,11 @@ public sealed record PetMessage(
     IReadOnlyList<MessageAction> Actions,
     TimeSpan? Duration = null,
     int? Count = null,
-    TimeSpan? Lifetime = null);
+    TimeSpan? Lifetime = null)
+{
+    /// <summary>
+    /// Gets whether this is a passing remark (<see cref="PetMessageKind.Chatter"/> or <see cref="PetMessageKind.Remark"/>)
+    /// rather than a notice the user must see. A passing remark is worthless once its moment has gone.
+    /// </summary>
+    public bool IsCasual => Kind is PetMessageKind.Chatter or PetMessageKind.Remark;
+}
