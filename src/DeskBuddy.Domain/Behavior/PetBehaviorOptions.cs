@@ -13,22 +13,22 @@ public sealed class PetBehaviorOptions
     /// <summary>
     /// Gets or sets the shortest time the pet stands still before it may start walking.
     /// </summary>
-    public TimeSpan IdleDwellMin { get; set; } = TimeSpan.FromSeconds(4);
+    public TimeSpan IdleDwellMin { get; set; } = TimeSpan.FromSeconds(1);
 
     /// <summary>
     /// Gets or sets the longest time the pet stands still before it starts walking.
     /// </summary>
-    public TimeSpan IdleDwellMax { get; set; } = TimeSpan.FromSeconds(12);
+    public TimeSpan IdleDwellMax { get; set; } = TimeSpan.FromSeconds(2.5);
 
     /// <summary>
     /// Gets or sets the shortest duration of a walk.
     /// </summary>
-    public TimeSpan WalkDurationMin { get; set; } = TimeSpan.FromSeconds(3);
+    public TimeSpan WalkDurationMin { get; set; } = TimeSpan.FromSeconds(4);
 
     /// <summary>
     /// Gets or sets the longest duration of a walk.
     /// </summary>
-    public TimeSpan WalkDurationMax { get; set; } = TimeSpan.FromSeconds(8);
+    public TimeSpan WalkDurationMax { get; set; } = TimeSpan.FromSeconds(10);
 
     /// <summary>
     /// Gets or sets how long the pet stays happy after being clicked.
