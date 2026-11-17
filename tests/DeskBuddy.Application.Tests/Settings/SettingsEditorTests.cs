@@ -223,7 +223,7 @@ public class SettingsEditorTests : IDisposable
         _editor.Set("size", s => s with { Size = PetSize.Large });
 
         // Act
-        await _service.UpdateAsync(s => s with { Size = PetSize.Small, ClimbEdges = true });
+        await _service.UpdateAsync(s => s with { Size = PetSize.Small, ClimbEdges = true }, TestContext.Current.CancellationToken);
 
         // Assert
         _editor.Draft.ClimbEdges.Should().BeTrue();
@@ -239,7 +239,7 @@ public class SettingsEditorTests : IDisposable
     {
         // Arrange
         _editor.Set("chatter", s => s with { ChatterEnabled = true });
-        await _service.UpdateAsync(s => s with { ClimbEdges = true });
+        await _service.UpdateAsync(s => s with { ClimbEdges = true }, TestContext.Current.CancellationToken);
 
         // Act
         await _editor.SaveAsync();
@@ -282,7 +282,7 @@ public class SettingsEditorTests : IDisposable
         // Arrange
         var store = new FakeSettingsStore { LoadException = new IOException("unreadable") };
         var service = new SettingsService(store);
-        await service.InitializeAsync();
+        await service.InitializeAsync(TestContext.Current.CancellationToken);
         using var editor = new SettingsEditor(service);
 
         // Act

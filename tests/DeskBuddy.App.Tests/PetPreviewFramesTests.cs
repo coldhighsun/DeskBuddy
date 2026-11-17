@@ -510,7 +510,7 @@ public class PetPreviewFramesTests
                 StaThread.Run(() => picture = frames.Get(FrameId.Create(atlas, 0, 0, 2, 2)));
                 return picture;
             });
-            inDecoder.Wait(TimeSpan.FromSeconds(10)).Should().BeTrue();
+            inDecoder.Wait(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken).Should().BeTrue();
             var second = Task.Run(() =>
             {
                 ImageSource? picture = null;
@@ -585,7 +585,7 @@ public class PetPreviewFramesTests
                 return FrameImages.Load(path);
             });
             var preloading = frames.PreloadAsync([FrameId.Create(atlas, 0, 0, 2, 2)]);
-            inDecoder.Wait(TimeSpan.FromSeconds(10)).Should().BeTrue();
+            inDecoder.Wait(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken).Should().BeTrue();
 
             // Act
             frames.Dispose();
@@ -628,7 +628,7 @@ public class PetPreviewFramesTests
                 return FrameImages.Load(path);
             });
             var firstRequest = frames.PreloadAsync([FrameId.Create(first, 0, 0, 2, 2)]);
-            inDecoder.Wait(TimeSpan.FromSeconds(10)).Should().BeTrue();
+            inDecoder.Wait(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken).Should().BeTrue();
             var secondRequest = frames.PreloadAsync([FrameId.Create(second, 0, 0, 2, 2)]);
 
             // Act

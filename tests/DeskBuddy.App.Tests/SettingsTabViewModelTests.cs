@@ -1500,7 +1500,7 @@ public class SettingsTabViewModelTests
         _viewModel.SelectedSize = PetSize.Large;
 
         // Act
-        await _settings.UpdateAsync(settings => settings with { Size = PetSize.Small, ClimbEdges = true });
+        await _settings.UpdateAsync(settings => settings with { Size = PetSize.Small, ClimbEdges = true }, TestContext.Current.CancellationToken);
 
         // Assert
         _viewModel.ClimbEdges.Should().BeTrue();
@@ -1607,7 +1607,7 @@ public class SettingsTabViewModelTests
         _viewModel.SleepText = " 12 ";
 
         // Act
-        await _settings.UpdateAsync(settings => settings with { ClimbEdges = true });
+        await _settings.UpdateAsync(settings => settings with { ClimbEdges = true }, TestContext.Current.CancellationToken);
 
         // Assert
         _viewModel.MeetingProcessesText.Should().Be("Zoom\r\n");
@@ -1625,7 +1625,7 @@ public class SettingsTabViewModelTests
         await CreateAsync();
 
         // Act
-        await _settings.UpdateAsync(settings => settings with { SleepAfter = TimeSpan.FromMinutes(20) });
+        await _settings.UpdateAsync(settings => settings with { SleepAfter = TimeSpan.FromMinutes(20) }, TestContext.Current.CancellationToken);
 
         // Assert
         _viewModel.SleepText.Should().Be("20");
