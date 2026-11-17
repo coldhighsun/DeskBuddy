@@ -14,7 +14,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets\DeskBuddy.ico</ApplicationIcon>
-    <PublishSingleFile>true</PublishSingleFile>
     <!--
       Tiered compilation off: the runtime otherwise keeps re-compiling the code the pet runs every few milliseconds. Idle
       Release build, first minute after start (two runs each): about 9.6 s of CPU with it on against about 5.9 s with it
