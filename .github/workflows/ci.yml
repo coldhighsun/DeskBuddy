@@ -22,7 +22,7 @@ jobs:
 
       - uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: 10.0.x
+          dotnet-version: 11.0.x
 
       - name: Build
         run: dotnet build DeskBuddy.slnx -c Release
@@ -45,7 +45,7 @@ jobs:
 
       - uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: 10.0.x
+          dotnet-version: 11.0.x
 
       - name: Install Inno Setup 7
         # The runner ships Inno Setup 6, which lacks the Chinese language file the installer script uses.
