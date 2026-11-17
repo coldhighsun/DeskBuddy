@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-DeskBuddy 是一个 Windows 桌面宠物（WPF，.NET 10，仅 Windows 可构建）。版本号由 MinVer 根据 git tag（`v1.2.3`）生成。
+DeskBuddy 是一个 Windows 桌面宠物（WPF，.NET 11，仅 Windows 可构建）。版本号由 MinVer 根据 git tag（`v1.2.3`）生成。
 
 ## 常用命令
 
@@ -50,7 +50,7 @@ powershell -NoProfile -File tools/GenerateAppIcon.ps1   # 重新生成应用/托
 - **不要设置应用级的 `Application.ThemeMode`**：宠物、雨伞、气泡是透明窗口，应用级 Fluent 主题会给它们画上背景。这几个窗口不要注册，也不要用 Fluent 样式；气泡按钮用 `Themes/BubbleButton.xaml` 里自己的样式。
 - 自定义颜色资源的 key **不能与 Fluent 主题的 key 同名**（窗口资源优先于应用资源，会被悄悄盖住，曾导致宠物卡片边框消失）。新 key 加 `Bubble` / `PetCard` 这类前缀，`ThemeResourcesTests` 会检查冲突，三套色板的 key 也必须一致。
 - 给控件写自己的 `Style` 时要加 `BasedOn`，或把样式放到外层元素上，否则会丢掉主题样式。
-- `ThemeMode` 在 .NET 10 里仍是实验性 API，项目对 `WPF0001` 做了 `NoWarn`。
+- `ThemeMode` 在 .NET 11 里仍是实验性 API，项目对 `WPF0001` 做了 `NoWarn`。
 
 ## 设置与进程列表
 

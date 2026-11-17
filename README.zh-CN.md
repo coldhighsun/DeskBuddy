@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/github/license/coldhighsun/DeskBuddy)](LICENSE)
 [![Release](https://img.shields.io/github/v/release/coldhighsun/DeskBuddy?include_prereleases)](https://github.com/coldhighsun/DeskBuddy/releases)
 [![Downloads](https://img.shields.io/github/downloads/coldhighsun/DeskBuddy/total)](https://github.com/coldhighsun/DeskBuddy/releases)
-![.NET 10](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet)
+![.NET 11](https://img.shields.io/badge/.NET-11-512BD4?logo=dotnet)
 ![Platform: Windows](https://img.shields.io/badge/platform-Windows-0078D4?logo=windows)
 
 一只住在办公电脑桌面上的桌面宠物。它会根据你的操作做出反应，同时尽量不打扰你。
@@ -67,7 +67,7 @@
 
 ## 构建
 
-需要 Windows 和 [.NET 10 SDK](https://dotnet.microsoft.com/download)。
+需要 Windows 和 [.NET 11 SDK](https://dotnet.microsoft.com/download)。
 
 ```bash
 dotnet build DeskBuddy.slnx

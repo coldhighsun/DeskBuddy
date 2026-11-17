@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/github/license/coldhighsun/DeskBuddy)](LICENSE)
 [![Release](https://img.shields.io/github/v/release/coldhighsun/DeskBuddy?include_prereleases)](https://github.com/coldhighsun/DeskBuddy/releases)
 [![Downloads](https://img.shields.io/github/downloads/coldhighsun/DeskBuddy/total)](https://github.com/coldhighsun/DeskBuddy/releases)
-![.NET 10](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet)
+![.NET 11](https://img.shields.io/badge/.NET-11-512BD4?logo=dotnet)
 ![Platform: Windows](https://img.shields.io/badge/platform-Windows-0078D4?logo=windows)
 
 A desktop pet for work computers. It lives on your desktop, reacts to what you are doing, and stays out of the way.
@@ -81,7 +81,7 @@ Download `DeskBuddy-Setup-x.y.z.exe` from the [Releases](https://github.com/cold
 
 ## Build
 
-Requires Windows and the [.NET 10 SDK](https://dotnet.microsoft.com/download).
+Requires Windows and the [.NET 11 SDK](https://dotnet.microsoft.com/download).
 
 ```bash
 dotnet build DeskBuddy.slnx
