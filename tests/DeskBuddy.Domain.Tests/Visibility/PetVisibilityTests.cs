@@ -204,4 +204,44 @@ public class PetVisibilityTests
         changed.Should().BeTrue();
         _visibility.IsVisible.Should().BeTrue();
     }
+
+    /// <summary>
+    /// Locking the session hides the pet and unlocking it brings it back.
+    /// </summary>
+    [Fact]
+    public void SetSessionLocked_LockThenUnlock_HidesThenShows()
+    {
+        // Arrange
+        var visibility = new PetVisibility(new FakeTimeProvider(), TimeSpan.FromSeconds(2));
+
+        // Act
+        var hid = visibility.SetSessionLocked(true);
+        var hiddenWhileLocked = !visibility.IsVisible;
+        var showed = visibility.SetSessionLocked(false);
+
+        // Assert
+        hid.Should().BeTrue();
+        hiddenWhileLocked.Should().BeTrue();
+        showed.Should().BeTrue();
+        visibility.IsVisible.Should().BeTrue();
+    }
+
+    /// <summary>
+    /// A pet the user hid stays hidden after the session is unlocked.
+    /// </summary>
+    [Fact]
+    public void SetSessionLocked_UnlockWhileManuallyHidden_StaysHidden()
+    {
+        // Arrange
+        var visibility = new PetVisibility(new FakeTimeProvider(), TimeSpan.FromSeconds(2));
+        visibility.SetManuallyHidden(true);
+        visibility.SetSessionLocked(true);
+
+        // Act
+        var changed = visibility.SetSessionLocked(false);
+
+        // Assert
+        changed.Should().BeFalse();
+        visibility.IsVisible.Should().BeFalse();
+    }
 }

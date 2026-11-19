@@ -265,4 +265,25 @@ public partial class PetBrainTests
         // Assert
         raised.Should().Be(0);
     }
+
+    /// <summary>
+    /// Locking the session hides the pet and says so, and unlocking it brings it back.
+    /// </summary>
+    [Fact]
+    public void SetSessionLocked_LockThenUnlock_RaisesVisibilityChanged()
+    {
+        // Arrange
+        var raised = 0;
+        _brain.VisibilityChanged += (_, _) => raised++;
+
+        // Act
+        _brain.SetSessionLocked(true);
+        var hidden = !_brain.Visibility.IsVisible;
+        _brain.SetSessionLocked(false);
+
+        // Assert
+        hidden.Should().BeTrue();
+        _brain.Visibility.IsVisible.Should().BeTrue();
+        raised.Should().Be(2);
+    }
 }

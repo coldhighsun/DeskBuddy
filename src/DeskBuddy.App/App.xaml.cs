@@ -86,6 +86,11 @@ public partial class App
     private InstanceSignal? _quitSignal;
 
     /// <summary>
+    /// Puts the pet away while the session is locked; <see langword="null"/> until the pet is shown.
+    /// </summary>
+    private Microsoft.Win32.SessionSwitchEventHandler? _sessionSwitched;
+
+    /// <summary>
     /// The pet window; <see langword="null"/> until startup completes.
     /// </summary>
     private PetWindow? _petWindow;
@@ -319,6 +324,15 @@ public partial class App
                 pet.Animations.Count);
 
             var brain = _host.Services.GetRequiredService<PetBrain>();
+            _sessionSwitched = (_, args) =>
+            {
+                if (SessionLock.IsLocked(args.Reason) is { } locked)
+                {
+                    // Raised on a thread of its own.
+                    Dispatcher.BeginInvoke(() => brain.SetSessionLocked(locked));
+                }
+            };
+            Microsoft.Win32.SystemEvents.SessionSwitch += _sessionSwitched;
             _petWindow = new PetWindow(
                 pet,
                 petFrames,
@@ -544,6 +558,11 @@ public partial class App
         {
             _host.StopAsync().GetAwaiter().GetResult();
             _host.Dispose();
+        }
+
+        if (_sessionSwitched is not null)
+        {
+            Microsoft.Win32.SystemEvents.SessionSwitch -= _sessionSwitched;
         }
 
         _quitSignal?.Dispose();

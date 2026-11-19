@@ -310,6 +310,21 @@ public sealed class PetBrain(
     }
 
     /// <summary>
+    /// Puts the pet away while the session is locked and brings it back once it is unlocked, so it uses no time
+    /// animating and watching the pointer while nobody can see it.
+    /// </summary>
+    /// <param name="locked">
+    /// <see langword="true"/> when the session has been locked.
+    /// </param>
+    public void SetSessionLocked(bool locked)
+    {
+        if (visibility.SetSessionLocked(locked))
+        {
+            VisibilityChanged?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    /// <summary>
     /// Switches the user's hide on or off.
     /// </summary>
     public void ToggleManuallyHidden()
