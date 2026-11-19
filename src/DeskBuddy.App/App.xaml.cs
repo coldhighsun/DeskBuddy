@@ -46,19 +46,24 @@ public partial class App
     private const string QuitSignalName = @"Local\DeskBuddy.Quit";
 
     /// <summary>
+    /// The named event through which a second start of the application asks the running instance to show itself.
+    /// </summary>
+    private const string ActivateSignalName = @"Local\DeskBuddy.Activate";
+
+    /// <summary>
     /// The command-line switch that asks the running instance to close and waits until it has.
     /// </summary>
     internal const string QuitArgument = "--quit";
 
     /// <summary>
-    /// How long a start with <see cref="QuitArgument"/> waits for the running instance to close.
-    /// </summary>
-    private static readonly TimeSpan QuitTimeout = TimeSpan.FromSeconds(10);
-
-    /// <summary>
     /// The name of the folder that holds one subfolder per pet, both next to the program and in the data directory.
     /// </summary>
     private const string PetsFolderName = "pets";
+
+    /// <summary>
+    /// How long a start with <see cref="QuitArgument"/> waits for the running instance to close.
+    /// </summary>
+    private static readonly TimeSpan QuitTimeout = TimeSpan.FromSeconds(10);
 
     /// <summary>
     /// How long a full-screen application must be gone before the pet comes back.
@@ -91,15 +96,20 @@ public partial class App
     private InstanceSignal? _quitSignal;
 
     /// <summary>
-    /// Puts the pet away while the session is locked; <see langword="null"/> until the pet is shown.
+    /// Shows the pet and the panel when the application is started again; <see langword="null"/> in a later instance.
     /// </summary>
-    private Microsoft.Win32.SessionSwitchEventHandler? _sessionSwitched;
+    private InstanceSignal? _activateSignal;
 
     /// <summary>
     /// The folder for the user's own pets, under the data directory; <see langword="null"/> until start-up has worked it
     /// out.
     /// </summary>
     private string? _userPetsDirectory;
+
+    /// <summary>
+    /// Puts the pet away while the session is locked; <see langword="null"/> until the pet is shown.
+    /// </summary>
+    private Microsoft.Win32.SessionSwitchEventHandler? _sessionSwitched;
 
     /// <summary>
     /// The pet window; <see langword="null"/> until startup completes.
@@ -189,11 +199,15 @@ public partial class App
 
         if (!_instanceGuard.IsFirstInstance)
         {
+            // Starting the application again, from the Start menu or a shortcut, is how a user looks for a pet they
+            // hid; the running instance shows itself instead of this start doing nothing visible.
+            InstanceSignal.TrySignal(ActivateSignalName);
             Shutdown();
             return;
         }
 
         _quitSignal = new InstanceSignal(QuitSignalName, () => Dispatcher.BeginInvoke(ExitApplication));
+        _activateSignal = new InstanceSignal(ActivateSignalName, () => Dispatcher.BeginInvoke(OnActivationRequested));
 
         var builder = Host.CreateApplicationBuilder(e.Args);
 
@@ -580,6 +594,7 @@ public partial class App
             Microsoft.Win32.SystemEvents.SessionSwitch -= _sessionSwitched;
         }
 
+        _activateSignal?.Dispose();
         _quitSignal?.Dispose();
         _instanceGuard?.Dispose();
 
@@ -660,6 +675,23 @@ public partial class App
     }
 
     /// <summary>
+    /// Opens the folder for the user's own pets in the file manager, creating it first so there is somewhere to put
+    /// them.
+    /// </summary>
+    private void OpenUserPetsDirectory()
+    {
+        try
+        {
+            Directory.CreateDirectory(_userPetsDirectory!);
+            Process.Start(new ProcessStartInfo(_userPetsDirectory!) { UseShellExecute = true });
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.ComponentModel.Win32Exception)
+        {
+            _host?.Services.GetRequiredService<ILogger<App>>().LogWarning(ex, "The pets folder could not be opened.");
+        }
+    }
+
+    /// <summary>
     /// Opens the log directory in the file manager.
     /// </summary>
     private void OpenLogDirectory()
@@ -676,20 +708,18 @@ public partial class App
     }
 
     /// <summary>
-    /// Opens the folder for the user's own pets in the file manager, creating it first so there is somewhere to put
-    /// them.
+    /// Shows the pet, if the user had hidden it, and opens the panel, because the application was started again.
+    /// Nothing happens while the application is still starting.
     /// </summary>
-    private void OpenUserPetsDirectory()
+    private void OnActivationRequested()
     {
-        try
+        if (_petWindow is null || _host is null)
         {
-            Directory.CreateDirectory(_userPetsDirectory!);
-            Process.Start(new ProcessStartInfo(_userPetsDirectory!) { UseShellExecute = true });
+            return;
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.ComponentModel.Win32Exception)
-        {
-            _host?.Services.GetRequiredService<ILogger<App>>().LogWarning(ex, "The pets folder could not be opened.");
-        }
+
+        _host.Services.GetRequiredService<PetBrain>().SetManuallyHidden(false);
+        OpenPanel(null);
     }
 
     /// <summary>
