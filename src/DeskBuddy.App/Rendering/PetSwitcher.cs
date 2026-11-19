@@ -147,6 +147,7 @@ public sealed class PetSwitcher : IDisposable
             }
 
             _apply(pet);
+            _logger.LogInformation("Switched from the '{Previous}' pet to '{Pet}'.", _currentName, name);
             _currentName = name;
         }
         catch (Exception ex) when (PetLoadFailure.Is(ex))

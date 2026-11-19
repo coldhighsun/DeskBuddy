@@ -1,6 +1,7 @@
 using System.IO;
 using System.Windows.Media;
 using DeskBuddy.App.Rendering;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace DeskBuddy.App.Presentation;
 
@@ -71,6 +72,11 @@ public sealed class InstalledPets
     private readonly SemaphoreSlim _refreshGate = new(1, 1);
 
     /// <summary>
+    /// Reports pets that cannot be loaded.
+    /// </summary>
+    private readonly ILogger _logger;
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="InstalledPets"/> class.
     /// </summary>
     /// <param name="catalog">
@@ -89,7 +95,16 @@ public sealed class InstalledPets
     /// Cuts the pictures out ahead of time on another thread, or <see langword="null"/> to leave that to
     /// <paramref name="frames"/>.
     /// </param>
-    public InstalledPets(IPetCatalog catalog, IPetLoader loader, string petsDirectory, Func<string, ImageSource?> frames, Func<IEnumerable<string>, Task>? preload = null)
+    /// <param name="logger">
+    /// Reports a pet that is left out because it cannot be loaded, or <see langword="null"/> not to report it.
+    /// </param>
+    public InstalledPets(
+        IPetCatalog catalog,
+        IPetLoader loader,
+        string petsDirectory,
+        Func<string, ImageSource?> frames,
+        Func<IEnumerable<string>, Task>? preload = null,
+        ILogger? logger = null)
     {
         ArgumentNullException.ThrowIfNull(catalog);
         ArgumentNullException.ThrowIfNull(loader);
@@ -101,6 +116,7 @@ public sealed class InstalledPets
         _petsDirectory = petsDirectory;
         _frames = frames;
         _preload = preload;
+        _logger = logger ?? NullLogger.Instance;
     }
 
     /// <summary>
@@ -208,6 +224,7 @@ public sealed class InstalledPets
         }
         catch (Exception ex) when (PetLoadFailure.Is(ex))
         {
+            _logger.LogWarning(ex, "The '{Pet}' pet cannot be loaded and is left out of the list.", name);
             return null;
         }
     }
