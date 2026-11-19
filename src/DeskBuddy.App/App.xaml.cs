@@ -275,20 +275,13 @@ public partial class App
 
         try
         {
-            var petDirectory = Path.Combine(AppContext.BaseDirectory, "pets", petName);
-            if (!Directory.Exists(petDirectory))
-            {
-                logger.LogWarning("The '{Pet}' pet was not found; using '{Default}'.", petName, PetSettings.DefaultPetName);
-                petName = PetSettings.DefaultPetName;
-                petDirectory = Path.Combine(AppContext.BaseDirectory, "pets", petName);
-            }
-
-            var pet = await _host.Services.GetRequiredService<IPetLoader>().LoadAsync(petDirectory);
+            var (pet, petFrames, loadedName) = await LoadStartupPetAsync(petName, logger);
+            petName = loadedName;
 
             var brain = _host.Services.GetRequiredService<PetBrain>();
             _petWindow = new PetWindow(
                 pet,
-                new PetFrameCache(pet),
+                petFrames,
                 brain,
                 behaviorOptions,
                 OpenPanel,
@@ -370,12 +363,66 @@ public partial class App
             // The panel's list of pets takes a moment to load; do it while nothing else needs the thread.
             _ = Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ApplicationIdle, () => PreparePanelViewModel());
         }
-        catch (InvalidDataException ex)
+        catch (Exception ex) when (PetLoadFailure.Is(ex))
         {
             logger.LogError(ex, "Failed to load the '{Pet}' pet.", petName);
-            MessageBox.Show(ex.Message, "DeskBuddy", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(Strings.PetStartupFailed, Strings.AppName, MessageBoxButton.OK, MessageBoxImage.Error);
             Shutdown(1);
         }
+        catch (Exception ex)
+        {
+            // Without a pet window and a tray icon the application cannot be used or even closed, yet it would keep
+            // the single-instance lock and make every later start exit silently, so it must not keep running.
+            logger.LogCritical(ex, "Start-up failed.");
+            MessageBox.Show(Strings.CrashMessage, Strings.CrashTitle, MessageBoxButton.OK, MessageBoxImage.Error);
+            Shutdown(1);
+        }
+    }
+
+    /// <summary>
+    /// Loads the pet to show at start-up and decodes its pictures off the UI thread. A pet that is missing or broken
+    /// is replaced by the default pet, so a bad pet folder does not stop the application from starting.
+    /// </summary>
+    /// <param name="petName">
+    /// The name of the pet in the settings.
+    /// </param>
+    /// <param name="logger">
+    /// Reports a pet that had to be replaced.
+    /// </param>
+    /// <returns>
+    /// The pet, its decoded pictures and the name of the pet actually loaded.
+    /// </returns>
+    /// <exception cref="Exception">
+    /// An exception for which <see cref="PetLoadFailure.Is"/> is <see langword="true"/> when the default pet cannot be
+    /// loaded either.
+    /// </exception>
+    private async Task<(Pet Pet, PetFrameCache Frames, string Name)> LoadStartupPetAsync(string petName, ILogger logger)
+    {
+        var loader = _host!.Services.GetRequiredService<IPetLoader>();
+        var petsDirectory = Path.Combine(AppContext.BaseDirectory, "pets");
+        if (!string.Equals(petName, PetSettings.DefaultPetName, StringComparison.OrdinalIgnoreCase))
+        {
+            var petDirectory = Path.Combine(petsDirectory, petName);
+            if (Directory.Exists(petDirectory))
+            {
+                try
+                {
+                    var pet = await loader.LoadAsync(petDirectory);
+                    return (pet, await PetFrameCache.CreateAsync(pet), petName);
+                }
+                catch (Exception ex) when (PetLoadFailure.Is(ex))
+                {
+                    logger.LogWarning(ex, "The '{Pet}' pet could not be loaded; using '{Default}'.", petName, PetSettings.DefaultPetName);
+                }
+            }
+            else
+            {
+                logger.LogWarning("The '{Pet}' pet was not found; using '{Default}'.", petName, PetSettings.DefaultPetName);
+            }
+        }
+
+        var defaultPet = await loader.LoadAsync(Path.Combine(petsDirectory, PetSettings.DefaultPetName));
+        return (defaultPet, await PetFrameCache.CreateAsync(defaultPet), PetSettings.DefaultPetName);
     }
 
     /// <inheritdoc />

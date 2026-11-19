@@ -151,6 +151,7 @@
   <data name="UnsavedCloseMessage" xml:space="preserve"><value>There are unsaved changes. Save them?</value></data>
   <data name="UnsavedInvalidCloseMessage" xml:space="preserve"><value>Some entries cannot be saved. Discard the changes and close?</value></data>
   <data name="SettingsLoadFailed" xml:space="preserve"><value>Could not read the settings ({0}). To avoid overwriting them, changes are paused. Check the file and restart.</value></data>
+  <data name="PetStartupFailed" xml:space="preserve"><value>The pet could not be loaded, so DeskBuddy will close. The log has the details.</value></data>
   <data name="PetSwitchFailed" xml:space="preserve"><value>Could not switch the pet: {0}</value></data>
 
   <data name="SettingsLanguage" xml:space="preserve"><value>Language</value></data>
