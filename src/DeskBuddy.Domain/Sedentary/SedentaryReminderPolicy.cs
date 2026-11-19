@@ -87,7 +87,7 @@ public sealed class SedentaryReminderPolicy
     }
 
     /// <summary>
-    /// Postpones the next reminder by <see cref="SedentaryOptions.SnoozeDuration"/>, in response to the user apetg
+    /// Postpones the next reminder by <see cref="SedentaryOptions.SnoozeDuration"/>, in response to the user asking
     /// to be reminded later.
     /// </summary>
     public void Snooze()

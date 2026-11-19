@@ -70,8 +70,8 @@ public static class Festivals
     /// The date.
     /// </param>
     /// <returns>
-    /// <see langword="true"/> if it is; also if the date lies outside what the lunar calendar can convert, then
-    /// <see langword="false"/>.
+    /// <see langword="true"/> if it is; <see langword="false"/> if it is not, or if the date lies outside what the
+    /// lunar calendar can convert.
     /// </returns>
     private static bool IsLunarNewYear(DateOnly date)
     {

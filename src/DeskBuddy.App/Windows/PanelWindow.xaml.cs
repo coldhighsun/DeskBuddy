@@ -186,7 +186,7 @@ public partial class PanelWindow
     /// <param name="e">
     /// Key event data.
     /// </param>
-    private async void OnBossKeyPreviewKeyDown(object sender, KeyEventArgs e)
+    private void OnBossKeyPreviewKeyDown(object sender, KeyEventArgs e)
     {
         e.Handled = true;
 
