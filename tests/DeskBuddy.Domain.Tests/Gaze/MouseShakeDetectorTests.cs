@@ -39,6 +39,39 @@ public class MouseShakeDetectorTests
     }
 
     /// <summary>
+    /// On a monitor with 200% scaling the same hand movement covers twice as many device pixels, so swings that
+    /// are a shake at 100% are only wobbles there.
+    /// </summary>
+    [Fact]
+    public void Update_SwingsBelowScaledThreshold_NoShake()
+    {
+        // Arrange
+        _detector.Scale = 2;
+
+        // Act
+        var result = Feed(0, 150, 0, 150, 0, 150, 0);
+
+        // Assert
+        result.Should().BeFalse();
+    }
+
+    /// <summary>
+    /// With scaling taken into account, swings of the same size in device-independent pixels are a shake.
+    /// </summary>
+    [Fact]
+    public void Update_WideSwingsAtDoubleScale_DetectsShake()
+    {
+        // Arrange
+        _detector.Scale = 2;
+
+        // Act
+        var result = Feed(0, 300, 0, 300, 0, 300, 0);
+
+        // Assert
+        result.Should().BeTrue();
+    }
+
+    /// <summary>
     /// Small wobbles are not a shake.
     /// </summary>
     [Fact]

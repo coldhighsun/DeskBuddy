@@ -54,6 +54,11 @@ public sealed class PointerWatcher(MouseShakeDetector shake)
     private int _readings;
 
     /// <summary>
+    /// Gets the detector that notices the shaking, for adjusting it to the scaling of the monitor.
+    /// </summary>
+    public MouseShakeDetector Shake => shake;
+
+    /// <summary>
     /// Takes in a reading of the pointer.
     /// </summary>
     /// <param name="now">
