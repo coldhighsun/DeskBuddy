@@ -21,6 +21,7 @@ public static class PetStateFallback
         {
             PetState.NightCoding => PetState.Coding,
             PetState.Building => PetState.Coding,
+            PetState.Reading => PetState.Focus,
             PetState.BuildDone => PetState.Happy,
             PetState.GitPush => PetState.Happy,
             PetState.Welcome => PetState.Happy,
