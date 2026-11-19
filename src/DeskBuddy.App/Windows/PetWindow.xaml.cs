@@ -457,6 +457,13 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     /// </returns>
     private nint WndProc(nint hwnd, int msg, nint wParam, nint lParam, ref bool handled)
     {
+        if (WindowStyleHelper.IsScreenLayoutChange(msg, wParam))
+        {
+            // Let the window finish handling the change (a new scaling moves and resizes it) before placing the pet.
+            Dispatcher.BeginInvoke(DispatcherPriority.Background, OnScreenLayoutChanged);
+            return 0;
+        }
+
         if (msg != WindowStyleHelper.WmNcHitTest)
         {
             return 0;
