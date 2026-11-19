@@ -21,7 +21,9 @@
     <sys:Double x:Key="FontSizeCaption">12</sys:Double>
     <sys:Double x:Key="FontSizeSmall">11</sys:Double>
     <sys:Double x:Key="SettingsCaptionSize">11</sys:Double>
-    <FontFamily x:Key="AppFontFamily">Segoe UI Variable Text, Segoe UI</FontFamily>
+    <!-- Not Segoe UI Variable: it is a variable font without TrueType hinting, so with TextFormattingMode=Display (pixel-snapped
+         GDI-style text) WPF draws it soft. Segoe UI is hinted and stays sharp. -->
+    <FontFamily x:Key="AppFontFamily">Segoe UI, Microsoft YaHei UI</FontFamily>
     <FontFamily x:Key="AppIconFontFamily">Segoe Fluent Icons, Segoe MDL2 Assets</FontFamily>
 
     <Thickness x:Key="SettingsRowGap">0,8,0,0</Thickness>
