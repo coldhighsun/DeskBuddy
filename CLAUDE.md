@@ -78,6 +78,10 @@ powershell -NoProfile -File tools/GenerateAppIcon.ps1   # 重新生成应用/托
 
 界面文字在 `src/DeskBuddy.App/Resources`：`Strings.resx` 是中文（默认），`Strings.en.resx` 是英文。新增文案两个文件都要加（没有测试检查两边的键是否一致，自己核对），代码里经 `Resources/Strings.cs` 的同名属性取用。
 
+- **切换语言（设置里保存后）立即生效，不需要重启**：`App.ApplyLanguage` 把语言写进 `Strings.Culture`（应用级），所有取文字、宠物显示名都读 `Strings.Current`，**不要直接用 `CultureInfo.CurrentUICulture`**（UI 线程自己的语言不跟随 `DefaultThreadCurrentUICulture`，异步/调度回调里设的值也会丢）；没选语言时（测试）`Current` 回退线程语言。
+- XAML 里的文字一律写 `{res:Loc 键名}`（`Resources/Loc.cs`，键名是 `Strings` 的属性名，写错会在加载时抛异常），**不要用 `{x:Static res:Strings.X}`**，那样只读一次，切换语言时不会变。
+- 视图模型里缓存了文字（列表项名称、卡片说明等）的，要订阅 `LocalizedStrings.Instance.LanguageChanged` 重写文字（订阅是弱引用，但仍应在不用时退订）；窗口/托盘里在代码里设的文字由 `App.SwitchLanguage` 逐个调用 `RefreshLanguage()`（托盘、宠物窗口）。错误和提示这类生成时就定下的文字不随语言刷新。
+
 ## 设计要求
 
 - 【必须遵守】软件设计必须便于方便地扩展各种宠物：新增宠物只需在 `pets/` 下放入 `atlas.png` 和 `manifest.json`，不得修改代码；任何功能都不得写死某个具体宠物的名称、尺寸、帧数或朝向，一律通过宠物 manifest 与 `Pet` 模型获取，并为宠物缺少的动画/状态提供合理回退。
