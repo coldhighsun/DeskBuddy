@@ -1,10 +1,10 @@
 namespace DeskBuddy.Domain.Visibility;
 
 /// <summary>
-/// Decides whether the pet is on screen. There are two independent reasons for it to be hidden: the user hid it (boss
-/// key or menu), which lasts until they show it again, and a full-screen or presenting application being in front,
-/// which lasts only as long as that application is. Keeping them apart means a pet the user hid does not pop back up
-/// when a video ends.
+/// Decides whether the pet is on screen. There are three independent reasons for it to be hidden: the user hid it (boss
+/// key or menu), which lasts until they show it again; a full-screen or presenting application being in front, which
+/// lasts only as long as that application is; and the session being locked, when nobody can see the pet anyway. Keeping
+/// them apart means a pet the user hid does not pop back up when a video ends or the computer is unlocked.
 /// </summary>
 /// <param name="timeProvider">
 /// The time source for the restore delay.
@@ -40,7 +40,29 @@ public sealed class PetVisibility(TimeProvider timeProvider, TimeSpan restoreDel
     /// <summary>
     /// Gets a value indicating whether the pet should be on screen.
     /// </summary>
-    public bool IsVisible => !IsManuallyHidden && !IsAutoHidden;
+    public bool IsVisible => !IsManuallyHidden && !IsAutoHidden && !IsSessionLocked;
+
+    /// <summary>
+    /// Gets a value indicating whether the session is locked (or its screen is otherwise not shown), so the pet is put
+    /// away to cost nothing while nobody can see it.
+    /// </summary>
+    public bool IsSessionLocked { get; private set; }
+
+    /// <summary>
+    /// Feeds in whether the session is locked.
+    /// </summary>
+    /// <param name="locked">
+    /// <see langword="true"/> while the session is locked.
+    /// </param>
+    /// <returns>
+    /// <see langword="true"/> if <see cref="IsVisible"/> changed.
+    /// </returns>
+    public bool SetSessionLocked(bool locked)
+    {
+        var wasVisible = IsVisible;
+        IsSessionLocked = locked;
+        return IsVisible != wasVisible;
+    }
 
     /// <summary>
     /// Hides or shows the pet at the user's request.
