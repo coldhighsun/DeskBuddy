@@ -1,3 +1,4 @@
+using DeskBuddy.App.Resources;
 using System.IO;
 using System.Windows.Media;
 using DeskBuddy.App.ViewModels;
@@ -1196,7 +1197,7 @@ public class SettingsTabViewModelTests
         await _viewModel.TrySaveAsync();
 
         // Assert
-        _viewModel.SaveError.Should().Contain("disk full");
+        _viewModel.SaveError.Should().Contain(Strings.ErrorFileInUse);
         _settings.Current.ChatterEnabled.Should().BeTrue();
     }
 
@@ -1233,7 +1234,7 @@ public class SettingsTabViewModelTests
 
         // Assert
         _viewModel.IsEditable.Should().BeFalse();
-        _viewModel.LoadFailureMessage.Should().Contain("locked");
+        _viewModel.LoadFailureMessage.Should().Contain(Strings.ErrorFileInUse);
     }
 
     /// <summary>
@@ -1591,7 +1592,7 @@ public class SettingsTabViewModelTests
         await _viewModel.TrySaveAsync();
 
         // Assert
-        _viewModel.SaveError.Should().Contain("disk full");
+        _viewModel.SaveError.Should().Contain(Strings.ErrorFileInUse);
         _viewModel.BossKeyError.Should().Contain("already in use");
     }
 

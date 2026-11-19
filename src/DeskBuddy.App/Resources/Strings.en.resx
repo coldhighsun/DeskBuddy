@@ -152,6 +152,12 @@
   <data name="UnsavedInvalidCloseMessage" xml:space="preserve"><value>Some entries cannot be saved. Discard the changes and close?</value></data>
   <data name="SettingsLoadFailed" xml:space="preserve"><value>Could not read the settings ({0}). To avoid overwriting them, changes are paused. Check the file and restart.</value></data>
   <data name="PetStartupFailed" xml:space="preserve"><value>The pet could not be loaded, so DeskBuddy will close. The log has the details.</value></data>
+  <data name="ErrorInvalidData" xml:space="preserve"><value>the file content is not valid</value></data>
+  <data name="ErrorNotFound" xml:space="preserve"><value>a file is missing</value></data>
+  <data name="ErrorAccessDenied" xml:space="preserve"><value>access was denied</value></data>
+  <data name="ErrorFileInUse" xml:space="preserve"><value>a file could not be read or written; another program may be using it</value></data>
+  <data name="ErrorImage" xml:space="preserve"><value>a picture could not be decoded</value></data>
+  <data name="ErrorGeneric" xml:space="preserve"><value>an unexpected error occurred; see the log for details</value></data>
   <data name="PetSwitchFailed" xml:space="preserve"><value>Could not switch the pet: {0}</value></data>
 
   <data name="SettingsLanguage" xml:space="preserve"><value>Language</value></data>

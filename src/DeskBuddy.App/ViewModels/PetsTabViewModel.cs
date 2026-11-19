@@ -274,7 +274,7 @@ public sealed partial class PetsTabViewModel : ObservableObject
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            PetError = string.Format(CultureInfo.CurrentCulture, Strings.SettingsSaveFailed, ex.Message);
+            PetError = string.Format(CultureInfo.CurrentCulture, Strings.SettingsSaveFailed, ErrorText.For(ex));
         }
         catch (InvalidOperationException)
         {
@@ -326,7 +326,7 @@ public sealed partial class PetsTabViewModel : ObservableObject
         }
         catch (Exception ex) when (PetLoadFailure.Is(ex))
         {
-            return new PetCardViewModel(name, ex.Message);
+            return new PetCardViewModel(name, ErrorText.For(ex));
         }
     }
 

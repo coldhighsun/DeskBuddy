@@ -1,3 +1,4 @@
+using DeskBuddy.App.Resources;
 using DeskBuddy.App.Rendering;
 using DeskBuddy.Domain.Pets;
 
@@ -125,7 +126,7 @@ public class PetSwitcherTests
         await _switcher.SwitchAsync("cat");
 
         // Assert
-        _failures.Should().Equal("bad image");
+        _failures.Should().Equal(Strings.ErrorImage);
         _applied.Should().BeEmpty();
     }
 
@@ -143,7 +144,7 @@ public class PetSwitcherTests
         await _switcher.SwitchAsync("cat");
 
         // Assert
-        _failures.Should().Equal("no access");
+        _failures.Should().Equal(Strings.ErrorAccessDenied);
         _applied.Should().BeEmpty();
     }
 
@@ -230,7 +231,7 @@ public class PetSwitcherTests
         await switcher.SwitchAsync("cat");
 
         // Assert
-        failures.Should().Equal("bad image");
+        failures.Should().Equal(Strings.ErrorImage);
         applied.Should().BeFalse();
     }
 

@@ -156,7 +156,7 @@ public sealed class PetSwitcher : IDisposable
             // A failure of a request that has been superseded no longer matters.
             if (string.Equals(name, _requestedName, StringComparison.Ordinal))
             {
-                failure = ex.Message;
+                failure = ErrorText.For(ex);
             }
         }
 

@@ -1,3 +1,4 @@
+using DeskBuddy.App.Resources;
 using System.IO;
 using Microsoft.Extensions.Logging;
 using DeskBuddy.App.Rendering;
@@ -128,7 +129,7 @@ public class PetsTabViewModelTests
         // Assert
         var broken = _viewModel.Cards.Single(card => card.FolderName == "broken");
         broken.IsAvailable.Should().BeFalse();
-        broken.LoadError.Should().Contain("broken");
+        broken.LoadError.Should().Contain(Strings.ErrorInvalidData);
     }
 
     /// <summary>
@@ -526,7 +527,7 @@ public class PetsTabViewModelTests
 
         // Assert
         _viewModel.Cards.Single().IsAvailable.Should().BeFalse();
-        _viewModel.Cards.Single().LoadError.Should().Contain("atlas unreadable");
+        _viewModel.Cards.Single().LoadError.Should().Contain(Strings.ErrorFileInUse);
     }
 
     /// <summary>

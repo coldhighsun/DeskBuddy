@@ -474,6 +474,36 @@ internal static class Strings
     public static string PetStartupFailed => Get();
 
     /// <summary>
+    /// Gets the reason shown for a file whose content is not valid.
+    /// </summary>
+    public static string ErrorInvalidData => Get();
+
+    /// <summary>
+    /// Gets the reason shown for a file or folder that is missing.
+    /// </summary>
+    public static string ErrorNotFound => Get();
+
+    /// <summary>
+    /// Gets the reason shown for access that was denied.
+    /// </summary>
+    public static string ErrorAccessDenied => Get();
+
+    /// <summary>
+    /// Gets the reason shown for a file that could not be read or written.
+    /// </summary>
+    public static string ErrorFileInUse => Get();
+
+    /// <summary>
+    /// Gets the reason shown for a picture that could not be decoded.
+    /// </summary>
+    public static string ErrorImage => Get();
+
+    /// <summary>
+    /// Gets the reason shown for an error with no more specific reason.
+    /// </summary>
+    public static string ErrorGeneric => Get();
+
+    /// <summary>
     /// Gets the message for a pet that could not be switched to; <c>{0}</c> is the reason.
     /// </summary>
     public static string PetSwitchFailed => Get();
