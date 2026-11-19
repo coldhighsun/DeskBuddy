@@ -81,8 +81,14 @@ dotnet run --project src/DeskBuddy.App
 powershell -NoProfile -File tools/Build-Installer.ps1
 ```
 
+便携 zip 包（单个 exe + `pets/`，无需安装）用下面的脚本生成，输出在 `artifacts/portable`：
+
+```bash
+powershell -NoProfile -File tools/Build-Portable.ps1
+```
+
 版本号由 [MinVer](https://github.com/adamralph/minver) 根据 git tag（`v1.2.3`）自动生成。推送 `v*` tag 后，CI 会构建、测试、
-打包安装程序并发布为 GitHub Release（带连字符的 tag，如 `v1.2.0-rc.1`，会标记为预发布）。
+打包安装程序和便携 zip 并发布为 GitHub Release（带连字符的 tag，如 `v1.2.0-rc.1`，会标记为预发布）。
 
 ## 许可证
 

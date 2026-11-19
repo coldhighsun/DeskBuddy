@@ -95,8 +95,14 @@ To build the installer, install [Inno Setup 7](https://jrsoftware.org/isinfo.php
 powershell -NoProfile -File tools/Build-Installer.ps1
 ```
 
+A portable zip (a single exe plus `pets/`, no installation) is built with the script below into `artifacts/portable`:
+
+```bash
+powershell -NoProfile -File tools/Build-Portable.ps1
+```
+
 Versions are derived from git tags (`v1.2.3`) by [MinVer](https://github.com/adamralph/minver). Pushing a `v*` tag makes
-the CI workflow build and test, build the installer and publish it as a GitHub release (a tag with a hyphen, such as
+the CI workflow build and test, build the installer and the portable zip and publish them as a GitHub release (a tag with a hyphen, such as
 `v1.2.0-rc.1`, is marked as a pre-release).
 
 ## License

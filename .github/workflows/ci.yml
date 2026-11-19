@@ -80,6 +80,10 @@ jobs:
         shell: pwsh
         run: ./tools/Build-Installer.ps1 -IsccPath $env:ISCC_PATH
 
+      - name: Build portable package
+        shell: pwsh
+        run: ./tools/Build-Portable.ps1
+
       - name: Create release
         shell: pwsh
         env:
@@ -87,7 +91,8 @@ jobs:
         run: |
           $tag = "${{ github.ref_name }}"
           $setup = Get-ChildItem artifacts/installer -Filter "DeskBuddy-Setup-*.exe" | Select-Object -First 1
-          $ghArgs = @($tag, $setup.FullName, "--title", "DeskBuddy $tag", "--generate-notes", "--verify-tag")
+          $portable = Get-ChildItem artifacts/portable -Filter "DeskBuddy-Portable-*.zip" | Select-Object -First 1
+          $ghArgs = @($tag, $setup.FullName, $portable.FullName, "--title", "DeskBuddy $tag", "--generate-notes", "--verify-tag")
           # A hyphen in the tag (v1.2.0-rc.1) marks a pre-release.
           if ($tag.Contains("-")) {
             $ghArgs += "--prerelease"

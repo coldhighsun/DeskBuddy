@@ -12,6 +12,7 @@ dotnet test DeskBuddy.slnx
 dotnet test --project tests/DeskBuddy.Domain.Tests --filter "FullyQualifiedName~PetSettingsTests"   # 运行单个测试类/方法
 dotnet run --project src/DeskBuddy.App
 powershell -NoProfile -File tools/Build-Installer.ps1   # 发布并用 Inno Setup 7 打包安装程序（输出到 artifacts/installer）
+powershell -NoProfile -File tools/Build-Portable.ps1    # 单文件发布并打成便携 zip（输出到 artifacts/portable）
 powershell -NoProfile -File tools/GenerateRobotPet.ps1 # 重新生成 robot 宠物的 PNG 帧
 powershell -NoProfile -File tools/GenerateCatPet.ps1   # 重新生成 cat 宠物的 PNG 帧（两个生成脚本共用 tools/PetDrawing.ps1）
 powershell -NoProfile -File tools/GenerateDogPet.ps1   # 重新生成 dog / rabbit / penguin / ghost 的 PNG 帧（对应 GenerateRabbitPet / GeneratePenguinPet / GenerateGhostPet；这四个共用 tools/PetAnimations.ps1 里的动画模板，各脚本只画姿势）
@@ -72,7 +73,7 @@ powershell -NoProfile -File tools/GenerateAppIcon.ps1   # 重新生成应用/托
 - 更新流程整个交给 NuGet 包 `GitHubReleaseUpdater`（`GitHubReleaseUpdater.AutoUpdate` 命名空间的 `UpdateController`）：查 `coldhighsun/DeskBuddy` 的最新**正式版** Release（不含预发布），资产里挑名字含 `Setup` 的 `.exe`（`PatternAssetSelector("*Setup*.exe")`；默认选择器要求文件名带系统/架构，装机程序名不满足），下载并校验后以 Inno `/SILENT` 启动，应用随即退出；更新器给安装程序加 `/RELAUNCH=1`，`.iss` 的 `[Run]` 用 `Check: ShouldLaunchApp`：静默安装只有带这个开关才会重启应用，其他静默安装（winget、脚本）不启动应用。
 - 只有 App 层有更新相关代码：`App/Presentation/AppUpdates.Create` 组装 `ReleaseUpdater` 和 `UpdateController`（版本号无法解析时返回 null，此时面板的“关于”标签（`Windows/AboutView`，面板第五个标签，不属于草稿/保存的设置标签）隐藏更新区）；`TrayUpdatePresenter` 实现 `IUpdatePresenter`（托盘气泡 + 确认框，`InstallerStarted` 时退出应用）。启动后 30 秒首次检查，之后每 24 小时；设置项 `AutoCheckUpdates` 经 `IsAutoCheckEnabled` 控制自动检查；开发版（没有 git tag 时 MinVer 给的 `0.0.0-alpha.0.N`，`AppUpdates.IsDevelopmentBuild`）永远不自动检查，免得提示把正在开发的进程换成正式版，手动检查仍可用。“检查更新”入口只在“关于”标签，托盘菜单不再有它（发现新版本时托盘才出现“更新到 x”）；手动检查无视 6 小时的节流（`update-state.json`，由包的 `JsonFileLastCheckStore` 写）。
 - 新版本没有可下载的安装程序时 `HasInstaller` 为 false：托盘不显示“更新到 x”，“关于”标签显示 `UpdateNoInstaller`。`CleanDownloadDirectory` 已打开，下载目录（临时目录下的 DeskBuddy/update）只给更新用。
-- 发布流程只上传安装程序一个资产；`AppUpdates` 显式开启 `RequireVerifiedDownload`：校验依赖 GitHub API 返回的 asset `digest`，缺失时不会启动安装程序。包的异常信息是英文的，只写日志；给用户看的失败原因一律经 `UpdateErrorText.For` 换成界面语言（新增异常类型时在那里加一条）。
+- 发布流程上传两个资产：安装程序（散文件）和便携 zip（`DeskBuddy-Portable-*.zip`，单文件发布，名字不含 `Setup`，更新器不会选它）；`AppUpdates` 显式开启 `RequireVerifiedDownload`：校验依赖 GitHub API 返回的 asset `digest`，缺失时不会启动安装程序。包的异常信息是英文的，只写日志；给用户看的失败原因一律经 `UpdateErrorText.For` 换成界面语言（新增异常类型时在那里加一条）。
 
 ## 本地化
 
