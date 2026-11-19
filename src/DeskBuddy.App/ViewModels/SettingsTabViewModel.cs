@@ -107,7 +107,7 @@ public sealed partial class SettingsTabViewModel : ObservableObject
 
         if (_settings.LoadFailure is { } failure)
         {
-            LoadFailureMessage = string.Format(CultureInfo.CurrentCulture, Strings.SettingsLoadFailed, failure.Message);
+            LoadFailureMessage = string.Format(CultureInfo.CurrentCulture, Strings.SettingsLoadFailed, ErrorText.For(failure));
         }
 
         if (_bossKey.RegistrationError is { } reason)
@@ -199,7 +199,7 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     private void ShowSaveFailure()
     {
         SaveError = _editor.SaveFailure is { } failure
-            ? string.Format(CultureInfo.CurrentCulture, Strings.SettingsSaveFailed, failure.Message)
+            ? string.Format(CultureInfo.CurrentCulture, Strings.SettingsSaveFailed, ErrorText.For(failure))
             : string.Empty;
     }
 

@@ -716,7 +716,7 @@ public sealed class TrayIconService : IDisposable
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
             _logger.LogWarning(ex, "The choice made in the tray menu could not be saved.");
-            ShowErrorNotice(Strings.AppName, string.Format(CultureInfo.CurrentCulture, Strings.SettingsSaveFailed, ex.Message));
+            ShowErrorNotice(Strings.AppName, string.Format(CultureInfo.CurrentCulture, Strings.SettingsSaveFailed, ErrorText.For(ex)));
         }
     }
 
