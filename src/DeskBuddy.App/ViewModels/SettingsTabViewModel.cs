@@ -100,6 +100,7 @@ public sealed partial class SettingsTabViewModel : ObservableObject
         _settings.Changed += OnSettingsChanged;
         _editor.Changed += OnEditorChanged;
         _bossKey.StatusChanged += OnBossKeyStatusChanged;
+        LocalizedStrings.Instance.LanguageChanged += OnLanguageChanged;
         if (_pets is not null)
         {
             _pets.Changed += OnPetsChanged;
@@ -114,6 +115,39 @@ public sealed partial class SettingsTabViewModel : ObservableObject
         {
             BossKeyError = string.Format(CultureInfo.CurrentCulture, Strings.BossKeyFailed, settings.Current.BossKey, reason);
         }
+    }
+
+    /// <summary>
+    /// Writes the text this view model holds in the new interface language: the names in the lists of languages and
+    /// themes and the scenario switches. The text in the XAML follows the language by itself.
+    /// </summary>
+    /// <param name="sender">
+    /// The event source.
+    /// </param>
+    /// <param name="e">
+    /// Event data.
+    /// </param>
+    private void OnLanguageChanged(object? sender, EventArgs e)
+    {
+        foreach (var option in Languages)
+        {
+            option.Label = LanguageLabel(option.Value);
+        }
+
+        foreach (var option in Themes)
+        {
+            option.Label = ThemeLabel(option.Value);
+        }
+
+        foreach (var scenario in Scenarios)
+        {
+            scenario.Label = Strings.ScenarioName(scenario.State);
+            scenario.Description = Strings.ScenarioLabel(scenario.State);
+        }
+
+        // The size buttons carry their names too.
+        _sizeChoicesFor = null;
+        UpdateSizeChoices(_editor.Draft.PetName);
     }
 
     /// <summary>

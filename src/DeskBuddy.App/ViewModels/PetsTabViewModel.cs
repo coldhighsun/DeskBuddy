@@ -56,6 +56,11 @@ public sealed partial class PetsTabViewModel : ObservableObject
     private Dictionary<string, PetCardViewModel> _known = [];
 
     /// <summary>
+    /// The name of the interface language the cards in <see cref="_known"/> were made in.
+    /// </summary>
+    private string _cardsLanguage = Strings.Current.Name;
+
+    /// <summary>
     /// Gets or sets the pets, in the order of their folder names.
     /// </summary>
     [ObservableProperty]
@@ -127,6 +132,36 @@ public sealed partial class PetsTabViewModel : ObservableObject
 
         _settings.Changed += OnSettingsChanged;
         petSwitcher.SwitchFailed += OnPetSwitchFailed;
+        LocalizedStrings.Instance.LanguageChanged += OnLanguageChanged;
+    }
+
+    /// <summary>
+    /// Makes the cards again after the interface language changed, as they hold the names and the text of the pets in the
+    /// language they were made in. The pet being previewed stays picked.
+    /// </summary>
+    /// <param name="sender">
+    /// The event source.
+    /// </param>
+    /// <param name="e">
+    /// Event data.
+    /// </param>
+    private async void OnLanguageChanged(object? sender, EventArgs e)
+    {
+        if (!_isLoaded)
+        {
+            // Nothing has been made yet; the first look at the pets writes everything in the new language.
+            return;
+        }
+
+        try
+        {
+            await RefreshAsync();
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            // Nothing asked for this, so there is no one to tell; the old cards are still in place, and the tab looks at the
+            // pets again when it is shown, and reports what is wrong then.
+        }
     }
 
     /// <summary>
@@ -157,14 +192,18 @@ public sealed partial class PetsTabViewModel : ObservableObject
         try
         {
             var cards = new List<PetCardViewModel>();
+            // The cards hold text in the language they were made in, so after a change of language none is kept.
+            var language = Strings.Current.Name;
+            var reusable = string.Equals(language, _cardsLanguage, StringComparison.Ordinal);
             // Listing the folders reads the disk, which should not hold up the UI thread.
             foreach (var name in await Task.Run(_catalog.GetPetNames))
             {
-                cards.Add(_known.TryGetValue(name, out var existing) && existing.IsAvailable && existing.HasPicture
+                cards.Add(reusable && _known.TryGetValue(name, out var existing) && existing.IsAvailable && existing.HasPicture
                     ? existing
                     : await LoadCardAsync(name));
             }
 
+            _cardsLanguage = language;
             _known = cards.ToDictionary(card => card.FolderName, StringComparer.Ordinal);
             MarkCurrent(_settings.Current.PetName);
             Cards = cards;

@@ -21,7 +21,7 @@
                                    RenderOptions.BitmapScalingMode="HighQuality" />
                         </Border>
                         <StackPanel Margin="16,0,0,0" VerticalAlignment="Center">
-                            <TextBlock Text="{x:Static res:Strings.AppName}"
+                            <TextBlock Text="{res:Loc AppName}"
                                        FontSize="{DynamicResource FontSizeDisplay}"
                                        FontWeight="SemiBold" />
                             <Border Style="{DynamicResource SettingsChipBorderStyle}"
@@ -33,7 +33,7 @@
                                            FontSize="{DynamicResource SettingsCaptionSize}"
                                            AutomationProperties.AutomationId="AboutVersion" />
                             </Border>
-                            <TextBlock Text="{x:Static res:Strings.AboutLicense}"
+                            <TextBlock Text="{res:Loc AboutLicense}"
                                        Style="{DynamicResource SettingsHintStyle}"
                                        Margin="0,2,0,0" />
                         </StackPanel>
@@ -41,7 +41,7 @@
 
                     <Border Height="1" Background="{DynamicResource AppDivider}" Margin="0,16,0,14" />
 
-                    <TextBlock Text="{x:Static res:Strings.AboutDescription}"
+                    <TextBlock Text="{res:Loc AboutDescription}"
                                TextWrapping="Wrap"
                                LineHeight="20" />
                 </StackPanel>
@@ -80,7 +80,7 @@
                                        VerticalAlignment="Center"
                                        Margin="0,0,10,0" />
                             <Button x:Name="CheckUpdatesButton"
-                                    Content="{x:Static res:Strings.AboutCheckUpdates}"
+                                    Content="{res:Loc AboutCheckUpdates}"
                                     Click="OnCheckUpdatesClick"
                                     Padding="18,3"
                                     MinHeight="32"

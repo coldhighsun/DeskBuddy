@@ -76,6 +76,55 @@ public class PetsTabViewModelTests
     }
 
     /// <summary>
+    /// After the interface language changed, a refresh makes the cards again, as they hold text in the language they were
+    /// made in; the pet being previewed stays picked.
+    /// </summary>
+    [Fact]
+    public async Task RefreshAsync_LanguageChanged_MakesTheCardsAgain()
+    {
+        // Arrange
+        var original = System.Globalization.CultureInfo.CurrentUICulture;
+        try
+        {
+            System.Globalization.CultureInfo.CurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo("en");
+            await CreateAsync(PetSettings.DefaultPetName, "cat");
+            await _viewModel.RefreshAsync();
+            var before = _viewModel.Cards.ToList();
+            _viewModel.SelectCard(before[1]);
+
+            // Act
+            System.Globalization.CultureInfo.CurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo("zh-CN");
+            await _viewModel.RefreshAsync();
+
+            // Assert
+            _viewModel.Cards.Should().NotIntersectWith(before);
+            _viewModel.SelectedCard!.FolderName.Should().Be("cat");
+        }
+        finally
+        {
+            System.Globalization.CultureInfo.CurrentUICulture = original;
+        }
+    }
+
+    /// <summary>
+    /// While the interface language stays the same, a refresh keeps the cards that were made.
+    /// </summary>
+    [Fact]
+    public async Task RefreshAsync_LanguageUnchanged_KeepsTheCards()
+    {
+        // Arrange
+        await CreateAsync(PetSettings.DefaultPetName, "cat");
+        await _viewModel.RefreshAsync();
+        var before = _viewModel.Cards.ToList();
+
+        // Act
+        await _viewModel.RefreshAsync();
+
+        // Assert
+        _viewModel.Cards.Should().Equal(before);
+    }
+
+    /// <summary>
     /// With no pet installed the tab says so.
     /// </summary>
     [Fact]

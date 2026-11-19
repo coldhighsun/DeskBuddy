@@ -31,14 +31,16 @@ public sealed partial class ScenarioToggleViewModel(PetState state, string label
     public PetState State { get; } = state;
 
     /// <summary>
-    /// Gets the short name shown next to the switch.
+    /// Gets or sets the short name shown next to the switch.
     /// </summary>
-    public string Label { get; } = label;
+    [ObservableProperty]
+    private string _label = label;
 
     /// <summary>
-    /// Gets the explanation of the scenario, shown as a tooltip.
+    /// Gets or sets the explanation of the scenario, shown as a tooltip.
     /// </summary>
-    public string Description { get; } = description;
+    [ObservableProperty]
+    private string _description = description;
 
     /// <summary>
     /// Gets or sets a value indicating whether the pet acts out the scenario.

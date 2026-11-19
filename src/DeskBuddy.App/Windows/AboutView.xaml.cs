@@ -40,10 +40,69 @@ public partial class AboutView
     {
         InitializeComponent();
         UpdateCard.Visibility = Visibility.Collapsed;
-        VersionText.Text = string.Format(CultureInfo.CurrentCulture, Strings.AboutVersion, AboutInfo.CurrentVersion());
+        ShowVersion();
         LogoImage.Source = Logo.Value;
         ProjectLink.NavigateUri = AboutInfo.ProjectUri;
         ProjectLinkText.Text = AboutInfo.ProjectUri.AbsoluteUri;
+
+        // Listening only while loaded: the tab is unloaded while another tab shows, and a view that is never shown must not be
+        // reached by a notification on the wrong thread. The texts are written again when it loads, for what it missed.
+        Loaded += OnLoaded;
+        Unloaded += OnUnloaded;
+    }
+
+    /// <summary>
+    /// Starts listening for a change of the interface language, and writes the texts in the language now in use.
+    /// </summary>
+    /// <param name="sender">
+    /// The view.
+    /// </param>
+    /// <param name="e">
+    /// Event data.
+    /// </param>
+    private void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        LocalizedStrings.Instance.LanguageChanged -= OnLanguageChanged;
+        LocalizedStrings.Instance.LanguageChanged += OnLanguageChanged;
+        ShowVersion();
+        ShowUpdateStatus();
+    }
+
+    /// <summary>
+    /// Stops listening for a change of the interface language.
+    /// </summary>
+    /// <param name="sender">
+    /// The view.
+    /// </param>
+    /// <param name="e">
+    /// Event data.
+    /// </param>
+    private void OnUnloaded(object sender, RoutedEventArgs e)
+    {
+        LocalizedStrings.Instance.LanguageChanged -= OnLanguageChanged;
+    }
+
+    /// <summary>
+    /// Shows the version in the interface language now in use.
+    /// </summary>
+    private void ShowVersion()
+    {
+        VersionText.Text = string.Format(CultureInfo.CurrentCulture, Strings.AboutVersion, AboutInfo.CurrentVersion());
+    }
+
+    /// <summary>
+    /// Writes the texts the view sets itself in the new interface language.
+    /// </summary>
+    /// <param name="sender">
+    /// The event source.
+    /// </param>
+    /// <param name="e">
+    /// Event data.
+    /// </param>
+    private void OnLanguageChanged(object? sender, EventArgs e)
+    {
+        ShowVersion();
+        ShowUpdateStatus();
     }
 
     /// <summary>

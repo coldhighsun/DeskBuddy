@@ -98,7 +98,7 @@ public sealed partial class PetCardViewModel : ObservableObject
         ArgumentNullException.ThrowIfNull(frames);
 
         FolderName = folderName;
-        DisplayName = pet.GetDisplayName(CultureInfo.CurrentUICulture);
+        DisplayName = pet.GetDisplayName(Strings.Current);
         _frames = frames;
         _player = new AnimationPlayer(pet);
         _showcase = PetShowcase.NativeStatesOf(pet);

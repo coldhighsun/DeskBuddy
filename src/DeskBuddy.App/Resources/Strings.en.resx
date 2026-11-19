@@ -197,7 +197,6 @@
   <data name="ThemeAuto" xml:space="preserve"><value>Follow system</value></data>
   <data name="ThemeLight" xml:space="preserve"><value>Light</value></data>
   <data name="ThemeDark" xml:space="preserve"><value>Dark</value></data>
-  <data name="LanguageRestartHint" xml:space="preserve"><value>Restart DeskBuddy for a language change to take full effect.</value></data>
 
   <data name="StateHintCoding" xml:space="preserve"><value>Keeping you company while you code</value></data>
   <data name="StateHintBuilding" xml:space="preserve"><value>Building (a compiler is using the CPU)</value></data>

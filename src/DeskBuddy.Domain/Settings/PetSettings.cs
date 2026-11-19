@@ -123,7 +123,7 @@ public sealed record PetSettings
     public IReadOnlyList<string> DisabledScenarios { get; init; } = DefaultDisabledScenarios;
 
     /// <summary>
-    /// Gets the language of the user interface; a change takes full effect after a restart.
+    /// Gets the language of the user interface; a change is applied as soon as it is saved.
     /// </summary>
     public AppLanguage Language { get; init; } = AppLanguage.Auto;
 

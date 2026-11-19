@@ -89,6 +89,23 @@ public class TrayMenuModelTests
     }
 
     /// <summary>
+    /// A change of the interface language changes the text of the menu, so it is built again.
+    /// </summary>
+    [Fact]
+    public void ShouldRebuild_LanguageChanged_IsTrue()
+    {
+        // Arrange
+        var policy = new TrayMenuRebuildPolicy();
+        policy.MarkBuilt(new TrayMenuState("robot", PetSize.Medium, false, 0, Language: "zh-CN"));
+
+        // Act
+        var result = policy.ShouldRebuild(new TrayMenuState("robot", PetSize.Medium, false, 0, Language: "en"), menuOpen: false);
+
+        // Assert
+        result.Should().BeTrue();
+    }
+
+    /// <summary>
     /// A state the menu was built for does not make it be built again.
     /// </summary>
     [Fact]

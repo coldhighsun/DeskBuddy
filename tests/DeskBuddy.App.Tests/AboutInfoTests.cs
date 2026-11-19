@@ -1,3 +1,5 @@
+using System.Globalization;
+using DeskBuddy.App.Resources;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
@@ -9,6 +11,7 @@ namespace DeskBuddy.App.Tests;
 /// <summary>
 /// Tests for the about view and the version text it shows.
 /// </summary>
+[Collection("InterfaceLanguage")]
 public class AboutInfoTests
 {
     /// <summary>
@@ -114,8 +117,33 @@ public class AboutInfoTests
     }
 
     /// <summary>
+    /// The texts of the markup follow a change of the interface language without the view being made anew.
+    /// </summary>
+    [Fact]
+    public void LanguageChanged_Notified_TextsOfTheMarkupAreWrittenAgain()
+    {
+        StaThread.Run(() =>
+        {
+            // Arrange
+            CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("en");
+            var view = new AboutView();
+            var button = (Button)view.FindName("CheckUpdatesButton");
+            var before = button.Content;
+
+            // Act
+            CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("zh-CN");
+            LocalizedStrings.Instance.NotifyLanguageChanged();
+
+            // Assert
+            button.Content.Should().Be(Strings.AboutCheckUpdates);
+            button.Content.Should().NotBe(before);
+        });
+    }
+
+    /// <summary>
     /// Without an update controller, the view offers no check for updates.
     /// </summary>
+
     [Fact]
     public void Attach_WithoutUpdates_HidesTheUpdateCard()
     {

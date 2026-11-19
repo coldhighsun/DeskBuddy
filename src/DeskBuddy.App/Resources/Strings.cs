@@ -16,6 +16,28 @@ internal static class Strings
     private static readonly ResourceManager Manager = new("DeskBuddy.App.Resources.Strings", typeof(Strings).Assembly);
 
     /// <summary>
+    /// The interface language the application chose; <see langword="null"/> until it has chosen one.
+    /// </summary>
+    private static volatile CultureInfo? _culture;
+
+    /// <summary>
+    /// Gets or sets the interface language of the whole application. The culture of a thread cannot carry it: the one of
+    /// the UI thread is its own and is not changed by <see cref="CultureInfo.DefaultThreadCurrentUICulture"/>, and a value
+    /// set inside a task or a dispatcher callback is gone when that ends. While no language has been chosen (as in tests),
+    /// <see cref="Current"/> follows the culture of the thread.
+    /// </summary>
+    public static CultureInfo? Culture
+    {
+        get => _culture;
+        set => _culture = value;
+    }
+
+    /// <summary>
+    /// Gets the language texts are looked up in: the one the application chose, or else the culture of the thread.
+    /// </summary>
+    public static CultureInfo Current => _culture ?? CultureInfo.CurrentUICulture;
+
+    /// <summary>
     /// Gets the application name.
     /// </summary>
     public static string AppName => Get();
@@ -202,7 +224,7 @@ internal static class Strings
     /// </returns>
     public static string PetStateName(PetState state)
     {
-        return Manager.GetString($"PetStateName{state}", CultureInfo.CurrentUICulture) ?? $"!PetStateName{state}!";
+        return Manager.GetString($"PetStateName{state}", Current) ?? $"!PetStateName{state}!";
     }
 
     /// <summary>
@@ -620,11 +642,6 @@ internal static class Strings
     public static string ThemeDark => Get();
 
     /// <summary>
-    /// Gets the note that a language change needs a restart.
-    /// </summary>
-    public static string LanguageRestartHint => Get();
-
-    /// <summary>
     /// Gets the short explanation of what the pet is doing in a state, shown when the mouse rests on it.
     /// </summary>
     /// <param name="state">
@@ -635,7 +652,7 @@ internal static class Strings
     /// </returns>
     public static string? StateHint(PetState state)
     {
-        return Manager.GetString($"StateHint{state}", CultureInfo.CurrentUICulture);
+        return Manager.GetString($"StateHint{state}", Current);
     }
 
     /// <summary>
@@ -679,7 +696,7 @@ internal static class Strings
     /// </returns>
     public static string ScenarioName(PetState state)
     {
-        return Manager.GetString($"ScenarioName{state}", CultureInfo.CurrentUICulture) ?? $"!ScenarioName{state}!";
+        return Manager.GetString($"ScenarioName{state}", Current) ?? $"!ScenarioName{state}!";
     }
 
     /// <summary>
@@ -693,7 +710,7 @@ internal static class Strings
     /// </returns>
     public static string ScenarioLabel(PetState state)
     {
-        return Manager.GetString($"Scenario{state}", CultureInfo.CurrentUICulture) ?? $"!Scenario{state}!";
+        return Manager.GetString($"Scenario{state}", Current) ?? $"!Scenario{state}!";
     }
 
     /// <summary>
@@ -707,7 +724,7 @@ internal static class Strings
     /// </returns>
     public static string ProcessListName(ProcessListKind kind)
     {
-        return Manager.GetString($"ProcessList{kind}", CultureInfo.CurrentUICulture) ?? $"!ProcessList{kind}!";
+        return Manager.GetString($"ProcessList{kind}", Current) ?? $"!ProcessList{kind}!";
     }
 
     /// <summary>
@@ -722,10 +739,24 @@ internal static class Strings
     public static string Remark(int code)
     {
         var (state, variant) = RemarkCode.Decode(code);
-        var text = (variant > 0 ? Manager.GetString($"Remark{state}{variant}", CultureInfo.CurrentUICulture) : null)
-            ?? Manager.GetString($"Remark{state}", CultureInfo.CurrentUICulture)
+        var text = (variant > 0 ? Manager.GetString($"Remark{state}{variant}", Current) : null)
+            ?? Manager.GetString($"Remark{state}", Current)
             ?? string.Empty;
         return state == PetState.Chime ? string.Format(CultureInfo.CurrentCulture, text, variant) : text;
+    }
+
+    /// <summary>
+    /// Looks up a string by its key, for the places that only know the key as text (the bindings of XAML).
+    /// </summary>
+    /// <param name="key">
+    /// The resource key, which is the name of a property of this class.
+    /// </param>
+    /// <returns>
+    /// The localized text for the current UI culture, or <c>!key!</c> if it is missing.
+    /// </returns>
+    public static string Lookup(string key)
+    {
+        return Get(key);
     }
 
     /// <summary>
@@ -739,6 +770,6 @@ internal static class Strings
     /// </returns>
     private static string Get([CallerMemberName] string key = "")
     {
-        return Manager.GetString(key, CultureInfo.CurrentUICulture) ?? $"!{key}!";
+        return Manager.GetString(key, Current) ?? $"!{key}!";
     }
 }
