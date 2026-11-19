@@ -143,7 +143,15 @@ public sealed class PetBrain(
         var load = loadMonitor.GetSnapshot();
         var isStrained = loadPolicy.Update(load);
 
-        if (sedentary.Update(userIdle))
+        // A reminder held back while the pet could not speak is replaced by the next one rather than piling up, and
+        // is dropped once the user has taken a break, as it no longer applies.
+        var reminderDue = sedentary.Update(userIdle);
+        if (reminderDue || sedentary.StreakDuration == TimeSpan.Zero)
+        {
+            messages.RemoveWaiting(PetMessageKind.SedentaryReminder);
+        }
+
+        if (reminderDue)
         {
             messages.Enqueue(new PetMessage(
                 PetMessageKind.SedentaryReminder,

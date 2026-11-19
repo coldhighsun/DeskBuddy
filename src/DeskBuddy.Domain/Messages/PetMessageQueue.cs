@@ -126,6 +126,35 @@ public sealed class PetMessageQueue
     }
 
     /// <summary>
+    /// Removes the waiting messages of the given kind, for when they have become stale or are replaced by a newer
+    /// one. The message on screen is left alone.
+    /// </summary>
+    /// <param name="kind">
+    /// The kind of message to remove.
+    /// </param>
+    /// <returns>
+    /// The number of messages removed.
+    /// </returns>
+    public int RemoveWaiting(PetMessageKind kind)
+    {
+        var removed = 0;
+        var node = _waiting.First;
+        while (node is not null)
+        {
+            var following = node.Next;
+            if (node.Value.Kind == kind)
+            {
+                _waiting.Remove(node);
+                removed++;
+            }
+
+            node = following;
+        }
+
+        return removed;
+    }
+
+    /// <summary>
     /// Removes the passing remarks (<see cref="PetMessage.IsCasual"/>) from the line of waiting messages.
     /// </summary>
     private void DropWaitingCasual()

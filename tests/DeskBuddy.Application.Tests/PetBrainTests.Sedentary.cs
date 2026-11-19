@@ -87,4 +87,49 @@ public partial class PetBrainTests
         early.Should().BeNull();
         message.Should().NotBeNull();
     }
+
+    /// <summary>
+    /// Reminders that come due while the user must not be disturbed do not pile up: only the latest one is shown
+    /// afterwards.
+    /// </summary>
+    [Fact]
+    public void Tick_SeveralRemindersDueWhileSuppressed_ShowsOnlyOne()
+    {
+        // Arrange: 35 minutes with a 10-minute interval makes three reminders come due.
+        _fullscreen.DoNotDisturb = true;
+        RunMinutesUntilMessage(35);
+        _fullscreen.DoNotDisturb = false;
+
+        // Act
+        _brain.Tick();
+        var first = _brain.CurrentMessage;
+        _brain.Invoke(MessageAction.Dismiss);
+        _brain.Tick();
+
+        // Assert
+        first.Should().NotBeNull();
+        first!.Kind.Should().Be(PetMessageKind.SedentaryReminder);
+        _brain.CurrentMessage.Should().BeNull();
+    }
+
+    /// <summary>
+    /// A reminder held back while the user must not be disturbed is dropped once the user has taken a break.
+    /// </summary>
+    [Fact]
+    public void Tick_UserRestsWhileReminderHeld_DropsReminder()
+    {
+        // Arrange
+        _fullscreen.DoNotDisturb = true;
+        RunMinutesUntilMessage(12);
+        _idle.IdleTime = TimeSpan.FromMinutes(6);
+        _brain.Tick();
+        _idle.IdleTime = TimeSpan.Zero;
+        _fullscreen.DoNotDisturb = false;
+
+        // Act
+        _brain.Tick();
+
+        // Assert
+        _brain.CurrentMessage.Should().BeNull();
+    }
 }

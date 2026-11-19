@@ -323,4 +323,63 @@ public class PetMessageQueueTests
         _queue.Current!.Count.Should().Be(1);
         changedBeforeExpiry.Should().BeFalse();
     }
+
+    /// <summary>
+    /// Removing a kind takes every waiting message of that kind out of the line and keeps the others.
+    /// </summary>
+    [Fact]
+    public void RemoveWaiting_MixedKinds_RemovesOnlyThatKind()
+    {
+        // Arrange
+        _queue.Enqueue(Message(1));
+        _queue.Enqueue(new PetMessage(PetMessageKind.Chatter, [], Count: 2));
+        _queue.Enqueue(Message(3));
+
+        // Act
+        var removed = _queue.RemoveWaiting(PetMessageKind.SedentaryReminder);
+        _queue.Update(suppressed: false);
+
+        // Assert
+        removed.Should().Be(2);
+        _queue.WaitingCount.Should().Be(0);
+        _queue.Current!.Kind.Should().Be(PetMessageKind.Chatter);
+    }
+
+    /// <summary>
+    /// Removing waiting messages leaves the one on screen alone.
+    /// </summary>
+    [Fact]
+    public void RemoveWaiting_MessageOnScreen_KeepsIt()
+    {
+        // Arrange
+        _queue.Enqueue(Message(1));
+        _queue.Update(suppressed: false);
+
+        // Act
+        var removed = _queue.RemoveWaiting(PetMessageKind.SedentaryReminder);
+
+        // Assert
+        removed.Should().Be(0);
+        _queue.Current!.Count.Should().Be(1);
+    }
+
+    /// <summary>
+    /// A message pulled back while suppressed is waiting again and can be removed.
+    /// </summary>
+    [Fact]
+    public void RemoveWaiting_MessageHeldBack_RemovesIt()
+    {
+        // Arrange
+        _queue.Enqueue(Message(1));
+        _queue.Update(suppressed: false);
+        _queue.Update(suppressed: true);
+
+        // Act
+        var removed = _queue.RemoveWaiting(PetMessageKind.SedentaryReminder);
+        _queue.Update(suppressed: false);
+
+        // Assert
+        removed.Should().Be(1);
+        _queue.Current.Should().BeNull();
+    }
 }
