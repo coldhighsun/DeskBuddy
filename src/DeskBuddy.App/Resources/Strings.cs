@@ -469,6 +469,11 @@ internal static class Strings
     public static string SettingsLoadFailed => Get();
 
     /// <summary>
+    /// Gets the message shown when no pet at all could be loaded at start-up, before the application closes.
+    /// </summary>
+    public static string PetStartupFailed => Get();
+
+    /// <summary>
     /// Gets the message for a pet that could not be switched to; <c>{0}</c> is the reason.
     /// </summary>
     public static string PetSwitchFailed => Get();

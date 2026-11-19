@@ -151,6 +151,7 @@
   <data name="UnsavedCloseMessage" xml:space="preserve"><value>有未保存的修改，要保存吗？</value></data>
   <data name="UnsavedInvalidCloseMessage" xml:space="preserve"><value>有无法保存的输入。要放弃这些修改并关闭吗？</value></data>
   <data name="SettingsLoadFailed" xml:space="preserve"><value>设置读取失败（{0}）。为避免覆盖原有设置，已暂停修改，请检查文件后重启。</value></data>
+  <data name="PetStartupFailed" xml:space="preserve"><value>无法加载宠物，DeskBuddy 即将退出。可以在日志里查看原因。</value></data>
   <data name="PetSwitchFailed" xml:space="preserve"><value>无法切换宠物：{0}</value></data>
 
   <data name="SettingsLanguage" xml:space="preserve"><value>语言 / Language</value></data>
