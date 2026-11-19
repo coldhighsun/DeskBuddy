@@ -293,6 +293,7 @@ public partial class App
         CultureInfo.DefaultThreadCurrentUICulture = culture;
         CultureInfo.CurrentUICulture = culture;
         logger.LogInformation("Interface language: {Language}.", culture.Name);
+        LogEnvironment(logger);
 
         // The theme must be applied before any window is created, so none flashes in the wrong colors.
         var themeService = new ThemeService(
@@ -310,6 +311,12 @@ public partial class App
         {
             var (pet, petFrames, loadedName) = await LoadStartupPetAsync(petName, logger);
             petName = loadedName;
+            logger.LogInformation(
+                "Showing the '{Pet}' pet ({Width}x{Height}, {States} states).",
+                petName,
+                pet.FrameWidth,
+                pet.FrameHeight,
+                pet.Animations.Count);
 
             var brain = _host.Services.GetRequiredService<PetBrain>();
             _petWindow = new PetWindow(
@@ -350,7 +357,8 @@ public partial class App
                 _host.Services.GetRequiredService<IPetLoader>(),
                 Path.Combine(AppContext.BaseDirectory, "pets"),
                 _previewFrames.Get,
-                _previewFrames.PreloadAsync);
+                _previewFrames.PreloadAsync,
+                _host.Services.GetRequiredService<ILogger<InstalledPets>>());
             var settingsService = _host.Services.GetRequiredService<SettingsService>();
             var updateLogger = _host.Services.GetRequiredService<ILogger<TrayUpdatePresenter>>();
             var updates = AppUpdates.Create(
@@ -409,6 +417,31 @@ public partial class App
             logger.LogCritical(ex, "Start-up failed.");
             MessageBox.Show(Strings.CrashMessage, Strings.CrashTitle, MessageBoxButton.OK, MessageBoxImage.Error);
             Shutdown(1);
+        }
+    }
+
+    /// <summary>
+    /// Records what the application runs on, so a log sent in with a problem tells the version, the system and the
+    /// monitor layout without asking.
+    /// </summary>
+    /// <param name="logger">
+    /// Where to write it.
+    /// </param>
+    private static void LogEnvironment(ILogger logger)
+    {
+        logger.LogInformation(
+            "DeskBuddy {Version} on {OS} ({Architecture}), .NET {Runtime}.",
+            AboutInfo.CurrentVersion(),
+            Environment.OSVersion.VersionString,
+            RuntimeInformation.OSArchitecture,
+            Environment.Version);
+        foreach (var monitor in MonitorHelper.GetAllMonitors())
+        {
+            logger.LogInformation(
+                "Monitor {Bounds}, work area {WorkArea}, scale {Scale:P0}.",
+                monitor.Bounds,
+                monitor.WorkArea,
+                monitor.Scale);
         }
     }
 
@@ -497,6 +530,7 @@ public partial class App
     /// <inheritdoc />
     protected override void OnExit(ExitEventArgs e)
     {
+        _host?.Services.GetRequiredService<ILogger<App>>().LogInformation("Exiting with code {ExitCode}.", e.ApplicationExitCode);
         _petSwitcher?.Dispose();
         _themeService?.Dispose();
         _bossKey?.Dispose();
