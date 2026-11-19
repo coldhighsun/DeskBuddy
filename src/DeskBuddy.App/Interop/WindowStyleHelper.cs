@@ -109,6 +109,31 @@ internal static partial class WindowStyleHelper
     }
 
     /// <summary>
+    /// Corner preference value that asks for the standard rounded corners.
+    /// </summary>
+    internal const int DwmwcpRound = 2;
+
+    /// <summary>
+    /// Corner preference value that gives the corners back to the system.
+    /// </summary>
+    internal const int DwmwcpDefault = 0;
+
+    /// <summary>
+    /// Sets the Windows 11 corner preference of a window. Silently does nothing on Windows versions that do not support
+    /// it.
+    /// </summary>
+    /// <param name="handle">
+    /// Window handle.
+    /// </param>
+    /// <param name="preference">
+    /// One of the <c>DWMWCP_*</c> values.
+    /// </param>
+    internal static void SetCornerPreference(nint handle, int preference)
+    {
+        _ = DwmSetWindowAttribute(handle, DwmwaWindowCornerPreference, ref preference, sizeof(int));
+    }
+
+    /// <summary>
     /// Converts the screen coordinates packed in a <c>WM_NCHITTEST</c> <c>lParam</c> into client coordinates.
     /// </summary>
     /// <param name="hwnd">

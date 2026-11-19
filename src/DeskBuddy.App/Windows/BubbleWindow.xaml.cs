@@ -47,6 +47,24 @@ public partial class BubbleWindow : Window
 
         SourceInitialized += OnSourceInitialized;
         SizeChanged += OnSizeChanged;
+        IsVisibleChanged += OnIsVisibleChanged;
+    }
+
+    /// <summary>
+    /// Lets the bubble pop up each time it is shown.
+    /// </summary>
+    /// <param name="sender">
+    /// The event source.
+    /// </param>
+    /// <param name="e">
+    /// Event data.
+    /// </param>
+    private void OnIsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+    {
+        if (e.NewValue is true)
+        {
+            Motion.PopIn(Body);
+        }
     }
 
     /// <summary>

@@ -21,6 +21,31 @@ internal static class Strings
     public static string AppName => Get();
 
     /// <summary>
+    /// Gets the text of the OK button of a dialog.
+    /// </summary>
+    public static string DialogOk => Get();
+
+    /// <summary>
+    /// Gets the text of the Yes button of a dialog.
+    /// </summary>
+    public static string DialogYes => Get();
+
+    /// <summary>
+    /// Gets the text of the No button of a dialog.
+    /// </summary>
+    public static string DialogNo => Get();
+
+    /// <summary>
+    /// Gets the text of the Cancel button of a dialog.
+    /// </summary>
+    public static string DialogCancel => Get();
+
+    /// <summary>
+    /// Gets the text of the button of a dialog that drops unsaved changes.
+    /// </summary>
+    public static string DialogDontSave => Get();
+
+    /// <summary>
     /// Gets the title of the notice shown after an unhandled error.
     /// </summary>
     public static string CrashTitle => Get();

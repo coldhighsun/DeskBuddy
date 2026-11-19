@@ -13,84 +13,68 @@ namespace DeskBuddy.App.Tests;
 public class ThemeServiceTests
 {
     /// <summary>
-    /// The pack address the real Fluent theme resources are loaded from.
+    /// The address of the color dictionaries and styles, in the assembly of the application.
     /// </summary>
-    private const string FluentPrefix = ThemeService.DefaultFluentUriPrefix;
+    private const string ThemesPrefix = "pack://application:,,,/DeskBuddy;component/Themes/";
 
     /// <summary>
-    /// The theme from the settings is shown at once: the colors are merged in and a registered window and menu follow it.
+    /// The theme from the settings is shown at once: the colors of its palette are merged into the application resources.
     /// </summary>
+    /// <param name="theme">
+    /// The theme in the settings.
+    /// </param>
+    /// <param name="primary">
+    /// The accent color the palette is expected to have.
+    /// </param>
     [Theory]
-    [InlineData(AppTheme.Dark, "#FF2E2620", "Dark", "Fluent.Dark.xaml")]
-    [InlineData(AppTheme.Light, "#FFFDF6EC", "Light", "Fluent.Light.xaml")]
-    public void Constructor_ChosenTheme_ShowsItInEverythingRegistered(AppTheme theme, string bubbleBackground, string mode, string fluentFile)
+    [InlineData(AppTheme.Dark, "#FF4F8DF7")]
+    [InlineData(AppTheme.Light, "#FF2B6CF0")]
+    public void Constructor_ChosenTheme_MergesItsColors(AppTheme theme, string primary)
     {
         StaThread.Run(() =>
         {
-            // Arrange
+            // Arrange & Act
             using var fixture = new Fixture(theme);
-            var window = new Window();
-            var menu = new ContextMenu();
-
-            // Act
-            fixture.Service.Register(window);
-            fixture.Service.Register(menu);
 
             // Assert
-            BubbleBackground(fixture.Resources).Should().Be((Color)ColorConverter.ConvertFromString(bubbleBackground));
-            window.ThemeMode.Value.Should().Be(mode);
-            FluentFiles(menu).Should().Equal(fluentFile);
+            Primary(fixture.Resources).Should().Be((Color)ColorConverter.ConvertFromString(primary));
+            fixture.Resources.MergedDictionaries.Should().ContainSingle();
         });
     }
 
     /// <summary>
-    /// A theme chosen later in the settings is shown in everything registered, replacing the old one.
+    /// A theme chosen later in the settings replaces the colors of the old one.
     /// </summary>
     [Fact]
-    public void SettingsChanged_NewTheme_SwitchesColorsWindowAndMenu()
+    public void SettingsChanged_NewTheme_ReplacesTheColors()
     {
         StaThread.Run(() =>
         {
             // Arrange
             using var fixture = new Fixture(AppTheme.Dark);
-            var window = new Window();
-            var menu = new ContextMenu();
-            fixture.Service.Register(window);
-            fixture.Service.Register(menu);
 
             // Act
             fixture.ChangeTheme(AppTheme.Light);
 
             // Assert
-            BubbleBackground(fixture.Resources).Should().Be((Color)ColorConverter.ConvertFromString("#FFFDF6EC"));
+            Primary(fixture.Resources).Should().Be((Color)ColorConverter.ConvertFromString("#FF2B6CF0"));
             fixture.Resources.MergedDictionaries.Count.Should().Be(1);
-            window.ThemeMode.Should().Be(ThemeMode.Light);
-            FluentFiles(menu).Should().Equal("Fluent.Light.xaml");
         });
     }
 
     /// <summary>
-    /// A high-contrast theme wins over the chosen theme everywhere: its own colors, the system theme mode for windows and
-    /// the high-contrast Fluent resources for menus.
+    /// A high-contrast theme wins over the chosen theme.
     /// </summary>
     [Fact]
     public void Constructor_HighContrast_WinsOverTheChosenTheme()
     {
         StaThread.Run(() =>
         {
-            // Arrange
+            // Arrange & Act
             using var fixture = new Fixture(AppTheme.Dark, highContrast: true);
-            var window = new Window();
-            var menu = new ContextMenu();
-
-            // Act
-            fixture.Service.Register(window);
-            fixture.Service.Register(menu);
 
             // Assert
             fixture.Resources.MergedDictionaries.Single().Source.OriginalString.Should().EndWith("Colors.HighContrast.xaml");
-            window.ThemeMode.Should().Be(ThemeMode.System);
-            FluentFiles(menu).Should().Equal("Fluent.HC.xaml");
         });
     }
 
@@ -137,50 +121,7 @@ public class ThemeServiceTests
 
             // Assert
             unchanged.Should().BeSameAs(light);
-            BubbleBackground(fixture.Resources).Should().Be((Color)ColorConverter.ConvertFromString("#FF2E2620"));
-        });
-    }
-
-    /// <summary>
-    /// Registering the same element again does not list it twice.
-    /// </summary>
-    [Fact]
-    public void Register_SameElementTwice_IsListedOnce()
-    {
-        StaThread.Run(() =>
-        {
-            // Arrange
-            using var fixture = new Fixture(AppTheme.Dark);
-            var menu = new ContextMenu();
-
-            // Act
-            fixture.Service.Register(menu);
-            fixture.Service.Register(menu);
-
-            // Assert
-            fixture.Service.RegisteredCount.Should().Be(1);
-            FluentFiles(menu).Should().Equal("Fluent.Dark.xaml");
-        });
-    }
-
-    /// <summary>
-    /// The service belongs to the UI thread: registering from another thread fails at once instead of corrupting its state.
-    /// </summary>
-    [Fact]
-    public void Register_FromAnotherThread_Throws()
-    {
-        StaThread.Run(() =>
-        {
-            // Arrange
-            using var fixture = new Fixture(AppTheme.Dark);
-            var menu = new ContextMenu();
-
-            // Act
-            var register = () => Task.Run(() => fixture.Service.Register(menu)).GetAwaiter().GetResult();
-
-            // Assert
-            register.Should().Throw<InvalidOperationException>();
-            fixture.Service.RegisteredCount.Should().Be(0);
+            Primary(fixture.Resources).Should().Be((Color)ColorConverter.ConvertFromString("#FF4F8DF7"));
         });
     }
 
@@ -202,40 +143,16 @@ public class ThemeServiceTests
             fixture.Pump();
 
             // Assert
-            BubbleBackground(fixture.Resources).Should().Be((Color)ColorConverter.ConvertFromString("#FF2E2620"));
+            Primary(fixture.Resources).Should().Be((Color)ColorConverter.ConvertFromString("#FF4F8DF7"));
         });
     }
 
     /// <summary>
-    /// When the Fluent resources cannot be loaded, the menu keeps its classic look and a warning is logged instead of an
-    /// exception escaping.
+    /// The service as the application builds it, with the real system probes, merges one color dictionary without any
+    /// warning.
     /// </summary>
     [Fact]
-    public void Register_FluentResourcesMissing_KeepsTheClassicLookAndWarns()
-    {
-        StaThread.Run(() =>
-        {
-            // Arrange
-            var logger = new RecordingLogger<ThemeService>();
-            using var fixture = new Fixture(AppTheme.Dark, logger: logger, fluentPrefix: "pack://application:,,,/NoSuchAssembly;component/Themes/Fluent.");
-            var menu = new ContextMenu();
-
-            // Act
-            var register = () => fixture.Service.Register(menu);
-
-            // Assert
-            register.Should().NotThrow();
-            menu.Resources.MergedDictionaries.Should().BeEmpty();
-            logger.Levels.Should().Contain(LogLevel.Warning);
-        });
-    }
-
-    /// <summary>
-    /// The service as the application builds it, with the real Fluent address and the real system probes, themes a menu
-    /// without any warning.
-    /// </summary>
-    [Fact]
-    public void PublicConstructor_RealFluentResources_ThemeAMenuWithoutWarnings()
+    public void PublicConstructor_RealSystemProbes_MergesOneDictionaryWithoutWarnings()
     {
         StaThread.Run(() =>
         {
@@ -244,16 +161,59 @@ public class ThemeServiceTests
             settings.InitializeAsync().GetAwaiter().GetResult();
             var logger = new RecordingLogger<ThemeService>();
             var resources = new ResourceDictionary();
-            using var service = new ThemeService(resources, Dispatcher.CurrentDispatcher, settings, logger);
-            var menu = new ContextMenu();
 
             // Act
-            service.Register(menu);
+            using var service = new ThemeService(resources, Dispatcher.CurrentDispatcher, settings, logger);
 
             // Assert
-            FluentFiles(menu).Should().ContainSingle();
             resources.MergedDictionaries.Should().ContainSingle();
             logger.Levels.Should().BeEmpty();
+        });
+    }
+
+    /// <summary>
+    /// The three color files define the same keys: a key that is missing in one of them would show up as a missing color
+    /// only when that theme is chosen.
+    /// </summary>
+    [Fact]
+    public void ColorFiles_LightDarkAndHighContrast_DefineTheSameKeys()
+    {
+        StaThread.Run(() =>
+        {
+            // Arrange
+            var light = Keys("Colors.Light.xaml");
+            var dark = Keys("Colors.Dark.xaml");
+            var highContrast = Keys("Colors.HighContrast.xaml");
+
+            // Act & Assert
+            light.Should().NotBeEmpty();
+            dark.Should().BeEquivalentTo(light);
+            highContrast.Should().BeEquivalentTo(light);
+        });
+    }
+
+    /// <summary>
+    /// The control styles load without a missing resource, and define the styles the windows ask for by name.
+    /// </summary>
+    [Fact]
+    public void AppTheme_Loads_AndDefinesTheStylesTheWindowsUse()
+    {
+        StaThread.Run(() =>
+        {
+            // Arrange & Act
+            var theme = new ResourceDictionary { Source = new Uri($"{ThemesPrefix}AppTheme.xaml") };
+
+            // Assert
+            string[] names =
+            [
+                "DialogWindowStyle", "BorderlessWindowStyle", "RaisedButton", "FlatButton", "IconButton", "CloseIconButton",
+                "AppTabControl", "SettingsGroupStyle", "SettingsCardBorderStyle", "SettingsChipBorderStyle",
+                "SettingsSectionHeaderStyle", "SettingsHintStyle", "SecondaryTextStyle",
+            ];
+            foreach (var name in names)
+            {
+                theme.Contains(name).Should().BeTrue($"{name} is used by a window");
+            }
         });
     }
 
@@ -275,7 +235,7 @@ public class ThemeServiceTests
             fixture.Service.Refresh();
 
             // Assert
-            BubbleBackground(fixture.Resources).Should().Be((Color)ColorConverter.ConvertFromString("#FFFDF6EC"));
+            Primary(fixture.Resources).Should().Be((Color)ColorConverter.ConvertFromString("#FF2B6CF0"));
             logger.Levels.Count(level => level == LogLevel.Warning).Should().Be(1);
         });
     }
@@ -331,7 +291,7 @@ public class ThemeServiceTests
     }
 
     /// <summary>
-    /// Reads the color of the bubble background out of the application resources.
+    /// Reads the accent color out of the application resources.
     /// </summary>
     /// <param name="resources">
     /// The application resources.
@@ -339,29 +299,24 @@ public class ThemeServiceTests
     /// <returns>
     /// The color.
     /// </returns>
-    private static Color BubbleBackground(ResourceDictionary resources)
+    private static Color Primary(ResourceDictionary resources)
     {
-        return ((SolidColorBrush)resources["BubbleBackgroundBrush"]).Color;
+        return ((SolidColorBrush)resources["AppPrimary"]).Color;
     }
 
     /// <summary>
-    /// Lists the Fluent resource files merged into an element.
+    /// Lists the keys a color file defines.
     /// </summary>
-    /// <param name="element">
-    /// The element.
+    /// <param name="file">
+    /// The file name, such as <c>Colors.Dark.xaml</c>.
     /// </param>
     /// <returns>
-    /// The file names, such as <c>Fluent.Dark.xaml</c>.
+    /// The keys.
     /// </returns>
-    private static List<string> FluentFiles(FrameworkElement element)
+    private static List<string> Keys(string file)
     {
-        return
-        [
-            .. element.Resources.MergedDictionaries
-                .Select(dictionary => dictionary.Source.OriginalString)
-                .Where(source => source.StartsWith(FluentPrefix, StringComparison.Ordinal))
-                .Select(source => source[(FluentPrefix.Length - "Fluent.".Length)..]),
-        ];
+        var dictionary = new ResourceDictionary { Source = new Uri($"{ThemesPrefix}{file}") };
+        return [.. dictionary.Keys.Cast<object>().Select(key => key.ToString()!)];
     }
 
     /// <summary>
@@ -391,9 +346,6 @@ public class ThemeServiceTests
         /// <param name="logger">
         /// The logger given to the service; <see langword="null"/> for one that discards everything.
         /// </param>
-        /// <param name="fluentPrefix">
-        /// Where the service loads the Fluent resources from; <see langword="null"/> for the real place.
-        /// </param>
         /// <param name="systemLightTheme">
         /// What the fake system says about the light theme; <see langword="null"/> when it cannot say.
         /// </param>
@@ -404,7 +356,6 @@ public class ThemeServiceTests
             AppTheme theme,
             bool highContrast = false,
             ILogger<ThemeService>? logger = null,
-            string? fluentPrefix = null,
             bool? systemLightTheme = true,
             bool highContrastAnswers = true)
         {
@@ -428,8 +379,7 @@ public class ThemeServiceTests
                 {
                     on = highContrast;
                     return HighContrastAnswers;
-                },
-                fluentPrefix ?? FluentPrefix);
+                });
         }
 
         /// <summary>

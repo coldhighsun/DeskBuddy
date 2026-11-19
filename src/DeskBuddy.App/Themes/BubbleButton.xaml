@@ -1,11 +1,11 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <!-- The action buttons in the speech bubble. The bubble is a transparent window that cannot take the Fluent theme, so
-         its buttons get their look here, from the theme colors. -->
+    <!-- The action buttons in the speech bubble. The bubble is a transparent window that cannot use the window styles of
+         AppTheme.xaml, so its buttons get their look here, from the theme colors. -->
     <Style x:Key="BubbleButtonStyle" TargetType="Button">
-        <Setter Property="Foreground" Value="{DynamicResource BubbleTextBrush}" />
-        <Setter Property="Background" Value="{DynamicResource BubbleButtonBackgroundBrush}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource BubbleBorderBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource AppForeground}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{DynamicResource AppDivider}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Template">
             <Setter.Value>
@@ -14,23 +14,23 @@
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="5"
+                            CornerRadius="{DynamicResource ButtonCornerRadius}"
                             Padding="{TemplateBinding Padding}">
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource BubbleButtonHoverBrush}" />
+                            <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource AppHover}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource BubbleButtonPressedBrush}" />
+                            <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource AppPressed}" />
                         </Trigger>
                         <Trigger Property="IsKeyboardFocused" Value="True">
-                            <Setter TargetName="Chrome" Property="BorderBrush" Value="{DynamicResource BubbleTextBrush}" />
+                            <Setter TargetName="Chrome" Property="BorderBrush" Value="{DynamicResource AppPrimary}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" />
-                            <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource BubbleButtonBackgroundBrush}" />
+                            <Setter TargetName="Chrome" Property="Background" Value="Transparent" />
                             <Setter TargetName="Chrome" Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" />
                         </Trigger>
                     </ControlTemplate.Triggers>

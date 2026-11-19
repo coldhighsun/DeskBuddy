@@ -3,23 +3,22 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:res="clr-namespace:DeskBuddy.App.Resources"
         xmlns:pres="clr-namespace:DeskBuddy.App.Presentation"
+        Style="{StaticResource DialogWindowStyle}"
         Title="{x:Static res:Strings.AppName}"
         Icon="pack://application:,,,/DeskBuddy;component/Assets/DeskBuddy.ico"
-        Width="480"
-        Height="560"
+        Width="560"
+        Height="670"
         ResizeMode="CanMinimize"
+        Padding="0"
         SnapsToDevicePixels="True"
         UseLayoutRounding="True"
         WindowStartupLocation="CenterScreen">
     <Window.Resources>
         <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="pack://application:,,,/DeskBuddy;component/Themes/Layout.xaml" />
-            </ResourceDictionary.MergedDictionaries>
             <BooleanToVisibilityConverter x:Key="BooleanToVisibility" />
 
             <!-- A TextBlock that is collapsed while its text is empty, for optional messages. -->
-            <Style x:Key="OptionalTextStyle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+            <Style x:Key="OptionalTextStyle" TargetType="TextBlock" >
                 <Setter Property="TextWrapping" Value="Wrap" />
                 <Setter Property="Margin" Value="0,4,0,0" />
                 <Style.Triggers>
@@ -29,9 +28,17 @@
                 </Style.Triggers>
             </Style>
 
+            <!-- The icon in front of a tab title: Segoe Fluent Icons on Windows 11, Segoe MDL2 Assets before it. -->
+            <Style x:Key="TabIconStyle" TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="Segoe Fluent Icons, Segoe MDL2 Assets" />
+                <Setter Property="FontSize" Value="14" />
+                <Setter Property="Margin" Value="0,0,8,0" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+            </Style>
+
             <!-- An optional error message. -->
             <Style x:Key="ErrorTextStyle" TargetType="TextBlock" BasedOn="{StaticResource OptionalTextStyle}">
-                <Setter Property="Foreground" Value="{DynamicResource ErrorTextBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource AppDanger}" />
             </Style>
 
             <!-- An optional note that is no error. -->
@@ -41,14 +48,14 @@
         </ResourceDictionary>
     </Window.Resources>
 
-    <Grid DataContext="{Binding Settings}" IsEnabled="{Binding IsEditable}" Margin="8">
+    <Grid DataContext="{Binding Settings}" IsEnabled="{Binding IsEditable}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0">
+        <StackPanel Grid.Row="0" Margin="16,0,16,0">
             <TextBlock Text="{Binding LoadFailureMessage}"
                        Style="{StaticResource ErrorTextStyle}"
                        AutomationProperties.AutomationId="SettingsLoadError" />
@@ -57,11 +64,17 @@
                        AutomationProperties.AutomationId="SettingsSaveError" />
         </StackPanel>
 
-        <TabControl x:Name="Tabs" Grid.Row="1" Margin="0,4,0,0" SelectedIndex="0">
-            <TabItem Header="{x:Static res:Strings.TabPets}"
+        <TabControl x:Name="Tabs" Grid.Row="1" Margin="0,4,0,0" SelectedIndex="0" Style="{StaticResource AppTabControl}">
+            <TabItem AutomationProperties.Name="{x:Static res:Strings.TabPets}"
                      AutomationProperties.AutomationId="PetsTab"
                      DataContext="{Binding DataContext.Pets, RelativeSource={RelativeSource AncestorType=Window}}">
-                <Grid Margin="10">
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Style="{StaticResource TabIconStyle}" Text="&#xE006;" />
+                        <TextBlock Text="{x:Static res:Strings.TabPets}" />
+                    </StackPanel>
+                </TabItem.Header>
+                <Grid Margin="16,16,16,12">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*" />
                         <RowDefinition Height="Auto" />
@@ -86,19 +99,25 @@
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <Border Width="124"
-                                            MinHeight="156"
+                                            MinHeight="184"
                                             ToolTip="{Binding Details}"
                                             AutomationProperties.Name="{Binding DisplayName}"
                                             AutomationProperties.HelpText="{Binding Details}"
                                             Margin="0,0,6,6"
-                                            Padding="8"
                                             MouseLeftButtonUp="OnPetCardMouseLeftButtonUp"
                                             AutomationProperties.AutomationId="{Binding FolderName, StringFormat=PetCard_{0}}">
                                         <Border.Style>
                                             <Style TargetType="Border" BasedOn="{StaticResource SettingsCardBorderStyle}">
+                                                <Setter Property="Padding" Value="8" />
                                                 <Style.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource AppForegroundMuted}" />
+                                                    </Trigger>
                                                     <DataTrigger Binding="{Binding IsSelected}" Value="True">
-                                                        <Setter Property="BorderBrush" Value="{DynamicResource PetCardSelectedBorderBrush}" />
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource AppPrimary}" />
+                                                        <Setter Property="Background" Value="{DynamicResource AppPrimarySoft}" />
+                                                        <Setter Property="BorderThickness" Value="2" />
+                                                        <Setter Property="Padding" Value="7" />
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding IsAvailable}" Value="True">
                                                         <Setter Property="Cursor" Value="Hand" />
@@ -149,17 +168,48 @@
                                                        Style="{StaticResource ErrorTextStyle}"
                                                        MaxHeight="48"
                                                        FontSize="{StaticResource SettingsCaptionSize}" />
+                                            <!-- What the pet can do: one chip per supported ability. -->
+                                            <ItemsControl ItemsSource="{Binding Tags}" Margin="0,4,0,0" Focusable="False" IsTabStop="False">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <WrapPanel HorizontalAlignment="Center" />
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border>
+                                                            <Border.Style>
+                                                                <Style TargetType="Border" BasedOn="{StaticResource SettingsChipBorderStyle}">
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding IsSupported}" Value="False">
+                                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </Border.Style>
+                                                            <TextBlock Text="{Binding Text}"
+                                                                       Foreground="{DynamicResource AppForeground}"
+                                                                       TextTrimming="CharacterEllipsis"
+                                                                       FontSize="{StaticResource SettingsCaptionSize}" />
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
                                             <!-- One slot holds either the "current" mark or the "use" button, so the cards keep one height.
                                                  The visibility style sits on a wrapper: a style on the Button itself would replace the
                                                  themed button style. -->
                                             <Grid MinHeight="28" Margin="0,4,0,0">
-                                                <TextBlock Text="{x:Static res:Strings.PetsCurrent}"
-                                                           Foreground="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"
-                                                           FontSize="{StaticResource SettingsCaptionSize}"
-                                                           FontWeight="SemiBold"
-                                                           HorizontalAlignment="Center"
-                                                           VerticalAlignment="Center"
-                                                           Visibility="{Binding IsCurrent, Converter={StaticResource BooleanToVisibility}}" />
+                                                <Border Background="{DynamicResource AppPrimary}"
+                                                        CornerRadius="{StaticResource SettingsPillRadius}"
+                                                        Padding="12,2"
+                                                        HorizontalAlignment="Center"
+                                                        VerticalAlignment="Center"
+                                                        Visibility="{Binding IsCurrent, Converter={StaticResource BooleanToVisibility}}">
+                                                    <TextBlock Text="{x:Static res:Strings.PetsCurrent}"
+                                                               Foreground="{DynamicResource AppPrimaryForeground}"
+                                                               FontSize="{StaticResource SettingsCaptionSize}"
+                                                               FontWeight="SemiBold" />
+                                                </Border>
                                                 <Grid>
                                                     <Grid.Style>
                                                         <Style TargetType="Grid">
@@ -178,7 +228,7 @@
                                                     <Button Content="{x:Static res:Strings.PetsUse}"
                                                             Padding="0,3"
                                                             MinHeight="28"
-                                                            Style="{DynamicResource AccentButtonStyle}"
+                                                            Style="{StaticResource RaisedButton}"
                                                             HorizontalAlignment="Stretch"
                                                             Command="{Binding DataContext.UseCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                             CommandParameter="{Binding}"
@@ -212,20 +262,27 @@
                 </Grid>
             </TabItem>
 
-            <TabItem Header="{x:Static res:Strings.TabAppearance}" AutomationProperties.AutomationId="AppearanceTab">
+            <TabItem AutomationProperties.Name="{x:Static res:Strings.TabAppearance}" AutomationProperties.AutomationId="AppearanceTab">
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Style="{StaticResource TabIconStyle}" Text="&#xE790;" />
+                        <TextBlock Text="{x:Static res:Strings.TabAppearance}" />
+                    </StackPanel>
+                </TabItem.Header>
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <!-- The label columns of the rows share one width, so the controls line up. -->
-                    <StackPanel Margin="10" Grid.IsSharedSizeScope="True">
+                    <StackPanel Margin="16,16,16,4" Grid.IsSharedSizeScope="True">
+                      <Border Style="{StaticResource SettingsGroupCardStyle}">
+                       <StackPanel>
                         <!-- Appearance -->
                         <TextBlock Text="{x:Static res:Strings.SettingsAppearance}"
-                                   Style="{StaticResource SettingsSectionHeaderStyle}"
-                                   Margin="{StaticResource SettingsFirstGroupGap}" />
+                                   Style="{StaticResource SettingsSectionHeaderStyle}" />
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" SharedSizeGroup="SettingsLabel" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="{x:Static res:Strings.SettingsPetSize}" VerticalAlignment="Center" Margin="0,0,12,0" />
+                            <TextBlock Grid.Column="0" Text="{x:Static res:Strings.SettingsPetSize}" VerticalAlignment="Center" Margin="0,0,16,0" />
                             <ItemsControl Grid.Column="1"
                                           HorizontalAlignment="Left"
                                           ItemsSource="{Binding SizeChoices}"
@@ -252,7 +309,7 @@
                                                 <ControlTemplate TargetType="RadioButton">
                                                     <Border x:Name="Frame"
                                                             Style="{StaticResource SettingsCardBorderStyle}"
-                                                            Padding="8,6"
+                                                            Padding="9,7"
                                                             Cursor="Hand">
                                                         <StackPanel>
                                                             <Image x:Name="Picture"
@@ -267,22 +324,22 @@
                                                     </Border>
                                                     <ControlTemplate.Triggers>
                                                         <Trigger Property="IsMouseOver" Value="True">
-                                                            <Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource PetCardSelectedBorderBrush}" />
+                                                            <Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource AppPrimary}" />
                                                         </Trigger>
                                                         <Trigger Property="IsChecked" Value="True">
-                                                            <Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource PetCardSelectedBorderBrush}" />
-                                                            <Setter TargetName="Frame" Property="BorderThickness" Value="3" />
-                                                            <Setter TargetName="Frame" Property="Padding" Value="7,5" />
+                                                            <Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource AppPrimary}" />
+                                                            <Setter TargetName="Frame" Property="BorderThickness" Value="2" />
+                                                            <Setter TargetName="Frame" Property="Padding" Value="8,6" />
                                                         </Trigger>
                                                         <!-- The label is greyed through its color, not its opacity, to keep ClearType. -->
                                                         <Trigger Property="IsPressed" Value="True">
                                                             <Setter TargetName="Picture" Property="Opacity" Value="0.7" />
-                                                            <Setter TargetName="Frame" Property="TextElement.Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+                                                            <Setter TargetName="Frame" Property="TextElement.Foreground" Value="{DynamicResource AppForegroundMuted}" />
                                                         </Trigger>
                                                         <Trigger Property="IsEnabled" Value="False">
                                                             <Setter TargetName="Picture" Property="Opacity" Value="0.5" />
-                                                            <Setter TargetName="Frame" Property="TextElement.Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
-                                                            <Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource PetCardBorderBrush}" />
+                                                            <Setter TargetName="Frame" Property="TextElement.Foreground" Value="{DynamicResource AppForegroundMuted}" />
+                                                            <Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource AppDivider}" />
                                                             <Setter TargetName="Frame" Property="Cursor" Value="Arrow" />
                                                         </Trigger>
                                                     </ControlTemplate.Triggers>
@@ -320,17 +377,26 @@
                                       AutomationProperties.AutomationId="LanguageBox" />
                         </Grid>
                         <TextBlock Text="{x:Static res:Strings.LanguageRestartHint}" Style="{StaticResource SettingsHintStyle}" />
+                       </StackPanel>
+                      </Border>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
 
-            <TabItem Header="{x:Static res:Strings.TabBehavior}" AutomationProperties.AutomationId="BehaviorTab">
+            <TabItem AutomationProperties.Name="{x:Static res:Strings.TabBehavior}" AutomationProperties.AutomationId="BehaviorTab">
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Style="{StaticResource TabIconStyle}" Text="&#xE768;" />
+                        <TextBlock Text="{x:Static res:Strings.TabBehavior}" />
+                    </StackPanel>
+                </TabItem.Header>
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel Margin="10">
+                    <StackPanel Margin="16,16,16,4">
+                      <Border Style="{StaticResource SettingsGroupCardStyle}">
+                       <StackPanel>
                         <!-- Time -->
                         <TextBlock Text="{x:Static res:Strings.SettingsTiming}"
-                                   Style="{StaticResource SettingsSectionHeaderStyle}"
-                                   Margin="{StaticResource SettingsFirstGroupGap}" />
+                                   Style="{StaticResource SettingsSectionHeaderStyle}" />
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -370,6 +436,10 @@
                                    AutomationProperties.AutomationId="TimingError" />
 
 
+                       </StackPanel>
+                      </Border>
+                      <Border Style="{StaticResource SettingsGroupCardStyle}">
+                       <StackPanel>
                         <!-- Actions -->
                         <TextBlock Text="{x:Static res:Strings.SettingsActions}" Style="{StaticResource SettingsSectionHeaderStyle}" />
                         <CheckBox IsChecked="{Binding ChatterEnabled}"
@@ -392,6 +462,10 @@
                         </CheckBox>
 
 
+                       </StackPanel>
+                      </Border>
+                      <Border Style="{StaticResource SettingsGroupCardStyle}">
+                       <StackPanel>
                         <!-- Scenarios -->
                         <TextBlock Text="{x:Static res:Strings.SettingsScenarios}" Style="{StaticResource SettingsSectionHeaderStyle}" />
                         <CheckBox Content="{x:Static res:Strings.ScenariosEnabled}"
@@ -422,6 +496,10 @@
                         </ItemsControl>
 
 
+                       </StackPanel>
+                      </Border>
+                      <Border Style="{StaticResource SettingsGroupCardStyle}">
+                       <StackPanel>
                         <!-- Recognized programs -->
                         <TextBlock Text="{x:Static res:Strings.SettingsPrograms}" Style="{StaticResource SettingsSectionHeaderStyle}" />
                         <TextBlock Text="{x:Static res:Strings.ProgramsHint}" Style="{StaticResource SettingsHintStyle}" Margin="0" />
@@ -451,6 +529,10 @@
                                    AutomationProperties.AutomationId="ChatProcessesError" />
 
 
+                       </StackPanel>
+                      </Border>
+                      <Border Style="{StaticResource SettingsGroupCardStyle}">
+                       <StackPanel>
                         <!-- Full screen -->
                         <TextBlock Text="{x:Static res:Strings.SettingsFullscreen}" Style="{StaticResource SettingsSectionHeaderStyle}" />
                         <CheckBox Content="{x:Static res:Strings.AutoHide}"
@@ -470,19 +552,28 @@
                                    AutomationProperties.AutomationId="BlacklistError" />
 
 
+                       </StackPanel>
+                      </Border>
                         <!-- Note -->
                         <TextBlock Text="{x:Static res:Strings.PetSupportNote}" Style="{StaticResource SettingsHintStyle}" Margin="0,12,0,0" />
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
 
-            <TabItem Header="{x:Static res:Strings.TabSystem}" AutomationProperties.AutomationId="SystemTab">
+            <TabItem AutomationProperties.Name="{x:Static res:Strings.TabSystem}" AutomationProperties.AutomationId="SystemTab">
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Style="{StaticResource TabIconStyle}" Text="&#xE713;" />
+                        <TextBlock Text="{x:Static res:Strings.TabSystem}" />
+                    </StackPanel>
+                </TabItem.Header>
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel Margin="10">
+                    <StackPanel Margin="16,16,16,4">
+                      <Border Style="{StaticResource SettingsGroupCardStyle}">
+                       <StackPanel>
                         <!-- System -->
                         <TextBlock Text="{x:Static res:Strings.SettingsSystem}"
-                                   Style="{StaticResource SettingsSectionHeaderStyle}"
-                                   Margin="{StaticResource SettingsFirstGroupGap}" />
+                                   Style="{StaticResource SettingsSectionHeaderStyle}" />
                         <CheckBox Content="{x:Static res:Strings.AutoStart}"
                                   IsChecked="{Binding AutoStart}"
                                   Margin="0,2,0,0" MinHeight="24"
@@ -496,6 +587,10 @@
                                   AutomationProperties.AutomationId="AutoCheckUpdatesCheck" />
 
 
+                       </StackPanel>
+                      </Border>
+                      <Border Style="{StaticResource SettingsGroupCardStyle}">
+                       <StackPanel>
                         <!-- Boss key -->
                         <TextBlock Text="{x:Static res:Strings.SettingsBossKey}" Style="{StaticResource SettingsSectionHeaderStyle}" />
                         <TextBox Text="{Binding BossKeyText, Mode=OneWay}"
@@ -511,6 +606,10 @@
                                    AutomationProperties.AutomationId="BossKeyError" />
 
 
+                       </StackPanel>
+                      </Border>
+                      <Border Style="{StaticResource SettingsGroupCardStyle}">
+                       <StackPanel>
                         <!-- Diagnostics -->
                         <TextBlock Text="{x:Static res:Strings.SettingsDiagnostics}" Style="{StaticResource SettingsSectionHeaderStyle}" />
                         <Button Content="{x:Static res:Strings.OpenLogs}"
@@ -518,13 +617,20 @@
                                 HorizontalAlignment="Left"
                                 Padding="14,3" MinHeight="28"
                                 AutomationProperties.AutomationId="OpenLogsButton" />
+                       </StackPanel>
+                      </Border>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
         </TabControl>
 
         <!-- Saves or throws away the changes of the settings tabs; hidden on the pets tab, whose choices apply at once. -->
-        <Grid x:Name="SettingsBar" Grid.Row="2" Margin="0,8,0,0" Visibility="Collapsed">
+        <Border x:Name="SettingsBar" Grid.Row="2" Visibility="Collapsed"
+                Background="{DynamicResource AppBarBackground}"
+                BorderBrush="{DynamicResource AppDivider}"
+                BorderThickness="0,1,0,0"
+                Padding="16,12">
+        <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
@@ -536,17 +642,20 @@
                        Visibility="{Binding HasUnsavedChanges, Converter={StaticResource BooleanToVisibility}}"
                        AutomationProperties.AutomationId="UnsavedNote" />
             <Button Grid.Column="1"
-                    Content="{x:Static res:Strings.SettingsSave}"
-                    Command="{Binding SaveCommand}"
-                    Padding="14,3" MinHeight="28"
-                    Margin="0,0,8,0"
-                    AutomationProperties.AutomationId="SaveSettingsButton" />
-            <Button Grid.Column="2"
                     Content="{x:Static res:Strings.SettingsRevert}"
                     Command="{Binding RevertCommand}"
                     IsEnabled="{Binding HasUnsavedChanges}"
-                    Padding="14,3" MinHeight="28"
+                    Style="{StaticResource FlatButton}"
+                    MinWidth="80"
+                    Margin="0,0,8,0"
                     AutomationProperties.AutomationId="RevertSettingsButton" />
+            <Button Grid.Column="2"
+                    Content="{x:Static res:Strings.SettingsSave}"
+                    Command="{Binding SaveCommand}"
+                    Style="{StaticResource RaisedButton}"
+                    MinWidth="80"
+                    AutomationProperties.AutomationId="SaveSettingsButton" />
         </Grid>
+        </Border>
     </Grid>
 </Window>

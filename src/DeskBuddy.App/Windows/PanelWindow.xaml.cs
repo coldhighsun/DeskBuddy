@@ -122,13 +122,13 @@ public partial class PanelWindow
         if (!_viewModel.Settings.CanSave)
         {
             // Some entry cannot be saved, so there is nothing to offer but to drop the changes or to keep fixing them.
-            var discard = MessageBox.Show(
+            var discard = Dialogs.Show(
                 this,
-                Strings.UnsavedInvalidCloseMessage,
                 Strings.AppName,
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Warning);
-            if (discard == MessageBoxResult.Yes)
+                Strings.UnsavedInvalidCloseMessage,
+                DialogKind.Warning,
+                DialogModel.YesNoButtons());
+            if (discard == DialogChoice.Yes)
             {
                 _viewModel.Settings.Revert();
                 Hide();
@@ -137,16 +137,16 @@ public partial class PanelWindow
             return;
         }
 
-        var answer = MessageBox.Show(
+        var answer = Dialogs.Show(
             this,
-            Strings.UnsavedCloseMessage,
             Strings.AppName,
-            MessageBoxButton.YesNoCancel,
-            MessageBoxImage.Question);
+            Strings.UnsavedCloseMessage,
+            DialogKind.Question,
+            DialogModel.SaveDiscardCancelButtons());
 
         switch (answer)
         {
-            case MessageBoxResult.Yes:
+            case DialogChoice.Yes:
                 if (await _viewModel.Settings.TrySaveAsync())
                 {
                     Hide();
@@ -154,7 +154,7 @@ public partial class PanelWindow
 
                 break;
 
-            case MessageBoxResult.No:
+            case DialogChoice.No:
                 _viewModel.Settings.Revert();
                 Hide();
                 break;
@@ -261,6 +261,11 @@ public partial class PanelWindow
         {
             SettingsBar.Visibility = Tabs.SelectedIndex == (int)PanelTab.Pets ? Visibility.Collapsed : Visibility.Visible;
             UpdatePreviews();
+
+            if (IsLoaded && Tabs.SelectedItem is TabItem { Content: UIElement content })
+            {
+                Motion.FadeIn(content);
+            }
         }
     }
 

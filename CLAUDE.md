@@ -51,11 +51,13 @@ powershell -NoProfile -File tools/GenerateAppIcon.ps1   # 重新生成应用/托
 ## 主题（深色 / 浅色）
 
 - 设置项 `PetSettings.Theme`（`AppTheme`：跟随系统 / 浅色 / 深色），在“外观”标签里切换，立即生效；Windows 高对比度主题优先于这个选择。
-- `App/Presentation/ThemeService` 负责应用主题：把 `Themes/Colors.{Light,Dark,HighContrast}.xaml`（DeskBuddy 自绘的颜色）合并进应用资源，并让通过 `Register(...)` 注册的窗口 / 菜单使用 WPF 的 Fluent 主题（窗口设 `ThemeMode`，菜单合并 `Fluent.*.xaml`）。选哪套色板由纯函数 `ThemeResolver.Resolve` 决定。
-- **不要设置应用级的 `Application.ThemeMode`**：宠物、雨伞、气泡是透明窗口，应用级 Fluent 主题会给它们画上背景。这几个窗口不要注册，也不要用 Fluent 样式；气泡按钮用 `Themes/BubbleButton.xaml` 里自己的样式。
-- 自定义颜色资源的 key **不能与 Fluent 主题的 key 同名**（窗口资源优先于应用资源，会被悄悄盖住，曾导致宠物卡片边框消失）。新 key 加 `Bubble` / `PetCard` 这类前缀，三套色板的 key 也必须一致（没有测试检查，改色板时自己核对）。
-- 给控件写自己的 `Style` 时要加 `BasedOn`，或把样式放到外层元素上，否则会丢掉主题样式。
-- `ThemeMode` 在 .NET 11 里仍是实验性 API，项目对 `WPF0001` 做了 `NoWarn`。
+- **界面是自绘的，风格参照 ManagedDrive，不使用 WPF 的 Fluent 主题**（不设 `Window.ThemeMode`，不合并 `Fluent.*.xaml`）。`Themes/AppTheme.xaml`（在 `App.xaml` 里合并）定义全部控件样式：`Button`（描边）、`TextBox`、`ComboBox`、`CheckBox`、`RadioButton`、`ToolTip`、`ScrollBar`、`ContextMenu` / `MenuItem` / 分隔线是隐式样式，其余（`RaisedButton`、`FlatButton`、`IconButton`、`AppTabControl`、`SettingsGroupStyle`、`SettingsCardBorderStyle` 等）按名字用。新增控件类型时先在这里补样式，否则它会露出经典外观。
+- `App/Presentation/ThemeService` 只负责色板：按 `ThemeResolver.Resolve` 把 `Themes/Colors.{Light,Dark,HighContrast}.xaml` 合并进应用资源（换主题时替换），所有颜色都经 `DynamicResource` 读取，切换立即生效。颜色键统一 `App*` 前缀（`AppPrimary`、`AppSurface`、`AppDivider`、`AppForeground`、`AppForegroundMuted`、`AppHover`……）；三套色板的键必须一致，`ColorFiles_LightDarkAndHighContrast_DefineTheSameKeys` 会检查。高对比度那套把所有键映射到 `SystemColors`。
+- **普通窗口（面板、关于、对话框）**用 `DialogWindowStyle`（无边框 + 48px 自绘标题栏 + 关闭/最小化按钮，内容边距取窗口的 `Padding`）。圆角、边框和阴影由 DWM 给（`Interop/WindowCornerHelper` 的附加属性 `UseNativeCorners`，Win10 回退 1px `AppDivider` 边框），**不要用 `AllowsTransparency` 或自己画圆角 `Border`**，否则四角出白边。标题栏按钮用 `Presentation/WindowCommands`。这些窗口在 XAML 里用 `DynamicResource` 取 `AppTheme.xaml` 的资源，这样没有 `Application` 时（测试）也能构造。
+- **宠物、雨伞、气泡是透明窗口**：不要套无边框窗口样式；气泡的按钮用 `Themes/BubbleButton.xaml` 里自己的样式，颜色同样取 `App*`。
+- 用户可见的确认 / 提问走 `Presentation/Dialogs.Show`（自绘的 `DialogWindow`），不要再用系统 `MessageBox`；只有启动失败 / 崩溃那两处例外（那时主题和主机可能还没就绪）。托盘菜单是 H.NotifyIcon 的 WPF `ContextMenu`，样式来自 `AppTheme.xaml`；它的模板里 `PART_Popup`、`SubmenuBorder` 两个名字被 `TrayIconService.AlignSubmenu` 查找，不能改。
+- 入场动效统一用 `Presentation/Motion`（淡入、弹出），系统关闭动画（`SystemParameters.ClientAreaAnimation`）时自动跳过。
+- 项目不再需要对 `WPF0001` 做 `NoWarn`。
 
 ## 设置与进程列表
 
