@@ -1,6 +1,7 @@
 using System.Globalization;
 using DeskBuddy.App.Resources;
 using DeskBuddy.Domain.Messages;
+using DeskBuddy.Domain.Scenarios;
 using DeskBuddy.Domain.Schedule;
 
 namespace DeskBuddy.App.Tests;
@@ -98,5 +99,27 @@ public class StringsTests : IDisposable
         // Assert
         Strings.StateHint(PetState.Idle).Should().BeNull();
         Strings.StateHint(PetState.Building).Should().NotBeNullOrEmpty();
+    }
+
+    /// <summary>
+    /// Every scenario has a short name and an explanation in both interface languages, and the name is the shorter one.
+    /// </summary>
+    /// <param name="culture">
+    /// The interface language.
+    /// </param>
+    [Theory]
+    [InlineData("en")]
+    [InlineData("zh-CN")]
+    public void ScenarioName_EveryScenario_HasShortNameAndExplanation(string culture)
+    {
+        // Arrange
+        CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo(culture);
+
+        // Act
+        var texts = ScenarioCatalog.All.Select(state => (Name: Strings.ScenarioName(state), Text: Strings.ScenarioLabel(state))).ToList();
+
+        // Assert
+        texts.Should().OnlyContain(item => item.Name.Length > 0 && !item.Name.StartsWith('!') && !item.Text.StartsWith('!'));
+        texts.Should().OnlyContain(item => item.Name.Length < item.Text.Length);
     }
 }

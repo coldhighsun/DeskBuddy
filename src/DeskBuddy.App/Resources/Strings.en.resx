@@ -103,6 +103,23 @@
   <data name="ScenarioFestive" xml:space="preserve"><value>Wear a party hat on New Year's Day, Spring Festival, Programmers' Day and Christmas</value></data>
   <data name="ScenarioDizzy" xml:space="preserve"><value>Get dizzy when you shake the mouse hard; the eyes follow the pointer</value></data>
   <data name="ScenarioHang" xml:space="preserve"><value>Hang on to the screen edge when dropped there</value></data>
+  <data name="ScenarioNameBuilding" xml:space="preserve"><value>Loading ring</value></data>
+  <data name="ScenarioNameBuildDone" xml:space="preserve"><value>Build cheer</value></data>
+  <data name="ScenarioNameGitPush" xml:space="preserve"><value>Git parcel</value></data>
+  <data name="ScenarioNameNightCoding" xml:space="preserve"><value>Night coffee</value></data>
+  <data name="ScenarioNameReading" xml:space="preserve"><value>Reading glasses</value></data>
+  <data name="ScenarioNameWelcome" xml:space="preserve"><value>Welcome back</value></data>
+  <data name="ScenarioNameMeeting" xml:space="preserve"><value>Meeting headset</value></data>
+  <data name="ScenarioNameChatting" xml:space="preserve"><value>Chat along</value></data>
+  <data name="ScenarioNameLowBattery" xml:space="preserve"><value>Low battery</value></data>
+  <data name="ScenarioNameCharging" xml:space="preserve"><value>Charging</value></data>
+  <data name="ScenarioNameMeal" xml:space="preserve"><value>Mealtime</value></data>
+  <data name="ScenarioNameClockOut" xml:space="preserve"><value>Clock-out watch</value></data>
+  <data name="ScenarioNameChime" xml:space="preserve"><value>Hourly chime</value></data>
+  <data name="ScenarioNameFestive" xml:space="preserve"><value>Festive hat</value></data>
+  <data name="ScenarioNameDizzy" xml:space="preserve"><value>Dizzy mouse</value></data>
+  <data name="ScenarioNameHang" xml:space="preserve"><value>Edge hang</value></data>
+  <data name="ScenariosHoverHint" xml:space="preserve"><value>Hover a scenario to see what it does</value></data>
   <data name="ClockOutTimeLabel" xml:space="preserve"><value>Clock-out time</value></data>
   <data name="RemarkMeal1" xml:space="preserve"><value>Lunch time! Eat first, work later~</value></data>
   <data name="RemarkMeal2" xml:space="preserve"><value>Dinner time. Do not work on an empty stomach~</value></data>

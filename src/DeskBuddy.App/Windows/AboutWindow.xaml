@@ -14,12 +14,12 @@
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="pack://application:,,,/DeskBuddy;component/Themes/SecondaryText.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/DeskBuddy;component/Themes/Layout.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
 
-    <StackPanel Margin="24,20,24,20">
+    <StackPanel Margin="20,16">
         <!-- The picture is set in code: an Image given an .ico shows its first (16 pixel) frame, scaled up and blurry. -->
         <Image x:Name="LogoImage"
                Width="64"
@@ -30,17 +30,17 @@
                    FontSize="20"
                    FontWeight="SemiBold"
                    HorizontalAlignment="Center"
-                   Margin="0,10,0,0" />
+                   Margin="0,8,0,0" />
         <TextBlock x:Name="VersionText"
                    HorizontalAlignment="Center"
                    Style="{StaticResource SecondaryTextStyle}"
-                   Margin="0,2,0,0"
+                   Margin="0,4,0,0"
                    AutomationProperties.AutomationId="AboutVersion" />
         <TextBlock Text="{x:Static res:Strings.AboutDescription}"
                    TextWrapping="Wrap"
                    TextAlignment="Center"
-                   Margin="0,14,0,0" />
-        <TextBlock HorizontalAlignment="Center" Margin="0,14,0,0">
+                   Margin="0,12,0,0" />
+        <TextBlock HorizontalAlignment="Center" Margin="0,12,0,0">
             <Hyperlink x:Name="ProjectLink"
                        RequestNavigate="OnProjectLinkRequestNavigate"
                        AutomationProperties.AutomationId="AboutProjectLink">
@@ -49,22 +49,21 @@
         </TextBlock>
         <TextBlock Text="{x:Static res:Strings.AboutLicense}"
                    HorizontalAlignment="Center"
-                   Style="{StaticResource SecondaryTextStyle}"
-                   FontSize="11"
-                   Margin="0,6,0,0" />
-        <StackPanel x:Name="UpdatePanel" Margin="0,14,0,0">
+                   Style="{StaticResource SettingsHintStyle}" />
+        <StackPanel x:Name="UpdatePanel" Margin="0,12,0,0">
             <Button x:Name="CheckUpdatesButton"
                     Content="{x:Static res:Strings.AboutCheckUpdates}"
                     Click="OnCheckUpdatesClick"
                     HorizontalAlignment="Center"
-                    Padding="16,4"
+                    Padding="14,3"
+                    MinHeight="28"
                     AutomationProperties.AutomationId="AboutCheckUpdatesButton" />
             <TextBlock x:Name="UpdateStatusText"
                        HorizontalAlignment="Center"
                        TextAlignment="Center"
                        TextWrapping="Wrap"
                        Style="{StaticResource SecondaryTextStyle}"
-                       Margin="0,6,0,0"
+                       Margin="0,8,0,0"
                        AutomationProperties.AutomationId="AboutUpdateStatus" />
         </StackPanel>
         <Button x:Name="CloseButton"
@@ -73,8 +72,10 @@
                 IsDefault="True"
                 Click="OnCloseClick"
                 HorizontalAlignment="Center"
-                Padding="28,4"
-                Margin="0,18,0,0"
+                Padding="14,3"
+                MinWidth="96"
+                MinHeight="28"
+                Margin="0,12,0,0"
                 AutomationProperties.AutomationId="AboutCloseButton" />
     </StackPanel>
 </Window>
