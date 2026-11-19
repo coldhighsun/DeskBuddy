@@ -92,6 +92,12 @@ public class PetSettingsTests
     [InlineData("", PetSettings.DefaultPetName)]
     [InlineData("   ", PetSettings.DefaultPetName)]
     [InlineData("  cat ", "cat")]
+    [InlineData("..", PetSettings.DefaultPetName)]
+    [InlineData(".", PetSettings.DefaultPetName)]
+    [InlineData(@"..\x", PetSettings.DefaultPetName)]
+    [InlineData("a/b", PetSettings.DefaultPetName)]
+    [InlineData(@"C:\pets\cat", PetSettings.DefaultPetName)]
+    [InlineData("ca*t", PetSettings.DefaultPetName)]
     public void Normalize_PetName_IsTrimmedOrDefaulted(string name, string expected)
     {
         // Act
