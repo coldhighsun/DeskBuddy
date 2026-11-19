@@ -62,7 +62,7 @@ powershell -NoProfile -File tools/GenerateAppIcon.ps1   # 重新生成应用/托
 ## 设置与进程列表
 
 - **设置页是“草稿 + 保存”**：外观 / 行为 / 系统三个标签页的改动只写进 `Application/Settings/SettingsEditor` 的草稿（草稿 = 已保存设置 + 用户按字段的修改），点“保存”才经 `SettingsService.UpdateAsync` 生效，“还原”丢弃草稿；有未保存修改时关闭面板会询问。宠物标签页和托盘菜单仍是点击即生效。已保存设置在别处变化（如托盘改了尺寸）时，草稿里没改过的字段跟着变，改过的保持用户的值。有错误的输入（如不合法的分钟数、进程列表冲突）会阻止保存但保留已输入的文字；进程列表的互斥检查针对草稿。开机自启（注册表）和老板键（要向系统注册）不是纯设置：保存时才应用，失败时回滚并提示，其余设置照常保存。比较设置是否有改动用 `Domain/Settings/PetSettingsComparer`（record 自带的相等会按引用比较列表）。
-- 设置存在 JSON 文件里（`Infrastructure/Storage/JsonSettingsStore`）。**默认值只在没有配置文件、第一次启动时有效**；只要配置文件已存在，文件里缺失的进程列表（开发、会议、聊天、全屏）和“关闭的场景”列表一律按空处理，不用默认值补，也不要在读取时再往里加新的默认项。单个值（开关、时间等）缺失时才用默认值。
+- 设置存在 JSON 文件里（`Infrastructure/Storage/JsonSettingsStore`）。**默认值只在没有配置文件、第一次启动时有效**；只要配置文件已存在，文件里缺失的进程列表（开发、会议、聊天、全屏）和“关闭的场景”列表一律按空处理，不用默认值补，也不要在读取时再往里加新的默认项。单个值（开关、时间等）缺失时才用默认值。老板键（`BossKey`）可以为空（未设置）：JSON 里 `""` 表示用户清除了它，只有字段缺失才用默认值，无法解析时回退默认。
 - 进程名列表有两条规则，由 `Domain/Settings/ProcessListRules` 统一管理：进程名不能含空格；同一个进程只能在一个列表里。设置页输入时用 `Check` 校验（有错就不应用并在框下显示原因）；读取配置文件和每次修改设置时由 `SettingsService` 调用 `Enforce` 强制，重复的名字只保留在更重要的列表里（会议软件 > 聊天软件 > 开发工具 > 全屏程序），去掉的名字写日志，并在设置页的“识别程序”下提示。新增进程列表时要同步更新 `ProcessListKind`、`ProcessListRules` 里的取值/赋值/顺序和设置页。
 - 新增场景（`PetState` 里的情境状态）要同时改：`ScenarioCatalog.All`（设置页的开关列表）和需要时的 `AmbientRanking`、`PetCapabilities` 的 `ScenarioStates`、`PetStateFallback`、两个 resx 里的 `Scenario*`（整句说明，悬停提示）/ `ScenarioName*`（短名称，显示在开关旁）/ `StateHint*`、robot 的 manifest 与 `GenerateRobotPet.ps1`。
 - 数字输入框用 `Presentation/DigitsOnly` 限制只能输入数字；时刻（如下班时间）用小时、分钟两个下拉框选，不让手输。
@@ -70,7 +70,7 @@ powershell -NoProfile -File tools/GenerateAppIcon.ps1   # 重新生成应用/托
 ## 自动更新
 
 - 更新流程整个交给 NuGet 包 `GitHubReleaseUpdater`（`GitHubReleaseUpdater.AutoUpdate` 命名空间的 `UpdateController`）：查 `coldhighsun/DeskBuddy` 的最新**正式版** Release（不含预发布），资产里挑名字含 `Setup` 的 `.exe`（`PatternAssetSelector("*Setup*.exe")`；默认选择器要求文件名带系统/架构，装机程序名不满足），下载并校验后以 Inno `/SILENT` 启动，应用随即退出；更新器给安装程序加 `/RELAUNCH=1`，`.iss` 的 `[Run]` 用 `Check: ShouldLaunchApp`：静默安装只有带这个开关才会重启应用，其他静默安装（winget、脚本）不启动应用。
-- 只有 App 层有更新相关代码：`App/Presentation/AppUpdates.Create` 组装 `ReleaseUpdater` 和 `UpdateController`（版本号无法解析时返回 null，此时托盘不显示“检查更新”、面板的“关于”标签（`Windows/AboutView`，面板第五个标签，不属于草稿/保存的设置标签）隐藏更新区）；`TrayUpdatePresenter` 实现 `IUpdatePresenter`（托盘气泡 + 确认框，`InstallerStarted` 时退出应用）。启动后 30 秒首次检查，之后每 24 小时；设置项 `AutoCheckUpdates` 经 `IsAutoCheckEnabled` 控制自动检查；开发版（没有 git tag 时 MinVer 给的 `0.0.0-alpha.0.N`，`AppUpdates.IsDevelopmentBuild`）永远不自动检查，免得提示把正在开发的进程换成正式版，手动检查仍可用。托盘菜单和“关于”标签都有“检查更新”，手动检查无视 6 小时的节流（`update-state.json`，由包的 `JsonFileLastCheckStore` 写）。
+- 只有 App 层有更新相关代码：`App/Presentation/AppUpdates.Create` 组装 `ReleaseUpdater` 和 `UpdateController`（版本号无法解析时返回 null，此时面板的“关于”标签（`Windows/AboutView`，面板第五个标签，不属于草稿/保存的设置标签）隐藏更新区）；`TrayUpdatePresenter` 实现 `IUpdatePresenter`（托盘气泡 + 确认框，`InstallerStarted` 时退出应用）。启动后 30 秒首次检查，之后每 24 小时；设置项 `AutoCheckUpdates` 经 `IsAutoCheckEnabled` 控制自动检查；开发版（没有 git tag 时 MinVer 给的 `0.0.0-alpha.0.N`，`AppUpdates.IsDevelopmentBuild`）永远不自动检查，免得提示把正在开发的进程换成正式版，手动检查仍可用。“检查更新”入口只在“关于”标签，托盘菜单不再有它（发现新版本时托盘才出现“更新到 x”）；手动检查无视 6 小时的节流（`update-state.json`，由包的 `JsonFileLastCheckStore` 写）。
 - 新版本没有可下载的安装程序时 `HasInstaller` 为 false：托盘不显示“更新到 x”，“关于”标签显示 `UpdateNoInstaller`。`CleanDownloadDirectory` 已打开，下载目录（临时目录下的 DeskBuddy/update）只给更新用。
 - 发布流程只上传安装程序一个资产；`AppUpdates` 显式开启 `RequireVerifiedDownload`：校验依赖 GitHub API 返回的 asset `digest`，缺失时不会启动安装程序。包的异常信息是英文的，只写日志；给用户看的失败原因一律经 `UpdateErrorText.For` 换成界面语言（新增异常类型时在那里加一条）。
 

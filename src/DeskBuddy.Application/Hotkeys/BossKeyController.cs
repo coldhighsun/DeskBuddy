@@ -103,11 +103,29 @@ public sealed class BossKeyController : IDisposable
     /// Registers a shortcut unless it is the one already registered, and records the outcome.
     /// </summary>
     /// <param name="gesture">
-    /// The shortcut the settings name.
+    /// The shortcut the settings name, or <see langword="null"/> if there should be none.
     /// </param>
-    private void Apply(HotkeyGesture gesture)
+    private void Apply(HotkeyGesture? gesture)
     {
-        if (Registered == gesture)
+        if (gesture is not { } wanted)
+        {
+            if (Registered is null && RegistrationError is null)
+            {
+                return;
+            }
+
+            if (Registered is not null)
+            {
+                _hotkeys.Unregister();
+                Registered = null;
+            }
+
+            RegistrationError = null;
+            StatusChanged?.Invoke(this, EventArgs.Empty);
+            return;
+        }
+
+        if (Registered == wanted)
         {
             // Already in effect; a failed attempt at some other shortcut no longer matters.
             if (RegistrationError is not null)
@@ -119,9 +137,9 @@ public sealed class BossKeyController : IDisposable
             return;
         }
 
-        if (_hotkeys.TryRegister(gesture, out var error))
+        if (_hotkeys.TryRegister(wanted, out var error))
         {
-            Registered = gesture;
+            Registered = wanted;
             RegistrationError = null;
         }
         else

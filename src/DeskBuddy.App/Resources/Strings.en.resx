@@ -78,7 +78,9 @@
   <data name="SettingsSedentary" xml:space="preserve"><value>Sedentary reminder interval (minutes)</value></data>
   <data name="SettingsSleep" xml:space="preserve"><value>Fall asleep after no input (minutes)</value></data>
   <data name="SettingsBossKey" xml:space="preserve"><value>Boss key (hide or show the pet)</value></data>
-  <data name="BossKeyHint" xml:space="preserve"><value>Click the box, then press the new shortcut (it must include Ctrl, Alt, Shift or Win).</value></data>
+  <data name="BossKeyHint" xml:space="preserve"><value>Click the box, then press the new shortcut (it must include Ctrl, Alt, Shift or Win). Click Clear to have no boss key.</value></data>
+  <data name="BossKeyClear" xml:space="preserve"><value>Clear</value></data>
+  <data name="BossKeyNone" xml:space="preserve"><value>Not set</value></data>
   <data name="BossKeyFailed" xml:space="preserve"><value>The shortcut {0} cannot be used: {1}</value></data>
   <data name="BossKeyInvalid" xml:space="preserve"><value>This shortcut cannot be the boss key: include Ctrl, Alt, Shift or Win together with a letter, a digit or F1–F24.</value></data>
   <data name="SettingsFullscreen" xml:space="preserve"><value>Full screen</value></data>

@@ -108,6 +108,19 @@ public class PetSettingsTests
     }
 
     /// <summary>
+    /// A removed boss key stays removed.
+    /// </summary>
+    [Fact]
+    public void Normalize_NoBossKey_StaysNone()
+    {
+        // Act
+        var normalized = (PetSettings.Default with { BossKey = null }).Normalize();
+
+        // Assert
+        normalized.BossKey.Should().BeNull();
+    }
+
+    /// <summary>
     /// An invalid boss key is replaced by the default one.
     /// </summary>
     [Fact]

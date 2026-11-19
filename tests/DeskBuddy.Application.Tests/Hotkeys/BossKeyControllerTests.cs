@@ -79,7 +79,7 @@ public class BossKeyControllerTests
         using var controller = new BossKeyController(_settings, _hotkeys, _brain);
 
         // Assert
-        _hotkeys.Registrations.Should().Equal(PetSettings.Default.BossKey);
+        _hotkeys.Registrations.Should().Equal(PetSettings.Default.BossKey!.Value);
         controller.Registered.Should().Be(PetSettings.Default.BossKey);
         controller.RegistrationError.Should().BeNull();
     }
@@ -116,7 +116,7 @@ public class BossKeyControllerTests
         await _settings.UpdateAsync(s => s with { BossKey = OtherKey }, TestContext.Current.CancellationToken);
 
         // Assert
-        _hotkeys.Registrations.Should().Equal(PetSettings.Default.BossKey, OtherKey);
+        _hotkeys.Registrations.Should().Equal(PetSettings.Default.BossKey!.Value, OtherKey);
         controller.Registered.Should().Be(OtherKey);
     }
 
@@ -195,6 +195,59 @@ public class BossKeyControllerTests
     }
 
     /// <summary>
+    /// Removing the shortcut from the settings releases it and clears the status.
+    /// </summary>
+    [Fact]
+    public async Task SettingsChanged_BossKeyRemoved_UnregistersShortcut()
+    {
+        // Arrange
+        using var controller = new BossKeyController(_settings, _hotkeys, _brain);
+
+        // Act
+        await _settings.UpdateAsync(s => s with { BossKey = null }, TestContext.Current.CancellationToken);
+
+        // Assert
+        controller.Registered.Should().BeNull();
+        controller.RegistrationError.Should().BeNull();
+        _hotkeys.Unregistrations.Should().Be(1);
+    }
+
+    /// <summary>
+    /// With no shortcut in the settings at startup nothing is registered.
+    /// </summary>
+    [Fact]
+    public async Task Constructor_NoBossKey_RegistersNothing()
+    {
+        // Arrange
+        await _settings.UpdateAsync(s => s with { BossKey = null }, TestContext.Current.CancellationToken);
+
+        // Act
+        using var controller = new BossKeyController(_settings, _hotkeys, _brain);
+
+        // Assert
+        _hotkeys.Registrations.Should().BeEmpty();
+        controller.Registered.Should().BeNull();
+        controller.RegistrationError.Should().BeNull();
+    }
+
+    /// <summary>
+    /// A shortcut that was removed can be set again.
+    /// </summary>
+    [Fact]
+    public async Task SettingsChanged_BossKeyRemovedThenSet_IsRegistered()
+    {
+        // Arrange
+        using var controller = new BossKeyController(_settings, _hotkeys, _brain);
+        await _settings.UpdateAsync(s => s with { BossKey = null }, TestContext.Current.CancellationToken);
+
+        // Act
+        await _settings.UpdateAsync(s => s with { BossKey = OtherKey }, TestContext.Current.CancellationToken);
+
+        // Assert
+        controller.Registered.Should().Be(OtherKey);
+    }
+
+    /// <summary>
     /// After disposal the shortcut no longer hides the pet.
     /// </summary>
     [Fact]
@@ -248,6 +301,17 @@ public class BossKeyControllerTests
 
             Registrations.Add(gesture);
             return true;
+        }
+
+        /// <summary>
+        /// Gets how many times the shortcut was released.
+        /// </summary>
+        public int Unregistrations { get; private set; }
+
+        /// <inheritdoc />
+        public void Unregister()
+        {
+            Unregistrations++;
         }
 
         /// <inheritdoc />

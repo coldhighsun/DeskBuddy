@@ -593,13 +593,36 @@
                        <StackPanel>
                         <!-- Boss key -->
                         <TextBlock Text="{res:Loc SettingsBossKey}" Style="{StaticResource SettingsSectionHeaderStyle}" />
-                        <TextBox Text="{Binding BossKeyText, Mode=OneWay}"
-                                 IsReadOnly="True"
-                                 IsReadOnlyCaretVisible="False"
-                                 PreviewKeyDown="OnBossKeyPreviewKeyDown"
-                                 HorizontalAlignment="Left"
-                                 Width="220"
-                                 AutomationProperties.AutomationId="BossKeyBox" />
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                         <Grid Width="220">
+                          <TextBox Text="{Binding BossKeyText, Mode=OneWay}"
+                                   IsReadOnly="True"
+                                   IsReadOnlyCaretVisible="False"
+                                   PreviewKeyDown="OnBossKeyPreviewKeyDown"
+                                   AutomationProperties.AutomationId="BossKeyBox" />
+                          <TextBlock Text="{res:Loc BossKeyNone}"
+                                     IsHitTestVisible="False"
+                                     VerticalAlignment="Center"
+                                     Margin="12,0,0,0"
+                                     Foreground="{DynamicResource AppForegroundMuted}">
+                           <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                             <Setter Property="Visibility" Value="Collapsed" />
+                             <Style.Triggers>
+                              <DataTrigger Binding="{Binding HasBossKey}" Value="False">
+                               <Setter Property="Visibility" Value="Visible" />
+                              </DataTrigger>
+                             </Style.Triggers>
+                            </Style>
+                           </TextBlock.Style>
+                          </TextBlock>
+                         </Grid>
+                         <Button Content="{res:Loc BossKeyClear}"
+                                 Command="{Binding ClearBossKeyCommand}"
+                                 IsEnabled="{Binding HasBossKey}"
+                                 Margin="8,0,0,0"
+                                 AutomationProperties.AutomationId="BossKeyClearButton" />
+                        </StackPanel>
                         <TextBlock Text="{res:Loc BossKeyHint}" Style="{StaticResource SettingsHintStyle}" />
                         <TextBlock Text="{Binding BossKeyError}"
                                    Style="{StaticResource ErrorTextStyle}"

@@ -1310,6 +1310,48 @@ public class SettingsTabViewModelTests
     }
 
     /// <summary>
+    /// Clearing the boss key and saving releases the shortcut and keeps none.
+    /// </summary>
+    [Fact]
+    public async Task ClearBossKey_ThenSave_ReleasesShortcutAndStoresNone()
+    {
+        // Arrange
+        await CreateAsync();
+
+        // Act
+        _viewModel.ClearBossKeyCommand.Execute(null);
+        var dirty = _viewModel.HasUnsavedChanges;
+        await _viewModel.TrySaveAsync();
+
+        // Assert
+        dirty.Should().BeTrue();
+        _viewModel.HasBossKey.Should().BeFalse();
+        _viewModel.BossKeyText.Should().BeEmpty();
+        _settings.Current.BossKey.Should().BeNull();
+        _store.Stored.BossKey.Should().BeNull();
+        _hotkeys.Unregistrations.Should().Be(1);
+    }
+
+    /// <summary>
+    /// Reverting after clearing brings the saved boss key back.
+    /// </summary>
+    [Fact]
+    public async Task ClearBossKey_ThenRevert_ShowsSavedKeyAgain()
+    {
+        // Arrange
+        await CreateAsync();
+        _viewModel.ClearBossKeyCommand.Execute(null);
+
+        // Act
+        _viewModel.Revert();
+
+        // Assert
+        _viewModel.BossKeyText.Should().Be("Ctrl+Alt+H");
+        _viewModel.HasBossKey.Should().BeTrue();
+        _viewModel.HasUnsavedChanges.Should().BeFalse();
+    }
+
+    /// <summary>
     /// A boss key another program already uses is not kept: the setting goes back to the working shortcut and the
     /// reason is shown.
     /// </summary>
@@ -1363,7 +1405,7 @@ public class SettingsTabViewModelTests
         await CreateAsync();
 
         // Act
-        _viewModel.SetBossKey(PetSettings.Default.BossKey);
+        _viewModel.SetBossKey(PetSettings.Default.BossKey!.Value);
         await _viewModel.TrySaveAsync();
 
         // Assert
@@ -1394,7 +1436,7 @@ public class SettingsTabViewModelTests
     public async Task Constructor_BossKeyTakenAtStartup_ShowsMessage()
     {
         // Arrange
-        _hotkeys.Taken.Add(PetSettings.Default.BossKey);
+        _hotkeys.Taken.Add(PetSettings.Default.BossKey!.Value);
 
         // Act
         await CreateAsync();
@@ -1596,7 +1638,7 @@ public class SettingsTabViewModelTests
     public async Task Save_BossKeyTakenAndNoneRegisteredBefore_GoesBackToThePreviousKey()
     {
         // Arrange
-        _hotkeys.Taken.Add(PetSettings.Default.BossKey);
+        _hotkeys.Taken.Add(PetSettings.Default.BossKey!.Value);
         _hotkeys.Taken.Add(OtherKey);
         await CreateAsync();
         _viewModel.SetBossKey(OtherKey);
@@ -1609,6 +1651,50 @@ public class SettingsTabViewModelTests
         _store.Stored.BossKey.Should().Be(PetSettings.Default.BossKey);
         _viewModel.BossKeyText.Should().Be("Ctrl+Alt+H");
         _viewModel.BossKeyError.Should().Contain("Ctrl+Shift+F12");
+    }
+
+    /// <summary>
+    /// A boss key that could not be registered at startup is cleared with its message, and nothing is kept.
+    /// </summary>
+    [Fact]
+    public async Task ClearBossKey_AfterStartupFailure_ClearsMessageAndStoresNone()
+    {
+        // Arrange
+        _hotkeys.Taken.Add(PetSettings.Default.BossKey!.Value);
+        await CreateAsync();
+        var messageAtStart = _viewModel.BossKeyError;
+
+        // Act
+        _viewModel.ClearBossKeyCommand.Execute(null);
+        await _viewModel.TrySaveAsync();
+
+        // Assert
+        messageAtStart.Should().NotBeEmpty();
+        _viewModel.BossKeyError.Should().BeEmpty();
+        _settings.Current.BossKey.Should().BeNull();
+        _store.Stored.BossKey.Should().BeNull();
+    }
+
+    /// <summary>
+    /// When there was no boss key and the new one is refused, the setting stays empty and the reason is shown.
+    /// </summary>
+    [Fact]
+    public async Task Save_NoBossKeyBeforeAndNewOneTaken_StaysEmptyAndExplains()
+    {
+        // Arrange
+        _store.Stored = PetSettings.Default with { BossKey = null };
+        _hotkeys.Taken.Add(OtherKey);
+        await CreateAsync();
+        _viewModel.SetBossKey(OtherKey);
+
+        // Act
+        await _viewModel.TrySaveAsync();
+
+        // Assert
+        _settings.Current.BossKey.Should().BeNull();
+        _store.Stored.BossKey.Should().BeNull();
+        _viewModel.BossKeyText.Should().BeEmpty();
+        _viewModel.BossKeyError.Should().Contain("Ctrl+Shift+F12").And.Contain("already in use");
     }
 
     /// <summary>

@@ -85,9 +85,9 @@ public sealed record PetSettings
     public TimeSpan SedentaryReminderAfter { get; init; } = TimeSpan.FromMinutes(45);
 
     /// <summary>
-    /// Gets the global shortcut that hides and shows the pet.
+    /// Gets the global shortcut that hides and shows the pet, or <see langword="null"/> if there is none.
     /// </summary>
-    public HotkeyGesture BossKey { get; init; } = new(HotkeyModifiers.Control | HotkeyModifiers.Alt, 'H');
+    public HotkeyGesture? BossKey { get; init; } = new(HotkeyModifiers.Control | HotkeyModifiers.Alt, 'H');
 
     /// <summary>
     /// Gets a value indicating whether the pet hides itself while a full-screen or presenting application is in front.
@@ -197,7 +197,7 @@ public sealed record PetSettings
             Language = Enum.IsDefined(Language) ? Language : defaults.Language,
             Theme = Enum.IsDefined(Theme) ? Theme : defaults.Theme,
             Size = Enum.IsDefined(Size) ? Size : defaults.Size,
-            BossKey = BossKey.IsValid ? BossKey : defaults.BossKey,
+            BossKey = BossKey is { IsValid: false } ? defaults.BossKey : BossKey,
             BlacklistedProcesses = NormalizeProcessNames(BlacklistedProcesses),
             DevProcesses = NormalizeProcessNames(DevProcesses),
             DisabledScenarios = NormalizeScenarioNames(DisabledScenarios),
