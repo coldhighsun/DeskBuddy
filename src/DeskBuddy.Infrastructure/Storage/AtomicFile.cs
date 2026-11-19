@@ -62,7 +62,20 @@ internal static class AtomicFile
                 var temporaryPath = path + ".tmp";
                 try
                 {
-                    await File.WriteAllTextAsync(temporaryPath, content, Utf8NoBom, cancellationToken);
+                    // The new content must be on disk before the rename, or a power cut right after it can leave an
+                    // empty or garbled file in place of the old one.
+                    await using (var stream = new FileStream(
+                        temporaryPath,
+                        FileMode.Create,
+                        FileAccess.Write,
+                        FileShare.None,
+                        bufferSize: 4096,
+                        FileOptions.Asynchronous))
+                    {
+                        await stream.WriteAsync(Utf8NoBom.GetBytes(content), cancellationToken);
+                        stream.Flush(flushToDisk: true);
+                    }
+
                     File.Move(temporaryPath, path, overwrite: true);
                 }
                 finally
