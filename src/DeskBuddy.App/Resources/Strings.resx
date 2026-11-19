@@ -103,6 +103,23 @@
   <data name="ScenarioFestive" xml:space="preserve"><value>元旦、春节、程序员节、圣诞节戴上派对帽</value></data>
   <data name="ScenarioDizzy" xml:space="preserve"><value>用力晃鼠标时头晕转圈，眼睛也跟着鼠标转</value></data>
   <data name="ScenarioHang" xml:space="preserve"><value>拖到屏幕左右边缘松手时挂在边缘上</value></data>
+  <data name="ScenarioNameBuilding" xml:space="preserve"><value>加载中提示</value></data>
+  <data name="ScenarioNameBuildDone" xml:space="preserve"><value>构建完成欢呼</value></data>
+  <data name="ScenarioNameGitPush" xml:space="preserve"><value>寄快递</value></data>
+  <data name="ScenarioNameNightCoding" xml:space="preserve"><value>深夜咖啡</value></data>
+  <data name="ScenarioNameReading" xml:space="preserve"><value>查资料戴眼镜</value></data>
+  <data name="ScenarioNameWelcome" xml:space="preserve"><value>久别欢迎</value></data>
+  <data name="ScenarioNameMeeting" xml:space="preserve"><value>会议陪伴</value></data>
+  <data name="ScenarioNameChatting" xml:space="preserve"><value>陪聊</value></data>
+  <data name="ScenarioNameLowBattery" xml:space="preserve"><value>低电量</value></data>
+  <data name="ScenarioNameCharging" xml:space="preserve"><value>充电</value></data>
+  <data name="ScenarioNameMeal" xml:space="preserve"><value>饭点</value></data>
+  <data name="ScenarioNameClockOut" xml:space="preserve"><value>下班看表</value></data>
+  <data name="ScenarioNameChime" xml:space="preserve"><value>整点报时</value></data>
+  <data name="ScenarioNameFestive" xml:space="preserve"><value>节日派对帽</value></data>
+  <data name="ScenarioNameDizzy" xml:space="preserve"><value>晃鼠标头晕</value></data>
+  <data name="ScenarioNameHang" xml:space="preserve"><value>挂在边缘</value></data>
+  <data name="ScenariosHoverHint" xml:space="preserve"><value>鼠标悬停在场景上可查看说明</value></data>
   <data name="ClockOutTimeLabel" xml:space="preserve"><value>下班时间</value></data>
   <data name="RemarkMeal1" xml:space="preserve"><value>午饭时间到～先吃饭再忙吧！</value></data>
   <data name="RemarkMeal2" xml:space="preserve"><value>晚饭时间到啦，别饿着肚子干活～</value></data>

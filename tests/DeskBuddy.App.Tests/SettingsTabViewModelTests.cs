@@ -397,6 +397,8 @@ public class SettingsTabViewModelTests
         _viewModel.Scenarios.Select(toggle => toggle.State).Should().Equal(ScenarioCatalog.All);
         _viewModel.Scenarios.Single(toggle => toggle.State == PetState.BuildDone).IsEnabled.Should().BeFalse();
         _viewModel.Scenarios.Single(toggle => toggle.State == PetState.Building).IsEnabled.Should().BeTrue();
+        _viewModel.Scenarios.Should().OnlyContain(toggle => toggle.Label.Length > 0 && toggle.Label.Length < toggle.Description.Length);
+        _viewModel.Scenarios.Should().OnlyContain(toggle => !toggle.Label.StartsWith('!') && !toggle.Description.StartsWith('!'));
     }
 
     /// <summary>

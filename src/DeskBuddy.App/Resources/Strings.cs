@@ -654,7 +654,26 @@ internal static class Strings
     public static string ScenariosEnabled => Get();
 
     /// <summary>
-    /// Gets the text of the switch for one scenario.
+    /// Gets the hint that a scenario's explanation is in its tooltip.
+    /// </summary>
+    public static string ScenariosHoverHint => Get();
+
+    /// <summary>
+    /// Gets the short name of one scenario, shown next to its switch.
+    /// </summary>
+    /// <param name="state">
+    /// The scenario, identified by the state the pet shows for it.
+    /// </param>
+    /// <returns>
+    /// The localized name.
+    /// </returns>
+    public static string ScenarioName(PetState state)
+    {
+        return Manager.GetString($"ScenarioName{state}", CultureInfo.CurrentUICulture) ?? $"!ScenarioName{state}!";
+    }
+
+    /// <summary>
+    /// Gets the explanation of one scenario, shown as a tooltip of its switch.
     /// </summary>
     /// <param name="state">
     /// The scenario, identified by the state the pet shows for it.

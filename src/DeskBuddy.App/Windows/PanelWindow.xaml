@@ -5,8 +5,8 @@
         xmlns:pres="clr-namespace:DeskBuddy.App.Presentation"
         Title="{x:Static res:Strings.AppName}"
         Icon="pack://application:,,,/DeskBuddy;component/Assets/DeskBuddy.ico"
-        Width="460"
-        Height="610"
+        Width="480"
+        Height="560"
         ResizeMode="CanMinimize"
         SnapsToDevicePixels="True"
         UseLayoutRounding="True"
@@ -14,14 +14,14 @@
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="pack://application:,,,/DeskBuddy;component/Themes/SecondaryText.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/DeskBuddy;component/Themes/Layout.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <BooleanToVisibilityConverter x:Key="BooleanToVisibility" />
 
             <!-- A TextBlock that is collapsed while its text is empty, for optional messages. -->
             <Style x:Key="OptionalTextStyle" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
                 <Setter Property="TextWrapping" Value="Wrap" />
-                <Setter Property="Margin" Value="0,6,0,0" />
+                <Setter Property="Margin" Value="0,4,0,0" />
                 <Style.Triggers>
                     <Trigger Property="Text" Value="">
                         <Setter Property="Visibility" Value="Collapsed" />
@@ -36,12 +36,12 @@
 
             <!-- An optional note that is no error. -->
             <Style x:Key="NoticeTextStyle" TargetType="TextBlock" BasedOn="{StaticResource OptionalTextStyle}">
-                <Setter Property="FontSize" Value="11" />
+                <Setter Property="FontSize" Value="{StaticResource SettingsCaptionSize}" />
             </Style>
         </ResourceDictionary>
     </Window.Resources>
 
-    <Grid DataContext="{Binding Settings}" IsEnabled="{Binding IsEditable}" Margin="12">
+    <Grid DataContext="{Binding Settings}" IsEnabled="{Binding IsEditable}" Margin="8">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -57,18 +57,18 @@
                        AutomationProperties.AutomationId="SettingsSaveError" />
         </StackPanel>
 
-        <TabControl x:Name="Tabs" Grid.Row="1" Margin="0,6,0,0" SelectedIndex="0">
+        <TabControl x:Name="Tabs" Grid.Row="1" Margin="0,4,0,0" SelectedIndex="0">
             <TabItem Header="{x:Static res:Strings.TabPets}"
                      AutomationProperties.AutomationId="PetsTab"
                      DataContext="{Binding DataContext.Pets, RelativeSource={RelativeSource AncestorType=Window}}">
-                <Grid Margin="12,12,0,12">
+                <Grid Margin="10">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
-                        <StackPanel Margin="0,0,12,0">
+                        <StackPanel>
                         <TextBlock Text="{x:Static res:Strings.PetsLoading}"
                                    Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibility}}"
                                    Style="{StaticResource SecondaryTextStyle}"
@@ -85,21 +85,17 @@
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Width="176"
-                                            Height="190"
+                                    <Border Width="124"
+                                            MinHeight="156"
                                             ToolTip="{Binding Details}"
                                             AutomationProperties.Name="{Binding DisplayName}"
                                             AutomationProperties.HelpText="{Binding Details}"
-                                            Margin="0,0,8,8"
-                                            Padding="10"
-                                            BorderThickness="2"
-                                            CornerRadius="6"
-                                            Background="Transparent"
+                                            Margin="0,0,6,6"
+                                            Padding="8"
                                             MouseLeftButtonUp="OnPetCardMouseLeftButtonUp"
                                             AutomationProperties.AutomationId="{Binding FolderName, StringFormat=PetCard_{0}}">
                                         <Border.Style>
-                                            <Style TargetType="Border">
-                                                <Setter Property="BorderBrush" Value="{DynamicResource PetCardBorderBrush}" />
+                                            <Style TargetType="Border" BasedOn="{StaticResource SettingsCardBorderStyle}">
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding IsSelected}" Value="True">
                                                         <Setter Property="BorderBrush" Value="{DynamicResource PetCardSelectedBorderBrush}" />
@@ -111,8 +107,8 @@
                                             </Style>
                                         </Border.Style>
                                         <StackPanel>
-                                            <Image Width="96"
-                                                   Height="96"
+                                            <Image Width="80"
+                                                   Height="80"
                                                    HorizontalAlignment="Center"
                                                    Source="{Binding CurrentFrame}"
                                                    Stretch="Uniform"
@@ -130,63 +126,64 @@
                                             <TextBlock Text="{Binding StateCaption}"
                                                        HorizontalAlignment="Center"
                                                        Style="{StaticResource SecondaryTextStyle}"
-                                                       FontSize="11"
+                                                       FontSize="{StaticResource SettingsCaptionSize}"
                                                        MinHeight="16"
-                                                       Margin="0,2,0,6" />
-                                            <DockPanel LastChildFill="True">
-                                                <TextBlock DockPanel.Dock="Right"
-                                                           Text="{x:Static res:Strings.PetsCurrent}"
-                                                           Foreground="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"
-                                                           FontSize="11"
-                                                           VerticalAlignment="Center"
-                                                           Visibility="{Binding IsCurrent, Converter={StaticResource BooleanToVisibility}}" />
-                                                <!-- The name is in the tooltip; a pet that could not be loaded has no tooltip, so it shows it. -->
-                                                <TextBlock Text="{Binding DisplayName}"
-                                                           FontWeight="SemiBold"
-                                                           TextTrimming="CharacterEllipsis">
-                                                    <TextBlock.Style>
-                                                        <Style TargetType="TextBlock" BasedOn="{StaticResource SecondaryTextStyle}">
-                                                            <Setter Property="Visibility" Value="Collapsed" />
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding IsAvailable}" Value="False">
-                                                                    <Setter Property="Visibility" Value="Visible" />
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </TextBlock.Style>
-                                                </TextBlock>
-                                            </DockPanel>
+                                                       Margin="0,2,0,4" />
+                                            <!-- The name is in the tooltip; a pet that could not be loaded has no tooltip, so it shows it. -->
+                                            <TextBlock Text="{Binding DisplayName}"
+                                                       FontWeight="SemiBold"
+                                                       TextTrimming="CharacterEllipsis">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock" BasedOn="{StaticResource SecondaryTextStyle}">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsAvailable}" Value="False">
+                                                                <Setter Property="Visibility" Value="Visible" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
                                             <TextBlock Text="{Binding LoadError}"
                                                        ToolTip="{Binding LoadError}"
                                                        Style="{StaticResource ErrorTextStyle}"
-                                                       MaxHeight="64"
-                                                       FontSize="11" />
-                                            <!-- The visibility style sits on a wrapper: a style on the Button itself would replace the
-                                                 themed button style. Hidden (not collapsed) keeps the card layout steady. -->
-                                            <Grid>
-                                                <Grid.Style>
-                                                    <Style TargetType="Grid">
-                                                        <Setter Property="Visibility" Value="Hidden" />
-                                                        <Style.Triggers>
-                                                            <MultiDataTrigger>
-                                                                <MultiDataTrigger.Conditions>
-                                                                    <Condition Binding="{Binding IsSelected}" Value="True" />
-                                                                    <Condition Binding="{Binding IsCurrent}" Value="False" />
-                                                                </MultiDataTrigger.Conditions>
-                                                                <Setter Property="Visibility" Value="Visible" />
-                                                            </MultiDataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </Grid.Style>
-                                                <Button Content="{x:Static res:Strings.PetsUse}"
-                                                        Margin="0,8,0,0"
-                                                        Padding="0,7"
-                                                        MinHeight="34"
-                                                        Style="{DynamicResource AccentButtonStyle}"
-                                                        HorizontalAlignment="Stretch"
-                                                        Command="{Binding DataContext.UseCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                                        CommandParameter="{Binding}"
-                                                        AutomationProperties.AutomationId="{Binding FolderName, StringFormat=PetUse_{0}}" />
+                                                       MaxHeight="48"
+                                                       FontSize="{StaticResource SettingsCaptionSize}" />
+                                            <!-- One slot holds either the "current" mark or the "use" button, so the cards keep one height.
+                                                 The visibility style sits on a wrapper: a style on the Button itself would replace the
+                                                 themed button style. -->
+                                            <Grid MinHeight="28" Margin="0,4,0,0">
+                                                <TextBlock Text="{x:Static res:Strings.PetsCurrent}"
+                                                           Foreground="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"
+                                                           FontSize="{StaticResource SettingsCaptionSize}"
+                                                           FontWeight="SemiBold"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center"
+                                                           Visibility="{Binding IsCurrent, Converter={StaticResource BooleanToVisibility}}" />
+                                                <Grid>
+                                                    <Grid.Style>
+                                                        <Style TargetType="Grid">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                            <Style.Triggers>
+                                                                <MultiDataTrigger>
+                                                                    <MultiDataTrigger.Conditions>
+                                                                        <Condition Binding="{Binding IsSelected}" Value="True" />
+                                                                        <Condition Binding="{Binding IsCurrent}" Value="False" />
+                                                                    </MultiDataTrigger.Conditions>
+                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                </MultiDataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Grid.Style>
+                                                    <Button Content="{x:Static res:Strings.PetsUse}"
+                                                            Padding="0,3"
+                                                            MinHeight="28"
+                                                            Style="{DynamicResource AccentButtonStyle}"
+                                                            HorizontalAlignment="Stretch"
+                                                            Command="{Binding DataContext.UseCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                            CommandParameter="{Binding}"
+                                                            AutomationProperties.AutomationId="{Binding FolderName, StringFormat=PetUse_{0}}" />
+                                                </Grid>
                                             </Grid>
                                         </StackPanel>
                                     </Border>
@@ -198,18 +195,16 @@
                     <TextBlock Grid.Row="1"
                                Text="{Binding PetError}"
                                Style="{StaticResource ErrorTextStyle}"
-                               Margin="0,6,12,0"
                                AutomationProperties.AutomationId="PetError" />
-                    <DockPanel Grid.Row="2" Margin="0,8,12,0" LastChildFill="True">
+                    <DockPanel Grid.Row="2" Margin="0,8,0,0" LastChildFill="True">
                         <Button DockPanel.Dock="Right"
                                 Content="{x:Static res:Strings.PetsOpenFolder}"
                                 Command="{Binding OpenPetsFolderCommand}"
+                                Padding="14,3" MinHeight="28"
                                 Visibility="{Binding CanOpenPetsFolder, Converter={StaticResource BooleanToVisibility}}"
                                 AutomationProperties.AutomationId="OpenPetsFolderButton" />
                         <TextBlock Text="{x:Static res:Strings.PetsOpenFolderHint}"
-                                   Style="{StaticResource SecondaryTextStyle}"
-                                   FontSize="11"
-                                   TextWrapping="Wrap"
+                                   Style="{StaticResource SettingsHintStyle}"
                                    VerticalAlignment="Center"
                                    Margin="0,0,8,0"
                                    Visibility="{Binding CanOpenPetsFolder, Converter={StaticResource BooleanToVisibility}}" />
@@ -219,15 +214,18 @@
 
             <TabItem Header="{x:Static res:Strings.TabAppearance}" AutomationProperties.AutomationId="AppearanceTab">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel Margin="12">
+                    <!-- The label columns of the rows share one width, so the controls line up. -->
+                    <StackPanel Margin="10" Grid.IsSharedSizeScope="True">
                         <!-- Appearance -->
-                        <TextBlock Text="{x:Static res:Strings.SettingsAppearance}" FontWeight="SemiBold" Margin="0,6,0,6" />
+                        <TextBlock Text="{x:Static res:Strings.SettingsAppearance}"
+                                   Style="{StaticResource SettingsSectionHeaderStyle}"
+                                   Margin="{StaticResource SettingsFirstGroupGap}" />
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="150" />
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="SettingsLabel" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="{x:Static res:Strings.SettingsPetSize}" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="0" Text="{x:Static res:Strings.SettingsPetSize}" VerticalAlignment="Center" Margin="0,0,12,0" />
                             <ItemsControl Grid.Column="1"
                                           HorizontalAlignment="Left"
                                           ItemsSource="{Binding SizeChoices}"
@@ -240,7 +238,7 @@
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <!-- The Fluent RadioButton style has a minimum width, which would make the three buttons equally wide. -->
-                                        <RadioButton Margin="0,0,8,0"
+                                        <RadioButton Margin="0,0,6,0"
                                                      MinWidth="0"
                                                      MinHeight="0"
                                                      VerticalAlignment="Bottom"
@@ -253,11 +251,8 @@
                                             <RadioButton.Template>
                                                 <ControlTemplate TargetType="RadioButton">
                                                     <Border x:Name="Frame"
-                                                            Padding="10,8"
-                                                            BorderThickness="2"
-                                                            CornerRadius="6"
-                                                            Background="Transparent"
-                                                            BorderBrush="{DynamicResource PetCardBorderBrush}"
+                                                            Style="{StaticResource SettingsCardBorderStyle}"
+                                                            Padding="8,6"
                                                             Cursor="Hand">
                                                         <StackPanel>
                                                             <Image x:Name="Picture"
@@ -267,7 +262,7 @@
                                                                    HorizontalAlignment="Center" />
                                                             <TextBlock Text="{Binding Label}"
                                                                        HorizontalAlignment="Center"
-                                                                       Margin="0,4,0,0" />
+                                                                       Margin="0,2,0,0" />
                                                         </StackPanel>
                                                     </Border>
                                                     <ControlTemplate.Triggers>
@@ -277,7 +272,7 @@
                                                         <Trigger Property="IsChecked" Value="True">
                                                             <Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource PetCardSelectedBorderBrush}" />
                                                             <Setter TargetName="Frame" Property="BorderThickness" Value="3" />
-                                                            <Setter TargetName="Frame" Property="Padding" Value="9,7" />
+                                                            <Setter TargetName="Frame" Property="Padding" Value="7,5" />
                                                         </Trigger>
                                                         <!-- The label is greyed through its color, not its opacity, to keep ClearType. -->
                                                         <Trigger Property="IsPressed" Value="True">
@@ -298,12 +293,12 @@
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
                         </Grid>
-                        <Grid Margin="0,8,0,0">
+                        <Grid Margin="{StaticResource SettingsRowGap}">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="150" />
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="SettingsLabel" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="{x:Static res:Strings.SettingsTheme}" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="0" Text="{x:Static res:Strings.SettingsTheme}" VerticalAlignment="Center" Margin="0,0,12,0" />
                             <ComboBox Grid.Column="1"
                                       ItemsSource="{Binding Themes}"
                                       DisplayMemberPath="Label"
@@ -311,12 +306,12 @@
                                       SelectedValue="{Binding SelectedTheme}"
                                       AutomationProperties.AutomationId="ThemeBox" />
                         </Grid>
-                        <Grid Margin="0,8,0,0">
+                        <Grid Margin="{StaticResource SettingsRowGap}">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="150" />
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="SettingsLabel" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="{x:Static res:Strings.SettingsLanguage}" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="0" Text="{x:Static res:Strings.SettingsLanguage}" VerticalAlignment="Center" Margin="0,0,12,0" />
                             <ComboBox Grid.Column="1"
                                       ItemsSource="{Binding Languages}"
                                       DisplayMemberPath="Label"
@@ -324,19 +319,21 @@
                                       SelectedValue="{Binding SelectedLanguage}"
                                       AutomationProperties.AutomationId="LanguageBox" />
                         </Grid>
-                        <TextBlock Text="{x:Static res:Strings.LanguageRestartHint}" Style="{StaticResource SecondaryTextStyle}" FontSize="11" TextWrapping="Wrap" Margin="0,2,0,0" />
+                        <TextBlock Text="{x:Static res:Strings.LanguageRestartHint}" Style="{StaticResource SettingsHintStyle}" />
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
 
             <TabItem Header="{x:Static res:Strings.TabBehavior}" AutomationProperties.AutomationId="BehaviorTab">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel Margin="12">
+                    <StackPanel Margin="10">
                         <!-- Time -->
-                        <TextBlock Text="{x:Static res:Strings.SettingsTiming}" FontWeight="SemiBold" Margin="0,6,0,6" />
+                        <TextBlock Text="{x:Static res:Strings.SettingsTiming}"
+                                   Style="{StaticResource SettingsSectionHeaderStyle}"
+                                   Margin="{StaticResource SettingsFirstGroupGap}" />
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="220" />
+                                <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="80" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
@@ -345,16 +342,16 @@
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
-                            <TextBlock Grid.Row="0" Text="{x:Static res:Strings.SettingsSedentary}" VerticalAlignment="Center" />
+                            <TextBlock Grid.Row="0" Text="{x:Static res:Strings.SettingsSedentary}" VerticalAlignment="Center" Margin="0,0,12,0" />
                             <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding SedentaryText, UpdateSourceTrigger=PropertyChanged}"
                                      MaxLength="4" pres:DigitsOnly.IsEnabled="True"
                                      AutomationProperties.AutomationId="SedentaryBox" />
-                            <TextBlock Grid.Row="1" Text="{x:Static res:Strings.SettingsSleep}" VerticalAlignment="Center" Margin="0,6,0,0" />
+                            <TextBlock Grid.Row="1" Text="{x:Static res:Strings.SettingsSleep}" VerticalAlignment="Center" Margin="0,6,12,0" />
                             <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding SleepText, UpdateSourceTrigger=PropertyChanged}"
-                                     MaxLength="4" pres:DigitsOnly.IsEnabled="True" Margin="0,6,0,0"
+                                     MaxLength="4" pres:DigitsOnly.IsEnabled="True" Margin="{StaticResource SettingsRowGap}"
                                      AutomationProperties.AutomationId="SleepBox" />
-                            <TextBlock Grid.Row="2" Text="{x:Static res:Strings.ClockOutTimeLabel}" VerticalAlignment="Center" Margin="0,6,0,0" />
-                            <StackPanel Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,6,0,0">
+                            <TextBlock Grid.Row="2" Text="{x:Static res:Strings.ClockOutTimeLabel}" VerticalAlignment="Center" Margin="0,6,12,0" />
+                            <StackPanel Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="{StaticResource SettingsRowGap}">
                                 <ComboBox ItemsSource="{Binding HourChoices}"
                                           SelectedItem="{Binding ClockOutHour}"
                                           ItemStringFormat="00"
@@ -374,20 +371,21 @@
 
 
                         <!-- Actions -->
-                        <TextBlock Text="{x:Static res:Strings.SettingsActions}" FontWeight="SemiBold" Margin="0,18,0,6" />
+                        <TextBlock Text="{x:Static res:Strings.SettingsActions}" Style="{StaticResource SettingsSectionHeaderStyle}" />
                         <CheckBox IsChecked="{Binding ChatterEnabled}"
+                                  Margin="0,2,0,0" MinHeight="24"
                                   AutomationProperties.Name="{x:Static res:Strings.SettingsChatter}"
                                   AutomationProperties.AutomationId="ChatterCheck">
                             <TextBlock Text="{x:Static res:Strings.SettingsChatter}" TextWrapping="Wrap" />
                         </CheckBox>
                         <CheckBox IsChecked="{Binding StrollWhileBusy}"
-                                  Margin="0,4,0,0"
+                                  Margin="0,2,0,0" MinHeight="24"
                                   AutomationProperties.Name="{x:Static res:Strings.SettingsStrollWhileBusy}"
                                   AutomationProperties.AutomationId="StrollWhileBusyCheck">
                             <TextBlock Text="{x:Static res:Strings.SettingsStrollWhileBusy}" TextWrapping="Wrap" />
                         </CheckBox>
                         <CheckBox IsChecked="{Binding ClimbEdges}"
-                                  Margin="0,4,0,0"
+                                  Margin="0,2,0,0" MinHeight="24"
                                   AutomationProperties.Name="{x:Static res:Strings.SettingsClimbEdges}"
                                   AutomationProperties.AutomationId="ClimbEdgesCheck">
                             <TextBlock Text="{x:Static res:Strings.SettingsClimbEdges}" TextWrapping="Wrap" />
@@ -395,58 +393,58 @@
 
 
                         <!-- Scenarios -->
-                        <TextBlock Text="{x:Static res:Strings.SettingsScenarios}" FontWeight="SemiBold" Margin="0,18,0,6" />
+                        <TextBlock Text="{x:Static res:Strings.SettingsScenarios}" Style="{StaticResource SettingsSectionHeaderStyle}" />
                         <CheckBox Content="{x:Static res:Strings.ScenariosEnabled}"
                                   IsChecked="{Binding ScenariosEnabled}"
+                                  Margin="0,2,0,0" MinHeight="24"
                                   AutomationProperties.AutomationId="ScenariosEnabledCheck" />
+                        <TextBlock Text="{x:Static res:Strings.ScenariosHoverHint}" Style="{StaticResource SettingsHintStyle}" Margin="0,2,0,2" />
                         <ItemsControl ItemsSource="{Binding Scenarios}"
                                       IsEnabled="{Binding ScenariosEnabled}"
-                                      Margin="20,4,0,0">
+                                      Margin="20,0,0,0">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Columns="2" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <CheckBox Content="{Binding Label}"
-                                              IsChecked="{Binding IsEnabled}"
-                                              Margin="0,2,0,0" />
+                                    <CheckBox IsChecked="{Binding IsEnabled}"
+                                              Margin="0,2,0,0"
+                                              MinHeight="24"
+                                              ToolTip="{Binding Description}"
+                                              AutomationProperties.Name="{Binding Label}"
+                                              AutomationProperties.HelpText="{Binding Description}">
+                                        <TextBlock Text="{Binding Label}" TextTrimming="CharacterEllipsis" />
+                                    </CheckBox>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
 
 
                         <!-- Recognized programs -->
-                        <TextBlock Text="{x:Static res:Strings.SettingsPrograms}" FontWeight="SemiBold" Margin="0,18,0,2" />
-                        <TextBlock Text="{x:Static res:Strings.ProgramsHint}" Style="{StaticResource SecondaryTextStyle}" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,2" />
+                        <TextBlock Text="{x:Static res:Strings.SettingsPrograms}" Style="{StaticResource SettingsSectionHeaderStyle}" />
+                        <TextBlock Text="{x:Static res:Strings.ProgramsHint}" Style="{StaticResource SettingsHintStyle}" Margin="0" />
                         <TextBlock Text="{Binding ProcessListNotice}"
                                    Style="{StaticResource NoticeTextStyle}"
                                    AutomationProperties.AutomationId="ProcessListNotice" />
-                        <TextBlock Text="{x:Static res:Strings.DevProcessesLabel}" Margin="0,8,0,4" TextWrapping="Wrap" />
+                        <TextBlock Text="{x:Static res:Strings.DevProcessesLabel}" TextWrapping="Wrap" Margin="0,6,0,2" />
                         <TextBox Text="{Binding DevProcessesText, UpdateSourceTrigger=PropertyChanged}"
-                                 AcceptsReturn="True"
-                                 TextWrapping="Wrap"
-                                 MinHeight="70"
-                                 VerticalScrollBarVisibility="Auto"
-                                 VerticalContentAlignment="Top"
+                                 AcceptsReturn="True" TextWrapping="Wrap" MinHeight="52" VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top"
                                  AutomationProperties.AutomationId="DevProcessesBox" />
                         <TextBlock Text="{Binding DevProcessesError}"
                                    Style="{StaticResource ErrorTextStyle}"
                                    AutomationProperties.AutomationId="DevProcessesError" />
-                        <TextBlock Text="{x:Static res:Strings.MeetingProcessesLabel}" Margin="0,8,0,4" TextWrapping="Wrap" />
+                        <TextBlock Text="{x:Static res:Strings.MeetingProcessesLabel}" TextWrapping="Wrap" Margin="0,6,0,2" />
                         <TextBox Text="{Binding MeetingProcessesText, UpdateSourceTrigger=PropertyChanged}"
-                                 AcceptsReturn="True"
-                                 TextWrapping="Wrap"
-                                 MinHeight="70"
-                                 VerticalScrollBarVisibility="Auto"
-                                 VerticalContentAlignment="Top"
+                                 AcceptsReturn="True" TextWrapping="Wrap" MinHeight="52" VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top"
                                  AutomationProperties.AutomationId="MeetingProcessesBox" />
                         <TextBlock Text="{Binding MeetingProcessesError}"
                                    Style="{StaticResource ErrorTextStyle}"
                                    AutomationProperties.AutomationId="MeetingProcessesError" />
-                        <TextBlock Text="{x:Static res:Strings.ChatProcessesLabel}" Margin="0,8,0,4" TextWrapping="Wrap" />
+                        <TextBlock Text="{x:Static res:Strings.ChatProcessesLabel}" TextWrapping="Wrap" Margin="0,6,0,2" />
                         <TextBox Text="{Binding ChatProcessesText, UpdateSourceTrigger=PropertyChanged}"
-                                 AcceptsReturn="True"
-                                 TextWrapping="Wrap"
-                                 MinHeight="70"
-                                 VerticalScrollBarVisibility="Auto"
-                                 VerticalContentAlignment="Top"
+                                 AcceptsReturn="True" TextWrapping="Wrap" MinHeight="52" VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top"
                                  AutomationProperties.AutomationId="ChatProcessesBox" />
                         <TextBlock Text="{Binding ChatProcessesError}"
                                    Style="{StaticResource ErrorTextStyle}"
@@ -454,21 +452,18 @@
 
 
                         <!-- Full screen -->
-                        <TextBlock Text="{x:Static res:Strings.SettingsFullscreen}" FontWeight="SemiBold" Margin="0,18,0,6" />
+                        <TextBlock Text="{x:Static res:Strings.SettingsFullscreen}" Style="{StaticResource SettingsSectionHeaderStyle}" />
                         <CheckBox Content="{x:Static res:Strings.AutoHide}"
                                   IsChecked="{Binding AutoHideWhenFullscreen}"
+                                  Margin="0,2,0,0" MinHeight="24"
                                   AutomationProperties.AutomationId="AutoHideCheck" />
                         <CheckBox Content="{x:Static res:Strings.CoveredMonitor}"
                                   IsChecked="{Binding DetectCoveredMonitor}"
-                                  Margin="0,4,0,0"
+                                  Margin="0,2,0,0" MinHeight="24"
                                   AutomationProperties.AutomationId="CoveredMonitorCheck" />
-                        <TextBlock Text="{x:Static res:Strings.BlacklistLabel}" Margin="0,8,0,4" TextWrapping="Wrap" />
+                        <TextBlock Text="{x:Static res:Strings.BlacklistLabel}" TextWrapping="Wrap" Margin="0,6,0,2" />
                         <TextBox Text="{Binding BlacklistText, UpdateSourceTrigger=PropertyChanged}"
-                                 AcceptsReturn="True"
-                                 TextWrapping="Wrap"
-                                 MinHeight="70"
-                                 VerticalScrollBarVisibility="Auto"
-                                 VerticalContentAlignment="Top"
+                                 AcceptsReturn="True" TextWrapping="Wrap" MinHeight="52" VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top"
                                  AutomationProperties.AutomationId="BlacklistBox" />
                         <TextBlock Text="{Binding BlacklistError}"
                                    Style="{StaticResource ErrorTextStyle}"
@@ -476,30 +471,33 @@
 
 
                         <!-- Note -->
-                        <TextBlock Text="{x:Static res:Strings.PetSupportNote}" Style="{StaticResource SecondaryTextStyle}" FontSize="11" TextWrapping="Wrap" Margin="0,18,0,0" />
+                        <TextBlock Text="{x:Static res:Strings.PetSupportNote}" Style="{StaticResource SettingsHintStyle}" Margin="0,12,0,0" />
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
 
             <TabItem Header="{x:Static res:Strings.TabSystem}" AutomationProperties.AutomationId="SystemTab">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel Margin="12">
+                    <StackPanel Margin="10">
                         <!-- System -->
-                        <TextBlock Text="{x:Static res:Strings.SettingsSystem}" FontWeight="SemiBold" Margin="0,6,0,6" />
+                        <TextBlock Text="{x:Static res:Strings.SettingsSystem}"
+                                   Style="{StaticResource SettingsSectionHeaderStyle}"
+                                   Margin="{StaticResource SettingsFirstGroupGap}" />
                         <CheckBox Content="{x:Static res:Strings.AutoStart}"
                                   IsChecked="{Binding AutoStart}"
+                                  Margin="0,2,0,0" MinHeight="24"
                                   AutomationProperties.AutomationId="AutoStartCheck" />
                         <TextBlock Text="{Binding AutoStartError}"
                                    Style="{StaticResource ErrorTextStyle}"
                                    AutomationProperties.AutomationId="AutoStartError" />
                         <CheckBox Content="{x:Static res:Strings.SettingsAutoCheckUpdates}"
                                   IsChecked="{Binding AutoCheckUpdates}"
-                                  Margin="0,6,0,0"
+                                  Margin="0,2,0,0" MinHeight="24"
                                   AutomationProperties.AutomationId="AutoCheckUpdatesCheck" />
 
 
                         <!-- Boss key -->
-                        <TextBlock Text="{x:Static res:Strings.SettingsBossKey}" FontWeight="SemiBold" Margin="0,18,0,6" />
+                        <TextBlock Text="{x:Static res:Strings.SettingsBossKey}" Style="{StaticResource SettingsSectionHeaderStyle}" />
                         <TextBox Text="{Binding BossKeyText, Mode=OneWay}"
                                  IsReadOnly="True"
                                  IsReadOnlyCaretVisible="False"
@@ -507,18 +505,18 @@
                                  HorizontalAlignment="Left"
                                  Width="220"
                                  AutomationProperties.AutomationId="BossKeyBox" />
-                        <TextBlock Text="{x:Static res:Strings.BossKeyHint}" Style="{StaticResource SecondaryTextStyle}" TextWrapping="Wrap" Margin="0,4,0,0" />
+                        <TextBlock Text="{x:Static res:Strings.BossKeyHint}" Style="{StaticResource SettingsHintStyle}" />
                         <TextBlock Text="{Binding BossKeyError}"
                                    Style="{StaticResource ErrorTextStyle}"
                                    AutomationProperties.AutomationId="BossKeyError" />
 
 
                         <!-- Diagnostics -->
-                        <TextBlock Text="{x:Static res:Strings.SettingsDiagnostics}" FontWeight="SemiBold" Margin="0,18,0,6" />
+                        <TextBlock Text="{x:Static res:Strings.SettingsDiagnostics}" Style="{StaticResource SettingsSectionHeaderStyle}" />
                         <Button Content="{x:Static res:Strings.OpenLogs}"
                                 Command="{Binding OpenLogsCommand}"
                                 HorizontalAlignment="Left"
-                                Padding="12,4"
+                                Padding="14,3" MinHeight="28"
                                 AutomationProperties.AutomationId="OpenLogsButton" />
                     </StackPanel>
                 </ScrollViewer>
@@ -526,7 +524,7 @@
         </TabControl>
 
         <!-- Saves or throws away the changes of the settings tabs; hidden on the pets tab, whose choices apply at once. -->
-        <Grid x:Name="SettingsBar" Grid.Row="2" Margin="0,10,0,0" Visibility="Collapsed">
+        <Grid x:Name="SettingsBar" Grid.Row="2" Margin="0,8,0,0" Visibility="Collapsed">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
@@ -540,14 +538,14 @@
             <Button Grid.Column="1"
                     Content="{x:Static res:Strings.SettingsSave}"
                     Command="{Binding SaveCommand}"
-                    Padding="18,4"
+                    Padding="14,3" MinHeight="28"
                     Margin="0,0,8,0"
                     AutomationProperties.AutomationId="SaveSettingsButton" />
             <Button Grid.Column="2"
                     Content="{x:Static res:Strings.SettingsRevert}"
                     Command="{Binding RevertCommand}"
                     IsEnabled="{Binding HasUnsavedChanges}"
-                    Padding="18,4"
+                    Padding="14,3" MinHeight="28"
                     AutomationProperties.AutomationId="RevertSettingsButton" />
         </Grid>
     </Grid>

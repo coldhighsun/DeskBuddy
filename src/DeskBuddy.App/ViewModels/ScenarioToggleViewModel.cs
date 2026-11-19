@@ -9,12 +9,15 @@ namespace DeskBuddy.App.ViewModels;
 /// The scenario, identified by the state the pet shows for it.
 /// </param>
 /// <param name="label">
-/// The text shown next to the switch.
+/// The short name shown next to the switch.
+/// </param>
+/// <param name="description">
+/// The explanation of the scenario, shown as a tooltip.
 /// </param>
 /// <param name="onChanged">
 /// Called when the user flips the switch.
 /// </param>
-public sealed partial class ScenarioToggleViewModel(PetState state, string label, Action<PetState, bool> onChanged)
+public sealed partial class ScenarioToggleViewModel(PetState state, string label, string description, Action<PetState, bool> onChanged)
     : ObservableObject
 {
     /// <summary>
@@ -28,9 +31,14 @@ public sealed partial class ScenarioToggleViewModel(PetState state, string label
     public PetState State { get; } = state;
 
     /// <summary>
-    /// Gets the text shown next to the switch.
+    /// Gets the short name shown next to the switch.
     /// </summary>
     public string Label { get; } = label;
+
+    /// <summary>
+    /// Gets the explanation of the scenario, shown as a tooltip.
+    /// </summary>
+    public string Description { get; } = description;
 
     /// <summary>
     /// Gets or sets a value indicating whether the pet acts out the scenario.

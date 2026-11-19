@@ -88,7 +88,7 @@ public sealed partial class SettingsTabViewModel : ObservableObject
 
         Scenarios =
         [
-            .. ScenarioCatalog.All.Select(state => new ScenarioToggleViewModel(state, Strings.ScenarioLabel(state), OnScenarioToggled)),
+            .. ScenarioCatalog.All.Select(state => new ScenarioToggleViewModel(state, Strings.ScenarioName(state), Strings.ScenarioLabel(state), OnScenarioToggled)),
         ];
 
         _removedAtLoad = settings.RemovedAtLoad;
