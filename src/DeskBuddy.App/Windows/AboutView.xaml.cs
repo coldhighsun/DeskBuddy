@@ -10,29 +10,45 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace DeskBuddy.App.Windows;
 
 /// <summary>
-/// The about window: name, version, a short description and a link to the project page.
+/// The content of the about tab of the panel: name, version, a short description, a link to the project page and the
+/// check for updates.
 /// </summary>
-public partial class AboutWindow
+public partial class AboutView
 {
     /// <summary>
-    /// The largest picture of the application icon, decoded the first time the window is made and shared by every window
-    /// after it. It is frozen, so it may be used from any thread. A failed load is not remembered: the next window tries
+    /// The largest picture of the application icon, decoded the first time a view is made and shared by every view
+    /// after it. It is frozen, so it may be used from any thread. A failed load is not remembered: the next view tries
     /// again instead of throwing the same error for as long as the application runs.
     /// </summary>
     private static readonly Lazy<BitmapSource> Logo = new(LoadLargestIconFrame, LazyThreadSafetyMode.PublicationOnly);
 
     /// <summary>
-    /// Looks for updates; <see langword="null"/> if the window does not offer that.
+    /// Looks for updates; <see langword="null"/> if the view does not offer that.
     /// </summary>
-    private readonly UpdateController? _updates;
+    private UpdateController? _updates;
 
     /// <summary>
     /// Reports what went wrong when a check for updates could not be carried out.
     /// </summary>
-    private readonly ILogger _logger;
+    private ILogger _logger = NullLogger.Instance;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="AboutWindow"/> class.
+    /// Initializes a new instance of the <see cref="AboutView"/> class without the check for updates; call
+    /// <see cref="Attach"/> to offer it.
+    /// </summary>
+    public AboutView()
+    {
+        InitializeComponent();
+        UpdateCard.Visibility = Visibility.Collapsed;
+        VersionText.Text = string.Format(CultureInfo.CurrentCulture, Strings.AboutVersion, AboutInfo.CurrentVersion());
+        LogoImage.Source = Logo.Value;
+        ProjectLink.NavigateUri = AboutInfo.ProjectUri;
+        ProjectLinkText.Text = AboutInfo.ProjectUri.AbsoluteUri;
+    }
+
+    /// <summary>
+    /// Offers the check for updates. The view lives as long as the panel, which lives as long as the application, so it
+    /// never lets go of the controller again.
     /// </summary>
     /// <param name="updates">
     /// Looks for updates; <see langword="null"/> leaves out the button that checks for them.
@@ -40,40 +56,19 @@ public partial class AboutWindow
     /// <param name="logger">
     /// Reports what went wrong; <see langword="null"/> reports nothing.
     /// </param>
-    internal AboutWindow(UpdateController? updates = null, ILogger? logger = null)
+    internal void Attach(UpdateController? updates, ILogger? logger = null)
     {
-        InitializeComponent();
         _updates = updates;
         _logger = logger ?? NullLogger.Instance;
         if (updates is null)
         {
             UpdateCard.Visibility = Visibility.Collapsed;
-        }
-        else
-        {
-            updates.Changed += OnUpdatesChanged;
-            Closed += (_, _) => updates.Changed -= OnUpdatesChanged;
-            ShowUpdateStatus();
+            return;
         }
 
-        VersionText.Text = string.Format(CultureInfo.CurrentCulture, Strings.AboutVersion, AboutInfo.CurrentVersion());
-        LogoImage.Source = Logo.Value;
-        Loaded += (_, _) => Motion.FadeIn((UIElement)Content);
-        ProjectLink.NavigateUri = AboutInfo.ProjectUri;
-    }
-
-    /// <summary>
-    /// Brings the window to the front, restoring it if it was minimized.
-    /// </summary>
-    public void ShowAbout()
-    {
-        if (WindowState == WindowState.Minimized)
-        {
-            WindowState = WindowState.Normal;
-        }
-
-        Show();
-        Activate();
+        UpdateCard.Visibility = Visibility.Visible;
+        updates.Changed += OnUpdatesChanged;
+        ShowUpdateStatus();
     }
 
     /// <summary>
@@ -138,21 +133,6 @@ public partial class AboutWindow
         var frame = decoder.Frames.OrderByDescending(candidate => candidate.PixelWidth).First();
         frame.Freeze();
         return frame;
-    }
-
-    /// <summary>
-    /// Closes the window. The window is shown without <see cref="Window.ShowDialog"/>, so a button marked as the cancel
-    /// button does not close it by itself.
-    /// </summary>
-    /// <param name="sender">
-    /// The close button.
-    /// </param>
-    /// <param name="e">
-    /// Event data.
-    /// </param>
-    private void OnCloseClick(object sender, RoutedEventArgs e)
-    {
-        Close();
     }
 
     /// <summary>

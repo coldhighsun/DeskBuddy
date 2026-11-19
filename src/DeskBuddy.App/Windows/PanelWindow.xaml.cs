@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
 using DeskBuddy.App.ViewModels;
+using GitHubReleaseUpdater.AutoUpdate;
 
 namespace DeskBuddy.App.Windows;
 
@@ -49,9 +50,16 @@ public partial class PanelWindow
     /// <param name="viewModel">
     /// The view models behind the tabs.
     /// </param>
-    public PanelWindow(PanelViewModel viewModel)
+    /// <param name="updates">
+    /// Looks for updates; <see langword="null"/> leaves the check out of the about tab.
+    /// </param>
+    /// <param name="logger">
+    /// Reports what went wrong when a check for updates fails; <see langword="null"/> reports nothing.
+    /// </param>
+    internal PanelWindow(PanelViewModel viewModel, UpdateController? updates = null, ILogger? logger = null)
     {
         InitializeComponent();
+        About.Attach(updates, logger);
 
         _viewModel = viewModel;
         DataContext = viewModel;
@@ -259,7 +267,10 @@ public partial class PanelWindow
         // Selection events of the lists inside the tabs bubble up to the tab control; only its own matter here.
         if (ReferenceEquals(e.OriginalSource, Tabs))
         {
-            SettingsBar.Visibility = Tabs.SelectedIndex == (int)PanelTab.Pets ? Visibility.Collapsed : Visibility.Visible;
+            // The pets and about tabs have nothing to save: their choices apply at once or there are none.
+            SettingsBar.Visibility = Tabs.SelectedIndex is (int)PanelTab.Pets or (int)PanelTab.About
+                ? Visibility.Collapsed
+                : Visibility.Visible;
             UpdatePreviews();
 
             if (IsLoaded && Tabs.SelectedItem is TabItem { Content: UIElement content })

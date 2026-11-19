@@ -86,17 +86,7 @@ internal static class Strings
     public static string TraySettings => Get();
 
     /// <summary>
-    /// Gets the tray menu text that opens the about window.
-    /// </summary>
-    public static string TrayAbout => Get();
-
-    /// <summary>
-    /// Gets the title of the about window.
-    /// </summary>
-    public static string AboutTitle => Get();
-
-    /// <summary>
-    /// Gets the version line of the about window; <c>{0}</c> is the version.
+    /// Gets the version line of the about tab; <c>{0}</c> is the version.
     /// </summary>
     public static string AboutVersion => Get();
 
@@ -106,19 +96,9 @@ internal static class Strings
     public static string AboutDescription => Get();
 
     /// <summary>
-    /// Gets the text of the link to the project page in the about window.
-    /// </summary>
-    public static string AboutProjectPage => Get();
-
-    /// <summary>
     /// Gets the license and copyright line of the about window.
     /// </summary>
     public static string AboutLicense => Get();
-
-    /// <summary>
-    /// Gets the text of the button that closes the about window.
-    /// </summary>
-    public static string AboutClose => Get();
 
     /// <summary>
     /// Gets the tray menu text of the submenu that switches the pet.
@@ -239,6 +219,11 @@ internal static class Strings
     /// Gets the title of the system tab.
     /// </summary>
     public static string TabSystem => Get();
+
+    /// <summary>
+    /// Gets the title of the about tab.
+    /// </summary>
+    public static string TabAbout => Get();
 
     /// <summary>
     /// Gets the heading of the appearance section.

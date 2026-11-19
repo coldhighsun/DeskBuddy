@@ -66,7 +66,7 @@ for; anything missing falls back to a similar state.
 - Light and dark themes: the panel, tray menu and speech bubble follow the Windows app theme and switch as it changes, or
   choose light or dark under Appearance in the settings (takes effect at once). A Windows high-contrast theme is respected.
 - The settings are a draft: changes take effect when you click Save, and Revert discards them.
-- Tray icon, an About window and single-instance protection.
+- Tray icon, an About tab in the settings panel and single-instance protection.
 
 ## Add your own pet
 

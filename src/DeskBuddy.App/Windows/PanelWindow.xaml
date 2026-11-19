@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:res="clr-namespace:DeskBuddy.App.Resources"
         xmlns:pres="clr-namespace:DeskBuddy.App.Presentation"
+        xmlns:win="clr-namespace:DeskBuddy.App.Windows"
         Style="{StaticResource DialogWindowStyle}"
         Title="{x:Static res:Strings.AppName}"
         Icon="pack://application:,,,/DeskBuddy;component/Assets/DeskBuddy.ico"
@@ -621,6 +622,16 @@
                       </Border>
                     </StackPanel>
                 </ScrollViewer>
+            </TabItem>
+
+            <TabItem AutomationProperties.Name="{x:Static res:Strings.TabAbout}" AutomationProperties.AutomationId="AboutTab">
+                <TabItem.Header>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Style="{StaticResource TabIconStyle}" Text="&#xE946;" />
+                        <TextBlock Text="{x:Static res:Strings.TabAbout}" />
+                    </StackPanel>
+                </TabItem.Header>
+                <win:AboutView x:Name="About" />
             </TabItem>
         </TabControl>
 

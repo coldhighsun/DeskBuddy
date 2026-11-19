@@ -1,3 +1,4 @@
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using DeskBuddy.App.Presentation;
@@ -6,7 +7,7 @@ using DeskBuddy.App.Windows;
 namespace DeskBuddy.App.Tests;
 
 /// <summary>
-/// Tests for the about window and the version text it shows.
+/// Tests for the about view and the version text it shows.
 /// </summary>
 public class AboutInfoTests
 {
@@ -52,48 +53,16 @@ public class AboutInfoTests
         StaThread.Run(() =>
         {
             // Act
-            var window = new AboutWindow();
+            var view = new AboutView();
 
             // Assert
-            var logo = (Image)window.FindName("LogoImage");
+            var logo = (Image)view.FindName("LogoImage");
             ((BitmapSource)logo.Source).PixelWidth.Should().BeGreaterThanOrEqualTo(128);
-            window.Close();
         });
     }
 
     /// <summary>
-    /// Pressing the close button closes the window.
-    /// </summary>
-    [Fact]
-    public void CloseButton_Click_ClosesTheWindow()
-    {
-        StaThread.Run(() =>
-        {
-            // Arrange
-            var window = new AboutWindow();
-            var closed = false;
-            window.Closed += (_, _) => closed = true;
-            window.ShowAbout();
-            var button = (Button)window.FindName("CloseButton");
-
-            try
-            {
-                // Act
-                button.RaiseEvent(new System.Windows.RoutedEventArgs(Button.ClickEvent));
-
-                // Assert
-                closed.Should().BeTrue();
-            }
-            finally
-            {
-                // A window that is still open when the assertion fails must not outlive the test.
-                window.Close();
-            }
-        });
-    }
-
-    /// <summary>
-    /// The window lays out on whole pixels, so its centered text is not blurred by half-pixel positions.
+    /// The view lays out on whole pixels, so its centered text is not blurred by half-pixel positions.
     /// </summary>
     [Fact]
     public void Constructor_Layout_SnapsToWholePixels()
@@ -101,17 +70,16 @@ public class AboutInfoTests
         StaThread.Run(() =>
         {
             // Act
-            var window = new AboutWindow();
+            var view = new AboutView();
 
             // Assert
-            window.UseLayoutRounding.Should().BeTrue();
-            window.SnapsToDevicePixels.Should().BeTrue();
-            window.Close();
+            view.UseLayoutRounding.Should().BeTrue();
+            view.SnapsToDevicePixels.Should().BeTrue();
         });
     }
 
     /// <summary>
-    /// The link in the window points to the project page.
+    /// The link in the view points to the project page.
     /// </summary>
     [Fact]
     public void Constructor_ProjectLink_PointsToTheProjectPage()
@@ -119,17 +87,17 @@ public class AboutInfoTests
         StaThread.Run(() =>
         {
             // Act
-            var window = new AboutWindow();
+            var view = new AboutView();
 
             // Assert
-            var link = (System.Windows.Documents.Hyperlink)window.FindName("ProjectLink");
+            var link = (System.Windows.Documents.Hyperlink)view.FindName("ProjectLink");
             link.NavigateUri.Should().Be(AboutInfo.ProjectUri);
-            window.Close();
+            ((System.Windows.Documents.Run)view.FindName("ProjectLinkText")).Text.Should().Be(AboutInfo.ProjectUri.AbsoluteUri);
         });
     }
 
     /// <summary>
-    /// The window builds from its markup and shows the running version.
+    /// The view builds from its markup and shows the running version.
     /// </summary>
     [Fact]
     public void Constructor_ShowsVersionOfTheApplication()
@@ -137,12 +105,31 @@ public class AboutInfoTests
         StaThread.Run(() =>
         {
             // Act
-            var window = new AboutWindow();
+            var view = new AboutView();
 
             // Assert
-            var version = (TextBlock)window.FindName("VersionText");
+            var version = (TextBlock)view.FindName("VersionText");
             version.Text.Should().Contain(AboutInfo.CurrentVersion());
-            window.Close();
+        });
+    }
+
+    /// <summary>
+    /// Without an update controller, the view offers no check for updates.
+    /// </summary>
+    [Fact]
+    public void Attach_WithoutUpdates_HidesTheUpdateCard()
+    {
+        StaThread.Run(() =>
+        {
+            // Arrange
+            var view = new AboutView();
+
+            // Act
+            view.Attach(null);
+
+            // Assert
+            var card = (StackPanel)view.FindName("UpdateCard");
+            card.Visibility.Should().Be(Visibility.Collapsed);
         });
     }
 }
