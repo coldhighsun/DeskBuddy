@@ -2,80 +2,96 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:res="clr-namespace:DeskBuddy.App.Resources"
+        Style="{DynamicResource DialogWindowStyle}"
         Title="{x:Static res:Strings.AboutTitle}"
         Icon="pack://application:,,,/DeskBuddy;component/Assets/DeskBuddy.ico"
-        Width="360"
+        Width="400"
         SizeToContent="Height"
-        ResizeMode="NoResize"
-        ShowInTaskbar="False"
         SnapsToDevicePixels="True"
         UseLayoutRounding="True"
         WindowStartupLocation="CenterScreen">
-    <Window.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="pack://application:,,,/DeskBuddy;component/Themes/Layout.xaml" />
-            </ResourceDictionary.MergedDictionaries>
-        </ResourceDictionary>
-    </Window.Resources>
-
-    <StackPanel Margin="20,16">
-        <!-- The picture is set in code: an Image given an .ico shows its first (16 pixel) frame, scaled up and blurry. -->
-        <Image x:Name="LogoImage"
-               Width="64"
-               Height="64"
-               HorizontalAlignment="Center"
-               RenderOptions.BitmapScalingMode="HighQuality" />
-        <TextBlock Text="{x:Static res:Strings.AppName}"
-                   FontSize="20"
-                   FontWeight="SemiBold"
-                   HorizontalAlignment="Center"
-                   Margin="0,8,0,0" />
-        <TextBlock x:Name="VersionText"
-                   HorizontalAlignment="Center"
-                   Style="{StaticResource SecondaryTextStyle}"
-                   Margin="0,4,0,0"
-                   AutomationProperties.AutomationId="AboutVersion" />
-        <TextBlock Text="{x:Static res:Strings.AboutDescription}"
-                   TextWrapping="Wrap"
-                   TextAlignment="Center"
-                   Margin="0,12,0,0" />
-        <TextBlock HorizontalAlignment="Center" Margin="0,12,0,0">
-            <Hyperlink x:Name="ProjectLink"
-                       RequestNavigate="OnProjectLinkRequestNavigate"
-                       AutomationProperties.AutomationId="AboutProjectLink">
-                <Run Text="{x:Static res:Strings.AboutProjectPage}" />
-            </Hyperlink>
-        </TextBlock>
-        <TextBlock Text="{x:Static res:Strings.AboutLicense}"
-                   HorizontalAlignment="Center"
-                   Style="{StaticResource SettingsHintStyle}" />
-        <StackPanel x:Name="UpdatePanel" Margin="0,12,0,0">
-            <Button x:Name="CheckUpdatesButton"
-                    Content="{x:Static res:Strings.AboutCheckUpdates}"
-                    Click="OnCheckUpdatesClick"
-                    HorizontalAlignment="Center"
-                    Padding="14,3"
-                    MinHeight="28"
-                    AutomationProperties.AutomationId="AboutCheckUpdatesButton" />
-            <TextBlock x:Name="UpdateStatusText"
+    <StackPanel>
+        <!-- The hero: logo, name and version on a softly tinted surface. -->
+        <Border Background="{DynamicResource AppSurface}"
+                BorderBrush="{DynamicResource AppDivider}"
+                BorderThickness="1"
+                CornerRadius="{DynamicResource SettingsCardRadius}"
+                Padding="16,20">
+            <StackPanel>
+                <!-- The picture is set in code: an Image given an .ico shows its first (16 pixel) frame, scaled up and blurry. -->
+                <Image x:Name="LogoImage"
+                       Width="72"
+                       Height="72"
                        HorizontalAlignment="Center"
-                       TextAlignment="Center"
-                       TextWrapping="Wrap"
-                       Style="{StaticResource SecondaryTextStyle}"
-                       Margin="0,8,0,0"
-                       AutomationProperties.AutomationId="AboutUpdateStatus" />
-        </StackPanel>
+                       RenderOptions.BitmapScalingMode="HighQuality" />
+                <TextBlock Text="{x:Static res:Strings.AppName}"
+                           FontSize="22"
+                           FontWeight="SemiBold"
+                           HorizontalAlignment="Center"
+                           Margin="0,10,0,0" />
+                <Border Style="{DynamicResource SettingsChipBorderStyle}"
+                        HorizontalAlignment="Center"
+                        Margin="0,6,0,0"
+                        Padding="10,2">
+                    <TextBlock x:Name="VersionText"
+                               Foreground="{DynamicResource AppPrimary}"
+                               FontSize="{DynamicResource SettingsCaptionSize}"
+                               AutomationProperties.AutomationId="AboutVersion" />
+                </Border>
+                <TextBlock Text="{x:Static res:Strings.AboutDescription}"
+                           TextWrapping="Wrap"
+                           TextAlignment="Center"
+                           Margin="0,12,0,0" />
+            </StackPanel>
+        </Border>
+
+        <!-- The project page and the license. -->
+        <Border Style="{DynamicResource SettingsGroupCardStyle}" Margin="0,12,0,0" Padding="16,10">
+            <StackPanel>
+                <TextBlock HorizontalAlignment="Center">
+                    <Hyperlink x:Name="ProjectLink"
+                               RequestNavigate="OnProjectLinkRequestNavigate"
+                               AutomationProperties.AutomationId="AboutProjectLink">
+                        <Run Text="{x:Static res:Strings.AboutProjectPage}" />
+                    </Hyperlink>
+                </TextBlock>
+                <TextBlock Text="{x:Static res:Strings.AboutLicense}"
+                           HorizontalAlignment="Center"
+                           Style="{DynamicResource SettingsHintStyle}" />
+            </StackPanel>
+        </Border>
+
+        <!-- The update check: a button and what came of it. -->
+        <Border x:Name="UpdateCard" Style="{DynamicResource SettingsGroupCardStyle}" Margin="0,0,0,0" Padding="16,12">
+            <StackPanel x:Name="UpdatePanel">
+                <Button x:Name="CheckUpdatesButton"
+                        Content="{x:Static res:Strings.AboutCheckUpdates}"
+                        Click="OnCheckUpdatesClick"
+                        HorizontalAlignment="Center"
+                        Padding="18,3"
+                        MinHeight="32"
+                        AutomationProperties.AutomationId="AboutCheckUpdatesButton" />
+                <TextBlock x:Name="UpdateStatusText"
+                           HorizontalAlignment="Center"
+                           TextAlignment="Center"
+                           TextWrapping="Wrap"
+                           Style="{DynamicResource SecondaryTextStyle}"
+                           Margin="0,8,0,0"
+                           AutomationProperties.AutomationId="AboutUpdateStatus" />
+            </StackPanel>
+        </Border>
+
         <Button x:Name="CloseButton"
                 Content="{x:Static res:Strings.AboutClose}"
                 IsCancel="True"
                 IsDefault="True"
                 Click="OnCloseClick"
+                Style="{DynamicResource RaisedButton}"
                 HorizontalAlignment="Center"
-                Padding="14,3"
-                MinWidth="96"
-                MinHeight="28"
-                Margin="0,12,0,0"
+                Padding="18,3"
+                MinWidth="120"
+                MinHeight="32"
+                Margin="0,4,0,0"
                 AutomationProperties.AutomationId="AboutCloseButton" />
     </StackPanel>
 </Window>

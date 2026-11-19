@@ -1,6 +1,5 @@
 using System.IO;
 using System.Windows;
-using System.Windows.Markup;
 using System.Security;
 using System.Windows.Threading;
 using Microsoft.Win32;
@@ -8,10 +7,10 @@ using Microsoft.Win32;
 namespace DeskBuddy.App.Presentation;
 
 /// <summary>
-/// Applies the color theme: the colors DeskBuddy draws itself, and the WPF theme of the standard controls in the windows
-/// and menus that are registered. While the theme follows the system, it changes along with the system; a Windows
-/// high-contrast theme always wins over the choice. The service belongs to the UI thread: create it, register elements
-/// and dispose it there.
+/// Applies the color theme: it merges the color dictionary of the chosen palette into the application resources, where
+/// every window and menu reads its colors from through dynamic resources. While the theme follows the system, it changes
+/// along with the system; a Windows high-contrast theme always wins over the choice. The service belongs to the UI
+/// thread: create and dispose it there.
 /// </summary>
 public sealed class ThemeService : IDisposable
 {
@@ -30,11 +29,6 @@ public sealed class ThemeService : IDisposable
     /// The assembly name in it must match <c>AssemblyName</c> of the project.
     /// </summary>
     private const string ColorsUriPrefix = "pack://application:,,,/DeskBuddy;component/Themes/";
-
-    /// <summary>
-    /// Where the Fluent theme resources of WPF live; the file name is completed with the theme.
-    /// </summary>
-    internal const string DefaultFluentUriPrefix = "pack://application:,,,/PresentationFramework.Fluent;component/Themes/Fluent.";
 
     /// <summary>
     /// The resources of the application, which receive the colors DeskBuddy draws itself.
@@ -58,11 +52,6 @@ public sealed class ThemeService : IDisposable
     private readonly HighContrastProbe _highContrast;
 
     /// <summary>
-    /// Where the Fluent theme resources live; the file name is completed with the theme.
-    /// </summary>
-    private readonly string _fluentUriPrefix;
-
-    /// <summary>
     /// Reports the theme settings changing.
     /// </summary>
     private readonly SettingsService _settings;
@@ -71,12 +60,6 @@ public sealed class ThemeService : IDisposable
     /// Reports a theme resource that could not be loaded.
     /// </summary>
     private readonly ILogger<ThemeService> _logger;
-
-    /// <summary>
-    /// The elements that follow the theme: windows get the WPF theme mode, other elements (such as a context menu) get the
-    /// Fluent resources merged. Held weakly so a closed window can be collected.
-    /// </summary>
-    private readonly List<WeakReference<FrameworkElement>> _elements = [];
 
     /// <summary>
     /// The theme last applied; <see langword="null"/> until the first <see cref="Apply"/>.
@@ -139,7 +122,7 @@ public sealed class ThemeService : IDisposable
         Dispatcher dispatcher,
         SettingsService settings,
         ILogger<ThemeService> logger)
-        : this(applicationResources, dispatcher, settings, logger, ReadSystemUsesLightTheme, HighContrastReader.TryRead, DefaultFluentUriPrefix)
+        : this(applicationResources, dispatcher, settings, logger, ReadSystemUsesLightTheme, HighContrastReader.TryRead)
     {
     }
 
@@ -166,17 +149,13 @@ public sealed class ThemeService : IDisposable
     /// <param name="highContrast">
     /// Asks whether Windows is in a high-contrast theme, and whether it could answer.
     /// </param>
-    /// <param name="fluentUriPrefix">
-    /// Where the Fluent theme resources live; the file name is completed with the theme.
-    /// </param>
     internal ThemeService(
         ResourceDictionary applicationResources,
         Dispatcher dispatcher,
         SettingsService settings,
         ILogger<ThemeService> logger,
         Func<bool?> systemUsesLightTheme,
-        HighContrastProbe highContrast,
-        string fluentUriPrefix)
+        HighContrastProbe highContrast)
     {
         _applicationResources = applicationResources;
         _dispatcher = dispatcher;
@@ -184,39 +163,10 @@ public sealed class ThemeService : IDisposable
         _logger = logger;
         _systemUsesLightTheme = systemUsesLightTheme;
         _highContrast = highContrast;
-        _fluentUriPrefix = fluentUriPrefix;
 
         Apply(settings.Current.Theme);
         settings.Changed += OnSettingsChanged;
         SystemEvents.UserPreferenceChanged += OnUserPreferenceChanged;
-    }
-
-    /// <summary>
-    /// Gets how many elements follow the theme.
-    /// </summary>
-    internal int RegisteredCount => _elements.Count(reference => reference.TryGetTarget(out _));
-
-    /// <summary>
-    /// Makes a window or other element follow the theme, now and whenever it changes. The standard controls inside it
-    /// take the WPF Fluent theme; elements that are not given this keep the classic look, which is what the transparent
-    /// pet windows need: the application-wide theme would paint a background behind the pet.
-    /// </summary>
-    /// <param name="element">
-    /// The window or element to theme.
-    /// </param>
-    /// <exception cref="InvalidOperationException">
-    /// Called from a thread other than the UI thread.
-    /// </exception>
-    public void Register(FrameworkElement element)
-    {
-        _dispatcher.VerifyAccess();
-
-        if (!_elements.Any(reference => reference.TryGetTarget(out var known) && ReferenceEquals(known, element)))
-        {
-            _elements.Add(new WeakReference<FrameworkElement>(element));
-        }
-
-        Style(element, _palette ?? ThemePalette.Light);
     }
 
     /// <inheritdoc />
@@ -323,7 +273,8 @@ public sealed class ThemeService : IDisposable
     }
 
     /// <summary>
-    /// Works out the palette and, if it differs from the one shown, passes it on to everything that follows the theme.
+    /// Works out the palette and, if it differs from the one shown, replaces the color dictionary in the application
+    /// resources; everything that reads its colors through dynamic resources follows at once.
     /// </summary>
     internal void Refresh()
     {
@@ -344,60 +295,6 @@ public sealed class ThemeService : IDisposable
 
         merged.Add(colors);
         _colors = colors;
-
-        _elements.RemoveAll(reference => !reference.TryGetTarget(out _));
-        foreach (var reference in _elements)
-        {
-            if (reference.TryGetTarget(out var element))
-            {
-                Style(element, palette);
-            }
-        }
-    }
-
-    /// <summary>
-    /// Gives an element the WPF Fluent theme for a palette. When the Fluent resources cannot be loaded the element keeps
-    /// the classic look, which still works.
-    /// </summary>
-    /// <param name="element">
-    /// The window or element.
-    /// </param>
-    /// <param name="palette">
-    /// The palette to show.
-    /// </param>
-    private void Style(FrameworkElement element, ThemePalette palette)
-    {
-        if (element is Window window)
-        {
-            // ThemeMode is still marked experimental in .NET 10; the project silences WPF0001 for it. The system mode
-            // is what carries the high-contrast colors.
-            window.ThemeMode = palette switch
-            {
-                ThemePalette.Dark => ThemeMode.Dark,
-                ThemePalette.Light => ThemeMode.Light,
-                _ => ThemeMode.System,
-            };
-            return;
-        }
-
-        var merged = element.Resources.MergedDictionaries;
-        for (var i = merged.Count - 1; i >= 0; i--)
-        {
-            if (merged[i].Source?.OriginalString.StartsWith(_fluentUriPrefix, StringComparison.Ordinal) == true)
-            {
-                merged.RemoveAt(i);
-            }
-        }
-
-        var file = palette == ThemePalette.HighContrast ? "HC" : palette.ToString();
-        try
-        {
-            merged.Add(new ResourceDictionary { Source = new Uri($"{_fluentUriPrefix}{file}.xaml") });
-        }
-        catch (Exception ex) when (ex is IOException or XamlParseException or UriFormatException)
-        {
-            _logger.LogWarning(ex, "The Fluent theme resources '{File}' could not be loaded; using the classic look.", file);
-        }
     }
 
     /// <summary>

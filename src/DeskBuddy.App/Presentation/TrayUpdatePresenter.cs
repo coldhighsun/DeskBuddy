@@ -55,8 +55,8 @@ internal sealed class TrayUpdatePresenter(Func<TrayIconService?> tray, Action ex
     public ValueTask<bool> ConfirmInstallAsync(AvailableUpdate update, SemanticVersion currentVersion)
     {
         var question = string.Format(CultureInfo.CurrentCulture, Strings.UpdateConfirm, update.Version, currentVersion);
-        var answer = MessageBox.Show(question, Strings.UpdateConfirmTitle, MessageBoxButton.YesNo, MessageBoxImage.Question);
-        return ValueTask.FromResult(answer == MessageBoxResult.Yes);
+        var answer = Dialogs.Show(null, Strings.UpdateConfirmTitle, question, DialogKind.Question, DialogModel.YesNoButtons());
+        return ValueTask.FromResult(answer == DialogChoice.Yes);
     }
 
     /// <inheritdoc />

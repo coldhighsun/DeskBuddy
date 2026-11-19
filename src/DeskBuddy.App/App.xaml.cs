@@ -412,19 +412,13 @@ public partial class App
                 new TrayUpdatePresenter(() => _tray, ExitApplication, updateLogger),
                 updateLogger);
             var about = new SingleWindow<AboutWindow>(
-                () =>
-                {
-                    var window = new AboutWindow(updates, updateLogger);
-                    themeService.Register(window);
-                    return window;
-                },
+                () => new AboutWindow(updates, updateLogger),
                 window => window.ShowAbout());
             _tray = new TrayIconService(
                 brain,
                 OpenPanel,
                 about.Open,
                 ExitApplication,
-                themeService,
                 settingsService,
                 _installedPets,
                 updates,
@@ -612,7 +606,6 @@ public partial class App
         if (_panel is null && PreparePanelViewModel() is { } viewModel)
         {
             _panel = new PanelWindow(viewModel);
-            _themeService?.Register(_panel);
         }
 
         _panel?.ShowPanel(tab);

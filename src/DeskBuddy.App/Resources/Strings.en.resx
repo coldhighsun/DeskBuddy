@@ -237,4 +237,9 @@
   <data name="AboutProjectPage" xml:space="preserve"><value>Project page</value></data>
   <data name="AboutLicense" xml:space="preserve"><value>MIT License · © 2026 coldhighsun</value></data>
   <data name="AboutClose" xml:space="preserve"><value>Close</value></data>
+  <data name="DialogOk" xml:space="preserve"><value>OK</value></data>
+  <data name="DialogYes" xml:space="preserve"><value>Yes</value></data>
+  <data name="DialogNo" xml:space="preserve"><value>No</value></data>
+  <data name="DialogCancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="DialogDontSave" xml:space="preserve"><value>Don't save</value></data>
 </root>

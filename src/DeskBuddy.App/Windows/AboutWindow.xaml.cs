@@ -47,7 +47,7 @@ public partial class AboutWindow
         _logger = logger ?? NullLogger.Instance;
         if (updates is null)
         {
-            UpdatePanel.Visibility = Visibility.Collapsed;
+            UpdateCard.Visibility = Visibility.Collapsed;
         }
         else
         {
@@ -58,6 +58,7 @@ public partial class AboutWindow
 
         VersionText.Text = string.Format(CultureInfo.CurrentCulture, Strings.AboutVersion, AboutInfo.CurrentVersion());
         LogoImage.Source = Logo.Value;
+        Loaded += (_, _) => Motion.FadeIn((UIElement)Content);
         ProjectLink.NavigateUri = AboutInfo.ProjectUri;
     }
 

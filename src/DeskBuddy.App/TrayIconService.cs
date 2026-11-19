@@ -132,9 +132,6 @@ public sealed class TrayIconService : IDisposable
     /// <param name="onExit">
     /// Callback invoked when the user chooses Exit.
     /// </param>
-    /// <param name="theme">
-    /// Gives the context menu the colors of the current theme.
-    /// </param>
     /// <param name="settings">
     /// The settings, which store the pet and its size.
     /// </param>
@@ -152,7 +149,6 @@ public sealed class TrayIconService : IDisposable
         Action<PanelTab?> openPanel,
         Action openAbout,
         Action onExit,
-        ThemeService theme,
         SettingsService settings,
         InstalledPets pets,
         UpdateController? updates,
@@ -175,7 +171,6 @@ public sealed class TrayIconService : IDisposable
             ContextMenu = new ContextMenu(),
         };
 
-        theme.Register(_icon.ContextMenu);
         Refresh();
 
         // The menu depends on pet visibility, the pet and its size; build it again when one of them changes.
@@ -250,13 +245,19 @@ public sealed class TrayIconService : IDisposable
     /// </returns>
     private static Border Framed(ImageSource? picture, double width, double height, bool isCurrent)
     {
-        return new Border
+        var frame = new Border
         {
             BorderThickness = new Thickness(2),
-            BorderBrush = isCurrent ? SystemColors.HighlightBrush : Brushes.Transparent,
-            CornerRadius = new CornerRadius(4),
+            BorderBrush = Brushes.Transparent,
+            CornerRadius = new CornerRadius(6),
             Child = new System.Windows.Controls.Image { Source = picture, Width = width, Height = height },
         };
+        if (isCurrent)
+        {
+            frame.SetResourceReference(Border.BorderBrushProperty, "AppPrimary");
+        }
+
+        return frame;
     }
 
     /// <summary>
@@ -634,7 +635,7 @@ public sealed class TrayIconService : IDisposable
     /// </returns>
     private MenuItem BuildPetsMenu(TrayMenuState state)
     {
-        var menu = new MenuItem { Header = Strings.TraySwitchPet };
+        var menu = new MenuItem { Header = Strings.TraySwitchPet, Icon = Glyph("") };
         foreach (var choice in TrayMenuModel.PetChoices(_pets.Entries, state.PetName))
         {
             var item = new MenuItem { ToolTip = choice.DisplayName };
@@ -670,7 +671,7 @@ public sealed class TrayIconService : IDisposable
     /// </returns>
     private MenuItem BuildSizeMenu(TrayMenuState state)
     {
-        var menu = new MenuItem { Header = Strings.TrayPetSize };
+        var menu = new MenuItem { Header = Strings.TrayPetSize, Icon = Glyph("") };
         foreach (var choice in PetSizeChoices.For(_pets.Entries, state.PetName, state.Size))
         {
             var label = choice.Label;
@@ -729,7 +730,7 @@ public sealed class TrayIconService : IDisposable
         var items = _icon.ContextMenu!.Items;
         items.Clear();
 
-        var openSettings = new MenuItem { Header = Strings.TraySettings };
+        var openSettings = new MenuItem { Header = Strings.TraySettings, Icon = Glyph("") };
         openSettings.Click += (_, _) => _openPanel(null);
         items.Add(openSettings);
 
@@ -738,33 +739,54 @@ public sealed class TrayIconService : IDisposable
 
         items.Add(new Separator());
 
-        var toggle = new MenuItem { Header = state.PetHidden ? Strings.TrayShowPet : Strings.TrayHidePet };
+        var toggle = new MenuItem { Header = state.PetHidden ? Strings.TrayShowPet : Strings.TrayHidePet, Icon = Glyph("") };
         toggle.Click += (_, _) => ToggleVisibility();
         items.Add(toggle);
 
         if (state.UpdateVersion is { } version)
         {
-            var install = new MenuItem { Header = string.Format(CultureInfo.CurrentCulture, Strings.TrayUpdateTo, version) };
+            var install = new MenuItem { Header = string.Format(CultureInfo.CurrentCulture, Strings.TrayUpdateTo, version), Icon = Glyph("") };
             install.Click += (_, _) => _ = RunUpdateAsync(InstallUpdateAsync);
             items.Add(install);
         }
 
         if (_updates is not null)
         {
-            var checkUpdates = new MenuItem { Header = Strings.TrayCheckUpdates };
+            var checkUpdates = new MenuItem { Header = Strings.TrayCheckUpdates, Icon = Glyph("") };
             checkUpdates.Click += (_, _) => _ = RunUpdateAsync(() => _updates.CheckAsync(manual: true));
             items.Add(checkUpdates);
         }
 
-        var about = new MenuItem { Header = Strings.TrayAbout };
+        var about = new MenuItem { Header = Strings.TrayAbout, Icon = Glyph("") };
         about.Click += (_, _) => _openAbout();
         items.Add(about);
 
-        var exit = new MenuItem { Header = Strings.TrayExit };
+        var exit = new MenuItem { Header = Strings.TrayExit, Icon = Glyph("") };
         exit.Click += (_, _) => _onExit();
         items.Add(exit);
 
         _rebuildPolicy.MarkBuilt(state);
+    }
+
+    /// <summary>
+    /// Makes the icon of a menu item from a glyph of the Segoe Fluent Icons font (Segoe MDL2 Assets before Windows 11).
+    /// </summary>
+    /// <param name="glyph">
+    /// The character of the glyph.
+    /// </param>
+    /// <returns>
+    /// A text block showing the glyph, in the color of the menu text.
+    /// </returns>
+    private static TextBlock Glyph(string glyph)
+    {
+        return new TextBlock
+        {
+            Text = glyph,
+            FontFamily = new FontFamily("Segoe Fluent Icons, Segoe MDL2 Assets"),
+            FontSize = 14,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+        };
     }
 
     /// <summary>

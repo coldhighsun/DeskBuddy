@@ -21,27 +21,38 @@
                       UseAeroCaptionButtons="False" />
     </WindowChrome.WindowChrome>
     <StackPanel>
-        <Border CornerRadius="12"
-                Background="{DynamicResource BubbleBackgroundBrush}"
-                BorderBrush="{DynamicResource BubbleBorderBrush}"
+        <Border x:Name="Body"
+                CornerRadius="14"
+                Background="{DynamicResource AppSurface}"
+                BorderBrush="{DynamicResource AppDivider}"
                 BorderThickness="1"
-                Padding="12,10,12,10"
-                MaxWidth="260">
+                Padding="14,11,14,11"
+                MaxWidth="280"
+                RenderTransformOrigin="0.5,1">
             <StackPanel>
                 <TextBlock x:Name="MessageText"
                            TextWrapping="Wrap"
                            FontSize="13"
-                           Foreground="{DynamicResource BubbleTextBrush}" />
+                           Foreground="{DynamicResource AppForeground}" />
                 <WrapPanel x:Name="ButtonPanel" Margin="0,2,0,0" />
             </StackPanel>
         </Border>
         <!-- Little tail pointing down at the pet; its horizontal position is set in code. -->
-        <Path x:Name="Tail"
-              Data="M 0,0 L 14,0 L 7,9 Z"
-              Fill="{DynamicResource BubbleBackgroundBrush}"
-              Stroke="{DynamicResource BubbleBorderBrush}"
-              StrokeThickness="0"
+        <!-- The fill covers the border where the tail joins; the outline follows only the two slanted sides, so the
+             border line is interrupted cleanly and the tail looks like part of the bubble. -->
+        <Grid x:Name="Tail"
+              Width="14"
+              Height="9"
               HorizontalAlignment="Left"
-              Margin="0,-1,0,0" />
+              Margin="0,-1,0,0">
+            <Path Data="M 0,0 L 14,0 L 7,9 Z"
+                  Fill="{DynamicResource AppSurface}"
+                  StrokeThickness="0" />
+            <Path Data="M 0.5,0 L 7,8 L 13.5,0"
+                  Fill="{x:Null}"
+                  Stroke="{DynamicResource AppDivider}"
+                  StrokeThickness="1"
+                  StrokeLineJoin="Round" />
+        </Grid>
     </StackPanel>
 </Window>
