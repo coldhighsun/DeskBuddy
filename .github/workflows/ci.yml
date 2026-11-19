@@ -10,10 +10,16 @@ on:
 permissions:
   contents: read
 
+# A newer push to the same branch or pull request supersedes the run in progress; release tags always run to the end.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
 jobs:
   build-test:
     # The app and its tests target WPF, so they only build on Windows.
     runs-on: windows-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
         with:
@@ -22,7 +28,11 @@ jobs:
 
       - uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: 11.0.x
+          # The SDK version is pinned in global.json, so CI and local builds use the same one.
+          global-json-file: global.json
+          # Central package management keeps every version in one file, which keys the package cache.
+          cache: true
+          cache-dependency-path: Directory.Packages.props
 
       - name: Build
         run: dotnet build DeskBuddy.slnx -c Release
@@ -35,6 +45,7 @@ jobs:
     needs: build-test
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: windows-latest
+    timeout-minutes: 30
     permissions:
       contents: write
     steps:
@@ -45,13 +56,18 @@ jobs:
 
       - uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: 11.0.x
+          # The SDK version is pinned in global.json, so CI and local builds use the same one.
+          global-json-file: global.json
+          # Central package management keeps every version in one file, which keys the package cache.
+          cache: true
+          cache-dependency-path: Directory.Packages.props
 
       - name: Install Inno Setup 7
         # The runner ships Inno Setup 6, which lacks the Chinese language file the installer script uses.
         shell: pwsh
         run: |
-          winget install --id JRSoftware.InnoSetup.7 -e --silent --accept-source-agreements --accept-package-agreements
+          # Pinned so a new Inno Setup release cannot change a release build unnoticed; raise it on purpose.
+          winget install --id JRSoftware.InnoSetup.7 -e --version 7.1.1 --silent --accept-source-agreements --accept-package-agreements
           $iscc = Get-ChildItem "${env:ProgramFiles(x86)}", $env:ProgramFiles, "$env:LOCALAPPDATA\Programs" -Filter ISCC.exe -Recurse -ErrorAction SilentlyContinue |
             Where-Object { $_.FullName -like '*Inno Setup 7*' } |
             Select-Object -First 1
