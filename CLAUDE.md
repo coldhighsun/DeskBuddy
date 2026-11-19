@@ -19,7 +19,8 @@ powershell -NoProfile -File tools/GenerateAppIcon.ps1   # 重新生成应用/托
 ```
 
 - 构建产物统一在 `artifacts/`（`UseArtifactsOutput`），不要提交。
-- CI（`.github/workflows/ci.yml`）在 windows-latest 上以 Release 配置构建并测试。
+- CI（`.github/workflows/ci.yml`）在 windows-latest 上以 Release 配置构建并测试；推送 `v*` tag 时 `release` job 用 Inno Setup 7（winget 固定版本）打包并创建 GitHub Release（tag 带 `-` 的是预发布）。SDK 版本固定在 `global.json`，CI 也按它安装。
+- 分析器：`Directory.Build.props` 开了 `GenerateDocumentationFile`（缺 XML 文档注释即 CS1591）和 `AnalysisLevel=latest-recommended`，规则的取舍写在 `.editorconfig`。CI 里（`CI=true`）警告即错误，本地仍是警告，提交前用 `dotnet build DeskBuddy.slnx -p:CI=true` 确认没有警告。
 - 本机 `dotnet test` 带还原时可能因 NuGet 路径（`Y:\nuget\...`）失败，此时加 `--no-restore`。
 - 改过 `.cs` 之后单独跑 `dotnet test --project tests/...`，创建真实窗口的测试（如 `UmbrellaMovementTests`、`ThemeServiceTests` 里的气泡用例）可能报“找不到程序集 `DeskBuddy, Version=1.0.0.0`”：WPF 标记编译在地址里写了 `;V1.0.0.0`，而 MinVer 生成的程序集版本是 `0.0.0.0`。先 `dotnet build DeskBuddy.slnx` 再测；还不行就删掉 `artifacts/obj/DeskBuddy.App` 后重新构建。
 
@@ -30,7 +31,9 @@ powershell -NoProfile -File tools/GenerateAppIcon.ps1   # 重新生成应用/托
 - **Domain**：纯逻辑，不依赖任何基础设施。宠物行为状态机（`Behavior/PetBehaviorStateMachine`）、移动策略（`Movement/`，沿任务栏行走 / 自由落体 / 沿屏幕边缘爬行 / 跳跃，通过 `IScreenEdges` 抽象屏幕）、场景选择（`Scenarios/`）、宠物模型（`Pets/`）、设置（`Settings/PetSettings`）、久坐提醒等。所有宠物状态是 `PetState` 枚举。
 - **Application**：用例与服务。`PetBrain` 汇总传感器输入和用户交互，是 UI 询问“宠物现在该做什么”的唯一入口；按目录分组：`Settings/`（`SettingsService`、`SettingsApplier`）、`Scenarios/`（`DevScenarios`、`SystemScenarios`）、`Sensors/`（带缓存/节流的传感器包装）、`Hotkeys/`（`BossKeyController`）；`Abstractions/` 定义传感器与存储的接口（`ISettingsStore`、`IPetLoader` 等）。
 - **Infrastructure**：接口的 Windows 实现——传感器（前台进程、进程列表、电源状态等）、JSON 存储（设置）、注册表开机自启、日志、`FolderPetLoader`/`FolderPetCatalog`。
-- **App**：WPF 外壳。`App.xaml.cs` 用通用主机（Generic Host）组装全部依赖；`Rendering/` 负责宠物帧缓存与热切换（`PetSwitcher`）、面板预览图解码（`PetPreviewFrames`）；面板第一个标签是“宠物”（`PetsTabViewModel`/`PetCardViewModel`）：列出 `pets/` 下所有宠物，动画预览只轮播宠物自己定义的状态（每次先显示 Idle，其余按随机顺序，每轮不重复、不连着重复；`PetShowcase.RandomOrder`），能力标签由 `Domain/Pets/PetCapabilities` 从 manifest 推导，不写死任何宠物；`Windows/`、`ViewModels/`、`Interop/`（Win32 互操作）、`TrayIconService`、`SingleInstanceGuard`（单实例互斥）。
+- **App**：WPF 外壳。`App.xaml.cs` 用通用主机（Generic Host）组装全部依赖；`Rendering/` 负责宠物帧缓存与热切换（`PetSwitcher`）、面板预览图解码（`PetPreviewFrames`）；面板第一个标签是“宠物”（`PetsTabViewModel`/`PetCardViewModel`）：列出 `pets/` 下所有宠物，动画预览只轮播宠物自己定义的状态（每次先显示 Idle，其余按随机顺序，每轮不重复、不连着重复；`PetShowcase.RandomOrder`），能力标签由 `Domain/Pets/PetCapabilities` 从 manifest 推导，不写死任何宠物；`Windows/`、`ViewModels/`、`Interop/`（Win32 互操作）、`TrayIconService`、`SingleInstanceGuard`（单实例互斥）、`InstanceSignal`（命名事件：`DeskBuddy.exe --quit` 让正在运行的实例正常退出并等它退完，安装程序用它代替强杀；托盘之外的进程向运行中实例发指令都走它）。
+- **错误文案**：异常信息（多为英文）只写日志，给用户看的原因一律经 `Presentation/ErrorText.For`（更新相关的经 `UpdateErrorText.For`）换成界面语言。
+- **可见性**：`Domain/Visibility/PetVisibility` 有三个互不影响的隐藏原因：用户手动隐藏、全屏程序、会话锁定（App 订阅 `SystemEvents.SessionSwitch`）。隐藏时宠物窗口停掉动画/行走/指针定时器。显示器、分辨率、缩放或工作区变化时（`WindowStyleHelper.IsScreenLayoutChange`）宠物窗口重新落位。
 
 - **长驻状态会“溜达”**：Coding 和长驻的情境状态（`PetStateExtensions.CanStroll`：Coding / Building / Reading / NightCoding / Meeting / Chatting；Tired、LowBattery 与瞬时状态不算）在状态机里会一直钉住，宠物不动。为避免几小时一动不动，`PetBehaviorStateMachine` 在这些状态里每隔 `StrollIntervalMin..Max`（默认 10–20 秒）临时进入普通 `Walk`（时长同普通散步，期间也会 Hop），走完再回到原状态，窗口层无需任何改动。开关是设置项 `PetSettings.StrollWhileBusy`（“行为”标签，默认开），经 `SettingsApplier` 写入 `PetBehaviorOptions.StrollEnabled`。新增长驻情境状态时，要同时决定它是否加进 `CanStroll`。
 
