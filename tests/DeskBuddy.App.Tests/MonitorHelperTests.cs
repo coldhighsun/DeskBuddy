@@ -64,7 +64,7 @@ public class MonitorHelperTests
         var monitors = MonitorHelper.GetAllMonitors();
 
         // Assert
-        monitors.Any().Should().Be(right > left && bottom > top);
+        (monitors.Count > 0).Should().Be(right > left && bottom > top);
     }
 
     /// <summary>
