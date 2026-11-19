@@ -26,6 +26,9 @@ AppId={{15DEE168-F181-4422-95AC-BE381EC6B58C}
 AppName={#AppName}
 AppVersion={#AppVersion}
 AppPublisher={#AppName}
+AppPublisherURL=https://github.com/coldhighsun/DeskBuddy
+AppSupportURL=https://github.com/coldhighsun/DeskBuddy/issues
+AppUpdatesURL=https://github.com/coldhighsun/DeskBuddy/releases
 VersionInfoVersion={#NumericVersion}
 ; Per-user install: no administrator rights needed, which is what a locked-down work computer allows.
 PrivilegesRequired=lowest
@@ -52,10 +55,10 @@ Name: "chinesesimplified"; MessagesFile: "compiler:Languages\ChineseSimplified.i
 [CustomMessages]
 english.DesktopIcon=Create a &desktop shortcut
 english.RunAfterInstall=Start {#AppName}
-english.KeepDataPrompt=Keep your settings, to-do list, note and logs?%n%nChoose No to delete them as well.
+english.KeepDataPrompt=Keep your settings and logs?%n%nChoose No to delete them as well.
 chinesesimplified.DesktopIcon=创建桌面快捷方式(&D)
 chinesesimplified.RunAfterInstall=启动 {#AppName}
-chinesesimplified.KeepDataPrompt=是否保留你的设置、待办、便签和日志？%n%n选择“否”会一并删除。
+chinesesimplified.KeepDataPrompt=是否保留你的设置和日志？%n%n选择“否”会一并删除。
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:DesktopIcon}"; Flags: unchecked
@@ -72,6 +75,10 @@ Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExe}"; Tasks: desktopico
 ; "startup apps" switch, so nothing keeps pointing at a program that is gone.
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueName: "{#AppName}"; ValueType: none; Flags: dontcreatekey uninsdeletevalue
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run"; ValueName: "{#AppName}"; ValueType: none; Flags: dontcreatekey uninsdeletevalue
+
+[UninstallDelete]
+; Installers the app downloaded to update itself (see AppUpdates); nothing else is kept there.
+Type: filesandordirs; Name: "{%TEMP}\{#AppName}\update"
 
 [Run]
 Filename: "{app}\{#AppExe}"; Description: "{cm:RunAfterInstall}"; Flags: nowait postinstall; Check: ShouldLaunchApp
