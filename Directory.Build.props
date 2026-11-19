@@ -11,8 +11,7 @@
     <!-- Reports members without XML documentation (CS1591) and mismatched parameter docs (CS1573). -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
-    <!-- CI (GitHub Actions sets CI=true) fails on any warning; locally they stay warnings so work in progress builds. -->
-    <TreatWarningsAsErrors Condition="'$(CI)' == 'true'">true</TreatWarningsAsErrors>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
   <Import Project="Directory.Build.user" Condition="Exists('Directory.Build.user')" />

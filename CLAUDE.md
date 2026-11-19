@@ -20,7 +20,7 @@ powershell -NoProfile -File tools/GenerateAppIcon.ps1   # 重新生成应用/托
 
 - 构建产物统一在 `artifacts/`（`UseArtifactsOutput`），不要提交。
 - CI（`.github/workflows/ci.yml`）在 windows-latest 上以 Release 配置构建并测试；推送 `v*` tag 时 `release` job 用 Inno Setup 7（winget 固定版本）打包并创建 GitHub Release（tag 带 `-` 的是预发布）。SDK 版本固定在 `global.json`，CI 也按它安装。
-- 分析器：`Directory.Build.props` 开了 `GenerateDocumentationFile`（缺 XML 文档注释即 CS1591）和 `AnalysisLevel=latest-recommended`，规则的取舍写在 `.editorconfig`。CI 里（`CI=true`）警告即错误，本地仍是警告，提交前用 `dotnet build DeskBuddy.slnx -p:CI=true` 确认没有警告。
+- 分析器：`Directory.Build.props` 开了 `GenerateDocumentationFile`（缺 XML 文档注释即 CS1591）和 `AnalysisLevel=latest-recommended`，规则的取舍写在 `.editorconfig`。`TreatWarningsAsErrors` 对本地和 CI 都开着，任何警告都会让构建失败。
 - 本机 `dotnet test` 带还原时可能因 NuGet 路径（`Y:\nuget\...`）失败，此时加 `--no-restore`。
 - 每个测试项目在自己的 csproj 里引用测试包（含 `Microsoft.NET.Test.Sdk` 和 `xunit.runner.visualstudio`），`tests/` 下没有公共的 `Directory.Build.props`。`DeskBuddy.App.Tests` 不读仓库或发布输出里的文件（宠物、主题 xaml、图标、resx、安装脚本、runtimeconfig 等），需要这类文件才能测的就不写；它用的图片和宠物都在测试里现做或放在临时目录。
 
