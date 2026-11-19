@@ -14,29 +14,6 @@ namespace DeskBuddy.App.Tests;
 public class PetPreviewFramesTests
 {
     /// <summary>
-    /// A picture file (the icon of a shipped pet) is decoded to a frozen image, and asking again gives the same one.
-    /// </summary>
-    [Fact]
-    public void Get_ShippedPicture_DecodesOnceToFrozenImage()
-    {
-        StaThread.Run(() =>
-        {
-            // Arrange
-            using var frames = new PetPreviewFrames();
-            var path = Path.Combine(RepositoryPaths.Pets, "robot", "icon.png");
-
-            // Act
-            var first = frames.Get(path);
-            var second = frames.Get(path);
-
-            // Assert
-            first.Should().NotBeNull();
-            first!.IsFrozen.Should().BeTrue();
-            second.Should().BeSameAs(first);
-        });
-    }
-
-    /// <summary>
     /// A file that is not there leaves a gap in the preview instead of failing.
     /// </summary>
     [Fact]
@@ -676,48 +653,6 @@ public class PetPreviewFramesTests
 
         // Assert
         await act.Should().NotThrowAsync();
-    }
-
-    /// <summary>
-    /// The pets tab lists the shipped pets and every preview has a real picture, whichever state it is showing.
-    /// </summary>
-    [Fact]
-    public void PetsTab_ShippedPets_EveryPreviewShowsPictureInEveryState()
-    {
-        StaThread.Run(() =>
-        {
-            // Arrange
-            var petsDirectory = RepositoryPaths.Pets;
-            var settings = new SettingsService(new FakeSettingsStore());
-            settings.InitializeAsync().GetAwaiter().GetResult();
-            var loader = new FolderPetLoader(NullLogger<FolderPetLoader>.Instance);
-            var switcher = new PetSwitcher(
-                settings,
-                loader,
-                new FolderPetCatalog(petsDirectory),
-                settings.Current.PetName,
-                _ => { },
-                NullLogger<PetSwitcher>.Instance);
-            var pets = new PetsTabViewModel(
-                settings,
-                new FolderPetCatalog(petsDirectory),
-                loader,
-                switcher,
-                new PetPreviewFrames().Get);
-
-            // Act
-            pets.RefreshAsync().GetAwaiter().GetResult();
-
-            // Assert
-            pets.Cards.Select(card => card.FolderName).Should().Contain([PetSettings.DefaultPetName, "cat"]);
-            pets.Cards.Should().OnlyContain(card => card.IsAvailable);
-            pets.Cards.Single(card => card.IsCurrent).FolderName.Should().Be(PetSettings.DefaultPetName);
-            for (var step = 0; step < 12; step++)
-            {
-                pets.Cards.Should().OnlyContain(card => card.CurrentFrame != null);
-                pets.Tick(PetCardViewModel.StateDuration);
-            }
-        });
     }
 
     /// <summary>

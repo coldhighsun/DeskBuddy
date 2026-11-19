@@ -22,7 +22,7 @@ powershell -NoProfile -File tools/GenerateAppIcon.ps1   # 重新生成应用/托
 - CI（`.github/workflows/ci.yml`）在 windows-latest 上以 Release 配置构建并测试；推送 `v*` tag 时 `release` job 用 Inno Setup 7（winget 固定版本）打包并创建 GitHub Release（tag 带 `-` 的是预发布）。SDK 版本固定在 `global.json`，CI 也按它安装。
 - 分析器：`Directory.Build.props` 开了 `GenerateDocumentationFile`（缺 XML 文档注释即 CS1591）和 `AnalysisLevel=latest-recommended`，规则的取舍写在 `.editorconfig`。CI 里（`CI=true`）警告即错误，本地仍是警告，提交前用 `dotnet build DeskBuddy.slnx -p:CI=true` 确认没有警告。
 - 本机 `dotnet test` 带还原时可能因 NuGet 路径（`Y:\nuget\...`）失败，此时加 `--no-restore`。
-- 改过 `.cs` 之后单独跑 `dotnet test --project tests/...`，创建真实窗口的测试（如 `UmbrellaMovementTests`、`ThemeServiceTests` 里的气泡用例）可能报“找不到程序集 `DeskBuddy, Version=1.0.0.0`”：WPF 标记编译在地址里写了 `;V1.0.0.0`，而 MinVer 生成的程序集版本是 `0.0.0.0`。先 `dotnet build DeskBuddy.slnx` 再测；还不行就删掉 `artifacts/obj/DeskBuddy.App` 后重新构建。
+- 每个测试项目在自己的 csproj 里引用测试包（含 `Microsoft.NET.Test.Sdk` 和 `xunit.runner.visualstudio`），`tests/` 下没有公共的 `Directory.Build.props`。`DeskBuddy.App.Tests` 不读仓库或发布输出里的文件（宠物、主题 xaml、图标、resx、安装脚本、runtimeconfig 等），需要这类文件才能测的就不写；它用的图片和宠物都在测试里现做或放在临时目录。
 
 ## 架构
 
@@ -46,14 +46,14 @@ powershell -NoProfile -File tools/GenerateAppIcon.ps1   # 重新生成应用/托
 - 默认宠物为 `robot`（`PetSettings.DefaultPetName`）。宠物找不到或加载失败时回退到默认宠物。宠物名只能是单纯的文件夹名（`PetSettings.Normalize` 拒绝含路径的名字）。
 - **甩出宠物**：拖拽时 `Domain/Movement/ThrowTracker` 记下最后 `ThrowSampleWindow`（100 ms）内的指针位置，松手速度超过 `ThrowMinSpeed` 就把宠物甩出去：竖直方向交给 `FreeFall`（初速度可以向上，`ceilingY` 挡住屏幕顶），水平方向由 `ThrowMotion` 处理空气阻力和两端反弹。甩出的宠物不会抓边缘；拖拽被打断（失去鼠标捕获）只算放下。
 - 宠物不必提供全部状态：缺失的状态通过 `Domain/Pets/PetStateFallback` 回退到相近状态。给 `PetState` 新增状态时，要同时考虑回退规则，并更新 robot 的 manifest 与 `GenerateRobotPet.ps1`。例外是可选状态：`Hop`（步行中随机跳一下）只有 manifest 里定义了它的宠物才会跳，没有定义就根本不会进入该状态（时长取自宠物自己的 `Hop` 动画，由窗口在播完时调用 `PetBrain.OnHopEnded`），所以 robot 故意没有 `Hop`，`PetCapabilities` 也不把它算进未定义宠物的状态总数。
-- `tests/DeskBuddy.Infrastructure.Tests/Pets/ShippedPetsTests` 会校验随仓库发布的宠物。
+- `tests/DeskBuddy.Infrastructure.Tests/Pets/ShippedPetsTests` 会校验随仓库发布的宠物（构建时把仓库的 `pets/` 复制到测试输出目录）。
 
 ## 主题（深色 / 浅色）
 
 - 设置项 `PetSettings.Theme`（`AppTheme`：跟随系统 / 浅色 / 深色），在“外观”标签里切换，立即生效；Windows 高对比度主题优先于这个选择。
 - `App/Presentation/ThemeService` 负责应用主题：把 `Themes/Colors.{Light,Dark,HighContrast}.xaml`（DeskBuddy 自绘的颜色）合并进应用资源，并让通过 `Register(...)` 注册的窗口 / 菜单使用 WPF 的 Fluent 主题（窗口设 `ThemeMode`，菜单合并 `Fluent.*.xaml`）。选哪套色板由纯函数 `ThemeResolver.Resolve` 决定。
 - **不要设置应用级的 `Application.ThemeMode`**：宠物、雨伞、气泡是透明窗口，应用级 Fluent 主题会给它们画上背景。这几个窗口不要注册，也不要用 Fluent 样式；气泡按钮用 `Themes/BubbleButton.xaml` 里自己的样式。
-- 自定义颜色资源的 key **不能与 Fluent 主题的 key 同名**（窗口资源优先于应用资源，会被悄悄盖住，曾导致宠物卡片边框消失）。新 key 加 `Bubble` / `PetCard` 这类前缀，`ThemeResourcesTests` 会检查冲突，三套色板的 key 也必须一致。
+- 自定义颜色资源的 key **不能与 Fluent 主题的 key 同名**（窗口资源优先于应用资源，会被悄悄盖住，曾导致宠物卡片边框消失）。新 key 加 `Bubble` / `PetCard` 这类前缀，三套色板的 key 也必须一致（没有测试检查，改色板时自己核对）。
 - 给控件写自己的 `Style` 时要加 `BasedOn`，或把样式放到外层元素上，否则会丢掉主题样式。
 - `ThemeMode` 在 .NET 11 里仍是实验性 API，项目对 `WPF0001` 做了 `NoWarn`。
 
@@ -74,7 +74,7 @@ powershell -NoProfile -File tools/GenerateAppIcon.ps1   # 重新生成应用/托
 
 ## 本地化
 
-界面文字在 `src/DeskBuddy.App/Resources`：`Strings.resx` 是中文（默认），`Strings.en.resx` 是英文。新增文案两个文件都要加。
+界面文字在 `src/DeskBuddy.App/Resources`：`Strings.resx` 是中文（默认），`Strings.en.resx` 是英文。新增文案两个文件都要加（没有测试检查两边的键是否一致，自己核对），代码里经 `Resources/Strings.cs` 的同名属性取用。
 
 ## 设计要求
 

@@ -10,3 +10,4 @@ global using DeskBuddy.Application.Hotkeys;
 global using DeskBuddy.Application.Scenarios;
 global using DeskBuddy.Application.Sensors;
 global using DeskBuddy.Application.Settings;
+global using Xunit;

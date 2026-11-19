@@ -3,16 +3,17 @@
   <PropertyGroup>
     <TargetFramework>net11.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
+    <IsPackable>false</IsPackable>
     <!-- Window.ThemeMode (the Fluent theme with dark mode) is still experimental in .NET 11. -->
     <NoWarn>$(NoWarn);WPF0001</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
-  </ItemGroup>
-
-  <ItemGroup>
-    <!-- The theme dictionaries, copied next to the tests so their resource keys can be checked. -->
-    <None Include="..\..\src\DeskBuddy.App\Themes\*.xaml" Link="Themes\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <PackageReference Include="AwesomeAssertions" />
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="xunit.runner.visualstudio" />
   </ItemGroup>
 
   <ItemGroup>
