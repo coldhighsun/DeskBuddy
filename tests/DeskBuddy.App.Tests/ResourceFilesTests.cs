@@ -148,7 +148,7 @@ public partial class ResourceFilesTests
     /// </returns>
     private static IEnumerable<int> Placeholders(string text)
     {
-        return PlaceholderPattern().Matches(text).Select(match => int.Parse(match.Groups[1].Value)).Distinct().Order();
+        return PlaceholderPattern().Matches(text).Select(match => int.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture)).Distinct().Order();
     }
 
     /// <summary>

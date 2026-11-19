@@ -54,9 +54,10 @@ public class HotkeyGestureTests
     public void ToString_AfterParse_IsCanonical()
     {
         // Act
-        HotkeyGesture.TryParse("win+shift+alt+ctrl+a", out var gesture);
+        var parsed = HotkeyGesture.TryParse("win+shift+alt+ctrl+a", out var gesture);
 
         // Assert
+        parsed.Should().BeTrue();
         gesture.ToString().Should().Be("Ctrl+Alt+Shift+Win+A");
     }
 

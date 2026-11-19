@@ -34,6 +34,7 @@ public class SettingsEditorTests : IDisposable
     public void Dispose()
     {
         _editor.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     /// <summary>

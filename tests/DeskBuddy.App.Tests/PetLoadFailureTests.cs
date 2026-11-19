@@ -40,7 +40,9 @@ public class PetLoadFailureTests
             new InvalidOperationException(),
             new ArgumentOutOfRangeException(),
             new OperationCanceledException(),
+#pragma warning disable CA2201 // A bug in the loader must not be mistaken for a broken pet; only the type matters here.
             new NullReferenceException(),
+#pragma warning restore CA2201
         ];
 
         // Act and assert

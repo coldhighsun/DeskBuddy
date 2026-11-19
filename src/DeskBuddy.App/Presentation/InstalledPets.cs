@@ -200,7 +200,7 @@ public sealed class InstalledPets
         try
         {
             var pet = await _loader.LoadAsync(Path.Combine(_petsDirectory, name));
-            var path = pet.GetAnimation(PetState.Idle).FrameIds.FirstOrDefault();
+            var path = pet.GetAnimation(PetState.Idle).FrameIds is [var first, ..] ? first : null;
             var iconPath = Path.Combine(_petsDirectory, name, IconFileName);
             var hasIcon = File.Exists(iconPath);
             if (_preload is not null)

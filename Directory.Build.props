@@ -4,10 +4,15 @@
     <TargetFramework>net11.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-	<UseArtifactsOutput>true</UseArtifactsOutput>
+    <UseArtifactsOutput>true</UseArtifactsOutput>
     <!-- Lets non-Windows hosts (e.g. GitHub's Linux dependency submission job) restore the WPF projects. -->
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <DebugType>embedded</DebugType>
+    <!-- Reports members without XML documentation (CS1591) and mismatched parameter docs (CS1573). -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <!-- CI (GitHub Actions sets CI=true) fails on any warning; locally they stay warnings so work in progress builds. -->
+    <TreatWarningsAsErrors Condition="'$(CI)' == 'true'">true</TreatWarningsAsErrors>
   </PropertyGroup>
 
   <Import Project="Directory.Build.user" Condition="Exists('Directory.Build.user')" />

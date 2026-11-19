@@ -1,0 +1,43 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+[*.{csproj,props,targets,slnx,xml,xaml,resx,json,yml,yaml}]
+indent_size = 2
+
+[*.{xaml,resx}]
+indent_size = 4
+
+[*.cs]
+# Coding conventions of the project, as suggestions in the IDE.
+csharp_style_var_for_built_in_types = true:suggestion
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_style_var_elsewhere = true:suggestion
+csharp_prefer_braces = true:suggestion
+csharp_style_namespace_declarations = file_scoped:suggestion
+csharp_style_prefer_primary_constructors = true:suggestion
+dotnet_style_prefer_collection_expression = when_types_loosely_match:suggestion
+
+# Test methods are named MethodName_Scenario_ExpectedResult.
+dotnet_diagnostic.CA1707.severity = none
+
+# High-performance logging and cached composite formats are not worth their weight in a desktop app.
+dotnet_diagnostic.CA1848.severity = none
+dotnet_diagnostic.CA1863.severity = none
+dotnet_diagnostic.CA1873.severity = none
+
+# PetMessageQueue is a queue, and "error" is a keyword only in Visual Basic.
+dotnet_diagnostic.CA1711.severity = none
+dotnet_diagnostic.CA1716.severity = none
+
+# Disposable fields of objects that live as long as the application, and small style hints, stay suggestions.
+dotnet_diagnostic.CA1001.severity = suggestion
+dotnet_diagnostic.CA1822.severity = suggestion
+dotnet_diagnostic.CA1859.severity = suggestion
+dotnet_diagnostic.CA1861.severity = suggestion

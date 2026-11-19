@@ -224,6 +224,9 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     /// <param name="switches">
     /// Which scenarios the user has switched on.
     /// </param>
+    /// <param name="size">
+    /// How large the pet is shown at first.
+    /// </param>
     public PetWindow(
         Pet pet,
         PetFrameCache frames,

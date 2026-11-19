@@ -244,10 +244,10 @@ public class SettingsTabViewModelTests
         var setter = typeof(SettingsTabViewModel).GetProperty(property)!;
 
         // Act
-        setter.SetValue(_viewModel, limit.ToString());
+        setter.SetValue(_viewModel, limit.ToString(System.Globalization.CultureInfo.InvariantCulture));
         var accepted = _viewModel.TimingError;
         await _viewModel.TrySaveAsync();
-        setter.SetValue(_viewModel, (limit + 1).ToString());
+        setter.SetValue(_viewModel, (limit + 1).ToString(System.Globalization.CultureInfo.InvariantCulture));
 
         // Assert
         accepted.Should().BeEmpty();

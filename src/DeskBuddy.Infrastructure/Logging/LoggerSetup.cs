@@ -55,6 +55,7 @@ public static class LoggerSetup
             .WriteTo.Async(sink => sink.File(
                 Path.Combine(directory, "deskbuddy-.log"),
                 outputTemplate: OutputTemplate,
+                formatProvider: System.Globalization.CultureInfo.InvariantCulture,
                 rollingInterval: RollingInterval.Day,
                 fileSizeLimitBytes: fileSizeLimitBytes,
                 rollOnFileSizeLimit: true,
