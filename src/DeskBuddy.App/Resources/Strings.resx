@@ -78,7 +78,9 @@
   <data name="SettingsSedentary" xml:space="preserve"><value>久坐提醒间隔（分钟）</value></data>
   <data name="SettingsSleep" xml:space="preserve"><value>无操作多久后睡着（分钟）</value></data>
   <data name="SettingsBossKey" xml:space="preserve"><value>老板键（一键隐藏或显示宠物）</value></data>
-  <data name="BossKeyHint" xml:space="preserve"><value>点击输入框，然后按下新的组合键（需包含 Ctrl、Alt、Shift 或 Win）。</value></data>
+  <data name="BossKeyHint" xml:space="preserve"><value>点击输入框，然后按下新的组合键（需包含 Ctrl、Alt、Shift 或 Win）。点“清除”可不设置老板键。</value></data>
+  <data name="BossKeyClear" xml:space="preserve"><value>清除</value></data>
+  <data name="BossKeyNone" xml:space="preserve"><value>未设置</value></data>
   <data name="BossKeyFailed" xml:space="preserve"><value>快捷键 {0} 无法使用：{1}</value></data>
   <data name="BossKeyInvalid" xml:space="preserve"><value>这个组合键不能用作老板键：请带上 Ctrl、Alt、Shift 或 Win，并配合字母、数字或 F1–F24。</value></data>
   <data name="SettingsFullscreen" xml:space="preserve"><value>全屏</value></data>

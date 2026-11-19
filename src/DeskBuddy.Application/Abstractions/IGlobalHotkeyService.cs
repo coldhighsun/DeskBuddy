@@ -24,4 +24,9 @@ public interface IGlobalHotkeyService : IDisposable
     /// <see langword="true"/> if the shortcut is now registered.
     /// </returns>
     bool TryRegister(HotkeyGesture gesture, out string? error);
+
+    /// <summary>
+    /// Releases the current shortcut, if any, so that it no longer raises <see cref="Pressed"/>.
+    /// </summary>
+    void Unregister();
 }

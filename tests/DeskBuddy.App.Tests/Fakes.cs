@@ -116,6 +116,17 @@ internal sealed class FakeHotkeyService : IGlobalHotkeyService
         return true;
     }
 
+    /// <summary>
+    /// Gets how many times the shortcut was released.
+    /// </summary>
+    public int Unregistrations { get; private set; }
+
+    /// <inheritdoc />
+    public void Unregister()
+    {
+        Unregistrations++;
+    }
+
     /// <inheritdoc />
     public void Dispose()
     {

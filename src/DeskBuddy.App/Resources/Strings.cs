@@ -278,6 +278,16 @@ internal static class Strings
     public static string BossKeyHint => Get();
 
     /// <summary>
+    /// Gets the label of the button that removes the boss key.
+    /// </summary>
+    public static string BossKeyClear => Get();
+
+    /// <summary>
+    /// Gets the text shown in place of a boss key that is not set.
+    /// </summary>
+    public static string BossKeyNone => Get();
+
+    /// <summary>
     /// Gets the message for a boss key that could not be registered; <c>{0}</c> is the shortcut, <c>{1}</c> the reason.
     /// </summary>
     public static string BossKeyFailed => Get();

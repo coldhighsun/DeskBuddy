@@ -118,4 +118,23 @@ public class PetSettingsComparerTests
         changes.Keys.Should().BeEquivalentTo(properties, "every setting needs a case here");
         unnoticed.Should().BeEmpty();
     }
+
+    /// <summary>
+    /// Removing the boss key, or setting one after none, is a change.
+    /// </summary>
+    [Fact]
+    public void Equals_BossKeyRemovedOrSet_AreDifferent()
+    {
+        // Arrange
+        var withKey = PetSettings.Default;
+        var withoutKey = PetSettings.Default with { BossKey = null };
+
+        // Act
+        var removed = PetSettingsComparer.Instance.Equals(withKey, withoutKey);
+        var set = PetSettingsComparer.Instance.Equals(withoutKey, withKey);
+
+        // Assert
+        removed.Should().BeFalse();
+        set.Should().BeFalse();
+    }
 }

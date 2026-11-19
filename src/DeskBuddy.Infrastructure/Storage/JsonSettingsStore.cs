@@ -119,7 +119,7 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
         public TimeSpan? SedentaryReminderAfter { get; init; }
 
         /// <summary>
-        /// Gets the boss key as text such as <c>Ctrl+Alt+H</c>.
+        /// Gets the boss key as text such as <c>Ctrl+Alt+H</c>; empty means no boss key, missing means the default.
         /// </summary>
         public string? BossKey { get; init; }
 
@@ -223,7 +223,7 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
                 PetName = settings.PetName,
                 SleepAfter = settings.SleepAfter,
                 SedentaryReminderAfter = settings.SedentaryReminderAfter,
-                BossKey = settings.BossKey.ToString(),
+                BossKey = settings.BossKey?.ToString() ?? string.Empty,
                 AutoHideWhenFullscreen = settings.AutoHideWhenFullscreen,
                 DetectCoveredMonitor = settings.DetectCoveredMonitor,
                 BlacklistedProcesses = [.. settings.BlacklistedProcesses],
@@ -259,7 +259,7 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
                 PetName = PetName ?? defaults.PetName,
                 SleepAfter = SleepAfter ?? defaults.SleepAfter,
                 SedentaryReminderAfter = SedentaryReminderAfter ?? defaults.SedentaryReminderAfter,
-                BossKey = HotkeyGesture.TryParse(BossKey, out var gesture) ? gesture : defaults.BossKey,
+                BossKey = ParseBossKey(defaults),
                 AutoHideWhenFullscreen = AutoHideWhenFullscreen ?? defaults.AutoHideWhenFullscreen,
                 DetectCoveredMonitor = DetectCoveredMonitor ?? defaults.DetectCoveredMonitor,
                 BlacklistedProcesses = BlacklistedProcesses ?? [],
@@ -283,6 +283,31 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
                 StrollWhileBusy = StrollWhileBusy ?? defaults.StrollWhileBusy,
                 AutoCheckUpdates = AutoCheckUpdates ?? defaults.AutoCheckUpdates,
             };
+        }
+
+        /// <summary>
+        /// Reads the boss key. A missing value (including an explicit JSON <c>null</c>) and one that cannot be parsed
+        /// take the default; an empty string is what the user chose when they removed the boss key.
+        /// </summary>
+        /// <param name="defaults">
+        /// The default settings.
+        /// </param>
+        /// <returns>
+        /// The shortcut, or <see langword="null"/> if there is none.
+        /// </returns>
+        private HotkeyGesture? ParseBossKey(PetSettings defaults)
+        {
+            if (BossKey is null)
+            {
+                return defaults.BossKey;
+            }
+
+            if (BossKey.Length == 0)
+            {
+                return null;
+            }
+
+            return HotkeyGesture.TryParse(BossKey, out var gesture) ? gesture : defaults.BossKey;
         }
     }
 }

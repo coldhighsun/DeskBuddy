@@ -349,7 +349,7 @@ public sealed partial class SettingsTabViewModel : ObservableObject
                 SleepText = Minutes(settings.SleepAfter);
             }
 
-            BossKeyText = settings.BossKey.ToString();
+            BossKeyText = settings.BossKey?.ToString() ?? string.Empty;
             AutoHideWhenFullscreen = settings.AutoHideWhenFullscreen;
             DetectCoveredMonitor = settings.DetectCoveredMonitor;
             ShowProcessList(ProcessListKind.Fullscreen, settings, keepTypedText);

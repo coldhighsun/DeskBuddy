@@ -78,14 +78,19 @@ internal sealed partial class Win32HotkeyService : IGlobalHotkeyService
     }
 
     /// <inheritdoc />
-    public void Dispose()
+    public void Unregister()
     {
         if (_activeIndex >= 0)
         {
             UnregisterHotKey(_source.Handle, HotkeyIds[_activeIndex]);
             _activeIndex = -1;
         }
+    }
 
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        Unregister();
         _source.RemoveHook(WndProc);
         _source.Dispose();
     }

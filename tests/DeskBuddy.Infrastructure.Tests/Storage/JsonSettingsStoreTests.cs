@@ -233,6 +233,52 @@ public sealed class JsonSettingsStoreTests : IDisposable
     }
 
     /// <summary>
+    /// An empty shortcut means the user removed the boss key, so it stays removed instead of falling back to the default.
+    /// </summary>
+    [Fact]
+    public async Task LoadAsync_EmptyBossKey_MeansNoBossKey()
+    {
+        // Arrange
+        await WriteRawAsync("""{"chatterEnabled":true,"bossKey":""}""");
+
+        // Act
+        var settings = await _store.LoadAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        settings.BossKey.Should().BeNull();
+    }
+
+    /// <summary>
+    /// A boss key that is missing from an existing file takes the default.
+    /// </summary>
+    [Fact]
+    public async Task LoadAsync_MissingBossKey_UsesDefaultKey()
+    {
+        // Arrange
+        await WriteRawAsync("""{"chatterEnabled":true}""");
+
+        // Act
+        var settings = await _store.LoadAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        settings.BossKey.Should().Be(PetSettings.Default.BossKey);
+    }
+
+    /// <summary>
+    /// A removed boss key survives saving and loading.
+    /// </summary>
+    [Fact]
+    public async Task SaveAsync_NoBossKey_IsLoadedBackAsNone()
+    {
+        // Act
+        await _store.SaveAsync(PetSettings.Default with { BossKey = null }, TestContext.Current.CancellationToken);
+        var settings = await _store.LoadAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        settings.BossKey.Should().BeNull();
+    }
+
+    /// <summary>
     /// A shortcut that cannot be parsed falls back to the default instead of discarding the whole file.
     /// </summary>
     [Fact]

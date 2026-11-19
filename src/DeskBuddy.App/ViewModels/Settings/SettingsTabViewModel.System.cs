@@ -45,6 +45,7 @@ public sealed partial class SettingsTabViewModel
     /// The boss key as text, for example <c>Ctrl+Alt+H</c>.
     /// </summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasBossKey))]
     private string _bossKeyText = string.Empty;
 
     /// <summary>
@@ -70,6 +71,28 @@ public sealed partial class SettingsTabViewModel
     /// </summary>
     [ObservableProperty]
     private string _autoStartError = string.Empty;
+
+    /// <summary>
+    /// Gets a value indicating whether a boss key is set in the draft.
+    /// </summary>
+    public bool HasBossKey => BossKeyText.Length > 0;
+
+    /// <summary>
+    /// Takes the boss key out of the draft, so that no shortcut hides the pet. It is released when the settings are saved.
+    /// </summary>
+    [RelayCommand]
+    private void ClearBossKey()
+    {
+        BossKeyError = string.Empty;
+        BossKeyText = string.Empty;
+        if (_editor.Baseline.BossKey is null)
+        {
+            _editor.Clear(BossKeyEditKey);
+            return;
+        }
+
+        _editor.Set(BossKeyEditKey, settings => settings with { BossKey = null });
+    }
 
     /// <summary>
     /// Opens the log directory in the file manager.
