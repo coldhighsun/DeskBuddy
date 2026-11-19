@@ -21,9 +21,9 @@ public sealed class PetSwitcher : IDisposable
     private readonly IPetLoader _loader;
 
     /// <summary>
-    /// The folder that holds one subfolder per pet.
+    /// Tells which folder each pet is loaded from.
     /// </summary>
-    private readonly string _petsDirectory;
+    private readonly IPetCatalog _catalog;
 
     /// <summary>
     /// Puts a loaded pet on screen; may throw if its images cannot be decoded.
@@ -60,8 +60,8 @@ public sealed class PetSwitcher : IDisposable
     /// <param name="loader">
     /// Loads a pet from its folder.
     /// </param>
-    /// <param name="petsDirectory">
-    /// The folder that holds one subfolder per pet.
+    /// <param name="catalog">
+    /// Tells which folder each pet is loaded from.
     /// </param>
     /// <param name="currentName">
     /// The name of the pet on screen at the start.
@@ -79,7 +79,7 @@ public sealed class PetSwitcher : IDisposable
     public PetSwitcher(
         SettingsService settings,
         IPetLoader loader,
-        string petsDirectory,
+        IPetCatalog catalog,
         string currentName,
         Action<Pet> apply,
         ILogger<PetSwitcher> logger,
@@ -87,12 +87,13 @@ public sealed class PetSwitcher : IDisposable
     {
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(loader);
+        ArgumentNullException.ThrowIfNull(catalog);
         ArgumentNullException.ThrowIfNull(apply);
         ArgumentNullException.ThrowIfNull(logger);
 
         _settings = settings;
         _loader = loader;
-        _petsDirectory = petsDirectory;
+        _catalog = catalog;
         _currentName = currentName;
         _requestedName = currentName;
         _apply = apply;
@@ -134,7 +135,7 @@ public sealed class PetSwitcher : IDisposable
         string? failure = null;
         try
         {
-            var pet = await _loader.LoadAsync(Path.Combine(_petsDirectory, name));
+            var pet = await _loader.LoadAsync(_catalog.GetPetDirectory(name));
             if (_prepare is not null)
             {
                 await _prepare(pet);

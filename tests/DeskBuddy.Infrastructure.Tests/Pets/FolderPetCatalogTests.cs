@@ -25,12 +25,20 @@ public sealed class FolderPetCatalogTests : IDisposable
         _catalog = new FolderPetCatalog(_directory);
     }
 
+    /// <summary>
+    /// Gets a second pets folder, standing for the user's own, removed with the first.
+    /// </summary>
+    private string UserDirectory => _directory + "_user";
+
     /// <inheritdoc />
     public void Dispose()
     {
-        if (Directory.Exists(_directory))
+        foreach (var directory in new[] { _directory, UserDirectory })
         {
-            Directory.Delete(_directory, recursive: true);
+            if (Directory.Exists(directory))
+            {
+                Directory.Delete(directory, recursive: true);
+            }
         }
     }
 
@@ -83,5 +91,94 @@ public sealed class FolderPetCatalogTests : IDisposable
 
         // Assert
         names.Should().Equal("Alpha", "zebra");
+    }
+
+    /// <summary>
+    /// The pets of every folder are listed, each name once.
+    /// </summary>
+    [Fact]
+    public void GetPetNames_SeveralFolders_ListsPetsOfAllOnce()
+    {
+        // Arrange
+        AddFolder("robot", withManifest: true);
+        AddFolder("cat", withManifest: true);
+        AddPet(UserDirectory, "Robot");
+        AddPet(UserDirectory, "mine");
+        var catalog = new FolderPetCatalog(UserDirectory, _directory);
+
+        // Act
+        var names = catalog.GetPetNames();
+
+        // Assert
+        names.Should().HaveCount(3);
+        names.Should().Contain(["cat", "mine"]);
+    }
+
+    /// <summary>
+    /// A pet in the folder listed first wins over one of the same name in a later folder.
+    /// </summary>
+    [Fact]
+    public void GetPetDirectory_PetInFirstFolder_ReturnsIt()
+    {
+        // Arrange
+        AddFolder("robot", withManifest: true);
+        AddPet(UserDirectory, "robot");
+        var catalog = new FolderPetCatalog(UserDirectory, _directory);
+
+        // Act
+        var directory = catalog.GetPetDirectory("robot");
+
+        // Assert
+        directory.Should().Be(Path.Combine(UserDirectory, "robot"));
+    }
+
+    /// <summary>
+    /// A pet only in a later folder is found there; a folder without a manifest does not count.
+    /// </summary>
+    [Fact]
+    public void GetPetDirectory_PetOnlyInLaterFolder_ReturnsThatFolder()
+    {
+        // Arrange
+        AddFolder("cat", withManifest: true);
+        Directory.CreateDirectory(Path.Combine(UserDirectory, "cat"));
+        var catalog = new FolderPetCatalog(UserDirectory, _directory);
+
+        // Act
+        var directory = catalog.GetPetDirectory("cat");
+
+        // Assert
+        directory.Should().Be(Path.Combine(_directory, "cat"));
+    }
+
+    /// <summary>
+    /// A pet that is nowhere gets a folder in the last folder, where loading it fails.
+    /// </summary>
+    [Fact]
+    public void GetPetDirectory_UnknownPet_ReturnsFolderInLastFolder()
+    {
+        // Arrange
+        var catalog = new FolderPetCatalog(UserDirectory, _directory);
+
+        // Act
+        var directory = catalog.GetPetDirectory("ghost");
+
+        // Assert
+        directory.Should().Be(Path.Combine(_directory, "ghost"));
+    }
+
+    /// <summary>
+    /// Creates a pet folder with a manifest under a given folder.
+    /// </summary>
+    /// <param name="root">
+    /// The folder of pets.
+    /// </param>
+    /// <param name="name">
+    /// The pet's folder name.
+    /// </param>
+    private static void AddPet(string root, string name)
+    {
+        var folder = Path.Combine(root, name);
+        Directory.CreateDirectory(folder);
+        File.WriteAllText(Path.Combine(folder, FolderPetLoader.ManifestFileName), "{}");
     }
 }

@@ -509,7 +509,7 @@ public class SettingsTabViewModelTests
         var loader = new FakePetLoader();
         loader.Available.Add("cat");
         loader.Available.Add("mouse");
-        var pets = new InstalledPets(catalog, loader, "pets", _ => TestPicture);
+        var pets = new InstalledPets(catalog, loader, _ => TestPicture);
         await pets.RefreshAsync();
         await CreateAsync(pets);
 
@@ -533,7 +533,7 @@ public class SettingsTabViewModelTests
         var catalog = new FakePetCatalog(PetSettings.DefaultPetName);
         var loader = new FakePetLoader();
         loader.Available.Add(PetSettings.DefaultPetName);
-        var pets = new InstalledPets(catalog, loader, "pets", _ => TestPicture);
+        var pets = new InstalledPets(catalog, loader, _ => TestPicture);
         await CreateAsync(pets);
         var before = _viewModel.SizeChoices.Select(choice => choice.Width).ToList();
 
@@ -556,7 +556,7 @@ public class SettingsTabViewModelTests
         var catalog = new FakePetCatalog();
         var loader = new FakePetLoader();
         loader.Available.Add(PetSettings.DefaultPetName);
-        var pets = new InstalledPets(catalog, loader, "pets", _ => TestPicture);
+        var pets = new InstalledPets(catalog, loader, _ => TestPicture);
         await CreateAsync(pets);
         _viewModel.ChatProcessesText = "My Chat";
 

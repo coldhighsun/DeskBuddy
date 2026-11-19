@@ -56,6 +56,11 @@ public partial class App
     private static readonly TimeSpan QuitTimeout = TimeSpan.FromSeconds(10);
 
     /// <summary>
+    /// The name of the folder that holds one subfolder per pet, both next to the program and in the data directory.
+    /// </summary>
+    private const string PetsFolderName = "pets";
+
+    /// <summary>
     /// How long a full-screen application must be gone before the pet comes back.
     /// </summary>
     private static readonly TimeSpan PetRestoreDelay = TimeSpan.FromSeconds(2);
@@ -89,6 +94,12 @@ public partial class App
     /// Puts the pet away while the session is locked; <see langword="null"/> until the pet is shown.
     /// </summary>
     private Microsoft.Win32.SessionSwitchEventHandler? _sessionSwitched;
+
+    /// <summary>
+    /// The folder for the user's own pets, under the data directory; <see langword="null"/> until start-up has worked it
+    /// out.
+    /// </summary>
+    private string? _userPetsDirectory;
 
     /// <summary>
     /// The pet window; <see langword="null"/> until startup completes.
@@ -215,7 +226,12 @@ public partial class App
         builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddSingleton<IPetLoader, FolderPetLoader>();
         builder.Services.AddSingleton<IAutoStartService>(_ => new RegistryAutoStartService());
-        builder.Services.AddSingleton<IPetCatalog>(_ => new FolderPetCatalog(Path.Combine(AppContext.BaseDirectory, "pets")));
+        // The user's own pets live with their data, where installing or upgrading the application never touches them,
+        // and win over a shipped pet of the same name.
+        _userPetsDirectory = Path.Combine(dataDirectory, PetsFolderName);
+        builder.Services.AddSingleton<IPetCatalog>(_ => new FolderPetCatalog(
+            _userPetsDirectory,
+            Path.Combine(AppContext.BaseDirectory, PetsFolderName)));
         builder.Services.AddSingleton<IIdleDetector, Win32IdleDetector>();
         builder.Services.AddSingleton<ISystemLoadMonitor, WindowsSystemLoadMonitor>();
         builder.Services.AddSingleton<LoadReactionPolicy>();
@@ -357,7 +373,7 @@ public partial class App
             _petSwitcher = new PetSwitcher(
                 _host.Services.GetRequiredService<SettingsService>(),
                 _host.Services.GetRequiredService<IPetLoader>(),
-                Path.Combine(AppContext.BaseDirectory, "pets"),
+                _host.Services.GetRequiredService<IPetCatalog>(),
                 petName,
                 newPet =>
                 {
@@ -369,7 +385,6 @@ public partial class App
             _installedPets = new InstalledPets(
                 _host.Services.GetRequiredService<IPetCatalog>(),
                 _host.Services.GetRequiredService<IPetLoader>(),
-                Path.Combine(AppContext.BaseDirectory, "pets"),
                 _previewFrames.Get,
                 _previewFrames.PreloadAsync,
                 _host.Services.GetRequiredService<ILogger<InstalledPets>>());
@@ -479,10 +494,10 @@ public partial class App
     private async Task<(Pet Pet, PetFrameCache Frames, string Name)> LoadStartupPetAsync(string petName, ILogger logger)
     {
         var loader = _host!.Services.GetRequiredService<IPetLoader>();
-        var petsDirectory = Path.Combine(AppContext.BaseDirectory, "pets");
+        var catalog = _host.Services.GetRequiredService<IPetCatalog>();
         if (!string.Equals(petName, PetSettings.DefaultPetName, StringComparison.OrdinalIgnoreCase))
         {
-            var petDirectory = Path.Combine(petsDirectory, petName);
+            var petDirectory = catalog.GetPetDirectory(petName);
             if (Directory.Exists(petDirectory))
             {
                 try
@@ -501,7 +516,7 @@ public partial class App
             }
         }
 
-        var defaultPet = await loader.LoadAsync(Path.Combine(petsDirectory, PetSettings.DefaultPetName));
+        var defaultPet = await loader.LoadAsync(catalog.GetPetDirectory(PetSettings.DefaultPetName));
         return (defaultPet, await PetFrameCache.CreateAsync(defaultPet), PetSettings.DefaultPetName);
     }
 
@@ -611,10 +626,10 @@ public partial class App
                     services.GetRequiredService<SettingsService>(),
                     services.GetRequiredService<IPetCatalog>(),
                     services.GetRequiredService<IPetLoader>(),
-                    Path.Combine(AppContext.BaseDirectory, "pets"),
                     _petSwitcher,
                     _previewFrames.Get,
-                    _previewFrames.PreloadAsync));
+                    _previewFrames.PreloadAsync,
+                    OpenUserPetsDirectory));
             _ = _panelViewModel.Pets.RefreshQuietlyAsync(services.GetRequiredService<ILogger<App>>());
         }
 
@@ -657,6 +672,23 @@ public partial class App
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.ComponentModel.Win32Exception)
         {
             _host?.Services.GetRequiredService<ILogger<App>>().LogWarning(ex, "The log directory could not be opened.");
+        }
+    }
+
+    /// <summary>
+    /// Opens the folder for the user's own pets in the file manager, creating it first so there is somewhere to put
+    /// them.
+    /// </summary>
+    private void OpenUserPetsDirectory()
+    {
+        try
+        {
+            Directory.CreateDirectory(_userPetsDirectory!);
+            Process.Start(new ProcessStartInfo(_userPetsDirectory!) { UseShellExecute = true });
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.ComponentModel.Win32Exception)
+        {
+            _host?.Services.GetRequiredService<ILogger<App>>().LogWarning(ex, "The pets folder could not be opened.");
         }
     }
 

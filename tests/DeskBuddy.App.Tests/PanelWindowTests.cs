@@ -29,7 +29,7 @@ public class PanelWindowTests
             var switcher = new PetSwitcher(
                 settings,
                 loader,
-                petsDirectory,
+                new FolderPetCatalog(petsDirectory),
                 settings.Current.PetName,
                 _ => { },
                 NullLogger<PetSwitcher>.Instance);
@@ -37,7 +37,6 @@ public class PanelWindowTests
                 settings,
                 new FolderPetCatalog(petsDirectory),
                 loader,
-                petsDirectory,
                 switcher,
                 new PetPreviewFrames().Get);
             var bossKey = new BossKeyController(settings, new FakeHotkeyService(), TestBrain.Create());
