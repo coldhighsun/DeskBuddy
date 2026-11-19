@@ -751,13 +751,6 @@ public sealed class TrayIconService : IDisposable
             items.Add(install);
         }
 
-        if (_updates is not null)
-        {
-            var checkUpdates = new MenuItem { Header = Strings.TrayCheckUpdates, Icon = Glyph("") };
-            checkUpdates.Click += (_, _) => _ = RunUpdateAsync(() => _updates.CheckAsync(manual: true));
-            items.Add(checkUpdates);
-        }
-
         var exit = new MenuItem { Header = Strings.TrayExit, Icon = Glyph("") };
         exit.Click += (_, _) => _onExit();
         items.Add(exit);

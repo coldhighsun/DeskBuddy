@@ -138,7 +138,6 @@
   <data name="DevProcessesLabel" xml:space="preserve"><value>开发工具（前台且我在操作时算开发），如 Code</value></data>
   <data name="SettingsSystem" xml:space="preserve"><value>系统</value></data>
   <data name="AutoStart" xml:space="preserve"><value>开机自动启动</value></data>
-  <data name="TrayCheckUpdates" xml:space="preserve"><value>检查更新</value></data>
   <data name="TrayUpdateTo" xml:space="preserve"><value>更新到 {0}</value></data>
   <data name="SettingsAutoCheckUpdates" xml:space="preserve"><value>自动检查更新</value></data>
   <data name="AboutCheckUpdates" xml:space="preserve"><value>检查更新</value></data>
