@@ -42,6 +42,27 @@ internal static partial class WindowStyleHelper
     public const int WmNcHitTest = 0x0084;
 
     /// <summary>
+    /// <c>WM_SETTINGCHANGE</c>: a system setting changed; <c>wParam</c> says which.
+    /// </summary>
+    public const int WmSettingChange = 0x001A;
+
+    /// <summary>
+    /// <c>WM_DISPLAYCHANGE</c>: the resolution or the set of monitors changed.
+    /// </summary>
+    public const int WmDisplayChange = 0x007E;
+
+    /// <summary>
+    /// <c>WM_DPICHANGED</c>: the window moved to a monitor of different scaling, or the scaling changed.
+    /// </summary>
+    public const int WmDpiChanged = 0x02E0;
+
+    /// <summary>
+    /// <c>SPI_SETWORKAREA</c>: the <c>wParam</c> of <see cref="WmSettingChange"/> when the work area changed, for
+    /// example because the taskbar moved or started hiding itself.
+    /// </summary>
+    public const int SpiSetWorkArea = 0x002F;
+
+    /// <summary>
     /// Hit-test result meaning the point is in the client area.
     /// </summary>
     public const int HtClient = 1;
@@ -216,4 +237,23 @@ internal static partial class WindowStyleHelper
     /// </returns>
     [LibraryImport("user32.dll", EntryPoint = "SetWindowLongPtrW")]
     private static partial nint SetWindowLongPtr(nint hWnd, int nIndex, nint dwNewLong);
+
+    /// <summary>
+    /// Tells whether a window message means that the screens changed in a way that can move the taskbar line or the
+    /// edges of the monitors.
+    /// </summary>
+    /// <param name="msg">
+    /// The window message.
+    /// </param>
+    /// <param name="wParam">
+    /// Its <c>wParam</c>.
+    /// </param>
+    /// <returns>
+    /// <see langword="true"/> for a change of monitors, resolution, scaling or work area.
+    /// </returns>
+    public static bool IsScreenLayoutChange(int msg, nint wParam)
+    {
+        return msg is WmDisplayChange or WmDpiChanged
+            || (msg == WmSettingChange && wParam == SpiSetWorkArea);
+    }
 }
