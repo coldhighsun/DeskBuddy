@@ -13,9 +13,10 @@ namespace DeskBuddy.Domain.Activity;
 public sealed class GitSyncPolicy(PetBehaviorOptions options, TimeProvider timeProvider)
 {
     /// <summary>
-    /// Whether git was talking to a remote at the previous update.
+    /// Whether git was talking to a remote at the previous update, or <see langword="null"/> after a
+    /// <see cref="Reset"/>, when the next reading is only recorded and never counts as a start.
     /// </summary>
-    private bool _wasRunning;
+    private bool? _wasRunning = false;
 
     /// <summary>
     /// The moment of the last report, or <see langword="null"/> if there has been none.
@@ -28,7 +29,7 @@ public sealed class GitSyncPolicy(PetBehaviorOptions options, TimeProvider timeP
     /// </summary>
     public void Reset()
     {
-        _wasRunning = false;
+        _wasRunning = null;
     }
 
     /// <summary>
@@ -42,7 +43,7 @@ public sealed class GitSyncPolicy(PetBehaviorOptions options, TimeProvider timeP
     /// </returns>
     public bool Update(bool remoteHelperRunning)
     {
-        var started = remoteHelperRunning && !_wasRunning;
+        var started = remoteHelperRunning && _wasRunning == false;
         _wasRunning = remoteHelperRunning;
 
         if (!started)

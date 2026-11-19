@@ -42,10 +42,10 @@ public class GitSyncPolicyTests
     }
 
     /// <summary>
-    /// After a reset a helper that is already running counts as a new start when the readings resume.
+    /// After a reset a helper that is already running when the readings resume does not count as a new start.
     /// </summary>
     [Fact]
-    public void Reset_HelperAlreadyRunning_IsNotRememberedAsRunning()
+    public void Reset_HelperAlreadyRunning_IsNotReportedAsStart()
     {
         // Arrange
         _policy.Update(true);
@@ -56,7 +56,24 @@ public class GitSyncPolicyTests
         var afterReset = _policy.Update(true);
 
         // Assert
-        afterReset.Should().BeTrue();
+        afterReset.Should().BeFalse();
+    }
+
+    /// <summary>
+    /// After a reset a helper that starts once the readings have resumed is reported.
+    /// </summary>
+    [Fact]
+    public void Reset_HelperStartsAfterResume_IsReported()
+    {
+        // Arrange
+        _policy.Reset();
+        _policy.Update(false);
+
+        // Act
+        var result = _policy.Update(true);
+
+        // Assert
+        result.Should().BeTrue();
     }
 
     /// <summary>
