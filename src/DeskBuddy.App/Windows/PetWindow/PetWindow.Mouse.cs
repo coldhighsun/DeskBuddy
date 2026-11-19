@@ -122,8 +122,44 @@ public partial class PetWindow
             return;
         }
 
+        EndPress(clicked: true);
+    }
+
+    /// <summary>
+    /// Ends a press that was cut short because the window lost the mouse capture (for example the user switched
+    /// windows, a system dialog opened or the pet was hidden). A drag ends as if the pet had been dropped where it is;
+    /// a press that had not become a drag is forgotten rather than counted as a click.
+    /// </summary>
+    /// <param name="sender">
+    /// The event source.
+    /// </param>
+    /// <param name="e">
+    /// Mouse event data.
+    /// </param>
+    private void OnLostMouseCapture(object sender, MouseEventArgs e)
+    {
+        if (!_pressed)
+        {
+            return;
+        }
+
+        EndPress(clicked: false);
+    }
+
+    /// <summary>
+    /// Finishes the current press: a drag drops the pet, otherwise the press counts as a click if asked.
+    /// </summary>
+    /// <param name="clicked">
+    /// Whether a press that did not become a drag counts as a click.
+    /// </param>
+    private void EndPress(bool clicked)
+    {
+        // Clear the flag first: releasing the capture raises LostMouseCapture, which must find nothing to end.
         _pressed = false;
-        ReleaseMouseCapture();
+        if (IsMouseCaptured)
+        {
+            ReleaseMouseCapture();
+        }
 
         if (_dragging)
         {
@@ -134,7 +170,7 @@ public partial class PetWindow
                 SettleInWorkArea();
             }
         }
-        else
+        else if (clicked)
         {
             _brain.OnClicked();
         }
