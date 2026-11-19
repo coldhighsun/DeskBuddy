@@ -4,3 +4,4 @@ global using DeskBuddy.Domain.Behavior;
 global using DeskBuddy.Domain.Movement;
 global using DeskBuddy.Domain.Pets;
 global using Microsoft.Extensions.Time.Testing;
+global using Xunit;

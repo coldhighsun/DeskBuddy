@@ -37,7 +37,7 @@ public partial class App
     /// <summary>
     /// Name of the per-session mutex that enforces a single running instance.
     /// </summary>
-    internal const string SingleInstanceMutexName = @"Local\DeskBuddy.SingleInstance";
+    private const string SingleInstanceMutexName = @"Local\DeskBuddy.SingleInstance";
 
     /// <summary>
     /// The named event through which the installer, by starting the application with <see cref="QuitArgument"/>,
@@ -53,7 +53,7 @@ public partial class App
     /// <summary>
     /// The command-line switch that asks the running instance to close and waits until it has.
     /// </summary>
-    internal const string QuitArgument = "--quit";
+    private const string QuitArgument = "--quit";
 
     /// <summary>
     /// The name of the folder that holds one subfolder per pet, both next to the program and in the data directory.

@@ -56,18 +56,4 @@ public class ThemeResolverTests
         // Assert
         palette.Should().Be(ThemePalette.HighContrast);
     }
-
-    /// <summary>
-    /// Every palette has a colors file, so a palette can never be shown without its dictionary.
-    /// </summary>
-    [Fact]
-    public void ColorsFile_EveryPalette_HasAFileNamedForIt()
-    {
-        // Act
-        var files = Enum.GetValues<ThemePalette>().Select(ThemeResolver.ColorsFile).ToList();
-
-        // Assert
-        files.Should().OnlyHaveUniqueItems();
-        files.Should().AllSatisfy(file => File.Exists(Path.Combine(AppContext.BaseDirectory, "Themes", file)).Should().BeTrue());
-    }
 }

@@ -12,6 +12,11 @@ namespace DeskBuddy.Infrastructure.Tests.Pets;
 public class ShippedPetsTests
 {
     /// <summary>
+    /// The pets shipped with the repository, which the build copies next to the tests.
+    /// </summary>
+    private static readonly string ShippedPets = Path.Combine(AppContext.BaseDirectory, "pets");
+
+    /// <summary>
     /// The loader used to read the shipped pets.
     /// </summary>
     private readonly FolderPetLoader _loader = new(NullLogger<FolderPetLoader>.Instance);
@@ -25,7 +30,7 @@ public class ShippedPetsTests
     public async Task Robot_Loads_WithAnimationForEveryState()
     {
         // Act
-        var pet = await _loader.LoadAsync(Path.Combine(RepositoryPaths.Pets, "robot"), TestContext.Current.CancellationToken);
+        var pet = await _loader.LoadAsync(Path.Combine(ShippedPets, "robot"), TestContext.Current.CancellationToken);
 
         // Assert
         pet.Name.Should().Be("robot");
@@ -43,7 +48,7 @@ public class ShippedPetsTests
     public async Task Cat_Loads_WithEverydayAndScreenEdgeStates()
     {
         // Act
-        var pet = await _loader.LoadAsync(Path.Combine(RepositoryPaths.Pets, "cat"), TestContext.Current.CancellationToken);
+        var pet = await _loader.LoadAsync(Path.Combine(ShippedPets, "cat"), TestContext.Current.CancellationToken);
 
         // Assert
         pet.Name.Should().Be("cat");
@@ -74,7 +79,7 @@ public class ShippedPetsTests
     public async Task ShippedPet_Folder_HoldsOnlyManifestAtlasAndIcon(string name)
     {
         // Arrange
-        var directory = Path.Combine(RepositoryPaths.Pets, name);
+        var directory = Path.Combine(ShippedPets, name);
 
         // Act
         var pet = await _loader.LoadAsync(directory, TestContext.Current.CancellationToken);
@@ -103,7 +108,7 @@ public class ShippedPetsTests
     public async Task ShippedPet_Loads_WithEnglishAndChineseNames(string name)
     {
         // Act
-        var pet = await _loader.LoadAsync(Path.Combine(RepositoryPaths.Pets, name), TestContext.Current.CancellationToken);
+        var pet = await _loader.LoadAsync(Path.Combine(ShippedPets, name), TestContext.Current.CancellationToken);
 
         // Assert
         var english = pet.GetDisplayName(CultureInfo.GetCultureInfo("en-US"));
@@ -127,7 +132,7 @@ public class ShippedPetsTests
     public async Task TemplatePet_Loads_WithEverydayAndScreenEdgeStates(string name, bool canHop)
     {
         // Act
-        var pet = await _loader.LoadAsync(Path.Combine(RepositoryPaths.Pets, name), TestContext.Current.CancellationToken);
+        var pet = await _loader.LoadAsync(Path.Combine(ShippedPets, name), TestContext.Current.CancellationToken);
 
         // Assert
         pet.Name.Should().Be(name);
