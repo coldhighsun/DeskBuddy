@@ -201,13 +201,24 @@ internal static partial class MonitorHelper
     /// monitor whatever its scaling.
     /// </summary>
     /// <returns>
-    /// The cursor position in device pixels.
+    /// The cursor position in device pixels. When it cannot be read (on the secure desktop: the lock screen, a UAC
+    /// prompt or Ctrl+Alt+Del), the last position that could be read, so the cursor does not seem to jump to the
+    /// corner of the screen and back.
     /// </returns>
     public static (int X, int Y) GetCursorPositionPixels()
     {
-        GetCursorPos(out var point);
-        return (point.X, point.Y);
+        if (GetCursorPos(out var point))
+        {
+            _lastCursorPosition = (point.X, point.Y);
+        }
+
+        return _lastCursorPosition;
     }
+
+    /// <summary>
+    /// The last cursor position <see cref="GetCursorPositionPixels"/> could read, in device pixels.
+    /// </summary>
+    private static (int X, int Y) _lastCursorPosition;
 
     /// <summary>
     /// Gets the bounds of a window in device pixels of the virtual screen.
