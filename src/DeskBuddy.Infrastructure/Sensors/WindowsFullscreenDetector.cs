@@ -1,4 +1,5 @@
 using DeskBuddy.Application;
+using DeskBuddy.Application.Abstractions;
 using DeskBuddy.Domain.Settings;
 
 namespace DeskBuddy.Infrastructure.Sensors;
@@ -12,8 +13,27 @@ namespace DeskBuddy.Infrastructure.Sensors;
 /// <param name="settings">
 /// The settings that hold the process list and the monitor-cover option.
 /// </param>
-public sealed unsafe partial class WindowsFullscreenDetector(SettingsService settings) : IFullscreenDetector
+/// <param name="foregroundApp">
+/// Tells which process is in front; shared with the other sensors so its cache spares a lookup on every update.
+/// </param>
+public sealed unsafe partial class WindowsFullscreenDetector(SettingsService settings, IForegroundAppDetector foregroundApp)
+    : IFullscreenDetector
 {
+    /// <summary>
+    /// <c>GWL_STYLE</c>: reads the window style.
+    /// </summary>
+    private const int GwlStyle = -16;
+
+    /// <summary>
+    /// <c>WS_CAPTION</c>: the window has a title bar.
+    /// </summary>
+    private const int WsCaption = 0x00C00000;
+
+    /// <summary>
+    /// <c>DWMWA_EXTENDED_FRAME_BOUNDS</c>: the visible bounds of a window, without the invisible resize borders.
+    /// </summary>
+    private const int DwmwaExtendedFrameBounds = 9;
+
     /// <summary>
     /// Window classes of the desktop and taskbar, which fill a monitor without being a full-screen application.
     /// </summary>
@@ -32,7 +52,7 @@ public sealed unsafe partial class WindowsFullscreenDetector(SettingsService set
             var window = ForegroundWindow.GetHandle();
             if (window != 0)
             {
-                process = current.BlacklistedProcesses.Count > 0 ? ForegroundWindow.GetProcessName(window) : null;
+                process = current.BlacklistedProcesses.Count > 0 ? foregroundApp.GetForegroundProcessName() : null;
                 coversMonitor = current.DetectCoveredMonitor && CoversMonitor(window);
             }
         }
@@ -105,6 +125,40 @@ public sealed unsafe partial class WindowsFullscreenDetector(SettingsService set
     }
 
     /// <summary>
+    /// Decides whether a window counts as covering its monitor. A window with a title bar that is merely maximized
+    /// does not: on a monitor without a taskbar (or with one that hides itself) it fills the screen, but the user is
+    /// just working in it.
+    /// </summary>
+    /// <param name="window">
+    /// The visible bounds of the window, in device pixels.
+    /// </param>
+    /// <param name="monitor">
+    /// The bounds of its monitor, in device pixels.
+    /// </param>
+    /// <param name="maximizedWithCaption">
+    /// Whether the window is maximized and has a title bar.
+    /// </param>
+    /// <returns>
+    /// <see langword="true"/> if the window is at least as large as its monitor and is not an ordinary maximized
+    /// window.
+    /// </returns>
+    public static bool IsCoveringMonitor(
+        (int Left, int Top, int Right, int Bottom) window,
+        (int Left, int Top, int Right, int Bottom) monitor,
+        bool maximizedWithCaption)
+    {
+        if (maximizedWithCaption)
+        {
+            return false;
+        }
+
+        return window.Left <= monitor.Left
+            && window.Top <= monitor.Top
+            && window.Right >= monitor.Right
+            && window.Bottom >= monitor.Bottom;
+    }
+
+    /// <summary>
     /// Determines whether a window covers the whole of the monitor it is on. The desktop and the taskbar are not
     /// counted.
     /// </summary>
@@ -112,7 +166,7 @@ public sealed unsafe partial class WindowsFullscreenDetector(SettingsService set
     /// The window handle.
     /// </param>
     /// <returns>
-    /// <see langword="true"/> if the window is at least as large as its monitor.
+    /// <see langword="true"/> if the window counts as covering its monitor; see <see cref="IsCoveringMonitor"/>.
     /// </returns>
     private static bool CoversMonitor(nint window)
     {
@@ -126,15 +180,25 @@ public sealed unsafe partial class WindowsFullscreenDetector(SettingsService set
 
         var monitor = MonitorFromWindow(window, 0);
         var info = new MonitorInfo { Size = Marshal.SizeOf<MonitorInfo>() };
-        if (monitor == 0 || !GetMonitorInfo(monitor, ref info) || !GetWindowRect(window, out var rect))
+        if (monitor == 0 || !GetMonitorInfo(monitor, ref info))
         {
             return false;
         }
 
-        return rect.Left <= info.Monitor.Left
-            && rect.Top <= info.Monitor.Top
-            && rect.Right >= info.Monitor.Right
-            && rect.Bottom >= info.Monitor.Bottom;
+        // The extended frame bounds leave out the invisible resize borders that GetWindowRect includes, which would
+        // make a window slightly smaller than its monitor look as if it covered it.
+        NativeRect rect;
+        if (DwmGetWindowAttribute(window, DwmwaExtendedFrameBounds, &rect, sizeof(NativeRect)) != 0
+            && !GetWindowRect(window, out rect))
+        {
+            return false;
+        }
+
+        var maximizedWithCaption = IsZoomed(window) && (GetWindowLong(window, GwlStyle) & WsCaption) == WsCaption;
+        return IsCoveringMonitor(
+            (rect.Left, rect.Top, rect.Right, rect.Bottom),
+            (info.Monitor.Left, info.Monitor.Top, info.Monitor.Right, info.Monitor.Bottom),
+            maximizedWithCaption);
     }
 
     /// <summary>
@@ -201,7 +265,54 @@ public sealed unsafe partial class WindowsFullscreenDetector(SettingsService set
     [LibraryImport("shell32.dll")]
     private static partial int SHQueryUserNotificationState(out int state);
 
+    /// <summary>
+    /// Reads an attribute of a window from the desktop window manager.
+    /// </summary>
+    /// <param name="window">
+    /// The window handle.
+    /// </param>
+    /// <param name="attribute">
+    /// The <c>DWMWINDOWATTRIBUTE</c> to read.
+    /// </param>
+    /// <param name="value">
+    /// Receives the value.
+    /// </param>
+    /// <param name="size">
+    /// Size of <paramref name="value"/> in bytes.
+    /// </param>
+    /// <returns>
+    /// An HRESULT; zero on success.
+    /// </returns>
+    [LibraryImport("dwmapi.dll")]
+    private static partial int DwmGetWindowAttribute(nint window, int attribute, void* value, int size);
 
+    /// <summary>
+    /// Tells whether a window is maximized.
+    /// </summary>
+    /// <param name="window">
+    /// The window handle.
+    /// </param>
+    /// <returns>
+    /// <see langword="true"/> if it is maximized.
+    /// </returns>
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool IsZoomed(nint window);
+
+    /// <summary>
+    /// Reads a 32-bit value of a window, such as its style.
+    /// </summary>
+    /// <param name="window">
+    /// The window handle.
+    /// </param>
+    /// <param name="index">
+    /// Which value to read, for example <see cref="GwlStyle"/>.
+    /// </param>
+    /// <returns>
+    /// The value, or zero on failure.
+    /// </returns>
+    [LibraryImport("user32.dll", EntryPoint = "GetWindowLongW")]
+    private static partial int GetWindowLong(nint window, int index);
 
     /// <summary>
     /// Gets the class name of a window.
@@ -267,7 +378,4 @@ public sealed unsafe partial class WindowsFullscreenDetector(SettingsService set
     [LibraryImport("user32.dll", EntryPoint = "GetMonitorInfoW")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool GetMonitorInfo(nint monitor, ref MonitorInfo info);
-
-
-
 }

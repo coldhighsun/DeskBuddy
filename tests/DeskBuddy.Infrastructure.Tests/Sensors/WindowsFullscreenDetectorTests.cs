@@ -53,6 +53,47 @@ public class WindowsFullscreenDetectorTests
     }
 
     /// <summary>
+    /// A window as large as its monitor covers it, and so does one reaching past the edges.
+    /// </summary>
+    [Fact]
+    public void IsCoveringMonitor_WindowFillsMonitor_ReturnsTrue()
+    {
+        // Act
+        var exact = WindowsFullscreenDetector.IsCoveringMonitor((0, 0, 1920, 1080), (0, 0, 1920, 1080), false);
+        var larger = WindowsFullscreenDetector.IsCoveringMonitor((-8, -8, 1928, 1088), (0, 0, 1920, 1080), false);
+
+        // Assert
+        exact.Should().BeTrue();
+        larger.Should().BeTrue();
+    }
+
+    /// <summary>
+    /// A window smaller than its monitor does not cover it.
+    /// </summary>
+    [Fact]
+    public void IsCoveringMonitor_WindowSmallerThanMonitor_ReturnsFalse()
+    {
+        // Act
+        var result = WindowsFullscreenDetector.IsCoveringMonitor((0, 0, 1920, 1040), (0, 0, 1920, 1080), false);
+
+        // Assert
+        result.Should().BeFalse();
+    }
+
+    /// <summary>
+    /// A maximized window with a title bar fills a monitor without a taskbar, but the user is just working in it.
+    /// </summary>
+    [Fact]
+    public void IsCoveringMonitor_MaximizedWithCaption_ReturnsFalse()
+    {
+        // Act
+        var result = WindowsFullscreenDetector.IsCoveringMonitor((0, 0, 1920, 1080), (0, 0, 1920, 1080), true);
+
+        // Assert
+        result.Should().BeFalse();
+    }
+
+    /// <summary>
     /// Builds a detector over the default settings.
     /// </summary>
     /// <param name="settings">
@@ -65,7 +106,7 @@ public class WindowsFullscreenDetectorTests
     {
         var service = new SettingsService(new FixedStore(settings));
         service.InitializeAsync().GetAwaiter().GetResult();
-        return new WindowsFullscreenDetector(service);
+        return new WindowsFullscreenDetector(service, new WindowsForegroundAppDetector());
     }
 
     /// <summary>
