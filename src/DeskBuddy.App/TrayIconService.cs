@@ -609,7 +609,18 @@ public sealed class TrayIconService : IDisposable
             settings.Size,
             _brain.Visibility.IsManuallyHidden,
             _pets.Version,
-            _updates is { CanInstall: true, Available: { } found } ? found.Version.ToString() : null);
+            _updates is { CanInstall: true, Available: { } found } ? found.Version.ToString() : null,
+            Strings.Current.Name);
+    }
+
+    /// <summary>
+    /// Writes the tooltip and the menu in the interface language now in use. Call on the UI thread after the language
+    /// has been switched.
+    /// </summary>
+    public void RefreshLanguage()
+    {
+        _icon.ToolTipText = Strings.AppName;
+        RebuildIfNeeded();
     }
 
     /// <summary>

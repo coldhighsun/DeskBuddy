@@ -251,4 +251,13 @@ public partial class PetWindow
         RefreshState();
         UpdatePointerTimer();
     }
+
+    /// <summary>
+    /// Writes the tooltip of the pet in the interface language now in use; the tooltip is otherwise set only when the state
+    /// changes, which may be long after the language did.
+    /// </summary>
+    public void RefreshLanguage()
+    {
+        SpriteImage.ToolTip = Strings.StateHint(_shownState);
+    }
 }

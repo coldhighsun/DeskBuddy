@@ -1,3 +1,4 @@
+using System.Globalization;
 using DeskBuddy.App.Resources;
 using System.IO;
 using System.Windows.Media;
@@ -9,6 +10,7 @@ namespace DeskBuddy.App.Tests;
 /// <summary>
 /// Tests for <see cref="SettingsTabViewModel"/>.
 /// </summary>
+[Collection("InterfaceLanguage")]
 public class SettingsTabViewModelTests
 {
     /// <summary>
@@ -442,6 +444,37 @@ public class SettingsTabViewModelTests
         shownAtStart.Should().Be(AppLanguage.ZhCN);
         _settings.Current.Language.Should().Be(AppLanguage.En);
         _viewModel.Languages.Select(option => option.Value).Should().Equal(AppLanguage.Auto, AppLanguage.ZhCN, AppLanguage.En);
+    }
+
+    /// <summary>
+    /// When the interface language changes, the names in the lists of languages and themes and the scenario switches are
+    /// written again in the new language, without making the view model anew.
+    /// </summary>
+    [Fact]
+    public async Task LanguageChanged_Raised_WritesTheNamesAgain()
+    {
+        // Arrange
+        var original = CultureInfo.CurrentUICulture;
+        try
+        {
+            CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("en");
+            await CreateAsync();
+            var themeBefore = _viewModel.Themes[1].Label;
+            var scenarioBefore = _viewModel.Scenarios[0].Label;
+
+            // Act
+            CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("zh-CN");
+            LocalizedStrings.Instance.NotifyLanguageChanged();
+
+            // Assert
+            _viewModel.Themes[1].Label.Should().Be(Strings.ThemeLight).And.NotBe(themeBefore);
+            _viewModel.Scenarios[0].Label.Should().Be(Strings.ScenarioName(_viewModel.Scenarios[0].State)).And.NotBe(scenarioBefore);
+            _viewModel.Languages[0].Label.Should().Be(Strings.LanguageAuto);
+        }
+        finally
+        {
+            CultureInfo.CurrentUICulture = original;
+        }
     }
 
     /// <summary>

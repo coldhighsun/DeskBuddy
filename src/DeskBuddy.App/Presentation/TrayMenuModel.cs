@@ -69,7 +69,10 @@ internal static class TrayMenuModel
 /// <param name="UpdateVersion">
 /// The newer version of the application waiting to be installed, or <see langword="null"/> if there is none.
 /// </param>
-internal sealed record TrayMenuState(string PetName, PetSize Size, bool PetHidden, int PetsVersion, string? UpdateVersion = null);
+/// <param name="Language">
+/// The name of the interface language the menu is written in, so a change of language builds the menu again.
+/// </param>
+internal sealed record TrayMenuState(string PetName, PetSize Size, bool PetHidden, int PetsVersion, string? UpdateVersion = null, string Language = "");
 
 /// <summary>
 /// Decides when the tray menu has to be built again: only when what it shows has changed, and never while it is open,

@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.IO;
 
 namespace DeskBuddy.App.Tests;
@@ -85,6 +86,59 @@ public class InstalledPetsTests
         _list.Entries.Select(entry => entry.FolderName).Should().Equal("cat", "robot");
         _list.Entries.Select(entry => entry.DisplayName).Should().Equal("cat", "Robot head");
         _list.Entries.Should().OnlyContain(entry => entry.FrameWidth == 128 && entry.FrameHeight == 128);
+    }
+
+    /// <summary>
+    /// After the interface language changes, pets that were loaded are loaded again, so their names follow the language.
+    /// </summary>
+    [Fact]
+    public async Task RefreshAsync_LanguageChanged_LoadsLoadedPetsAgain()
+    {
+        // Arrange
+        var original = CultureInfo.CurrentUICulture;
+        try
+        {
+            CultureInfo.CurrentUICulture = new CultureInfo("zh-CN");
+            var list = new InstalledPets(_installed, _loader, _ => Picture);
+            _installed.Names = ["cat"];
+            _loader.Available.Add("cat");
+            _loader.DisplayNames["cat"] = "猫";
+            await list.RefreshAsync();
+
+            // Act
+            CultureInfo.CurrentUICulture = new CultureInfo("en");
+            _loader.DisplayNames["cat"] = "Cat";
+            var changed = await list.RefreshAsync();
+
+            // Assert
+            changed.Should().BeTrue();
+            list.Entries.Single().DisplayName.Should().Be("Cat");
+        }
+        finally
+        {
+            CultureInfo.CurrentUICulture = original;
+        }
+    }
+
+    /// <summary>
+    /// While the interface language stays the same, pets that were loaded are kept as they are.
+    /// </summary>
+    [Fact]
+    public async Task RefreshAsync_LanguageUnchanged_KeepsLoadedPets()
+    {
+        // Arrange
+        _installed.Names = ["cat"];
+        _loader.Available.Add("cat");
+        _loader.DisplayNames["cat"] = "Cat";
+        await _list.RefreshAsync();
+        _loader.DisplayNames["cat"] = "Changed";
+
+        // Act
+        var changed = await _list.RefreshAsync();
+
+        // Assert
+        changed.Should().BeFalse();
+        _list.Entries.Single().DisplayName.Should().Be("Cat");
     }
 
     /// <summary>

@@ -72,6 +72,12 @@ public sealed class InstalledPets
     private readonly ILogger _logger;
 
     /// <summary>
+    /// The name of the interface language the display names in <see cref="Entries"/> were made for, so a change of language
+    /// makes the next refresh load the pets again instead of keeping names in the old language.
+    /// </summary>
+    private string _entriesLanguage = Strings.Current.Name;
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="InstalledPets"/> class.
     /// </summary>
     /// <param name="catalog">
@@ -138,7 +144,11 @@ public sealed class InstalledPets
         await _refreshGate.WaitAsync();
         try
         {
-            var known = Entries.ToDictionary(entry => entry.FolderName, StringComparer.Ordinal);
+            // The display names depend on the interface language, so pets loaded under another language are loaded again.
+            var language = Strings.Current.Name;
+            var known = string.Equals(language, _entriesLanguage, StringComparison.Ordinal)
+                ? Entries.ToDictionary(entry => entry.FolderName, StringComparer.Ordinal)
+                : [];
             var entries = new List<InstalledPet>();
             // Listing the folders reads the disk, which should not hold up the UI thread each time the menu opens.
             var names = await Task.Run(_catalog.GetPetNames);
@@ -154,6 +164,7 @@ public sealed class InstalledPets
             // The entries are records of the name and the pictures (compared by reference), so a pet whose picture has been
             // read since, as well as a pet that came or went, counts as a change.
             changed = !entries.SequenceEqual(Entries);
+            _entriesLanguage = language;
             if (changed)
             {
                 Entries = entries;
@@ -210,7 +221,7 @@ public sealed class InstalledPets
             }
 
             var icon = hasIcon ? _frames(iconPath) : null;
-            return new InstalledPet(name, pet.GetDisplayName(CultureInfo.CurrentUICulture), path is null ? null : _frames(path), pet.FrameWidth, pet.FrameHeight, icon);
+            return new InstalledPet(name, pet.GetDisplayName(Strings.Current), path is null ? null : _frames(path), pet.FrameWidth, pet.FrameHeight, icon);
         }
         catch (Exception ex) when (PetLoadFailure.Is(ex))
         {

@@ -32,6 +32,20 @@ public class StringsTests : IDisposable
     }
 
     /// <summary>
+    /// While the application has not chosen a language, texts are looked up in the culture of the thread.
+    /// </summary>
+    [Fact]
+    public void Current_NoLanguageChosen_FollowsTheCultureOfTheThread()
+    {
+        // Act
+        var current = Strings.Current;
+
+        // Assert
+        Strings.Culture.Should().BeNull();
+        current.Name.Should().Be(CultureInfo.CurrentUICulture.Name);
+    }
+
+    /// <summary>
     /// A remark with a variant of its own finds the text of that variant.
     /// </summary>
     [Fact]

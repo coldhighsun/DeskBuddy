@@ -51,9 +51,7 @@ public sealed partial class SettingsTabViewModel
     /// </summary>
     public IReadOnlyList<LanguageOption> Languages { get; } =
     [
-        new(AppLanguage.Auto, Strings.LanguageAuto),
-        new(AppLanguage.ZhCN, Strings.LanguageZhCN),
-        new(AppLanguage.En, Strings.LanguageEn),
+        .. Enum.GetValues<AppLanguage>().Select(language => new LanguageOption(language, LanguageLabel(language))),
     ];
 
     /// <summary>
@@ -61,10 +59,46 @@ public sealed partial class SettingsTabViewModel
     /// </summary>
     public IReadOnlyList<ThemeOption> Themes { get; } =
     [
-        new(AppTheme.Auto, Strings.ThemeAuto),
-        new(AppTheme.Light, Strings.ThemeLight),
-        new(AppTheme.Dark, Strings.ThemeDark),
+        .. Enum.GetValues<AppTheme>().Select(theme => new ThemeOption(theme, ThemeLabel(theme))),
     ];
+
+    /// <summary>
+    /// Gets the name of a language as the list of languages shows it.
+    /// </summary>
+    /// <param name="language">
+    /// The language.
+    /// </param>
+    /// <returns>
+    /// The name, in the interface language now in use.
+    /// </returns>
+    private static string LanguageLabel(AppLanguage language)
+    {
+        return language switch
+        {
+            AppLanguage.ZhCN => Strings.LanguageZhCN,
+            AppLanguage.En => Strings.LanguageEn,
+            _ => Strings.LanguageAuto,
+        };
+    }
+
+    /// <summary>
+    /// Gets the name of a theme as the list of themes shows it.
+    /// </summary>
+    /// <param name="theme">
+    /// The theme.
+    /// </param>
+    /// <returns>
+    /// The name, in the interface language now in use.
+    /// </returns>
+    private static string ThemeLabel(AppTheme theme)
+    {
+        return theme switch
+        {
+            AppTheme.Light => Strings.ThemeLight,
+            AppTheme.Dark => Strings.ThemeDark,
+            _ => Strings.ThemeAuto,
+        };
+    }
 
     /// <summary>
     /// Applies the chosen theme; it takes effect at once.
@@ -140,7 +174,7 @@ public sealed partial class SettingsTabViewModel
     }
 
     /// <summary>
-    /// Applies the chosen language; it takes full effect after a restart.
+    /// Records the chosen language in the draft; it is applied when the settings are saved.
     /// </summary>
     /// <param name="value">
     /// The language.
