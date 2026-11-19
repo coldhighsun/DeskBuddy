@@ -10,7 +10,7 @@ public class InstalledPetsTests
     /// <summary>
     /// The pets installed, which the tests change.
     /// </summary>
-    private readonly FakePetCatalog _installed = new();
+    private readonly FakePetCatalog _installed = new() { Root = "folder-without-pets" };
 
     /// <summary>
     /// The loader behind the list.
@@ -35,7 +35,6 @@ public class InstalledPetsTests
         _list = new InstalledPets(
             _installed,
             _loader,
-            "folder-without-pets",
             path =>
             {
                 _pictureRequests.Add(path);
@@ -120,9 +119,8 @@ public class InstalledPetsTests
         {
             var requested = new List<string>();
             var list = new InstalledPets(
-                new FakePetCatalog("cat", "robot"),
+                new FakePetCatalog("cat", "robot") { Root = root },
                 new FakePetLoader { Available = { "cat", "robot" } },
-                root,
                 path =>
                 {
                     requested.Add(path);
@@ -157,9 +155,8 @@ public class InstalledPetsTests
         {
             var preloaded = new List<string>();
             var list = new InstalledPets(
-                new FakePetCatalog("cat"),
+                new FakePetCatalog("cat") { Root = root },
                 new FakePetLoader { Available = { "cat" } },
-                root,
                 _ => null,
                 names =>
                 {

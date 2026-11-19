@@ -55,7 +55,7 @@ public class PetSwitcherTests
         _switcher = new PetSwitcher(
             _settings,
             _loader,
-            "pets",
+            new FakePetCatalog(),
             PetSettings.DefaultPetName,
             pet =>
             {
@@ -191,7 +191,7 @@ public class PetSwitcherTests
         using var switcher = new PetSwitcher(
             _settings,
             _loader,
-            "pets",
+            new FakePetCatalog(),
             PetSettings.DefaultPetName,
             pet => steps.Add($"apply {pet.Name}"),
             NullLogger<PetSwitcher>.Instance,
@@ -219,7 +219,7 @@ public class PetSwitcherTests
         using var switcher = new PetSwitcher(
             _settings,
             _loader,
-            "pets",
+            new FakePetCatalog(),
             PetSettings.DefaultPetName,
             _ => applied = true,
             NullLogger<PetSwitcher>.Instance,

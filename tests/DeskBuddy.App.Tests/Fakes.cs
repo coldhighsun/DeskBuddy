@@ -175,6 +175,17 @@ internal sealed class FakePetCatalog(params string[] names) : IPetCatalog
     {
         return Names;
     }
+
+    /// <summary>
+    /// Gets or sets the folder the pets are taken to be in.
+    /// </summary>
+    public string Root { get; set; } = "pets";
+
+    /// <inheritdoc />
+    public string GetPetDirectory(string name)
+    {
+        return Path.Combine(Root, name);
+    }
 }
 
 /// <summary>

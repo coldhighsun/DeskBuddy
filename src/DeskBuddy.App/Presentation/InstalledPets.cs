@@ -41,7 +41,7 @@ public sealed class InstalledPets
     public const string IconFileName = "icon.png";
 
     /// <summary>
-    /// Lists the installed pets.
+    /// Lists the installed pets and tells where each one is.
     /// </summary>
     private readonly IPetCatalog _catalog;
 
@@ -49,11 +49,6 @@ public sealed class InstalledPets
     /// Loads a pet from its folder.
     /// </summary>
     private readonly IPetLoader _loader;
-
-    /// <summary>
-    /// The folder the pets are installed in.
-    /// </summary>
-    private readonly string _petsDirectory;
 
     /// <summary>
     /// Supplies the picture in a file.
@@ -85,9 +80,6 @@ public sealed class InstalledPets
     /// <param name="loader">
     /// Loads a pet from its folder.
     /// </param>
-    /// <param name="petsDirectory">
-    /// The folder the pets are installed in.
-    /// </param>
     /// <param name="frames">
     /// Supplies the picture in a file.
     /// </param>
@@ -101,19 +93,16 @@ public sealed class InstalledPets
     public InstalledPets(
         IPetCatalog catalog,
         IPetLoader loader,
-        string petsDirectory,
         Func<string, ImageSource?> frames,
         Func<IEnumerable<string>, Task>? preload = null,
         ILogger? logger = null)
     {
         ArgumentNullException.ThrowIfNull(catalog);
         ArgumentNullException.ThrowIfNull(loader);
-        ArgumentException.ThrowIfNullOrEmpty(petsDirectory);
         ArgumentNullException.ThrowIfNull(frames);
 
         _catalog = catalog;
         _loader = loader;
-        _petsDirectory = petsDirectory;
         _frames = frames;
         _preload = preload;
         _logger = logger ?? NullLogger.Instance;
@@ -199,9 +188,10 @@ public sealed class InstalledPets
     {
         try
         {
-            var pet = await _loader.LoadAsync(Path.Combine(_petsDirectory, name));
+            var directory = _catalog.GetPetDirectory(name);
+            var pet = await _loader.LoadAsync(directory);
             var path = pet.GetAnimation(PetState.Idle).FrameIds is [var first, ..] ? first : null;
-            var iconPath = Path.Combine(_petsDirectory, name, IconFileName);
+            var iconPath = Path.Combine(directory, IconFileName);
             var hasIcon = File.Exists(iconPath);
             if (_preload is not null)
             {

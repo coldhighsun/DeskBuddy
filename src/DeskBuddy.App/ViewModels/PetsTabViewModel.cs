@@ -30,11 +30,6 @@ public sealed partial class PetsTabViewModel : ObservableObject
     private readonly IPetLoader _loader;
 
     /// <summary>
-    /// The folder the pets are installed in.
-    /// </summary>
-    private readonly string _petsDirectory;
-
-    /// <summary>
     /// Supplies the pictures of the previews.
     /// </summary>
     private readonly Func<string, ImageSource?> _frames;
@@ -79,6 +74,11 @@ public sealed partial class PetsTabViewModel : ObservableObject
     private string _petError = string.Empty;
 
     /// <summary>
+    /// Opens the folder for the user's own pets, or <see langword="null"/> if there is none.
+    /// </summary>
+    private readonly Action? _openPetsFolder;
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="PetsTabViewModel"/> class.
     /// </summary>
     /// <param name="settings">
@@ -90,9 +90,6 @@ public sealed partial class PetsTabViewModel : ObservableObject
     /// <param name="loader">
     /// Loads a pet to show what it is like.
     /// </param>
-    /// <param name="petsDirectory">
-    /// The folder the pets are installed in.
-    /// </param>
     /// <param name="petSwitcher">
     /// Switches the pet, which reports when that fails.
     /// </param>
@@ -103,32 +100,39 @@ public sealed partial class PetsTabViewModel : ObservableObject
     /// Cuts the pictures of the previews out ahead of time on another thread, or <see langword="null"/> to leave that to
     /// <paramref name="frames"/>.
     /// </param>
+    /// <param name="openPetsFolder">
+    /// Opens the folder where the user can put pets of their own, or <see langword="null"/> if there is none.
+    /// </param>
     public PetsTabViewModel(
         SettingsService settings,
         IPetCatalog catalog,
         IPetLoader loader,
-        string petsDirectory,
         PetSwitcher petSwitcher,
         Func<string, ImageSource?> frames,
-        Func<IEnumerable<string>, Task>? preload = null)
+        Func<IEnumerable<string>, Task>? preload = null,
+        Action? openPetsFolder = null)
     {
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(catalog);
         ArgumentNullException.ThrowIfNull(loader);
-        ArgumentException.ThrowIfNullOrEmpty(petsDirectory);
         ArgumentNullException.ThrowIfNull(petSwitcher);
         ArgumentNullException.ThrowIfNull(frames);
 
         _settings = settings;
         _catalog = catalog;
         _loader = loader;
-        _petsDirectory = petsDirectory;
         _frames = frames;
         _preload = preload;
+        _openPetsFolder = openPetsFolder;
 
         _settings.Changed += OnSettingsChanged;
         petSwitcher.SwitchFailed += OnPetSwitchFailed;
     }
+
+    /// <summary>
+    /// Gets a value indicating whether there is a folder for the user's own pets to open.
+    /// </summary>
+    public bool CanOpenPetsFolder => _openPetsFolder is not null;
 
     /// <summary>
     /// Gets a value indicating whether the pets have not been looked at yet, so the list is not empty, only not known.
@@ -251,6 +255,15 @@ public sealed partial class PetsTabViewModel : ObservableObject
     }
 
     /// <summary>
+    /// Opens the folder where the user can put pets of their own; they show up the next time the tab is shown.
+    /// </summary>
+    [RelayCommand]
+    private void OpenPetsFolder()
+    {
+        _openPetsFolder?.Invoke();
+    }
+
+    /// <summary>
     /// Switches to a pet.
     /// </summary>
     /// <param name="card">
@@ -316,7 +329,7 @@ public sealed partial class PetsTabViewModel : ObservableObject
     {
         try
         {
-            var pet = await _loader.LoadAsync(Path.Combine(_petsDirectory, name));
+            var pet = await _loader.LoadAsync(_catalog.GetPetDirectory(name));
             if (_preload is not null)
             {
                 await _preload(PetShowcase.NativeStatesOf(pet).SelectMany(state => pet.GetAnimation(state).FrameIds));

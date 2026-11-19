@@ -167,6 +167,16 @@ internal static class Strings
     public static string PetsLoadFailed => Get();
 
     /// <summary>
+    /// Gets the text of the button that opens the folder for the user's own pets.
+    /// </summary>
+    public static string PetsOpenFolder => Get();
+
+    /// <summary>
+    /// Gets the note next to that button, saying what to put in the folder.
+    /// </summary>
+    public static string PetsOpenFolderHint => Get();
+
+    /// <summary>
     /// Gets the message shown when no pet is installed.
     /// </summary>
     public static string PetsEmpty => Get();

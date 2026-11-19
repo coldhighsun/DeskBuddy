@@ -57,6 +57,8 @@
   <data name="PetsCapScenarios" xml:space="preserve"><value>Situations {0}/{1}</value></data>
   <data name="PetsLoadFailed" xml:space="preserve"><value>Cannot load: {0}</value></data>
   <data name="PetsEmpty" xml:space="preserve"><value>No pets found.</value></data>
+  <data name="PetsOpenFolder" xml:space="preserve"><value>Open pets folder</value></data>
+  <data name="PetsOpenFolderHint" xml:space="preserve"><value>Put a pet folder (with manifest.json and atlas.png) in it and it shows up here, in place of a shipped pet of the same name.</value></data>
   <data name="PetsLoading" xml:space="preserve"><value>Loading pets…</value></data>
   <data name="PetStateNameIdle" xml:space="preserve"><value>Idle</value></data>
   <data name="PetStateNameWalk" xml:space="preserve"><value>Walking</value></data>

@@ -694,7 +694,7 @@ public class PetPreviewFramesTests
             var switcher = new PetSwitcher(
                 settings,
                 loader,
-                petsDirectory,
+                new FolderPetCatalog(petsDirectory),
                 settings.Current.PetName,
                 _ => { },
                 NullLogger<PetSwitcher>.Instance);
@@ -702,7 +702,6 @@ public class PetPreviewFramesTests
                 settings,
                 new FolderPetCatalog(petsDirectory),
                 loader,
-                petsDirectory,
                 switcher,
                 new PetPreviewFrames().Get);
 

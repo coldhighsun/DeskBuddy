@@ -417,6 +417,47 @@ public class PetsTabViewModelTests
     }
 
     /// <summary>
+    /// With a folder for the user's own pets, the tab offers to open it and does so when asked.
+    /// </summary>
+    [Fact]
+    public async Task OpenPetsFolderCommand_FolderGiven_OpensIt()
+    {
+        // Arrange
+        await CreateAsync();
+        var opened = 0;
+        var tab = new PetsTabViewModel(
+            _settings,
+            _catalog,
+            _loader,
+            new PetSwitcher(_settings, _loader, _catalog, _settings.Current.PetName, _ => { }, NullLogger<PetSwitcher>.Instance),
+            _ => null,
+            openPetsFolder: () => opened++);
+
+        // Act
+        tab.OpenPetsFolderCommand.Execute(null);
+
+        // Assert
+        tab.CanOpenPetsFolder.Should().BeTrue();
+        opened.Should().Be(1);
+    }
+
+    /// <summary>
+    /// Without a folder for the user's own pets there is nothing to open.
+    /// </summary>
+    [Fact]
+    public async Task CanOpenPetsFolder_NoFolder_IsFalse()
+    {
+        // Arrange
+        await CreateAsync();
+
+        // Act
+        var canOpen = _viewModel.CanOpenPetsFolder;
+
+        // Assert
+        canOpen.Should().BeFalse();
+    }
+
+    /// <summary>
     /// A failure to list the pets in a quiet refresh is only logged; the task completes and the tab stops loading, so nothing is
     /// left unobserved to show up as a crash.
     /// </summary>
@@ -429,8 +470,7 @@ public class PetsTabViewModelTests
             _settings,
             new FailingCatalog(),
             _loader,
-            "pets",
-            new PetSwitcher(_settings, _loader, "pets", _settings.Current.PetName, _ => { }, NullLogger<PetSwitcher>.Instance),
+            new PetSwitcher(_settings, _loader, _catalog, _settings.Current.PetName, _ => { }, NullLogger<PetSwitcher>.Instance),
             _ => null);
         var logger = new RecordingLogger<PetsTabViewModel>();
 
@@ -540,6 +580,12 @@ public class PetsTabViewModelTests
         {
             throw new IOException("the pets folder cannot be read");
         }
+
+        /// <inheritdoc />
+        public string GetPetDirectory(string name)
+        {
+            return Path.Combine("pets", name);
+        }
     }
 
     /// <summary>
@@ -565,7 +611,7 @@ public class PetsTabViewModelTests
         var switcher = new PetSwitcher(
             _settings,
             _loader,
-            "pets",
+            _catalog,
             _settings.Current.PetName,
             _ => { },
             NullLogger<PetSwitcher>.Instance);
@@ -573,7 +619,6 @@ public class PetsTabViewModelTests
             _settings,
             _catalog,
             _loader,
-            "pets",
             switcher,
             _ => _picturesAvailable ? Picture : null,
             names =>

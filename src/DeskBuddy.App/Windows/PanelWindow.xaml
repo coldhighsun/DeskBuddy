@@ -65,6 +65,7 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
                         <StackPanel Margin="0,0,12,0">
@@ -199,6 +200,20 @@
                                Style="{StaticResource ErrorTextStyle}"
                                Margin="0,6,12,0"
                                AutomationProperties.AutomationId="PetError" />
+                    <DockPanel Grid.Row="2" Margin="0,8,12,0" LastChildFill="True">
+                        <Button DockPanel.Dock="Right"
+                                Content="{x:Static res:Strings.PetsOpenFolder}"
+                                Command="{Binding OpenPetsFolderCommand}"
+                                Visibility="{Binding CanOpenPetsFolder, Converter={StaticResource BooleanToVisibility}}"
+                                AutomationProperties.AutomationId="OpenPetsFolderButton" />
+                        <TextBlock Text="{x:Static res:Strings.PetsOpenFolderHint}"
+                                   Style="{StaticResource SecondaryTextStyle}"
+                                   FontSize="11"
+                                   TextWrapping="Wrap"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,8,0"
+                                   Visibility="{Binding CanOpenPetsFolder, Converter={StaticResource BooleanToVisibility}}" />
+                    </DockPanel>
                 </Grid>
             </TabItem>
 
