@@ -191,7 +191,7 @@ public sealed record PetSettings
         var defaults = Default;
         var normalized = this with
         {
-            PetName = string.IsNullOrWhiteSpace(PetName) ? DefaultPetName : PetName.Trim(),
+            PetName = NormalizePetName(PetName),
             SleepAfter = Clamp(SleepAfter, MinSleepAfter, MaxSleepAfter),
             SedentaryReminderAfter = Clamp(SedentaryReminderAfter, MinSedentaryInterval, MaxSedentaryInterval),
             Language = Enum.IsDefined(Language) ? Language : defaults.Language,
@@ -235,6 +235,30 @@ public sealed record PetSettings
                 .Select(state => state!.Value.ToString())
                 .Distinct(),
         ];
+    }
+
+    /// <summary>
+    /// Cleans up a pet name. The name is used as a folder name under the pets folder, so one that is empty or could
+    /// point anywhere else (a path, <c>..</c>, characters not allowed in a file name) is replaced by the default pet.
+    /// </summary>
+    /// <param name="name">
+    /// The name as stored.
+    /// </param>
+    /// <returns>
+    /// The trimmed name, or <see cref="DefaultPetName"/> if it is not a plain folder name.
+    /// </returns>
+    private static string NormalizePetName(string? name)
+    {
+        var trimmed = name?.Trim();
+        if (string.IsNullOrEmpty(trimmed)
+            || trimmed is "." or ".."
+            || trimmed.IndexOfAny(['/', '\\', ':']) >= 0
+            || trimmed.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+        {
+            return DefaultPetName;
+        }
+
+        return trimmed;
     }
 
     /// <summary>
