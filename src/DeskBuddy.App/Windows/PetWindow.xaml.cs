@@ -289,6 +289,7 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
         MouseLeftButtonDown += OnMouseLeftButtonDown;
         MouseMove += OnMouseMove;
         MouseLeftButtonUp += OnMouseLeftButtonUp;
+        LostMouseCapture += OnLostMouseCapture;
 
         _brain.MessageChanged += OnMessageChanged;
         _brain.VisibilityChanged += OnVisibilityChanged;
