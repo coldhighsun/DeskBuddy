@@ -138,7 +138,6 @@
   <data name="DevProcessesLabel" xml:space="preserve"><value>Development tools (in front while I am active), e.g. Code</value></data>
   <data name="SettingsSystem" xml:space="preserve"><value>System</value></data>
   <data name="AutoStart" xml:space="preserve"><value>Start with Windows</value></data>
-  <data name="TrayCheckUpdates" xml:space="preserve"><value>Check for updates</value></data>
   <data name="TrayUpdateTo" xml:space="preserve"><value>Update to {0}</value></data>
   <data name="SettingsAutoCheckUpdates" xml:space="preserve"><value>Check for updates automatically</value></data>
   <data name="AboutCheckUpdates" xml:space="preserve"><value>Check for updates</value></data>

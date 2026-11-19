@@ -371,11 +371,6 @@ internal static class Strings
     public static string AutoStart => Get();
 
     /// <summary>
-    /// Gets the label of the tray menu entry that looks for a newer version.
-    /// </summary>
-    public static string TrayCheckUpdates => Get();
-
-    /// <summary>
     /// Gets the format of the tray menu entry that installs a found version; <c>{0}</c> is the version.
     /// </summary>
     public static string TrayUpdateTo => Get();
