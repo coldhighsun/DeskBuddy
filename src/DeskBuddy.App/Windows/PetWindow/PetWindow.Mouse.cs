@@ -48,6 +48,11 @@ public partial class PetWindow
     private readonly DragTracker _dragTracker = new();
 
     /// <summary>
+    /// The clock the pointer positions of a drag are timed with, for the speed of a throw.
+    /// </summary>
+    private readonly Stopwatch _dragWatch = Stopwatch.StartNew();
+
+    /// <summary>
     /// Starts tracking a press on the pet; it becomes a click or a drag depending on how the mouse moves.
     /// </summary>
     /// <param name="sender">
@@ -68,6 +73,7 @@ public partial class PetWindow
         _dragging = false;
         _pressPixel = MonitorHelper.GetCursorPositionPixels();
         _dragTracker.Begin(_pressPixel.X, _pressPixel.Y, MonitorHelper.GetWindowBoundsPixels(this));
+        _throw.Reset();
         CaptureMouse();
     }
 
@@ -100,6 +106,8 @@ public partial class PetWindow
 
         if (_dragging)
         {
+            // In device-independent pixels, the unit the fall works in, so a throw is as strong on every monitor.
+            _throw.Add(_dragWatch.Elapsed, cursor.X / scale, cursor.Y / scale);
             var bounds = MonitorHelper.GetWindowBoundsPixels(this);
             var (x, y) = _dragTracker.Move(cursor.X, cursor.Y, bounds.Width, bounds.Height);
             WindowMover.MoveToPixels(this, x, y);
@@ -150,7 +158,8 @@ public partial class PetWindow
     /// Finishes the current press: a drag drops the pet, otherwise the press counts as a click if asked.
     /// </summary>
     /// <param name="clicked">
-    /// Whether a press that did not become a drag counts as a click.
+    /// Whether the press ended with the button let go: a press that did not become a drag then counts as a click, and a
+    /// drag may throw the pet.
     /// </param>
     private void EndPress(bool clicked)
     {
@@ -164,8 +173,19 @@ public partial class PetWindow
         if (_dragging)
         {
             _dragging = false;
+
+            // Only a real release can throw; a drag cut short just drops the pet.
+            var thrown = clicked ? _throw.GetVelocity(_dragWatch.Elapsed) : default;
             _brain.OnDragEnded();
-            if (!TryCrawlOnEdge() && !TryHangOnEdge() && !TryStartFall())
+            if (thrown != default)
+            {
+                // A thrown pet flies; it does not grab the edge it was let go next to.
+                if (!TryStartFall(throwVelocity: thrown))
+                {
+                    SettleInWorkArea();
+                }
+            }
+            else if (!TryCrawlOnEdge() && !TryHangOnEdge() && !TryStartFall())
             {
                 SettleInWorkArea();
             }

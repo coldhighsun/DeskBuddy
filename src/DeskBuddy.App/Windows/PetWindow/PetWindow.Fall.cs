@@ -26,16 +26,30 @@ public partial class PetWindow
     private FallState? _fall;
 
     /// <summary>
+    /// The sideways speed of a thrown pet in mid-air, in device-independent pixels per second; zero for a plain drop.
+    /// </summary>
+    private double _throwVelocityX;
+
+    /// <summary>
+    /// Whether the fall in progress moved the pet sideways, so it may have landed across two monitors.
+    /// </summary>
+    private bool _thrownSideways;
+
+    /// <summary>
     /// Lets a pet that was dropped well above where it would rest fall down to it.
     /// </summary>
     /// <param name="refreshWorkArea">
     /// Whether to work out the range the pet may take afresh first; <see langword="false"/> when that has just been done,
     /// as in a movement tick.
     /// </param>
+    /// <param name="throwVelocity">
+    /// The speed the pet was thrown with, in device-independent pixels per second, or zero for a plain drop. A pet
+    /// thrown upwards flies even from close to the ground.
+    /// </param>
     /// <returns>
     /// <see langword="true"/> if the pet now falls; the timer then moves it until it lands.
     /// </returns>
-    private bool TryStartFall(bool refreshWorkArea = true)
+    private bool TryStartFall(bool refreshWorkArea = true, (double X, double Y) throwVelocity = default)
     {
         if (refreshWorkArea)
         {
@@ -45,14 +59,21 @@ public partial class PetWindow
         // The pet lands on the taskbar line, which is the bottom of the work area.
         var bounds = CreateMovementContext().Bounds;
         var y = CurrentPosition().Y;
-        if (!FreeFall.ShouldFall(y, bounds.MaxY, _options.FallMinHeight))
+        var thrownUp = throwVelocity.Y < 0;
+        if (!FreeFall.ShouldFall(y, bounds.MaxY, _options.FallMinHeight) && !thrownUp)
         {
             return false;
         }
 
         Left = bounds.Clamp(CurrentPosition()).X;
-        NudgeOffSeam();
-        _fall = new FallState(y, 0, false, false);
+        _throwVelocityX = throwVelocity.X;
+        _thrownSideways = throwVelocity.X != 0;
+        if (!_thrownSideways)
+        {
+            NudgeOffSeam();
+        }
+
+        _fall = new FallState(y, throwVelocity.Y, false, false);
         _brain.OnFallStarted();
         return true;
     }
@@ -75,9 +96,17 @@ public partial class PetWindow
 
         // Worked out afresh on every step, so a change of pet size or work area in mid-air still lands on the ground.
         var bounds = CreateMovementContext().Bounds;
-        var next = FreeFall.Step(current, bounds.MaxY, elapsed, _options);
+        var x = Math.Clamp(CurrentPosition().X, bounds.MinX, Math.Max(bounds.MinX, bounds.MaxX));
+        if (_throwVelocityX != 0)
+        {
+            var sideways = ThrowMotion.Step(new ThrowState(x, _throwVelocityX), bounds.MinX, bounds.MaxX, elapsed, _options);
+            x = sideways.X;
+            _throwVelocityX = sideways.Velocity;
+        }
+
+        var next = FreeFall.Step(current, bounds.MaxY, elapsed, _options, bounds.MinY);
         _fall = next;
-        _umbrella.MovePet(Math.Clamp(CurrentPosition().X, bounds.MinX, Math.Max(bounds.MinX, bounds.MaxX)), next.Y);
+        _umbrella.MovePet(x, next.Y);
 
         if (next.Opened && !current.Opened)
         {
@@ -90,6 +119,13 @@ public partial class PetWindow
 
         if (next.Landed)
         {
+            _throwVelocityX = 0;
+            if (_thrownSideways)
+            {
+                _thrownSideways = false;
+                NudgeOffSeam();
+            }
+
             _brain.OnFallEnded();
             ApplyState(_brain.State);
         }
@@ -110,6 +146,8 @@ public partial class PetWindow
         }
 
         _fall = null;
+        _throwVelocityX = 0;
+        _thrownSideways = false;
         _umbrella.Fold();
     }
 

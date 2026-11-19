@@ -8,7 +8,7 @@ namespace DeskBuddy.Domain.Movement;
 /// The top of the pet window.
 /// </param>
 /// <param name="Velocity">
-/// The downward speed in device-independent pixels per second.
+/// The downward speed in device-independent pixels per second; negative while a pet thrown upwards is still rising.
 /// </param>
 /// <param name="Opened">
 /// Whether the umbrella or parachute is open.
@@ -58,10 +58,18 @@ public static class FreeFall
     /// <param name="options">
     /// The fall tuning.
     /// </param>
+    /// <param name="ceilingY">
+    /// The highest the top of the pet window may go; a pet thrown upwards stops rising there and falls back.
+    /// </param>
     /// <returns>
-    /// The state after the step; never below <paramref name="landingY"/>.
+    /// The state after the step; never below <paramref name="landingY"/> nor above <paramref name="ceilingY"/>.
     /// </returns>
-    public static FallState Step(FallState state, double landingY, TimeSpan elapsed, PetBehaviorOptions options)
+    public static FallState Step(
+        FallState state,
+        double landingY,
+        TimeSpan elapsed,
+        PetBehaviorOptions options,
+        double ceilingY = double.NegativeInfinity)
     {
         ArgumentNullException.ThrowIfNull(options);
 
@@ -77,6 +85,12 @@ public static class FreeFall
         }
 
         var y = state.Y + (velocity * seconds);
+        if (y < ceilingY)
+        {
+            y = ceilingY;
+            velocity = Math.Max(velocity, 0);
+        }
+
         if (y >= landingY)
         {
             return new FallState(landingY, 0, opened, true);
