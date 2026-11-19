@@ -127,6 +127,11 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     private readonly PetBehaviorOptions _options;
 
     /// <summary>
+    /// Measures how fast the pet is moving at the end of a drag, so letting go of it in a flick throws it.
+    /// </summary>
+    private readonly ThrowTracker _throw;
+
+    /// <summary>
     /// Timer that ticks once per animation frame. Used instead of <c>CompositionTarget.Rendering</c>, which forces
     /// continuous 60 Hz redraws and burns CPU.
     /// </summary>
@@ -252,6 +257,7 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
         _brain.HopDuration = pet.HopDuration;
         _brain.CanHopNow = CanHopHere;
         _options = options;
+        _throw = new ThrowTracker(options);
         _crawl = new EdgeCrawl(options, Random.Shared);
         _openPanel = openPanel;
         _movement = movement;

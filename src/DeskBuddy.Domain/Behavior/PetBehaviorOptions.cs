@@ -172,6 +172,35 @@ public sealed class PetBehaviorOptions
     public double FallBrake { get; set; } = 500;
 
     /// <summary>
+    /// Gets or sets how much of the end of a drag, at most, the speed of a throw is measured over. A pointer that has
+    /// rested for longer than this before the release throws nothing.
+    /// </summary>
+    public TimeSpan ThrowSampleWindow { get; set; } = TimeSpan.FromMilliseconds(100);
+
+    /// <summary>
+    /// Gets or sets the slowest release, in device-independent pixels per second, that throws the pet; a slower one
+    /// simply drops it.
+    /// </summary>
+    public double ThrowMinSpeed { get; set; } = 400;
+
+    /// <summary>
+    /// Gets or sets the fastest a pet can be thrown, in device-independent pixels per second.
+    /// </summary>
+    public double ThrowMaxSpeed { get; set; } = 2500;
+
+    /// <summary>
+    /// Gets or sets how quickly the air slows down a thrown pet sideways: the fraction of its speed lost per second,
+    /// as an exponential rate.
+    /// </summary>
+    public double ThrowAirDrag { get; set; } = 1.2;
+
+    /// <summary>
+    /// Gets or sets how much of its sideways speed, from 0 to 1, a thrown pet keeps when it bounces off the end of the
+    /// screen.
+    /// </summary>
+    public double ThrowBounce { get; set; } = 0.4;
+
+    /// <summary>
     /// Gets or sets the chance, from 0 to 1, that a pet walking into the left or right end of the screen starts to
     /// climb it, when climbing is switched on.
     /// </summary>
