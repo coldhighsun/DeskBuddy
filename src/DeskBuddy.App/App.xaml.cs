@@ -37,7 +37,23 @@ public partial class App
     /// <summary>
     /// Name of the per-session mutex that enforces a single running instance.
     /// </summary>
-    private const string SingleInstanceMutexName = @"Local\DeskBuddy.SingleInstance";
+    internal const string SingleInstanceMutexName = @"Local\DeskBuddy.SingleInstance";
+
+    /// <summary>
+    /// The named event through which the installer, by starting the application with <see cref="QuitArgument"/>,
+    /// asks the running instance to close. Its name is also used by <c>installer/DeskBuddy.iss</c>.
+    /// </summary>
+    private const string QuitSignalName = @"Local\DeskBuddy.Quit";
+
+    /// <summary>
+    /// The command-line switch that asks the running instance to close and waits until it has.
+    /// </summary>
+    internal const string QuitArgument = "--quit";
+
+    /// <summary>
+    /// How long a start with <see cref="QuitArgument"/> waits for the running instance to close.
+    /// </summary>
+    private static readonly TimeSpan QuitTimeout = TimeSpan.FromSeconds(10);
 
     /// <summary>
     /// How long a full-screen application must be gone before the pet comes back.
@@ -63,6 +79,11 @@ public partial class App
     /// Guard holding the single-instance mutex; <see langword="null"/> until startup.
     /// </summary>
     private SingleInstanceGuard? _instanceGuard;
+
+    /// <summary>
+    /// Closes the application when another process asks it to; <see langword="null"/> in a later instance.
+    /// </summary>
+    private InstanceSignal? _quitSignal;
 
     /// <summary>
     /// The pet window; <see langword="null"/> until startup completes.
@@ -140,11 +161,23 @@ public partial class App
         base.OnStartup(e);
 
         _instanceGuard = new SingleInstanceGuard(SingleInstanceMutexName);
+        if (e.Args.Contains(QuitArgument, StringComparer.OrdinalIgnoreCase))
+        {
+            // Started by the installer to close the running instance cleanly (so it can tidy up, unlike a forced
+            // end); the exit code tells whether it has closed in time.
+            var closed = _instanceGuard.IsFirstInstance
+                || (InstanceSignal.TrySignal(QuitSignalName) && _instanceGuard.WaitForFirstInstanceToExit(QuitTimeout));
+            Shutdown(closed ? 0 : 1);
+            return;
+        }
+
         if (!_instanceGuard.IsFirstInstance)
         {
             Shutdown();
             return;
         }
+
+        _quitSignal = new InstanceSignal(QuitSignalName, () => Dispatcher.BeginInvoke(ExitApplication));
 
         var builder = Host.CreateApplicationBuilder(e.Args);
 
@@ -479,6 +512,7 @@ public partial class App
             _host.Dispose();
         }
 
+        _quitSignal?.Dispose();
         _instanceGuard?.Dispose();
 
         base.OnExit(e);

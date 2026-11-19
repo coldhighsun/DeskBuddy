@@ -28,6 +28,25 @@ public sealed class InstallerScriptTests
     }
 
     /// <summary>
+    /// The installer closes the running application the way the application expects: it checks the single-instance
+    /// mutex and starts the application with the quit switch.
+    /// </summary>
+    [Fact]
+    public void Script_StopApp_UsesTheAppsMutexAndQuitSwitch()
+    {
+        // Arrange
+        var script = File.ReadAllText(ScriptPath());
+
+        // Act
+        var usesMutex = script.Contains($"'{App.SingleInstanceMutexName}'", StringComparison.Ordinal);
+        var usesQuitSwitch = script.Contains($"'{App.QuitArgument}'", StringComparison.Ordinal);
+
+        // Assert
+        usesMutex.Should().BeTrue();
+        usesQuitSwitch.Should().BeTrue();
+    }
+
+    /// <summary>
     /// Finds the installer script in the repository this test file is part of.
     /// </summary>
     /// <param name="testFile">

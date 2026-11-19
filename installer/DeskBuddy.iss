@@ -79,18 +79,43 @@ Filename: "{app}\{#AppExe}"; Description: "{cm:RunAfterInstall}"; Flags: nowait 
 [Code]
 const
   ProcessName = '{#AppExe}';
+  { Held by the running app; the name matches SingleInstanceMutexName in App.xaml.cs. }
+  InstanceMutex = 'Local\DeskBuddy.SingleInstance';
+
+{ Waits up to the given number of milliseconds for the running app to go away. }
+function WaitForAppToExit(TimeoutMs: Integer): Boolean;
+var
+  Waited: Integer;
+begin
+  Waited := 0;
+  while CheckForMutexes(InstanceMutex) and (Waited < TimeoutMs) do
+  begin
+    Sleep(250);
+    Waited := Waited + 250;
+  end;
+  Result := not CheckForMutexes(InstanceMutex);
+end;
 
 { Asks the running pet to close and ends it if it is still there a few seconds later. }
 procedure StopApp;
 var
   ResultCode: Integer;
+  AppPath: String;
 begin
-  { taskkill reports 128 when there is no such process; then there is nothing to wait for. }
-  if Exec(ExpandConstant('{sys}\taskkill.exe'), '/IM ' + ProcessName, '', SW_HIDE, ewWaitUntilTerminated, ResultCode)
-    and (ResultCode <> 128) then
+  if not CheckForMutexes(InstanceMutex) then
+    Exit;
+
+  { Started with --quit, the installed app asks the running one to close cleanly and returns once it has. A version
+    from before --quit existed returns at once and is left to taskkill below. }
+  AppPath := ExpandConstant('{app}\{#AppExe}');
+  if FileExists(AppPath) then
+    Exec(AppPath, '--quit', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+
+  if not WaitForAppToExit(0) then
   begin
-    Sleep(3000);
-    Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /IM ' + ProcessName, '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+    Exec(ExpandConstant('{sys}\taskkill.exe'), '/IM ' + ProcessName, '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+    if not WaitForAppToExit(3000) then
+      Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /IM ' + ProcessName, '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
   end;
 end;
 
