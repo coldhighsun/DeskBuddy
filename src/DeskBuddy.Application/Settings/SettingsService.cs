@@ -16,6 +16,12 @@ public sealed class SettingsService(ISettingsStore store)
     private readonly SemaphoreSlim _gate = new(1, 1);
 
     /// <summary>
+    /// Whether the saved settings have been loaded (successfully or not). A change made before that loads them first,
+    /// so it is applied to the user's settings rather than to the defaults, which would then overwrite the file.
+    /// </summary>
+    private bool _loaded;
+
+    /// <summary>
     /// Raised after the settings changed in memory (before the save finishes).
     /// </summary>
     public event EventHandler<PetSettings>? Changed;
@@ -49,17 +55,14 @@ public sealed class SettingsService(ISettingsStore store)
     /// </returns>
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
+        await _gate.WaitAsync(cancellationToken);
         try
         {
-            var enforced = ProcessListRules.Enforce((await store.LoadAsync(cancellationToken)).Normalize());
-            Current = enforced.Settings;
-            RemovedAtLoad = enforced.Removed;
-            LoadFailure = null;
-            Changed?.Invoke(this, Current);
+            await LoadAsync(cancellationToken);
         }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        finally
         {
-            LoadFailure = ex;
+            _gate.Release();
         }
     }
 
@@ -85,16 +88,21 @@ public sealed class SettingsService(ISettingsStore store)
     {
         ArgumentNullException.ThrowIfNull(change);
 
-        if (LoadFailure is not null)
-        {
-            throw new InvalidOperationException(
-                "The saved settings could not be read, so changes are refused to avoid overwriting them.",
-                LoadFailure);
-        }
-
         await _gate.WaitAsync(cancellationToken);
         try
         {
+            if (!_loaded)
+            {
+                await LoadAsync(cancellationToken);
+            }
+
+            if (LoadFailure is not null)
+            {
+                throw new InvalidOperationException(
+                    "The saved settings could not be read, so changes are refused to avoid overwriting them.",
+                    LoadFailure);
+            }
+
             Current = ProcessListRules.Enforce(change(Current).Normalize()).Settings;
             Changed?.Invoke(this, Current);
             await store.SaveAsync(Current, cancellationToken);
@@ -103,6 +111,34 @@ public sealed class SettingsService(ISettingsStore store)
         finally
         {
             _gate.Release();
+        }
+    }
+
+    /// <summary>
+    /// Loads the saved settings into <see cref="Current"/>. Must be called while holding <see cref="_gate"/>. A
+    /// storage problem is recorded in <see cref="LoadFailure"/> instead of thrown.
+    /// </summary>
+    /// <param name="cancellationToken">
+    /// Token used to cancel the operation.
+    /// </param>
+    /// <returns>
+    /// A task that completes when loading has finished.
+    /// </returns>
+    private async Task LoadAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            var enforced = ProcessListRules.Enforce((await store.LoadAsync(cancellationToken)).Normalize());
+            Current = enforced.Settings;
+            RemovedAtLoad = enforced.Removed;
+            LoadFailure = null;
+            _loaded = true;
+            Changed?.Invoke(this, Current);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            LoadFailure = ex;
+            _loaded = true;
         }
     }
 }

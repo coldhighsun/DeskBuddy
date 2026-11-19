@@ -67,6 +67,46 @@ public class SettingsServiceTests
     }
 
     /// <summary>
+    /// An update made before initialization loads the saved settings first, so it does not overwrite them with the
+    /// defaults.
+    /// </summary>
+    [Fact]
+    public async Task UpdateAsync_BeforeInitialize_AppliesChangeToSavedSettings()
+    {
+        // Arrange
+        _store.Stored = PetSettings.Default with { ClimbEdges = true };
+
+        // Act
+        var result = await _service.UpdateAsync(
+            settings => settings with { ChatterEnabled = false },
+            TestContext.Current.CancellationToken);
+
+        // Assert
+        result.ClimbEdges.Should().BeTrue();
+        result.ChatterEnabled.Should().BeFalse();
+        _store.Stored!.ClimbEdges.Should().BeTrue();
+    }
+
+    /// <summary>
+    /// An update made before initialization is refused when the saved settings cannot be read, and nothing is saved.
+    /// </summary>
+    [Fact]
+    public async Task UpdateAsync_BeforeInitializeStorageUnreadable_IsRefused()
+    {
+        // Arrange
+        _store.LoadException = new IOException("locked");
+
+        // Act
+        var act = () => _service.UpdateAsync(
+            settings => settings with { ChatterEnabled = false },
+            TestContext.Current.CancellationToken);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>();
+        _store.SaveCount.Should().Be(0);
+    }
+
+    /// <summary>
     /// An update is applied, announced and saved.
     /// </summary>
     [Fact]
