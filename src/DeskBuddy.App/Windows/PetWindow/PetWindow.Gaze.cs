@@ -80,6 +80,7 @@ public partial class PetWindow
         }
 
         var cursor = MonitorHelper.GetCursorPositionPixels();
+        _pointer.Shake.Scale = VisualTreeHelper.GetDpi(this).DpiScaleX;
         var reaction = _pointer.Read(
             _pointerWatch.Elapsed,
             cursor.X,

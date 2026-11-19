@@ -10,7 +10,8 @@ namespace DeskBuddy.Domain.Gaze;
 /// How many changes of direction along one axis make a shake.
 /// </param>
 /// <param name="minSwing">
-/// How far the pointer must travel back, in pixels, for a change of direction to count; smaller wobbles are ignored.
+/// How far the pointer must travel back, in device-independent pixels, for a change of direction to count; smaller
+/// wobbles are ignored. It is turned into device pixels with <see cref="Scale"/>.
 /// </param>
 public sealed class MouseShakeDetector(TimeSpan window, int reversalsNeeded, int minSwing)
 {
@@ -32,6 +33,22 @@ public sealed class MouseShakeDetector(TimeSpan window, int reversalsNeeded, int
         : this(TimeSpan.FromSeconds(1.2), 4, 80)
     {
     }
+
+    /// <summary>
+    /// Gets or sets how many device pixels make one device-independent pixel where the pointer is, so a shake takes the
+    /// same hand movement on every monitor whatever its scaling. Defaults to 1.
+    /// </summary>
+    public double Scale
+    {
+        get;
+        set
+        {
+            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(value);
+            field = value;
+            _horizontal.MinSwing = minSwing * value;
+            _vertical.MinSwing = minSwing * value;
+        }
+    } = 1;
 
     /// <summary>
     /// Takes in the pointer position.
@@ -83,10 +100,15 @@ public sealed class MouseShakeDetector(TimeSpan window, int reversalsNeeded, int
     /// The time within which changes of direction are counted.
     /// </param>
     /// <param name="minSwing">
-    /// How far the pointer must travel back for a change to count.
+    /// How far the pointer must travel back, in device pixels, for a change to count.
     /// </param>
-    private sealed class Axis(TimeSpan window, int minSwing)
+    private sealed class Axis(TimeSpan window, double minSwing)
     {
+        /// <summary>
+        /// Gets or sets how far the pointer must travel back, in device pixels, for a change to count.
+        /// </summary>
+        public double MinSwing { get; set; } = minSwing;
+
         /// <summary>
         /// When the direction changed lately.
         /// </summary>
@@ -132,7 +154,7 @@ public sealed class MouseShakeDetector(TimeSpan window, int reversalsNeeded, int
 
             if (_direction == 0)
             {
-                if (Math.Abs(value - _extreme) >= minSwing)
+                if (Math.Abs(value - _extreme) >= MinSwing)
                 {
                     _direction = Math.Sign(value - _extreme);
                     _extreme = value;
@@ -142,7 +164,7 @@ public sealed class MouseShakeDetector(TimeSpan window, int reversalsNeeded, int
             {
                 _extreme = value;
             }
-            else if ((_extreme - value) * _direction >= minSwing)
+            else if ((_extreme - value) * _direction >= MinSwing)
             {
                 _direction = -_direction;
                 _extreme = value;
