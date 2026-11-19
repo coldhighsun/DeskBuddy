@@ -177,6 +177,17 @@ public partial class App
     private TrayIconService? _tray;
 
     /// <summary>
+    /// Looks for updates; <see langword="null"/> until start-up has created it, or if updates are not available in this
+    /// build. The about tab of the panel offers the check.
+    /// </summary>
+    private UpdateController? _updates;
+
+    /// <summary>
+    /// Reports what goes wrong when the about tab checks for updates.
+    /// </summary>
+    private ILogger? _updateLogger;
+
+    /// <summary>
     /// Ends the update controller's background loop when the application closes.
     /// </summary>
     private readonly CancellationTokenSource _updatesStopping = new();
@@ -411,13 +422,11 @@ public partial class App
                 () => settingsService.Current.AutoCheckUpdates,
                 new TrayUpdatePresenter(() => _tray, ExitApplication, updateLogger),
                 updateLogger);
-            var about = new SingleWindow<AboutWindow>(
-                () => new AboutWindow(updates, updateLogger),
-                window => window.ShowAbout());
+            _updates = updates;
+            _updateLogger = updateLogger;
             _tray = new TrayIconService(
                 brain,
                 OpenPanel,
-                about.Open,
                 ExitApplication,
                 settingsService,
                 _installedPets,
@@ -605,7 +614,7 @@ public partial class App
     {
         if (_panel is null && PreparePanelViewModel() is { } viewModel)
         {
-            _panel = new PanelWindow(viewModel);
+            _panel = new PanelWindow(viewModel, _updates, _updateLogger);
         }
 
         _panel?.ShowPanel(tab);

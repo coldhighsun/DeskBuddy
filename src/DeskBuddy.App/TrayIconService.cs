@@ -67,11 +67,6 @@ public sealed class TrayIconService : IDisposable
     private readonly Action<PanelTab?> _openPanel;
 
     /// <summary>
-    /// Opens the about window.
-    /// </summary>
-    private readonly Action _openAbout;
-
-    /// <summary>
     /// Callback invoked when the user chooses Exit.
     /// </summary>
     private readonly Action _onExit;
@@ -126,9 +121,6 @@ public sealed class TrayIconService : IDisposable
     /// <param name="openPanel">
     /// Opens the panel window; called from the menu and on double-click of the icon.
     /// </param>
-    /// <param name="openAbout">
-    /// Opens the about window; called from the menu.
-    /// </param>
     /// <param name="onExit">
     /// Callback invoked when the user chooses Exit.
     /// </param>
@@ -147,7 +139,6 @@ public sealed class TrayIconService : IDisposable
     internal TrayIconService(
         PetBrain brain,
         Action<PanelTab?> openPanel,
-        Action openAbout,
         Action onExit,
         SettingsService settings,
         InstalledPets pets,
@@ -156,7 +147,6 @@ public sealed class TrayIconService : IDisposable
     {
         _brain = brain;
         _openPanel = openPanel;
-        _openAbout = openAbout;
         _onExit = onExit;
         _settings = settings;
         _pets = pets;
@@ -756,10 +746,6 @@ public sealed class TrayIconService : IDisposable
             checkUpdates.Click += (_, _) => _ = RunUpdateAsync(() => _updates.CheckAsync(manual: true));
             items.Add(checkUpdates);
         }
-
-        var about = new MenuItem { Header = Strings.TrayAbout, Icon = Glyph("") };
-        about.Click += (_, _) => _openAbout();
-        items.Add(about);
 
         var exit = new MenuItem { Header = Strings.TrayExit, Icon = Glyph("") };
         exit.Click += (_, _) => _onExit();

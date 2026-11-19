@@ -24,4 +24,9 @@ public enum PanelTab
     /// Boss key, start with Windows and diagnostics.
     /// </summary>
     System = 3,
+
+    /// <summary>
+    /// Name, version, project page and the check for updates.
+    /// </summary>
+    About = 4,
 }
