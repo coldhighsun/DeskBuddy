@@ -31,7 +31,7 @@ if (Test-Path $publishDir) {
     Remove-Item -Recurse -Force $publishDir
 }
 
-dotnet publish $project -c Release -r win-x64 --self-contained true -p:DebugType=none -o $publishDir
+dotnet publish $project -c Release -r win-x64 --self-contained true -o $publishDir
 if ($LASTEXITCODE -ne 0) {
     throw "dotnet publish failed."
 }
