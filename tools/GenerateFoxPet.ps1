@@ -2,7 +2,6 @@
 # size (a 256x256 atlas cell for a 64x64 frame), so it stays sharp on high-DPI screens at the same size on screen.
 # It defines the everyday and screen-edge states only; the scenario states (coding, reading, ...) and Hop, Meal are left to
 # the fallback rules. Run: powershell -NoProfile -File tools/GenerateFoxPet.ps1
-. (Join-Path $PSScriptRoot 'PetDrawing.ps1')   # Write-PetManifest, used by the atlas packer
 . (Join-Path $PSScriptRoot 'PetVectorDrawing.ps1')
 
 $PetName = 'fox'
@@ -84,27 +83,30 @@ $tailTips = @(@(52, 25), @(54, 29), @(55, 34), @(53, 28))
 
 # The pet sitting, seen from the front. ArmsUp raises both front paws, RightArmUp only the right one (RightArmDx sways it, for
 # a wave), LeftArmReach stretches the left one out to the edge of the frame to hold on to the screen, HoldOverhead raises both
-# above the head to the handle of an umbrella or parachute (drawn by the program).
+# above the head to the handle of an umbrella or parachute (drawn by the program). Portrait leaves out the tail, for the
+# tray icon, so nothing but the head shows at the edges of the icon box.
 function Add-Fox {
     param(
         [string]$Eyes = 'open', [int]$Tail = 0, [double]$EyeShift = 0, [double]$EyeLift = 0,
         [switch]$ArmsUp, [switch]$RightArmUp, [double]$RightArmDx = 0, [switch]$LeftArmReach, [double]$ReachY = 26,
-        [switch]$HoldOverhead
+        [switch]$HoldOverhead, [switch]$Portrait
     )
     $tip = $tailTips[$Tail % 4]
-    Add-FoxTail @(40, 54, 58, 58, 58, 40, $tip[0], $tip[1])
+    if (-not $Portrait) { Add-FoxTail @(40, 54, 58, 58, 58, 40, $tip[0], $tip[1]) }
 
     # Body and belly.
     Add-HdOval 'Body' 32 49 13.5 12
     Add-HdOval 'White' 32 52 8 9 ''
 
-    # Legs that are down, then the raised arms.
+    # Legs that are down (a hind foot shows where a front leg is raised), then the raised arms.
     $leftDown = -not $ArmsUp -and -not $LeftArmReach -and -not $HoldOverhead
     $rightDown = -not $ArmsUp -and -not $RightArmUp -and -not $HoldOverhead
     foreach ($leg in @(@(25, $leftDown), @(39, $rightDown))) {
         if ($leg[1] -or $HoldOverhead) {
             Add-HdLimb @($leg[0], 48, $leg[0], 58) 'Body' 5.4
             Add-HdOval 'Paw' $leg[0] 59.4 4.1 2.7
+        } else {
+            Add-HdOval 'Paw' ($leg[0] + ($leg[0] - 32) * 0.4) 59.8 4.7 2.6
         }
     }
     if ($HoldOverhead) {
@@ -274,7 +276,8 @@ $manifest = @"
 Write-PetManifest (Join-Path $outDir 'manifest.json') $manifest
 
 # The tray icon: the head (drawing units: x, y, width, height).
-Save-HdIcon (Join-Path $outDir 'idle_0.png') (Join-Path $outDir 'icon.png') @(12, 2, 40, 40)
+Save-Frame 'icon_portrait.png' { Add-Fox -Portrait }
+Save-HdIcon (Join-Path $outDir 'icon_portrait.png') (Join-Path $outDir 'icon.png') @(12, 2, 40, 40)
 
 # Pack the single frames into the atlas the program reads.
 . (Join-Path $PSScriptRoot 'PackPetAtlas.ps1')
