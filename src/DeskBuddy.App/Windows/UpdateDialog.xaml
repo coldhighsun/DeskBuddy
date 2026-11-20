@@ -1,0 +1,114 @@
+<Window x:Class="DeskBuddy.App.Windows.UpdateDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:res="clr-namespace:DeskBuddy.App.Resources"
+        Style="{DynamicResource DialogWindowStyle}"
+        Title="{res:Loc UpdateConfirmTitle}"
+        Padding="0"
+        Icon="pack://application:,,,/DeskBuddy;component/Assets/DeskBuddy.ico"
+        Width="480"
+        SizeToContent="Height"
+        SnapsToDevicePixels="True"
+        UseLayoutRounding="True"
+        WindowStartupLocation="CenterScreen">
+    <DockPanel>
+        <!-- The answers, on a slightly different surface as in the other dialogs. -->
+        <Border DockPanel.Dock="Bottom"
+                Background="{DynamicResource AppSurface}"
+                BorderBrush="{DynamicResource AppDivider}"
+                BorderThickness="0,1,0,0"
+                Padding="20,14">
+            <Grid>
+                <Button x:Name="ViewReleaseButton"
+                        Content="{res:Loc UpdateViewRelease}"
+                        Style="{DynamicResource FlatButton}"
+                        HorizontalAlignment="Left"
+                        MinHeight="32"
+                        Padding="16,3"
+                        Click="OnViewReleaseClick"
+                        AutomationProperties.AutomationId="UpdateViewReleaseButton" />
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button x:Name="SkipButton"
+                            Content="{res:Loc UpdateSkip}"
+                            Style="{DynamicResource FlatButton}"
+                            MinHeight="32"
+                            Padding="16,3"
+                            Click="OnSkipClick"
+                            AutomationProperties.AutomationId="UpdateSkipButton" />
+                    <Button x:Name="LaterButton"
+                            Style="{DynamicResource FlatButton}"
+                            Margin="8,0,0,0"
+                            MinHeight="32"
+                            Padding="16,3"
+                            IsCancel="True"
+                            AutomationProperties.AutomationId="UpdateLaterButton" />
+                    <Button x:Name="UpdateButton"
+                            Style="{DynamicResource RaisedButton}"
+                            Margin="8,0,0,0"
+                            MinWidth="96"
+                            MinHeight="32"
+                            Padding="16,3"
+                            IsDefault="True"
+                            Click="OnUpdateClick"
+                            AutomationProperties.AutomationId="UpdateNowButton" />
+                    <Button x:Name="CancelDownloadButton"
+                            Content="{res:Loc UpdateCancelDownload}"
+                            Style="{DynamicResource FlatButton}"
+                            MinHeight="32"
+                            Padding="16,3"
+                            Click="OnCancelDownloadClick"
+                            AutomationProperties.AutomationId="UpdateCancelDownloadButton" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <StackPanel Margin="24,20,24,20">
+            <TextBlock x:Name="HeaderText"
+                       FontSize="{DynamicResource FontSizeTitle}"
+                       FontWeight="SemiBold"
+                       TextWrapping="Wrap"
+                       AutomationProperties.AutomationId="UpdateHeader" />
+            <TextBlock x:Name="CurrentVersionText"
+                       Style="{DynamicResource SecondaryTextStyle}"
+                       Margin="0,4,0,0"
+                       AutomationProperties.AutomationId="UpdateCurrentVersion" />
+
+            <!-- What the release says; hidden when it has no notes. -->
+            <StackPanel x:Name="NotesPanel" Margin="0,16,0,0" Visibility="Collapsed">
+                <TextBlock Text="{res:Loc UpdateReleaseNotes}" Style="{DynamicResource SettingsSectionHeaderStyle}" />
+                <Border Style="{DynamicResource SettingsGroupStyle}"
+                        Margin="0,6,0,0"
+                        Padding="12,8">
+                    <ScrollViewer MaxHeight="160" VerticalScrollBarVisibility="Auto">
+                        <TextBlock x:Name="NotesText"
+                                   TextWrapping="Wrap"
+                                   AutomationProperties.AutomationId="UpdateNotes" />
+                    </ScrollViewer>
+                </Border>
+            </StackPanel>
+
+            <TextBlock x:Name="InfoText"
+                       TextWrapping="Wrap"
+                       Margin="0,16,0,0"
+                       AutomationProperties.AutomationId="UpdateInfo" />
+
+            <StackPanel x:Name="ProgressPanel" Margin="0,16,0,0" Visibility="Collapsed">
+                <ProgressBar x:Name="DownloadProgressBar"
+                             Minimum="0"
+                             Maximum="100"
+                             AutomationProperties.AutomationId="UpdateProgressBar" />
+                <TextBlock x:Name="ProgressText"
+                           Style="{DynamicResource SettingsHintStyle}"
+                           Margin="0,8,0,0"
+                           AutomationProperties.AutomationId="UpdateProgressText" />
+            </StackPanel>
+
+            <TextBlock x:Name="ErrorText"
+                       Foreground="{DynamicResource AppDanger}"
+                       TextWrapping="Wrap"
+                       Margin="0,16,0,0"
+                       Visibility="Collapsed"
+                       AutomationProperties.AutomationId="UpdateError" />
+        </StackPanel>
+    </DockPanel>
+</Window>

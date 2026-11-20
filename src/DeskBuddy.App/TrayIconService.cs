@@ -413,15 +413,20 @@ public sealed class TrayIconService : IDisposable
     }
 
     /// <summary>
-    /// Asks the user whether to install the version that was found, and installs it. Does nothing without an update
-    /// controller.
+    /// Opens the update dialog for the version that was found, where the user decides whether to install it. Does nothing
+    /// without an update controller.
     /// </summary>
     /// <returns>
-    /// A task that completes when the installation was started, declined or failed.
+    /// A task that completes when the dialog has been closed.
     /// </returns>
     private Task InstallUpdateAsync()
     {
-        return _updates is { } updates ? updates.InstallAsync() : Task.CompletedTask;
+        if (_updates is { } updates)
+        {
+            _ = UpdateDialog.ShowFor(updates, null);
+        }
+
+        return Task.CompletedTask;
     }
 
     /// <summary>

@@ -174,7 +174,14 @@ public partial class AboutView
             return;
         }
 
-        await UpdateRunner.RunAsync(() => _updates.CheckAsync(manual: true), _logger);
+        var updates = _updates;
+        await UpdateRunner.RunAsync(() => updates.CheckAsync(manual: true), _logger);
+
+        // The check only finds out; whether to install is asked in the update dialog.
+        if (updates.State == UpdateState.Available && updates.Available is not null)
+        {
+            _ = UpdateDialog.ShowFor(updates, Window.GetWindow(this));
+        }
     }
 
     /// <summary>
