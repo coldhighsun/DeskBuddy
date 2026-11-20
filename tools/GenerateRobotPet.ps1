@@ -276,8 +276,8 @@ function Add-RobotSideWalk {
     param([int]$NearHandX, [int]$FarHandX, [int]$Roll, [string]$Lamp = 'Orange')
 
     # Far arm, behind the body.
-    Add-Limb 12 19 $FarHandX 26 Outline SteelDark
-    Px Orange ($FarHandX - 1) 25 3 3
+    Add-Limb 12 19 $FarHandX 23 Outline SteelDark
+    Px Orange ($FarHandX - 1) 22 3 3
 
     Add-SideBody -Lamp $Lamp -EyeY 10
 
@@ -290,8 +290,8 @@ function Add-RobotSideWalk {
     }
 
     # The near arm, in front of the tread.
-    Add-Limb 12 19 $NearHandX 26 Outline Steel
-    Px Orange ($NearHandX - 1) 25 3 3
+    Add-Limb 12 19 $NearHandX 23 Outline Steel
+    Px Orange ($NearHandX - 1) 22 3 3
 }
 
 # The robot seen from the side, facing left, climbing a wall at the left edge of the frame: the head is turned a quarter turn so the face looks straight up and is moved
@@ -328,9 +328,9 @@ Save-Frame 'idle_3.png' { Add-Robot -Eyes closed -Lamp SteelDark }
 
 # Walk: seen from the side, rolls along on its tread with swinging arms and a little bounce. Drawn facing left and
 # mirrored, as the art faces right.
-Save-Frame 'walk_0.png' -Mirror { Add-RobotSideWalk -NearHandX 5 -FarHandX 15 -Roll 0 }
+Save-Frame 'walk_0.png' -Mirror { Add-RobotSideWalk -NearHandX 7 -FarHandX 14 -Roll 0 }
 Save-Frame 'walk_1.png' -Mirror { Add-RobotSideWalk -NearHandX 10 -FarHandX 11 -Roll 1 -Lamp SteelDark }
-Save-Frame 'walk_2.png' -Mirror { Add-RobotSideWalk -NearHandX 15 -FarHandX 5 -Roll 2 }
+Save-Frame 'walk_2.png' -Mirror { Add-RobotSideWalk -NearHandX 14 -FarHandX 7 -Roll 2 }
 Save-Frame 'walk_3.png' -Mirror { Add-RobotSideWalk -NearHandX 11 -FarHandX 10 -Roll 3 -Lamp SteelDark }
 
 # Sleep: standby mode, dim lights, floating z.
@@ -504,21 +504,21 @@ Save-Frame 'hang_1.png' -Air { Add-Robot -Eyes open -LeftArmReach -Feet -1 -Lamp
 
 # Climb: the robot seen from the side climbs the left edge of the screen, which is the wall: hands and feet on the edge of
 # the frame, hand over hand with the opposite foot, the body pulled up a little between grips. Mirrored for the right edge.
-Save-Frame 'climb_0.png' -Air { Add-RobotSide -NearHandY 5 -FarHandY 14 -NearFootY 29 -FarFootY 24 }
-Save-Frame 'climb_1.png' -Air -Dy -1 { Add-RobotSide -NearHandY 9 -FarHandY 11 -NearFootY 27 -FarFootY 26 -Lamp SteelDark }
-Save-Frame 'climb_2.png' -Air { Add-RobotSide -NearHandY 14 -FarHandY 5 -NearFootY 24 -FarFootY 29 }
-Save-Frame 'climb_3.png' -Air -Dy -1 { Add-RobotSide -NearHandY 11 -FarHandY 9 -NearFootY 26 -FarFootY 27 -Lamp SteelDark }
+Save-Frame 'climb_0.png' -Air { Add-RobotSide -NearHandY 11 -FarHandY 16 -NearFootY 29 -FarFootY 24 }
+Save-Frame 'climb_1.png' -Air -Dy -1 { Add-RobotSide -NearHandY 13 -FarHandY 14 -NearFootY 27 -FarFootY 26 -Lamp SteelDark }
+Save-Frame 'climb_2.png' -Air { Add-RobotSide -NearHandY 16 -FarHandY 11 -NearFootY 24 -FarFootY 29 }
+Save-Frame 'climb_3.png' -Air -Dy -1 { Add-RobotSide -NearHandY 14 -FarHandY 13 -NearFootY 26 -FarFootY 27 -Lamp SteelDark }
 
 # ClimbDown: the climb played backwards, so the robot goes down the wall with its head still up.
-Save-Frame 'climbdown_0.png' -Air -Dy -1 { Add-RobotSide -NearHandY 11 -FarHandY 9 -NearFootY 26 -FarFootY 27 -Lamp SteelDark }
-Save-Frame 'climbdown_1.png' -Air { Add-RobotSide -NearHandY 14 -FarHandY 5 -NearFootY 24 -FarFootY 29 }
-Save-Frame 'climbdown_2.png' -Air -Dy -1 { Add-RobotSide -NearHandY 9 -FarHandY 11 -NearFootY 27 -FarFootY 26 -Lamp SteelDark }
-Save-Frame 'climbdown_3.png' -Air { Add-RobotSide -NearHandY 5 -FarHandY 14 -NearFootY 29 -FarFootY 24 }
+Save-Frame 'climbdown_0.png' -Air -Dy -1 { Add-RobotSide -NearHandY 14 -FarHandY 13 -NearFootY 26 -FarFootY 27 -Lamp SteelDark }
+Save-Frame 'climbdown_1.png' -Air { Add-RobotSide -NearHandY 16 -FarHandY 11 -NearFootY 24 -FarFootY 29 }
+Save-Frame 'climbdown_2.png' -Air -Dy -1 { Add-RobotSide -NearHandY 13 -FarHandY 14 -NearFootY 27 -FarFootY 26 -Lamp SteelDark }
+Save-Frame 'climbdown_3.png' -Air { Add-RobotSide -NearHandY 11 -FarHandY 16 -NearFootY 29 -FarFootY 24 }
 
 # Ceiling: walks along the top of the screen upside down, in the same side view as walking on the ground.
-Save-Frame 'ceiling_0.png' -Flip -Mirror { Add-RobotSideWalk -NearHandX 5 -FarHandX 15 -Roll 0 }
+Save-Frame 'ceiling_0.png' -Flip -Mirror { Add-RobotSideWalk -NearHandX 7 -FarHandX 14 -Roll 0 }
 Save-Frame 'ceiling_1.png' -Flip -Mirror { Add-RobotSideWalk -NearHandX 10 -FarHandX 11 -Roll 1 -Lamp SteelDark }
-Save-Frame 'ceiling_2.png' -Flip -Mirror { Add-RobotSideWalk -NearHandX 15 -FarHandX 5 -Roll 2 }
+Save-Frame 'ceiling_2.png' -Flip -Mirror { Add-RobotSideWalk -NearHandX 14 -FarHandX 7 -Roll 2 }
 Save-Frame 'ceiling_3.png' -Flip -Mirror { Add-RobotSideWalk -NearHandX 11 -FarHandX 10 -Roll 3 -Lamp SteelDark }
 
 # Idle looks: the eyes follow the mouse pointer.
