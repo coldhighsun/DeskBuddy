@@ -31,6 +31,7 @@ powershell -NoProfile -File tools/Build-Portable.ps1    # single-file publish zi
 powershell -NoProfile -File tools/GenerateRobotPet.ps1 # regenerate the robot pet (it has its own state list; vector art drawn with tools/PetVectorDrawing.ps1)
 powershell -NoProfile -File tools/GenerateCatPet.ps1   # regenerate cat / dog / rabbit / penguin / ghost (GenerateDogPet / GenerateRabbitPet / GeneratePenguinPet / GenerateGhostPet work the same way): every pet is smooth vector art; these five share the animation template tools/PetVectorAnimations.ps1 and the prop frames in tools/PetVectorScenarios.ps1, each script only draws poses
 powershell -NoProfile -File tools/GenerateFoxPet.ps1   # regenerate the fox pet: the first vector pet, with its own frame list (tools/PetVectorDrawing.ps1); every pet uses 256px atlas cells for a 64px frameSize
+powershell -NoProfile -File tools/GenerateReadmePetImages.ps1   # regenerate docs/pets/<name>.png (README pet pictures: first Idle frame of every pet under pets/); rerun it after redrawing any pet
 powershell -NoProfile -File tools/GenerateAppIcon.ps1   # regenerate the app/tray icon src/DeskBuddy.App/Assets/DeskBuddy.ico
 ```
 
