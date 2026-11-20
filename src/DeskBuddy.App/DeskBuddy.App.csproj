@@ -6,7 +6,7 @@
     <TargetFramework>net11.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
     <MinVerTagPrefix>v</MinVerTagPrefix>
-    <SatelliteResourceLanguages>en;zh-Hans</SatelliteResourceLanguages>
+    <SatelliteResourceLanguages>en;zh-Hans;zh-Hant</SatelliteResourceLanguages>
     <Product>DeskBuddy</Product>
     <Description>A desktop pet for work computers.</Description>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>

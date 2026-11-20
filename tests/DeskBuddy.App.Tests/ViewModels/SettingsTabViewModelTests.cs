@@ -443,7 +443,7 @@ public class SettingsTabViewModelTests
         // Assert
         shownAtStart.Should().Be(AppLanguage.ZhCN);
         _settings.Current.Language.Should().Be(AppLanguage.En);
-        _viewModel.Languages.Select(option => option.Value).Should().Equal(AppLanguage.Auto, AppLanguage.ZhCN, AppLanguage.En);
+        _viewModel.Languages.Select(option => option.Value).Should().Equal(AppLanguage.Auto, AppLanguage.ZhCN, AppLanguage.En, AppLanguage.ZhHant);
     }
 
     /// <summary>

@@ -10,7 +10,7 @@ $NoArms = $true  # a ghost has no arms or hands, just the sheet
 # sheet so it covers the ends of the shaft and the strings.
 $GlideGrips = @(, @(32, 17))
 # 幽灵 spelled with code points, so the script does not depend on its own file encoding.
-$PetNames = @{ En = 'Ghost'; Zh = ([string][char]0x5E7D + [string][char]0x7075) }
+$PetNames = @{ En = 'Ghost'; Zh = ([string][char]0x5E7D + [string][char]0x7075); ZhHant = ([string][char]0x5E7D + [string][char]0x9748) }
 $IconBox = @(12, 12, 40, 40)
 $HeadBox = @(16, 14, 48, 42)
 $pal = @{

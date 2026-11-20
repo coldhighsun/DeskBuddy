@@ -201,6 +201,7 @@
   <data name="PetSizeLarge" xml:space="preserve"><value>Large</value></data>
   <data name="LanguageAuto" xml:space="preserve"><value>Follow system</value></data>
   <data name="LanguageZhCN" xml:space="preserve"><value>简体中文</value></data>
+  <data name="LanguageZhHant" xml:space="preserve"><value>繁體中文</value></data>
   <data name="LanguageEn" xml:space="preserve"><value>English</value></data>
   <data name="SettingsTheme" xml:space="preserve"><value>Theme</value></data>
   <data name="ThemeAuto" xml:space="preserve"><value>Follow system</value></data>

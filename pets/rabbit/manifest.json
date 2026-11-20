@@ -1,6 +1,6 @@
 ﻿{
   "name": "rabbit",
-  "names": { "en": "Rabbit", "zh": "兔子" },
+  "names": { "en": "Rabbit", "zh": "兔子", "zh-Hant": "兔子" },
   "frameSize": [64, 64],
   "atlas": { "image": "atlas.png", "cell": [256, 256], "columns": 10 },
   "states": {

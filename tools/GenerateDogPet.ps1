@@ -5,7 +5,7 @@
 $PetName = 'dog'
 $HasHop = $true
 # 狗 spelled with a code point, so the script does not depend on its own file encoding.
-$PetNames = @{ En = 'Dog'; Zh = [string][char]0x72D7 }
+$PetNames = @{ En = 'Dog'; Zh = [string][char]0x72D7; ZhHant = [string][char]0x72D7 }
 $IconBox = @(9, 9, 46, 46)
 # Gliding, the paws hold on outside the floppy ears.
 $Arms = @{ OverL = @(22, 46, 6.6, 33); OverR = @(42, 46, 57.4, 33) }

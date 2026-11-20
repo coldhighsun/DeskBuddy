@@ -6,7 +6,7 @@
 $PetName = 'penguin'
 $HasHop = $false
 # 企鹅 spelled with code points, so the script does not depend on its own file encoding.
-$PetNames = @{ En = 'Penguin'; Zh = ([string][char]0x4F01 + [string][char]0x9E45) }
+$PetNames = @{ En = 'Penguin'; Zh = ([string][char]0x4F01 + [string][char]0x9E45); ZhHant = ([string][char]0x4F01 + [string][char]0x9D5D) }
 $IconBox = @(13, 10, 38, 38)
 $HeadBox = @(16, 13, 48, 40)
 $pal = @{

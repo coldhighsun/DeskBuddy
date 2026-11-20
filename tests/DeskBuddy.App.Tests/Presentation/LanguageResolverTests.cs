@@ -8,11 +8,17 @@ namespace DeskBuddy.App.Tests.Presentation;
 public class LanguageResolverTests
 {
     /// <summary>
-    /// Following the system picks Chinese for every Chinese system language and English for all others.
+    /// Following the system picks Traditional Chinese for the traditional Chinese regions, Simplified Chinese for the
+    /// other Chinese system languages and English for all others.
     /// </summary>
     [Theory]
     [InlineData("zh-CN", "zh-CN")]
-    [InlineData("zh-TW", "zh-CN")]
+    [InlineData("zh-SG", "zh-CN")]
+    [InlineData("zh-Hans", "zh-CN")]
+    [InlineData("zh-TW", "zh-Hant")]
+    [InlineData("zh-HK", "zh-Hant")]
+    [InlineData("zh-MO", "zh-Hant")]
+    [InlineData("zh-Hant", "zh-Hant")]
     [InlineData("en-GB", "en")]
     [InlineData("ja-JP", "en")]
     [InlineData("de-DE", "en")]
@@ -31,6 +37,9 @@ public class LanguageResolverTests
     [Theory]
     [InlineData(AppLanguage.ZhCN, "en-US", "zh-CN")]
     [InlineData(AppLanguage.En, "zh-CN", "en")]
+    [InlineData(AppLanguage.ZhHant, "en-US", "zh-Hant")]
+    [InlineData(AppLanguage.ZhHant, "zh-CN", "zh-Hant")]
+    [InlineData(AppLanguage.ZhCN, "zh-TW", "zh-CN")]
     public void Resolve_ChosenLanguage_IgnoresTheSystem(AppLanguage language, string system, string expected)
     {
         // Act
