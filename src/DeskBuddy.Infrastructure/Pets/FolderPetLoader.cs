@@ -25,6 +25,11 @@ public sealed class FolderPetLoader(ILogger<FolderPetLoader> logger) : IPetLoade
     private const string IdlePrefix = "Idle.";
 
     /// <summary>
+    /// The longest edge, in device-independent pixels, that the frame size of a pet may have.
+    /// </summary>
+    private const int MaxFrameEdge = 1024;
+
+    /// <summary>
     /// The most pixels an atlas image may have (8192 by 8192), as it is decoded whole.
     /// </summary>
     private const long MaxAtlasPixels = 8192L * 8192;
@@ -62,6 +67,12 @@ public sealed class FolderPetLoader(ILogger<FolderPetLoader> logger) : IPetLoade
         if (manifest?.FrameSize is not { Length: 2 } size || manifest.States is null)
         {
             throw new InvalidDataException($"Pet manifest is missing 'frameSize' or 'states': {manifestPath}");
+        }
+
+        // The window is as large as the frame (times the user's scale), so an absurd size would make an absurd window.
+        if (size[0] > MaxFrameEdge || size[1] > MaxFrameEdge)
+        {
+            throw new InvalidDataException($"The frame size {size[0]}x{size[1]} is larger than the {MaxFrameEdge} pixels per edge allowed: {manifestPath}");
         }
 
         var atlas = ReadAtlas(petDirectory, manifest.Atlas, size, manifestPath);

@@ -267,6 +267,22 @@ public sealed class FolderPetLoaderTests : IDisposable
     }
 
     /// <summary>
+    /// A frame size far beyond any sensible window is rejected, even when the atlas cell has its proportions.
+    /// </summary>
+    [Fact]
+    public async Task LoadAsync_FrameSizeTooLarge_ThrowsInvalidData()
+    {
+        // Arrange
+        WritePet("""{"frameSize":[1000000,1000000],%ATLAS%,"states":{"Idle":{"fps":1,"frames":[0]}}}""");
+
+        // Act
+        var act = () => _loader.LoadAsync(_directory);
+
+        // Assert
+        (await act.Should().ThrowAsync<InvalidDataException>()).Which.Message.Should().Contain("frame size");
+    }
+
+    /// <summary>
     /// A cell of a different size from the frame size but the same proportions (the usual case: a frame drawn at twice the
     /// size it is shown at) is accepted.
     /// </summary>

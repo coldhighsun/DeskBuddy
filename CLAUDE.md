@@ -61,6 +61,7 @@ Four layers; dependencies point App → Application → Domain, and Infrastructu
 - **Manifest limits enforced by `FolderPetLoader`** (a pet that breaks one is rejected with an `InvalidDataException` whose message names the limit; add a test in `FolderPetLoaderTests` whenever a limit is added or changed):
   - `fps` of every state (including `Idle.*` looks) must be between `PetAnimation.MinFps` (0.1) and `PetAnimation.MaxFps` (120); a speed outside it would freeze the UI thread or make the animation timer throw. Every state also needs at least one frame.
   - `atlas.image` must resolve to a file inside the pet's own folder (subfolders are fine); an absolute path or a name that leads out with `..` is refused.
+  - `frameSize` may be at most `MaxFrameEdge` (1024) per edge, as it sizes the pet window.
   - The atlas image may have at most `MaxAtlasPixels` pixels (8192 x 8192), because it is decoded whole.
   - The atlas cell must have the proportions of `frameSize`, at least one row of cells must fit in the image, and every frame index must be a cell of the atlas.
   - Settings reject a pet name that is not a plain folder name (`PetSettings.Normalize`).
