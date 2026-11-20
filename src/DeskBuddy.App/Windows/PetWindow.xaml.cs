@@ -22,11 +22,6 @@ namespace DeskBuddy.App.Windows;
 public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
 {
     /// <summary>
-    /// How long the pet is dizzy after the mouse was shaken.
-    /// </summary>
-    private static readonly TimeSpan DizzyDuration = TimeSpan.FromSeconds(2);
-
-    /// <summary>
     /// How long the pet hangs on to the screen edge before it lets go.
     /// </summary>
     private static readonly TimeSpan HangDuration = TimeSpan.FromSeconds(30);
@@ -79,11 +74,6 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     /// Which scenarios the user has switched on.
     /// </summary>
     private readonly ScenarioSwitches _switches;
-
-    /// <summary>
-    /// Tells where the pet is for the pointer watcher.
-    /// </summary>
-    private readonly Func<PetBox> _petBox;
 
     /// <summary>
     /// The window rectangle in device pixels, read once after each move; <see langword="null"/> when it must be read
@@ -249,7 +239,6 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
         _pet = pet;
         _size = size;
         _switches = switches;
-        _petBox = GetPetBox;
         ToolTipService.SetInitialShowDelay(SpriteImage, ToolTipDelayMilliseconds);
         _player = new AnimationPlayer(pet);
         _frames = frames;
@@ -342,7 +331,10 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
         ArgumentNullException.ThrowIfNull(pet);
         ArgumentNullException.ThrowIfNull(frames);
 
+        // The new frames and the new player are put in place together, before anything that can pump messages (a hit test
+        // reads the player's frame from the frames), so the two never belong to different pets.
         _pet = pet;
+        _player = new AnimationPlayer(pet);
         _frames = frames;
 
         if (_fall is not null)
@@ -361,7 +353,6 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
         _facing = 1;
         ApplyFacing();
 
-        _player = new AnimationPlayer(pet);
         _player.SetState(_shownState, CurrentLook());
         SpriteImage.ToolTip = Strings.StateHint(_shownState);
 
@@ -374,6 +365,7 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
         ShowFrame();
         _animationWatch.Restart();
         _animationTimer.Interval = _player.Animation.FrameDuration;
+        UpdatePointerTimer();
     }
 
     /// <summary>

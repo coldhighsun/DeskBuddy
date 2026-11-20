@@ -15,7 +15,7 @@ public partial class PetBehaviorStateMachineTests
         _machine.OnFallStarted();
 
         // Act
-        _machine.OnMoment(PetState.Dizzy, TimeSpan.FromSeconds(2));
+        _machine.OnMoment(PetState.Festive, TimeSpan.FromSeconds(2));
         _machine.OnClicked();
 
         // Assert
@@ -32,7 +32,7 @@ public partial class PetBehaviorStateMachineTests
         _machine.OnCrawlStarted(PetState.Climb);
 
         // Act
-        _machine.OnMoment(PetState.Dizzy, TimeSpan.FromSeconds(2));
+        _machine.OnMoment(PetState.Festive, TimeSpan.FromSeconds(2));
         _machine.OnClicked();
 
         // Assert

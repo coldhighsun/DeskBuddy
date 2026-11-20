@@ -142,6 +142,9 @@ public partial class PetWindow
         {
             _moveTimer.Stop();
         }
+
+        // The eyes only follow the pointer while the pet stands around.
+        UpdatePointerTimer();
     }
 
     /// <summary>

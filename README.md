@@ -31,7 +31,7 @@ A desktop pet for work computers. It lives on your desktop, reacts to what you a
 **The pet**
 
 - A small animated pet that walks along the taskbar, sleeps, gets tired and reacts when you drag it. Its eyes follow the
-  mouse while it stands around, and it gets dizzy when you shake the mouse.
+  mouse while it stands around.
 - Drop it at the left or right screen edge and it hangs on. Drop it from high above the taskbar and it floats down under
   an umbrella or a parachute. With "climb the screen edges" switched on (off by default), it also climbs the sides of the
   screen and crawls along the top edge now and then.

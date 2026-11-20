@@ -112,7 +112,7 @@ public class PetCardViewModelTests
     {
         // Arrange
         var card = CreateCard(
-            CreatePet(PetState.Walk, PetState.Sleep, PetState.Happy, PetState.Alert, PetState.Tired, PetState.Dizzy),
+            CreatePet(PetState.Walk, PetState.Sleep, PetState.Happy, PetState.Alert, PetState.Tired, PetState.Meal),
             new Random(3));
         var seconds = new HashSet<PetState?>();
 

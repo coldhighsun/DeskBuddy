@@ -67,7 +67,7 @@ function Add-Tail([int]$Phase) {
     Px OrangeDark $tipX $tipY 2 2
 }
 
-# The front face on a head whose outline spans x 8-23, y 6-16. Eyes: open | closed | happy | tired | surprised | dizzy.
+# The front face on a head whose outline spans x 8-23, y 6-16. Eyes: open | closed | happy | tired | surprised.
 # EyeShift moves the pupils sideways and EyeDy up or down.
 function Add-Face([string]$Eyes, [int]$EyeShift, [int]$EyeDy) {
     Px OrangeDark 15 7 2 1; Px OrangeDark 13 8 1 1; Px OrangeDark 18 8 1 1
@@ -92,9 +92,6 @@ function Add-Face([string]$Eyes, [int]$EyeShift, [int]$EyeDy) {
         }
         'surprised' {
             Px White 11 8 3 4; Px White 18 8 3 4; Px Black 12 9 1 2; Px Black 19 9 1 2
-        }
-        'dizzy' {
-            foreach ($x0 in 11, 18) { Px Outline $x0 9; Px Outline ($x0 + 2) 9; Px Outline ($x0 + 1) 10; Px Outline $x0 11; Px Outline ($x0 + 2) 11 }
         }
     }
 }
@@ -280,19 +277,6 @@ foreach ($f in 0..3) {
     Save-Frame "meal_$f.png" $draw
 }
 
-# Dizzy: crossed-out eyes, wobbling, with stars circling around the head.
-$starSlots = @(@(26, 3), @(28, 7), @(25, 10), @(4, 3))
-foreach ($f in 0..3) {
-    $first = $starSlots[$f]
-    $second = $starSlots[($f + 2) % 4]
-    $draw = {
-        Add-Cat -Eyes dizzy -Tail $f
-        Add-Star Yellow $first[0] $first[1]
-        Add-Star White $second[0] $second[1]
-    }.GetNewClosure()
-    Save-Frame "dizzy_$f.png" $draw -Dy $(if ($f % 2 -eq 0) { 0 } else { 1 })
-}
-
 # Glide: floating down under an umbrella or parachute, both paws on its handle, legs dangling. Drawn without the canopy, which the
 # program puts over the head.
 Save-Frame 'glide_0.png' -Air { Add-Cat -Eyes surprised -HoldOverhead -Tail 0 }
@@ -346,7 +330,6 @@ $manifest = @'
     "Happy":   { "fps": 5, "frames": ["happy_0.png", "happy_1.png"] },
     "Welcome": { "fps": 4, "frames": ["welcome_0.png", "welcome_1.png", "welcome_2.png", "welcome_3.png"] },
     "Meal":    { "fps": 3, "frames": ["meal_0.png", "meal_1.png", "meal_2.png", "meal_3.png"] },
-    "Dizzy":   { "fps": 6, "frames": ["dizzy_0.png", "dizzy_1.png", "dizzy_2.png", "dizzy_3.png"] },
     "Hang":    { "fps": 2, "frames": ["hang_0.png", "hang_1.png"] },
     "Climb":   { "fps": 6, "frames": ["climb_0.png", "climb_1.png", "climb_2.png", "climb_3.png"] },
     "ClimbDown": { "fps": 6, "frames": ["climbdown_0.png", "climbdown_1.png", "climbdown_2.png", "climbdown_3.png"] },

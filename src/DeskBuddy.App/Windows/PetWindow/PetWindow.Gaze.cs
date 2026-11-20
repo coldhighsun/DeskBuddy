@@ -21,24 +21,14 @@ namespace DeskBuddy.App.Windows;
 public partial class PetWindow
 {
     /// <summary>
-    /// How often the mouse pointer is looked at, for shaking and for following it with the eyes.
+    /// How often the mouse pointer is looked at to turn the eyes towards it; the eyes need no finer a follow than this.
     /// </summary>
-    private static readonly TimeSpan PointerInterval = TimeSpan.FromMilliseconds(50);
+    private static readonly TimeSpan PointerInterval = TimeSpan.FromMilliseconds(200);
 
     /// <summary>
-    /// Timer that reads the mouse pointer for shaking and gaze; runs only while the pet is on screen.
+    /// Timer that reads the mouse pointer for the gaze; runs only while the pet is on screen and stands around.
     /// </summary>
     private readonly DispatcherTimer _pointerTimer = new() { Interval = PointerInterval };
-
-    /// <summary>
-    /// Decides from the pointer whether the pet gets dizzy or turns its eyes.
-    /// </summary>
-    private readonly PointerWatcher _pointer = new(new MouseShakeDetector());
-
-    /// <summary>
-    /// Runs for as long as the pointer is watched; gives the shake detector its time.
-    /// </summary>
-    private readonly Stopwatch _pointerWatch = Stopwatch.StartNew();
 
     /// <summary>
     /// Where the pet looks, on the screen.
@@ -62,8 +52,7 @@ public partial class PetWindow
     }
 
     /// <summary>
-    /// Reads the mouse pointer: a wild shake makes the pet dizzy, and while it stands around its eyes follow the
-    /// pointer.
+    /// Reads the mouse pointer and turns the pet's eyes towards it.
     /// </summary>
     /// <param name="sender">
     /// The event source.
@@ -73,30 +62,15 @@ public partial class PetWindow
     /// </param>
     private void OnPointerTick(object? sender, EventArgs e)
     {
-        if (_pressed || !_switches.IsEnabled)
+        if (_pressed || !_switches.IsEnabled || !_pet.CanLookAround || _shownState != PetState.Idle)
         {
             SetGaze(GazeDirection.None);
             return;
         }
 
         var cursor = MonitorHelper.GetCursorPositionPixels();
-        _pointer.Shake.Scale = VisualTreeHelper.GetDpi(this).DpiScaleX;
-        var reaction = _pointer.Read(
-            _pointerWatch.Elapsed,
-            cursor.X,
-            cursor.Y,
-            _switches.Allows(PetState.Dizzy) && _brain.State != PetState.Drag && !_brain.State.IsFalling(),
-            _pet.CanLookAround && _shownState == PetState.Idle,
-            _petBox);
-        if (reaction.BecomeDizzy)
-        {
-            _brain.ActOut(PetState.Dizzy, DizzyDuration);
-            ApplyState(_brain.State);
-        }
-        else if (reaction.Gaze is { } gaze)
-        {
-            SetGaze(gaze);
-        }
+        var box = GetPetBox();
+        SetGaze(GazeTracker.Of(cursor.X - box.CenterX, cursor.Y - box.CenterY, box.Size / 2));
     }
 
     /// <summary>
@@ -133,12 +107,13 @@ public partial class PetWindow
     }
 
     /// <summary>
-    /// Runs the pointer timer only while the pet is on screen and something needs the pointer: shaking can make it
-    /// dizzy, or its pet can look around. Checked every second, as the switches can change at any time.
+    /// Runs the pointer timer only while the pet is on screen, stands around and can look around, so it costs nothing
+    /// while the pet walks, sleeps or is busy. Called when the state changes, and every second, as the switches can change
+    /// at any time.
     /// </summary>
     private void UpdatePointerTimer()
     {
-        var wanted = IsVisible && _switches.IsEnabled && (_switches.Allows(PetState.Dizzy) || _pet.CanLookAround);
+        var wanted = IsVisible && _switches.IsEnabled && _pet.CanLookAround && _shownState == PetState.Idle;
         if (wanted && !_pointerTimer.IsEnabled)
         {
             _pointerTimer.Start();

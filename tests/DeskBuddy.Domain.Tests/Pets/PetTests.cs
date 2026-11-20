@@ -268,24 +268,24 @@ public class PetTests
     }
 
     /// <summary>
-    /// A dizzy pet without a dizzy animation looks tired.
+    /// A festive pet without a festive animation looks happy.
     /// </summary>
     [Fact]
-    public void GetAnimation_DizzyMissing_UsesTired()
+    public void GetAnimation_FestiveMissing_UsesHappy()
     {
         // Arrange
-        var tired = Animation("tired.png");
+        var happy = Animation("happy.png");
         var pet = new Pet("test", 128, 128, new Dictionary<PetState, PetAnimation>
         {
             [PetState.Idle] = Animation("idle.png"),
-            [PetState.Tired] = tired,
+            [PetState.Happy] = happy,
         });
 
         // Act
-        var result = pet.GetAnimation(PetState.Dizzy);
+        var result = pet.GetAnimation(PetState.Festive);
 
         // Assert
-        result.Should().BeSameAs(tired);
+        result.Should().BeSameAs(happy);
     }
 
     /// <summary>

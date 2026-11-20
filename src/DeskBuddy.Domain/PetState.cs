@@ -121,11 +121,6 @@ public enum PetState
     Festive,
 
     /// <summary>
-    /// The mouse was shaken wildly; the pet is dizzy, with stars circling its head.
-    /// </summary>
-    Dizzy,
-
-    /// <summary>
     /// The pet was dropped at the left or right edge of the screen and hangs on to it.
     /// </summary>
     Hang,

@@ -65,7 +65,6 @@
   <data name="PetStateNameHappy" xml:space="preserve"><value>开心</value></data>
   <data name="PetStateNameAlert" xml:space="preserve"><value>警觉</value></data>
   <data name="PetStateNameTired" xml:space="preserve"><value>疲惫</value></data>
-  <data name="PetStateNameDizzy" xml:space="preserve"><value>头晕</value></data>
   <data name="PetStateNameClimb" xml:space="preserve"><value>攀爬</value></data>
   <data name="PetStateNameCoding" xml:space="preserve"><value>敲代码</value></data>
   <data name="PetStateNameMeal" xml:space="preserve"><value>吃饭</value></data>
@@ -103,7 +102,6 @@
   <data name="ScenarioClockOut" xml:space="preserve"><value>到下班时间看表，每天一次</value></data>
   <data name="ScenarioChime" xml:space="preserve"><value>白天整点敲小钟报时</value></data>
   <data name="ScenarioFestive" xml:space="preserve"><value>元旦、春节、程序员节、圣诞节戴上派对帽</value></data>
-  <data name="ScenarioDizzy" xml:space="preserve"><value>用力晃鼠标时头晕转圈，眼睛也跟着鼠标转</value></data>
   <data name="ScenarioHang" xml:space="preserve"><value>拖到屏幕左右边缘松手时挂在边缘上</value></data>
   <data name="ScenarioNameBuilding" xml:space="preserve"><value>加载中提示</value></data>
   <data name="ScenarioNameBuildDone" xml:space="preserve"><value>构建完成欢呼</value></data>
@@ -119,7 +117,6 @@
   <data name="ScenarioNameClockOut" xml:space="preserve"><value>下班看表</value></data>
   <data name="ScenarioNameChime" xml:space="preserve"><value>整点报时</value></data>
   <data name="ScenarioNameFestive" xml:space="preserve"><value>节日派对帽</value></data>
-  <data name="ScenarioNameDizzy" xml:space="preserve"><value>晃鼠标头晕</value></data>
   <data name="ScenarioNameHang" xml:space="preserve"><value>挂在边缘</value></data>
   <data name="ScenariosHoverHint" xml:space="preserve"><value>鼠标悬停在场景上可查看说明</value></data>
   <data name="ClockOutTimeLabel" xml:space="preserve"><value>下班时间</value></data>
@@ -228,7 +225,6 @@
   <data name="StateHintClockOut" xml:space="preserve"><value>下班时间到了</value></data>
   <data name="StateHintChime" xml:space="preserve"><value>整点报时</value></data>
   <data name="StateHintFestive" xml:space="preserve"><value>节日快乐</value></data>
-  <data name="StateHintDizzy" xml:space="preserve"><value>被晃晕了</value></data>
   <data name="StateHintHang" xml:space="preserve"><value>挂在屏幕边缘</value></data>
   <data name="StateHintFall" xml:space="preserve"><value>从高处落下</value></data>
   <data name="StateHintGlide" xml:space="preserve"><value>撑开伞，慢慢飘落</value></data>

@@ -86,7 +86,6 @@ public sealed record PetCapabilities(
         PetState.ClockOut,
         PetState.Chime,
         PetState.Festive,
-        PetState.Dizzy,
     ];
 
     /// <summary>

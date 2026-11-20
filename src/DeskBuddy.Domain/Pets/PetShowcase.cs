@@ -17,7 +17,6 @@ public static class PetShowcase
         PetState.Happy,
         PetState.Alert,
         PetState.Tired,
-        PetState.Dizzy,
         PetState.Climb,
         PetState.Coding,
         PetState.Meal,

@@ -65,7 +65,6 @@
   <data name="PetStateNameHappy" xml:space="preserve"><value>Happy</value></data>
   <data name="PetStateNameAlert" xml:space="preserve"><value>Alert</value></data>
   <data name="PetStateNameTired" xml:space="preserve"><value>Tired</value></data>
-  <data name="PetStateNameDizzy" xml:space="preserve"><value>Dizzy</value></data>
   <data name="PetStateNameClimb" xml:space="preserve"><value>Climbing</value></data>
   <data name="PetStateNameCoding" xml:space="preserve"><value>Coding</value></data>
   <data name="PetStateNameMeal" xml:space="preserve"><value>Having a meal</value></data>
@@ -103,7 +102,6 @@
   <data name="ScenarioClockOut" xml:space="preserve"><value>Check its watch at clock-out time, once a day</value></data>
   <data name="ScenarioChime" xml:space="preserve"><value>Ring a little bell on the hour during the day</value></data>
   <data name="ScenarioFestive" xml:space="preserve"><value>Wear a party hat on New Year's Day, Spring Festival, Programmers' Day and Christmas</value></data>
-  <data name="ScenarioDizzy" xml:space="preserve"><value>Get dizzy when you shake the mouse hard; the eyes follow the pointer</value></data>
   <data name="ScenarioHang" xml:space="preserve"><value>Hang on to the screen edge when dropped there</value></data>
   <data name="ScenarioNameBuilding" xml:space="preserve"><value>Loading ring</value></data>
   <data name="ScenarioNameBuildDone" xml:space="preserve"><value>Build cheer</value></data>
@@ -119,7 +117,6 @@
   <data name="ScenarioNameClockOut" xml:space="preserve"><value>Clock-out watch</value></data>
   <data name="ScenarioNameChime" xml:space="preserve"><value>Hourly chime</value></data>
   <data name="ScenarioNameFestive" xml:space="preserve"><value>Festive hat</value></data>
-  <data name="ScenarioNameDizzy" xml:space="preserve"><value>Dizzy mouse</value></data>
   <data name="ScenarioNameHang" xml:space="preserve"><value>Edge hang</value></data>
   <data name="ScenariosHoverHint" xml:space="preserve"><value>Hover a scenario to see what it does</value></data>
   <data name="ClockOutTimeLabel" xml:space="preserve"><value>Clock-out time</value></data>
@@ -228,7 +225,6 @@
   <data name="StateHintClockOut" xml:space="preserve"><value>Time to clock out</value></data>
   <data name="StateHintChime" xml:space="preserve"><value>Chime on the hour</value></data>
   <data name="StateHintFestive" xml:space="preserve"><value>Happy holiday</value></data>
-  <data name="StateHintDizzy" xml:space="preserve"><value>Dizzy from all the shaking</value></data>
   <data name="StateHintHang" xml:space="preserve"><value>Hanging on to the screen edge</value></data>
   <data name="StateHintFall" xml:space="preserve"><value>Falling from a height</value></data>
   <data name="StateHintGlide" xml:space="preserve"><value>Floating down holding an umbrella</value></data>
