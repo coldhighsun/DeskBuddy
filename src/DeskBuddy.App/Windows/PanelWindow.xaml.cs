@@ -65,6 +65,7 @@ public partial class PanelWindow
         DataContext = viewModel;
 
         IsVisibleChanged += OnIsVisibleChanged;
+        StateChanged += (_, _) => UpdatePreviews();
         Tabs.SelectionChanged += OnTabsSelectionChanged;
         _previewTimer.Tick += OnPreviewTick;
     }
@@ -286,7 +287,7 @@ public partial class PanelWindow
     /// </summary>
     private void UpdatePreviews()
     {
-        var shouldRun = IsVisible && Tabs.SelectedIndex == (int)PanelTab.Pets;
+        var shouldRun = IsVisible && WindowState != WindowState.Minimized && Tabs.SelectedIndex == (int)PanelTab.Pets;
         if (shouldRun == _previewTimer.IsEnabled)
         {
             return;
