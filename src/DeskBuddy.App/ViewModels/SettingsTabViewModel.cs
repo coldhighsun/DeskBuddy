@@ -361,7 +361,6 @@ public sealed partial class SettingsTabViewModel : ObservableObject
             SelectedTheme = settings.Theme;
             SelectedSize = settings.Size;
             UpdateSizeChoices(settings.PetName);
-            ClimbEdges = settings.ClimbEdges;
             ClockOutHour = settings.ClockOutTime.Hours;
             var minuteChoices = ClockOutMinuteChoices(settings.ClockOutTime.Minutes);
             if (!minuteChoices.SequenceEqual(MinuteChoices))

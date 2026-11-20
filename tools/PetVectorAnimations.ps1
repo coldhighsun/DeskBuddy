@@ -211,10 +211,6 @@ foreach ($f in 0..3) {
 Save-Frame 'glide_0.png' -Dy -1 { Add-Pet -Eyes surprised -HoldOverhead -Tail 0 }
 Save-Frame 'glide_1.png' -Dy -1 { Add-Pet -Eyes surprised -HoldOverhead -Tail 2 }
 
-# Hang: clings to the left edge of the screen by one outstretched paw. Mirrored for the right edge.
-Save-Frame 'hang_0.png' -Dy -1 { Add-Pet -LeftArmReach -Tail 0 }
-Save-Frame 'hang_1.png' -Dy -1 { Add-Pet -LeftArmReach -Tail 2 -ReachY 28 }
-
 # Climb and ClimbDown (the same climb upside down), and Ceiling (the walk upside down). The climb is the walk turned a quarter
 # turn clockwise, so the pet's nose points up and its belly is against the left edge; a pet that hops climbs by hopping.
 foreach ($i in 0..3) {
@@ -262,7 +258,6 @@ $manifest = @"
     "Happy":   { "fps": 5, "frames": ["happy_0.png", "happy_1.png"] },
     "Welcome": { "fps": 4, "frames": ["welcome_0.png", "welcome_1.png", "welcome_2.png", "welcome_3.png"] },
     "Meal":    { "fps": 3, "frames": ["meal_0.png", "meal_1.png", "meal_2.png", "meal_3.png"] },
-    "Hang":    { "fps": 2, "frames": ["hang_0.png", "hang_1.png"] },
     "Climb":   { "fps": 6, "frames": ["climb_0.png", "climb_1.png", "climb_2.png", "climb_3.png"] },
     "ClimbDown": { "fps": 6, "frames": ["climbdown_0.png", "climbdown_1.png", "climbdown_2.png", "climbdown_3.png"] },
     "Ceiling": { "fps": 6, "frames": ["ceiling_0.png", "ceiling_1.png", "ceiling_2.png", "ceiling_3.png"] },

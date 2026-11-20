@@ -10,6 +10,7 @@
         Width="560"
         Height="670"
         ResizeMode="CanMinimize"
+        ShowInTaskbar="True"
         Padding="0"
         SnapsToDevicePixels="True"
         UseLayoutRounding="True"
@@ -453,12 +454,6 @@
                                   AutomationProperties.Name="{res:Loc SettingsStrollWhileBusy}"
                                   AutomationProperties.AutomationId="StrollWhileBusyCheck">
                             <TextBlock Text="{res:Loc SettingsStrollWhileBusy}" TextWrapping="Wrap" />
-                        </CheckBox>
-                        <CheckBox IsChecked="{Binding ClimbEdges}"
-                                  Margin="0,2,0,0" MinHeight="24"
-                                  AutomationProperties.Name="{res:Loc SettingsClimbEdges}"
-                                  AutomationProperties.AutomationId="ClimbEdgesCheck">
-                            <TextBlock Text="{res:Loc SettingsClimbEdges}" TextWrapping="Wrap" />
                         </CheckBox>
 
 

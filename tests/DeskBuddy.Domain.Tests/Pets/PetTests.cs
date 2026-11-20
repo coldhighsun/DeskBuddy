@@ -177,13 +177,12 @@ public class PetTests
 
     /// <summary>
     /// Every scenario state falls back to a related state rather than straight to Idle, so a pet that lacks it still
-    /// acts out something fitting. Hanging from an edge is the exception: a pet without the animation simply does not
-    /// hang.
+    /// acts out something fitting.
     /// </summary>
     [Fact]
     public void PetStateFallback_EveryScenarioState_HasAFallback()
     {
-        foreach (var state in DeskBuddy.Domain.Scenarios.ScenarioCatalog.All.Where(state => state != PetState.Hang))
+        foreach (var state in DeskBuddy.Domain.Scenarios.ScenarioCatalog.All)
         {
             PetStateFallback.Of(state).Should().NotBeNull($"{state} should fall back to a related state");
         }

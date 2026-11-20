@@ -81,23 +81,9 @@ public partial class PetWindow
             }
         }
 
-        // Letting go of the edge: the pet falls back to where it rests, on the taskbar line. Being picked up from the
-        // edge is not letting go; the drop decides.
-        if (_hanging && state != PetState.Hang)
-        {
-            _hanging = false;
-            if (state != PetState.Drag)
-            {
-                _facing = 1;
-                ApplyFacing();
-                SettleInWorkArea();
-            }
-        }
-
         // The scene of a pet at its computer, and the scenes that carry a written label, are drawn facing right and
-        // read wrongly mirrored. Walking sets the facing again, so nothing else needs to undo this. Hanging on to the
-        // right edge needs the mirrored picture, and has no label.
-        if (_facing != 1 && (state == PetState.Coding || (ScenarioCatalog.All.Contains(state) && state != PetState.Hang)))
+        // read wrongly mirrored. Walking sets the facing again, so nothing else needs to undo this.
+        if (_facing != 1 && (state == PetState.Coding || ScenarioCatalog.All.Contains(state)))
         {
             _facing = 1;
             ApplyFacing();

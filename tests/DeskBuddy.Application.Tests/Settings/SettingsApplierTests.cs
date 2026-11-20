@@ -137,14 +137,14 @@ public class SettingsApplierTests
         var initially = _chatter.IsEnabled;
 
         // Act
-        await _settings.UpdateAsync(s => s with { ChatterEnabled = true }, TestContext.Current.CancellationToken);
-        var chatting = _chatter.IsEnabled;
         await _settings.UpdateAsync(s => s with { ChatterEnabled = false }, TestContext.Current.CancellationToken);
+        var silent = _chatter.IsEnabled;
+        await _settings.UpdateAsync(s => s with { ChatterEnabled = true }, TestContext.Current.CancellationToken);
 
         // Assert
-        initially.Should().BeFalse();
-        chatting.Should().BeTrue();
-        _chatter.IsEnabled.Should().BeFalse();
+        initially.Should().BeTrue();
+        silent.Should().BeFalse();
+        _chatter.IsEnabled.Should().BeTrue();
     }
 
     /// <summary>

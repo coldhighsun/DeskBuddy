@@ -78,13 +78,13 @@ public sealed class JsonSettingsStoreTests : IDisposable
         // Arrange
         var settings = new PetSettings
         {
-            ChatterEnabled = true,
+            ChatterEnabled = false,
             PetName = "猫咪",
             SleepAfter = TimeSpan.FromMinutes(8),
             SedentaryReminderAfter = TimeSpan.FromMinutes(60),
             BossKey = new HotkeyGesture(HotkeyModifiers.Control | HotkeyModifiers.Shift, 0x7B),
             AutoHideWhenFullscreen = false,
-            DetectCoveredMonitor = true,
+            DetectCoveredMonitor = false,
             BlacklistedProcesses = ["Game", "Teams"],
             DevProcesses = ["Code", "zed"],
             ScenariosEnabled = false,
@@ -95,7 +95,6 @@ public sealed class JsonSettingsStoreTests : IDisposable
             Language = AppLanguage.En,
             Theme = AppTheme.Dark,
             Size = PetSize.Large,
-            ClimbEdges = true,
             StrollWhileBusy = false,
             AutoCheckUpdates = false,
         };
@@ -115,11 +114,11 @@ public sealed class JsonSettingsStoreTests : IDisposable
     public async Task SaveAsync_WritesReadableFile()
     {
         // Act
-        await _store.SaveAsync(PetSettings.Default with { ChatterEnabled = true, PetName = "猫咪" }, TestContext.Current.CancellationToken);
+        await _store.SaveAsync(PetSettings.Default with { ChatterEnabled = false, PetName = "猫咪" }, TestContext.Current.CancellationToken);
 
         // Assert
         var json = await File.ReadAllTextAsync(DataPath, TestContext.Current.CancellationToken);
-        json.Should().Contain("\"chatterEnabled\": true");
+        json.Should().Contain("\"chatterEnabled\": false");
         json.Should().Contain("\"bossKey\": \"Ctrl+Alt+H\"");
         json.Should().Contain("猫咪");
     }
@@ -144,13 +143,13 @@ public sealed class JsonSettingsStoreTests : IDisposable
     public async Task LoadAsync_PartialFile_FillsMissingValuesWithDefaultsAndMissingListsWithNothing()
     {
         // Arrange
-        await WriteRawAsync("""{"version":1,"chatterEnabled":true}""");
+        await WriteRawAsync("""{"version":1,"chatterEnabled":false}""");
 
         // Act
         var settings = await _store.LoadAsync(TestContext.Current.CancellationToken);
 
         // Assert
-        settings.Should().BeEquivalentTo(DefaultsWithoutLists with { ChatterEnabled = true });
+        settings.Should().BeEquivalentTo(DefaultsWithoutLists with { ChatterEnabled = false });
     }
 
     /// <summary>
@@ -239,7 +238,7 @@ public sealed class JsonSettingsStoreTests : IDisposable
     public async Task LoadAsync_EmptyBossKey_MeansNoBossKey()
     {
         // Arrange
-        await WriteRawAsync("""{"chatterEnabled":true,"bossKey":""}""");
+        await WriteRawAsync("""{"chatterEnabled":false,"bossKey":""}""");
 
         // Act
         var settings = await _store.LoadAsync(TestContext.Current.CancellationToken);
@@ -255,7 +254,7 @@ public sealed class JsonSettingsStoreTests : IDisposable
     public async Task LoadAsync_MissingBossKey_UsesDefaultKey()
     {
         // Arrange
-        await WriteRawAsync("""{"chatterEnabled":true}""");
+        await WriteRawAsync("""{"chatterEnabled":false}""");
 
         // Act
         var settings = await _store.LoadAsync(TestContext.Current.CancellationToken);
@@ -285,14 +284,14 @@ public sealed class JsonSettingsStoreTests : IDisposable
     public async Task LoadAsync_UnparsableBossKey_FallsBackToDefaultKey()
     {
         // Arrange
-        await WriteRawAsync("""{"chatterEnabled":true,"bossKey":"nonsense"}""");
+        await WriteRawAsync("""{"chatterEnabled":false,"bossKey":"nonsense"}""");
 
         // Act
         var settings = await _store.LoadAsync(TestContext.Current.CancellationToken);
 
         // Assert
         settings.BossKey.Should().Be(PetSettings.Default.BossKey);
-        settings.ChatterEnabled.Should().BeTrue();
+        settings.ChatterEnabled.Should().BeFalse();
     }
 
     /// <summary>
@@ -326,14 +325,14 @@ public sealed class JsonSettingsStoreTests : IDisposable
     public async Task LoadAsync_UnknownThemeName_FallsBackToAuto(string theme)
     {
         // Arrange
-        await WriteRawAsync($$"""{"version":1,"chatterEnabled":true,"theme":"{{theme}}"}""");
+        await WriteRawAsync($$"""{"version":1,"chatterEnabled":false,"theme":"{{theme}}"}""");
 
         // Act
         var settings = await _store.LoadAsync(TestContext.Current.CancellationToken);
 
         // Assert
         settings.Theme.Should().Be(AppTheme.Auto);
-        settings.ChatterEnabled.Should().BeTrue();
+        settings.ChatterEnabled.Should().BeFalse();
     }
 
     /// <summary>

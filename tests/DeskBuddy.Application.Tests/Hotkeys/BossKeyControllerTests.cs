@@ -130,7 +130,7 @@ public class BossKeyControllerTests
         using var controller = new BossKeyController(_settings, _hotkeys, _brain);
 
         // Act
-        await _settings.UpdateAsync(s => s with { ClimbEdges = true }, TestContext.Current.CancellationToken);
+        await _settings.UpdateAsync(s => s with { AutoCheckUpdates = false }, TestContext.Current.CancellationToken);
 
         // Assert
         _hotkeys.Registrations.Should().HaveCount(1);

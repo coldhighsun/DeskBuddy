@@ -41,12 +41,6 @@ public sealed partial class SettingsTabViewModel
     private IReadOnlyList<SizeChoice> _sizeChoices = [];
 
     /// <summary>
-    /// Gets or sets a value indicating whether the pet may climb the sides of the screen and hang from its top edge.
-    /// </summary>
-    [ObservableProperty]
-    private bool _climbEdges;
-
-    /// <summary>
     /// Gets the languages to choose from.
     /// </summary>
     public IReadOnlyList<LanguageOption> Languages { get; } =
@@ -157,20 +151,6 @@ public sealed partial class SettingsTabViewModel
 
         _sizeChoicesFor = key;
         SizeChoices = PetSizeChoices.For(_pets?.Entries ?? [], petName, SelectedSize);
-    }
-
-    /// <summary>
-    /// Applies the choice to let the pet climb along the edges of the screen.
-    /// </summary>
-    /// <param name="value">
-    /// Whether the pet may climb along the edges.
-    /// </param>
-    partial void OnClimbEdgesChanged(bool value)
-    {
-        if (!_refreshing)
-        {
-            _editor.Set(nameof(PetSettings.ClimbEdges), settings => settings with { ClimbEdges = value });
-        }
     }
 
     /// <summary>

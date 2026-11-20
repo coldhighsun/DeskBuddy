@@ -28,14 +28,13 @@
     "ClockOut":    { "fps": 4, "frames": [61, 62, 61, 63] },
     "Chime":       { "fps": 4, "frames": [64, 65, 66, 65] },
     "Festive":     { "fps": 4, "frames": [67, 68, 69, 70] },
-    "Hang":        { "fps": 2, "frames": [71, 72] },
-    "Climb":       { "fps": 6, "frames": [73, 74, 75, 76] },
-    "ClimbDown":   { "fps": 6, "frames": [76, 75, 74, 73] },
-    "Ceiling":     { "fps": 6, "frames": [77, 78, 79, 80] },
-    "Idle.Left":   { "fps": 1, "frames": [81] },
-    "Idle.Right":  { "fps": 1, "frames": [82] },
-    "Idle.Up":     { "fps": 1, "frames": [83] },
-    "Idle.Down":   { "fps": 1, "frames": [84] }
+    "Climb":       { "fps": 6, "frames": [71, 72, 73, 74] },
+    "ClimbDown":   { "fps": 6, "frames": [74, 73, 72, 71] },
+    "Ceiling":     { "fps": 6, "frames": [75, 76, 77, 78] },
+    "Idle.Left":   { "fps": 1, "frames": [79] },
+    "Idle.Right":  { "fps": 1, "frames": [80] },
+    "Idle.Up":     { "fps": 1, "frames": [81] },
+    "Idle.Down":   { "fps": 1, "frames": [82] }
   }
 }
 

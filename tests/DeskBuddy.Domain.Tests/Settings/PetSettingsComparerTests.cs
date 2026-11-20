@@ -99,7 +99,6 @@ public class PetSettingsComparerTests
             [nameof(PetSettings.Language)] = baseline with { Language = AppLanguage.En },
             [nameof(PetSettings.Theme)] = baseline with { Theme = AppTheme.Dark },
             [nameof(PetSettings.Size)] = baseline with { Size = PetSize.Large },
-            [nameof(PetSettings.ClimbEdges)] = baseline with { ClimbEdges = !baseline.ClimbEdges },
             [nameof(PetSettings.ChatterEnabled)] = baseline with { ChatterEnabled = !baseline.ChatterEnabled },
             [nameof(PetSettings.StrollWhileBusy)] = baseline with { StrollWhileBusy = !baseline.StrollWhileBusy },
             [nameof(PetSettings.AutoCheckUpdates)] = baseline with { AutoCheckUpdates = !baseline.AutoCheckUpdates },

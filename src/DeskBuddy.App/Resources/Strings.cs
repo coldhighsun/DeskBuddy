@@ -659,7 +659,6 @@ internal static class Strings
     /// <summary>
     /// Gets the label of the setting that lets the pet climb the edges of the screen.
     /// </summary>
-    public static string SettingsClimbEdges => Get();
 
     /// <summary>
     /// Gets the label of the setting that lets the pet say something unprompted now and then.

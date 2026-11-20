@@ -137,11 +137,11 @@ public class SettingsTabViewModelTests
         // Arrange
         _store.Stored = PetSettings.Default with
         {
-            ChatterEnabled = true,
+            ChatterEnabled = false,
             SedentaryReminderAfter = TimeSpan.FromMinutes(60),
             SleepAfter = TimeSpan.FromMinutes(8),
             AutoHideWhenFullscreen = false,
-            DetectCoveredMonitor = true,
+            DetectCoveredMonitor = false,
             BlacklistedProcesses = ["game", "teams"],
         };
 
@@ -149,12 +149,12 @@ public class SettingsTabViewModelTests
         await CreateAsync();
 
         // Assert
-        _viewModel.ChatterEnabled.Should().BeTrue();
+        _viewModel.ChatterEnabled.Should().BeFalse();
         _viewModel.SedentaryText.Should().Be("60");
         _viewModel.SleepText.Should().Be("8");
         _viewModel.BossKeyText.Should().Be("Ctrl+Alt+H");
         _viewModel.AutoHideWhenFullscreen.Should().BeFalse();
-        _viewModel.DetectCoveredMonitor.Should().BeTrue();
+        _viewModel.DetectCoveredMonitor.Should().BeFalse();
         _viewModel.BlacklistText.Should().Be($"game{Environment.NewLine}teams");
         _viewModel.IsEditable.Should().BeTrue();
     }
@@ -285,11 +285,11 @@ public class SettingsTabViewModelTests
         await CreateAsync();
 
         // Act
-        _viewModel.ChatterEnabled = true;
+        _viewModel.ChatterEnabled = false;
         await _viewModel.TrySaveAsync();
 
         // Assert
-        _settings.Current.ChatterEnabled.Should().BeTrue();
+        _settings.Current.ChatterEnabled.Should().BeFalse();
         _store.SaveCount.Should().Be(1);
     }
 
@@ -300,15 +300,15 @@ public class SettingsTabViewModelTests
     public async Task ChatterEnabled_SwitchedOffAgain_IsApplied()
     {
         // Arrange
-        _store.Stored = PetSettings.Default with { ChatterEnabled = true };
+        _store.Stored = PetSettings.Default with { ChatterEnabled = false };
         await CreateAsync();
 
         // Act
-        _viewModel.ChatterEnabled = false;
+        _viewModel.ChatterEnabled = true;
         await _viewModel.TrySaveAsync();
 
         // Assert
-        _settings.Current.ChatterEnabled.Should().BeFalse();
+        _settings.Current.ChatterEnabled.Should().BeTrue();
     }
 
     /// <summary>
@@ -322,12 +322,12 @@ public class SettingsTabViewModelTests
 
         // Act
         _viewModel.AutoHideWhenFullscreen = false;
-        _viewModel.DetectCoveredMonitor = true;
+        _viewModel.DetectCoveredMonitor = false;
         await _viewModel.TrySaveAsync();
 
         // Assert
         _settings.Current.AutoHideWhenFullscreen.Should().BeFalse();
-        _settings.Current.DetectCoveredMonitor.Should().BeTrue();
+        _settings.Current.DetectCoveredMonitor.Should().BeFalse();
     }
 
     /// <summary>
@@ -675,25 +675,6 @@ public class SettingsTabViewModelTests
     }
 
     /// <summary>
-    /// The choice to let the pet climb along the edges of the screen is stored, and shown from the stored settings.
-    /// </summary>
-    [Fact]
-    public async Task ClimbEdges_Changed_IsStored()
-    {
-        // Arrange
-        await CreateAsync();
-        var shownAtStart = _viewModel.ClimbEdges;
-
-        // Act
-        _viewModel.ClimbEdges = true;
-        await _viewModel.TrySaveAsync();
-
-        // Assert
-        shownAtStart.Should().BeFalse();
-        _settings.Current.ClimbEdges.Should().BeTrue();
-    }
-
-    /// <summary>
     /// The choice to let the pet stroll while it is busy is shown from the stored settings (on by default) and stored
     /// when changed.
     /// </summary>
@@ -892,7 +873,7 @@ public class SettingsTabViewModelTests
         _viewModel.ChatProcessesText = "Weixin\r\nMy Chat";
 
         // Act
-        _viewModel.ChatterEnabled = true;
+        _viewModel.ChatterEnabled = false;
 
         // Assert
         _viewModel.ChatProcessesText.Should().Be("Weixin\r\nMy Chat");
@@ -931,7 +912,7 @@ public class SettingsTabViewModelTests
         var before = _viewModel.MinuteChoices;
 
         // Act
-        _viewModel.ChatterEnabled = true;
+        _viewModel.ChatterEnabled = false;
 
         // Assert
         _viewModel.MinuteChoices.Should().BeSameAs(before);
@@ -968,7 +949,7 @@ public class SettingsTabViewModelTests
         await CreateAsync();
         var release = new TaskCompletionSource();
         _store.SaveBlocker = release.Task;
-        _viewModel.ChatterEnabled = true;
+        _viewModel.ChatterEnabled = false;
         _viewModel.ChatProcessesText = "Weixin";
 
         // Act
@@ -1228,12 +1209,12 @@ public class SettingsTabViewModelTests
         _store.SaveException = new IOException("disk full");
 
         // Act
-        _viewModel.ChatterEnabled = true;
+        _viewModel.ChatterEnabled = false;
         await _viewModel.TrySaveAsync();
 
         // Assert
         _viewModel.SaveError.Should().Contain(Strings.ErrorFileInUse);
-        _settings.Current.ChatterEnabled.Should().BeTrue();
+        _settings.Current.ChatterEnabled.Should().BeFalse();
     }
 
     /// <summary>
@@ -1245,7 +1226,7 @@ public class SettingsTabViewModelTests
         // Arrange
         await CreateAsync();
         _store.SaveException = new IOException("disk full");
-        _viewModel.ChatterEnabled = true;
+        _viewModel.ChatterEnabled = false;
         _store.SaveException = null;
 
         // Act
@@ -1283,7 +1264,7 @@ public class SettingsTabViewModelTests
         await CreateAsync();
 
         // Act
-        _viewModel.ChatterEnabled = true;
+        _viewModel.ChatterEnabled = false;
 
         // Assert
         _store.SaveCount.Should().Be(0);
@@ -1455,10 +1436,10 @@ public class SettingsTabViewModelTests
         await CreateAsync();
 
         // Act
-        _viewModel.ChatterEnabled = true;
+        _viewModel.ChatterEnabled = false;
 
         // Assert
-        _settings.Current.ChatterEnabled.Should().BeFalse();
+        _settings.Current.ChatterEnabled.Should().BeTrue();
         _store.SaveCount.Should().Be(0);
         _viewModel.HasUnsavedChanges.Should().BeTrue();
         _viewModel.CanSave.Should().BeTrue();
@@ -1490,8 +1471,8 @@ public class SettingsTabViewModelTests
         await CreateAsync();
 
         // Act
-        _viewModel.ChatterEnabled = true;
         _viewModel.ChatterEnabled = false;
+        _viewModel.ChatterEnabled = true;
 
         // Assert
         _viewModel.HasUnsavedChanges.Should().BeFalse();
@@ -1505,13 +1486,13 @@ public class SettingsTabViewModelTests
     {
         // Arrange
         await CreateAsync();
-        _viewModel.ClimbEdges = true;
+        _viewModel.AutoCheckUpdates = false;
 
         // Act
         await _viewModel.SaveCommand.ExecuteAsync(null);
 
         // Assert
-        _settings.Current.ClimbEdges.Should().BeTrue();
+        _settings.Current.AutoCheckUpdates.Should().BeFalse();
         _viewModel.HasUnsavedChanges.Should().BeFalse();
     }
 
@@ -1553,7 +1534,7 @@ public class SettingsTabViewModelTests
     {
         // Arrange
         await CreateAsync();
-        _viewModel.ChatterEnabled = true;
+        _viewModel.ChatterEnabled = false;
 
         // Act
         _viewModel.SleepText = "abc";
@@ -1578,10 +1559,10 @@ public class SettingsTabViewModelTests
         _viewModel.SelectedSize = PetSize.Large;
 
         // Act
-        await _settings.UpdateAsync(settings => settings with { Size = PetSize.Small, ClimbEdges = true }, TestContext.Current.CancellationToken);
+        await _settings.UpdateAsync(settings => settings with { Size = PetSize.Small, AutoCheckUpdates = false }, TestContext.Current.CancellationToken);
 
         // Assert
-        _viewModel.ClimbEdges.Should().BeTrue();
+        _viewModel.AutoCheckUpdates.Should().BeFalse();
         _viewModel.SelectedSize.Should().Be(PetSize.Large);
         _viewModel.HasUnsavedChanges.Should().BeTrue();
     }
@@ -1729,12 +1710,12 @@ public class SettingsTabViewModelTests
         _viewModel.SleepText = " 12 ";
 
         // Act
-        await _settings.UpdateAsync(settings => settings with { ClimbEdges = true }, TestContext.Current.CancellationToken);
+        await _settings.UpdateAsync(settings => settings with { AutoCheckUpdates = false }, TestContext.Current.CancellationToken);
 
         // Assert
         _viewModel.MeetingProcessesText.Should().Be("Zoom\r\n");
         _viewModel.SleepText.Should().Be(" 12 ");
-        _viewModel.ClimbEdges.Should().BeTrue();
+        _viewModel.AutoCheckUpdates.Should().BeFalse();
     }
 
     /// <summary>
@@ -1781,7 +1762,7 @@ public class SettingsTabViewModelTests
         // Arrange
         await CreateAsync();
         _hotkeys.Taken.Add(OtherKey);
-        _viewModel.ChatterEnabled = true;
+        _viewModel.ChatterEnabled = false;
         _viewModel.SetBossKey(OtherKey);
 
         // Act
@@ -1789,7 +1770,7 @@ public class SettingsTabViewModelTests
 
         // Assert
         saved.Should().BeFalse();
-        _settings.Current.ChatterEnabled.Should().BeTrue();
+        _settings.Current.ChatterEnabled.Should().BeFalse();
         _settings.Current.BossKey.Should().Be(PetSettings.Default.BossKey);
         _viewModel.BossKeyError.Should().Contain("already in use");
         _viewModel.BossKeyText.Should().Be("Ctrl+Alt+H");
@@ -1823,14 +1804,14 @@ public class SettingsTabViewModelTests
         await CreateAsync();
         _autoStart.Refusal = "policy forbids it";
         _viewModel.AutoStart = true;
-        _viewModel.ChatterEnabled = true;
+        _viewModel.ChatterEnabled = false;
 
         // Act
         var saved = await _viewModel.TrySaveAsync();
 
         // Assert
         saved.Should().BeFalse();
-        _settings.Current.ChatterEnabled.Should().BeTrue();
+        _settings.Current.ChatterEnabled.Should().BeFalse();
         _viewModel.AutoStart.Should().BeFalse();
         _viewModel.AutoStartError.Should().Contain("policy forbids it");
     }

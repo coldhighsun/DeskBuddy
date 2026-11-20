@@ -70,12 +70,12 @@ public partial class PetWindow
     /// <summary>
     /// Puts the pet back where it belongs after the screens changed: a monitor was added or removed, its resolution or
     /// scaling changed, or the taskbar moved or started hiding itself. A pet standing still would otherwise float in
-    /// the air, sink behind the taskbar or be left off-screen until it next moved. A pet that is being held or hangs
-    /// from an edge is left alone; it finds its place when it is let go.
+    /// the air, sink behind the taskbar or be left off-screen until it next moved. A pet that is being held is left
+    /// alone; it finds its place when it is let go.
     /// </summary>
     private void OnScreenLayoutChanged()
     {
-        if (_pressed || _hanging || !IsVisible)
+        if (_pressed || !IsVisible)
         {
             RefreshWorkArea();
             return;

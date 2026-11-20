@@ -344,7 +344,7 @@ public partial class PetBehaviorStateMachineTests
     public void Reset_WhileActingOutMoment_EndsTheMoment()
     {
         // Arrange
-        _machine.OnMoment(PetState.Hang, TimeSpan.FromMinutes(5));
+        _machine.OnMoment(PetState.Meal, TimeSpan.FromMinutes(5));
 
         // Act
         _machine.Reset();

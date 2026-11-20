@@ -32,6 +32,5 @@ public static class ScenarioCatalog
         PetState.ClockOut,
         PetState.Chime,
         PetState.Festive,
-        PetState.Hang,
     ];
 }

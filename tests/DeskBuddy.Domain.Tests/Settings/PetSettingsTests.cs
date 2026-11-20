@@ -72,7 +72,7 @@ public class PetSettingsTests
         var settings = PetSettings.Default with
         {
             SleepAfter = TimeSpan.FromMinutes(50),
-            ChatterEnabled = true,
+            ChatterEnabled = false,
             PetName = "cat",
         };
 
@@ -81,7 +81,7 @@ public class PetSettingsTests
 
         // Assert
         normalized.SleepAfter.Should().Be(TimeSpan.FromMinutes(50));
-        normalized.ChatterEnabled.Should().BeTrue();
+        normalized.ChatterEnabled.Should().BeFalse();
         normalized.PetName.Should().Be("cat");
     }
 
@@ -311,23 +311,23 @@ public class PetSettingsTests
     }
 
     /// <summary>
-    /// Climbing along the edges of the screen is off until the user switches it on.
+    /// A foreground window covering a whole monitor counts as full screen unless the user switches that off.
     /// </summary>
     [Fact]
-    public void Default_ClimbEdges_IsOff()
+    public void Default_DetectCoveredMonitor_IsOn()
     {
         // Assert
-        PetSettings.Default.ClimbEdges.Should().BeFalse();
+        PetSettings.Default.DetectCoveredMonitor.Should().BeTrue();
     }
 
     /// <summary>
-    /// Casual remarks are off until the user switches them on.
+    /// Casual remarks are on until the user switches them off.
     /// </summary>
     [Fact]
-    public void Default_ChatterEnabled_IsOff()
+    public void Default_ChatterEnabled_IsOn()
     {
         // Assert
-        PetSettings.Default.ChatterEnabled.Should().BeFalse();
+        PetSettings.Default.ChatterEnabled.Should().BeTrue();
     }
 
     /// <summary>
@@ -337,10 +337,10 @@ public class PetSettingsTests
     public void Normalize_ChatterEnabled_IsKept()
     {
         // Act
-        var normalized = (PetSettings.Default with { ChatterEnabled = true }).Normalize();
+        var normalized = (PetSettings.Default with { ChatterEnabled = false }).Normalize();
 
         // Assert
-        normalized.ChatterEnabled.Should().BeTrue();
+        normalized.ChatterEnabled.Should().BeFalse();
     }
 
     /// <summary>

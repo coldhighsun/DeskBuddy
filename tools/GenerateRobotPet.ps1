@@ -528,10 +528,6 @@ foreach ($f in 0..3) {
     Save-Frame "festive_$f.png" -Tag 'YAY' -TagColor Pink $draw -Dy $(if ($f % 2 -eq 0) { 0 } else { 1 })
 }
 
-# Hang: clings to the left edge of the screen by one outstretched arm, legs swinging. Mirrored for the right edge.
-Save-Frame 'hang_0.png' -Air { Add-Robot -Eyes open -LeftArmReach -Feet 1 }
-Save-Frame 'hang_1.png' -Air { Add-Robot -Eyes open -LeftArmReach -Feet -1 -Lamp SteelDark }
-
 # Climb: the robot rolls up the left edge of the screen, which is the wall, with its tread against it, reaching up hand over
 # hand. Mirrored for the right edge.
 $climbPoses = @(
@@ -687,7 +683,6 @@ $manifest = @"
     "ClockOut":    { "fps": 4, "frames": ["clockout_0.png", "clockout_1.png", "clockout_2.png", "clockout_3.png"] },
     "Chime":       { "fps": 4, "frames": ["chime_0.png", "chime_1.png", "chime_2.png", "chime_3.png"] },
     "Festive":     { "fps": 4, "frames": ["festive_0.png", "festive_1.png", "festive_2.png", "festive_3.png"] },
-    "Hang":        { "fps": 2, "frames": ["hang_0.png", "hang_1.png"] },
     "Climb":       { "fps": 6, "frames": ["climb_0.png", "climb_1.png", "climb_2.png", "climb_3.png"] },
     "ClimbDown":   { "fps": 6, "frames": ["climbdown_0.png", "climbdown_1.png", "climbdown_2.png", "climbdown_3.png"] },
     "Ceiling":     { "fps": 6, "frames": ["ceiling_0.png", "ceiling_1.png", "ceiling_2.png", "ceiling_3.png"] },

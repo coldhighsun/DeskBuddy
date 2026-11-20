@@ -13,14 +13,13 @@
     "Alert":   { "fps": 4, "frames": [16, 17] },
     "Happy":   { "fps": 5, "frames": [18, 19] },
     "Welcome": { "fps": 4, "frames": [20, 21, 22, 23] },
-    "Hang":    { "fps": 2, "frames": [24, 25] },
-    "Climb":   { "fps": 6, "frames": [26, 27, 28, 29] },
-    "ClimbDown": { "fps": 6, "frames": [30, 31, 32, 33] },
-    "Ceiling": { "fps": 6, "frames": [34, 35, 36, 37] },
-    "Idle.Left":  { "fps": 1, "frames": [38] },
-    "Idle.Right": { "fps": 1, "frames": [39] },
-    "Idle.Up":    { "fps": 1, "frames": [40] },
-    "Idle.Down":  { "fps": 1, "frames": [41] }
+    "Climb":   { "fps": 6, "frames": [24, 25, 26, 27] },
+    "ClimbDown": { "fps": 6, "frames": [28, 29, 30, 31] },
+    "Ceiling": { "fps": 6, "frames": [32, 33, 34, 35] },
+    "Idle.Left":  { "fps": 1, "frames": [36] },
+    "Idle.Right": { "fps": 1, "frames": [37] },
+    "Idle.Up":    { "fps": 1, "frames": [38] },
+    "Idle.Down":  { "fps": 1, "frames": [39] }
   }
 }
 
