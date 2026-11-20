@@ -53,7 +53,7 @@ public class ShippedPetsTests
         // Assert
         pet.Name.Should().Be("cat");
         pet.Animations.Keys.Should().Contain(
-            [PetState.Idle, PetState.Walk, PetState.Sleep, PetState.Drag, PetState.Happy, PetState.Glide, PetState.Hang, PetState.Climb, PetState.ClimbDown, PetState.Ceiling, PetState.Hop]);
+            [PetState.Idle, PetState.Walk, PetState.Sleep, PetState.Drag, PetState.Happy, PetState.Glide, PetState.Climb, PetState.ClimbDown, PetState.Ceiling, PetState.Hop]);
         pet.Animations.Keys.Should().Contain(
             [PetState.Coding, PetState.NightCoding, PetState.Building, PetState.Focus, PetState.Reading, PetState.Meeting, PetState.Chatting]);
         pet.Animations.Keys.Should().NotContain(PetState.Charging);
@@ -133,7 +133,7 @@ public class ShippedPetsTests
         // Assert
         pet.Name.Should().Be("fox");
         pet.Animations.Keys.Should().Contain(
-            [PetState.Idle, PetState.Walk, PetState.Sleep, PetState.Drag, PetState.Happy, PetState.Glide, PetState.Hang, PetState.Climb, PetState.ClimbDown, PetState.Ceiling]);
+            [PetState.Idle, PetState.Walk, PetState.Sleep, PetState.Drag, PetState.Happy, PetState.Glide, PetState.Climb, PetState.ClimbDown, PetState.Ceiling]);
         pet.Animations.Keys.Should().NotContain([PetState.Hop, PetState.Coding]);
         pet.GetAnimation(PetState.Coding).FrameIds.Should().NotBeEmpty();
         pet.GazeAnimations.Keys.Should().BeEquivalentTo(
@@ -159,7 +159,7 @@ public class ShippedPetsTests
         // Assert
         pet.Name.Should().Be(name);
         pet.Animations.Keys.Should().Contain(
-            [PetState.Idle, PetState.Walk, PetState.Sleep, PetState.Drag, PetState.Happy, PetState.Glide, PetState.Hang, PetState.Climb, PetState.ClimbDown, PetState.Ceiling]);
+            [PetState.Idle, PetState.Walk, PetState.Sleep, PetState.Drag, PetState.Happy, PetState.Glide, PetState.Climb, PetState.ClimbDown, PetState.Ceiling]);
         pet.Animations.ContainsKey(PetState.Hop).Should().Be(canHop);
         pet.Animations.Keys.Should().Contain(
             [PetState.Coding, PetState.NightCoding, PetState.Building, PetState.Focus, PetState.Reading, PetState.Meeting, PetState.Chatting]);

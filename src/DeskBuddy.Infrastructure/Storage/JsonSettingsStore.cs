@@ -184,12 +184,6 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
         public string? Size { get; init; }
 
         /// <summary>
-        /// Gets whether the pet may climb along the edges of the screen; <see langword="null"/> in files from before the
-        /// option existed.
-        /// </summary>
-        public bool? ClimbEdges { get; init; }
-
-        /// <summary>
         /// Gets whether the pet says something unprompted now and then; <see langword="null"/> in files from before the
         /// option existed.
         /// </summary>
@@ -236,7 +230,6 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
                 Language = settings.Language.ToString(),
                 Theme = settings.Theme.ToString(),
                 Size = settings.Size.ToString(),
-                ClimbEdges = settings.ClimbEdges,
                 ChatterEnabled = settings.ChatterEnabled,
                 StrollWhileBusy = settings.StrollWhileBusy,
                 AutoCheckUpdates = settings.AutoCheckUpdates,
@@ -278,7 +271,6 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
                 Size = Enum.TryParse<PetSize>(Size, ignoreCase: true, out var size) && Enum.IsDefined(size)
                     ? size
                     : defaults.Size,
-                ClimbEdges = ClimbEdges ?? defaults.ClimbEdges,
                 ChatterEnabled = ChatterEnabled ?? defaults.ChatterEnabled,
                 StrollWhileBusy = StrollWhileBusy ?? defaults.StrollWhileBusy,
                 AutoCheckUpdates = AutoCheckUpdates ?? defaults.AutoCheckUpdates,

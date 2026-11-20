@@ -5,7 +5,7 @@
 # DeskBuddy
 
 [![CI](https://github.com/coldhighsun/DeskBuddy/actions/workflows/ci.yml/badge.svg)](https://github.com/coldhighsun/DeskBuddy/actions/workflows/ci.yml)
-[![Unit tests: 1459](https://img.shields.io/badge/unit%20tests-1459-brightgreen)](tests)
+[![Unit tests: 1457](https://img.shields.io/badge/unit%20tests-1457-brightgreen)](tests)
 [![Latest Release](https://img.shields.io/github/v/release/coldhighsun/DeskBuddy)](https://github.com/coldhighsun/DeskBuddy/releases/latest)
 [![Latest Pre-release](https://img.shields.io/github/v/release/coldhighsun/DeskBuddy?include_prereleases&label=pre-release)](https://github.com/coldhighsun/DeskBuddy/releases)
 [![GitHub All Releases](https://img.shields.io/github/downloads/coldhighsun/DeskBuddy/total)](https://github.com/coldhighsun/DeskBuddy/releases)
@@ -31,9 +31,9 @@ A desktop pet for work computers. It lives on your desktop, reacts to what you a
 
 - A small animated pet that walks along the taskbar, sleeps, gets tired and reacts when you drag it. Its eyes follow the
   mouse while it stands around.
-- Drop it at the left or right screen edge and it hangs on. Drop it from high above the taskbar and it floats down under
-  an umbrella or a parachute. With "climb the screen edges" switched on (off by default), it also climbs the sides of the
-  screen and crawls along the top edge now and then.
+- Drop it from high above the taskbar and it floats down under
+  an umbrella or a parachute. It also climbs the sides of the
+  screen and crawls along the top edge now and then (for pets that have the pictures for it).
 - While it is held in a long-running state (coding, a meeting...) it still takes a short stroll every few seconds
   instead of standing frozen for hours; switch this off with "stroll while busy" under Behavior.
 - Pets that have the pictures for it hop now and then while they walk. With "say something unprompted" switched on (off

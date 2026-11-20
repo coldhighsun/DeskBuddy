@@ -185,7 +185,7 @@ public partial class PetWindow
                     SettleInWorkArea();
                 }
             }
-            else if (!TryCrawlOnEdge() && !TryHangOnEdge() && !TryStartFall())
+            else if (!TryCrawlOnEdge() && !TryStartFall())
             {
                 SettleInWorkArea();
             }

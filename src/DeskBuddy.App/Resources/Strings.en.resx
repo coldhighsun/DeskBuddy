@@ -102,7 +102,6 @@
   <data name="ScenarioClockOut" xml:space="preserve"><value>Check its watch at clock-out time, once a day</value></data>
   <data name="ScenarioChime" xml:space="preserve"><value>Ring a little bell on the hour during the day</value></data>
   <data name="ScenarioFestive" xml:space="preserve"><value>Wear a party hat on New Year's Day, Spring Festival, Programmers' Day and Christmas</value></data>
-  <data name="ScenarioHang" xml:space="preserve"><value>Hang on to the screen edge when dropped there</value></data>
   <data name="ScenarioNameBuilding" xml:space="preserve"><value>Loading ring</value></data>
   <data name="ScenarioNameBuildDone" xml:space="preserve"><value>Build cheer</value></data>
   <data name="ScenarioNameGitPush" xml:space="preserve"><value>Git parcel</value></data>
@@ -117,7 +116,6 @@
   <data name="ScenarioNameClockOut" xml:space="preserve"><value>Clock-out watch</value></data>
   <data name="ScenarioNameChime" xml:space="preserve"><value>Hourly chime</value></data>
   <data name="ScenarioNameFestive" xml:space="preserve"><value>Festive hat</value></data>
-  <data name="ScenarioNameHang" xml:space="preserve"><value>Edge hang</value></data>
   <data name="ScenariosHoverHint" xml:space="preserve"><value>Hover a scenario to see what it does</value></data>
   <data name="ClockOutTimeLabel" xml:space="preserve"><value>Clock-out time</value></data>
   <data name="RemarkMeal1" xml:space="preserve"><value>Lunch time! Eat first, work later~</value></data>
@@ -194,7 +192,6 @@
   <data name="SettingsLanguage" xml:space="preserve"><value>Language</value></data>
   <data name="SettingsPetSize" xml:space="preserve"><value>Pet size</value></data>
   <data name="SettingsStrollWhileBusy" xml:space="preserve"><value>Get up and walk around every so often while coding or in a meeting</value></data>
-  <data name="SettingsClimbEdges" xml:space="preserve"><value>Climb the screen sides and hang from the top</value></data>
   <data name="SettingsChatter" xml:space="preserve"><value>Say something unprompted now and then</value></data>
   <data name="StateHintClimb" xml:space="preserve"><value>Climbing along the screen edge</value></data>
   <data name="StateHintClimbDown" xml:space="preserve"><value>Climbing down the screen edge</value></data>
@@ -225,7 +222,6 @@
   <data name="StateHintClockOut" xml:space="preserve"><value>Time to clock out</value></data>
   <data name="StateHintChime" xml:space="preserve"><value>Chime on the hour</value></data>
   <data name="StateHintFestive" xml:space="preserve"><value>Happy holiday</value></data>
-  <data name="StateHintHang" xml:space="preserve"><value>Hanging on to the screen edge</value></data>
   <data name="StateHintFall" xml:space="preserve"><value>Falling from a height</value></data>
   <data name="StateHintGlide" xml:space="preserve"><value>Floating down holding an umbrella</value></data>
   <data name="SettingsPrograms" xml:space="preserve"><value>Recognized programs</value></data>

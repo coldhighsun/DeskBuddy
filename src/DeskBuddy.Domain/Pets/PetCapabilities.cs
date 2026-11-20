@@ -57,7 +57,7 @@ public sealed record PetCapabilities(
     /// <summary>
     /// The states of climbing along the edges of the screen.
     /// </summary>
-    private static readonly PetState[] EdgeStates = [PetState.Climb, PetState.ClimbDown, PetState.Hang, PetState.Ceiling];
+    private static readonly PetState[] EdgeStates = [PetState.Climb, PetState.ClimbDown, PetState.Ceiling];
 
     /// <summary>
     /// The states of keeping the user company while they develop.

@@ -23,7 +23,7 @@ public class PetCapabilitiesTests
         capabilities.NativeStateCount.Should().Be(1);
         capabilities.TotalStateCount.Should().Be(Enum.GetValues<PetState>().Length - 1);
         capabilities.CanLookAround.Should().BeFalse();
-        capabilities.Edges.Should().Be(new StateCoverage(0, 4));
+        capabilities.Edges.Should().Be(new StateCoverage(0, 3));
         capabilities.Development.Should().Be(new StateCoverage(0, 6));
         capabilities.Scenarios.Should().Be(new StateCoverage(0, 9));
         capabilities.Edges.IsSupported.Should().BeFalse();
@@ -36,14 +36,14 @@ public class PetCapabilitiesTests
     public void Of_SomeStatesDefined_CountsEachGroupSeparately()
     {
         // Arrange
-        var pet = CreatePet(PetState.Climb, PetState.Hang, PetState.Coding, PetState.Meal, PetState.Walk);
+        var pet = CreatePet(PetState.Climb, PetState.Coding, PetState.Meal, PetState.Walk);
 
         // Act
         var capabilities = PetCapabilities.Of(pet);
 
         // Assert
-        capabilities.NativeStateCount.Should().Be(6);
-        capabilities.Edges.Should().Be(new StateCoverage(2, 4));
+        capabilities.NativeStateCount.Should().Be(5);
+        capabilities.Edges.Should().Be(new StateCoverage(1, 3));
         capabilities.Development.Should().Be(new StateCoverage(1, 6));
         capabilities.Scenarios.Should().Be(new StateCoverage(1, 9));
         capabilities.Edges.IsSupported.Should().BeTrue();

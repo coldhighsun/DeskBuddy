@@ -230,7 +230,7 @@ public class PetCardViewModelTests
     public void Tags_PetWithClimbing_MarksOnlyWhatItCanDo()
     {
         // Act
-        var card = CreateCard(CreatePet(PetState.Climb, PetState.Hang));
+        var card = CreateCard(CreatePet(PetState.Climb));
 
         // Assert
         card.Tags.Select(tag => tag.IsSupported).Should().Equal(false, true, false, false);
@@ -245,7 +245,7 @@ public class PetCardViewModelTests
     public void Details_PetWithClimbing_ListsNameInfoAndEveryTagWithItsMark()
     {
         // Act
-        var card = CreateCard(CreatePet(PetState.Climb, PetState.Hang));
+        var card = CreateCard(CreatePet(PetState.Climb));
 
         // Assert
         var lines = card.Details!.Split(Environment.NewLine);

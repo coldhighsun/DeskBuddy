@@ -97,9 +97,9 @@ public sealed record PetSettings
     /// <summary>
     /// Gets a value indicating whether a foreground window covering a whole monitor also counts as full screen. This
     /// catches borderless games and some meeting tools the system does not report, at the price of the occasional false
-    /// alarm, so it is off by default.
+    /// alarm. On by default.
     /// </summary>
-    public bool DetectCoveredMonitor { get; init; }
+    public bool DetectCoveredMonitor { get; init; } = true;
 
     /// <summary>
     /// Gets the names of processes (without <c>.exe</c>) that count as full screen whenever they are in front.
@@ -138,16 +138,10 @@ public sealed record PetSettings
     public PetSize Size { get; init; } = PetSize.Medium;
 
     /// <summary>
-    /// Gets a value indicating whether the pet may climb along the sides of the screen and hang from its top edge. It
-    /// only does so when the pet has pictures for it and the pet walks along the taskbar.
-    /// </summary>
-    public bool ClimbEdges { get; init; }
-
-    /// <summary>
     /// Gets a value indicating whether the pet now and then says something unprompted, a casual remark that is shown
-    /// briefly without raising the alert. Off by default.
+    /// briefly without raising the alert. On by default.
     /// </summary>
-    public bool ChatterEnabled { get; init; }
+    public bool ChatterEnabled { get; init; } = true;
 
     /// <summary>
     /// Gets a value indicating whether a pet held at its computer, in a meeting or in a similar state leaves it now and

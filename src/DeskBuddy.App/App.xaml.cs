@@ -426,15 +426,10 @@ public partial class App
                 _host.Services.GetRequiredService<DockedMovement>(),
                 _host.Services.GetRequiredService<ScenarioSwitches>(),
                 _host.Services.GetRequiredService<SettingsService>().Current.Size);
-            _petWindow.SetClimbEdges(_host.Services.GetRequiredService<SettingsService>().Current.ClimbEdges);
             _petWindow.Show();
             var petWindow = _petWindow;
             _host.Services.GetRequiredService<SettingsService>().Changed +=
-                (_, settings) => petWindow.Dispatcher.BeginInvoke(() =>
-                {
-                    petWindow.SetSize(settings.Size);
-                    petWindow.SetClimbEdges(settings.ClimbEdges);
-                });
+                (_, settings) => petWindow.Dispatcher.BeginInvoke(() => petWindow.SetSize(settings.Size));
 
             // Decoding all the pictures of a pet takes long enough to freeze the UI, so it is done on a thread of its own.
             var preparedFrames = new ConditionalWeakTable<Pet, PetFrameCache>();

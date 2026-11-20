@@ -56,11 +56,11 @@ public class SettingsEditorTests : IDisposable
     public void Set_Edit_ChangesDraftOnly()
     {
         // Act
-        _editor.Set("climb", s => s with { ClimbEdges = true });
+        _editor.Set("climb", s => s with { AutoCheckUpdates = false });
 
         // Assert
-        _editor.Draft.ClimbEdges.Should().BeTrue();
-        _service.Current.ClimbEdges.Should().BeFalse();
+        _editor.Draft.AutoCheckUpdates.Should().BeFalse();
+        _service.Current.AutoCheckUpdates.Should().BeTrue();
         _editor.IsDirty.Should().BeTrue();
         _editor.CanSave.Should().BeTrue();
         _store.SaveCount.Should().Be(0);
@@ -104,15 +104,15 @@ public class SettingsEditorTests : IDisposable
     public void Clear_OneEdit_KeepsTheOthers()
     {
         // Arrange
-        _editor.Set("climb", s => s with { ClimbEdges = true });
-        _editor.Set("chatter", s => s with { ChatterEnabled = true });
+        _editor.Set("climb", s => s with { AutoCheckUpdates = false });
+        _editor.Set("chatter", s => s with { ChatterEnabled = false });
 
         // Act
         _editor.Clear("climb");
 
         // Assert
-        _editor.Draft.ClimbEdges.Should().BeFalse();
-        _editor.Draft.ChatterEnabled.Should().BeTrue();
+        _editor.Draft.AutoCheckUpdates.Should().BeTrue();
+        _editor.Draft.ChatterEnabled.Should().BeFalse();
     }
 
     /// <summary>
@@ -122,7 +122,7 @@ public class SettingsEditorTests : IDisposable
     public void Revert_AfterEdits_ReturnsToSavedSettings()
     {
         // Arrange
-        _editor.Set("climb", s => s with { ClimbEdges = true });
+        _editor.Set("climb", s => s with { AutoCheckUpdates = false });
         _editor.SetError("sleep", "bad");
 
         // Act
@@ -141,7 +141,7 @@ public class SettingsEditorTests : IDisposable
     public void SetError_WhileDirty_BlocksSaving()
     {
         // Arrange
-        _editor.Set("climb", s => s with { ClimbEdges = true });
+        _editor.Set("climb", s => s with { AutoCheckUpdates = false });
 
         // Act
         _editor.SetError("sleep", "Enter a number of minutes.");
@@ -162,15 +162,15 @@ public class SettingsEditorTests : IDisposable
     public async Task SaveAsync_WithEdits_AppliesAndStores()
     {
         // Arrange
-        _editor.Set("climb", s => s with { ClimbEdges = true });
+        _editor.Set("climb", s => s with { AutoCheckUpdates = false });
 
         // Act
         var saved = await _editor.SaveAsync();
 
         // Assert
         saved.Should().BeTrue();
-        _service.Current.ClimbEdges.Should().BeTrue();
-        _store.Stored!.ClimbEdges.Should().BeTrue();
+        _service.Current.AutoCheckUpdates.Should().BeFalse();
+        _store.Stored!.AutoCheckUpdates.Should().BeFalse();
         _editor.IsDirty.Should().BeFalse();
         _editor.SaveFailure.Should().BeNull();
     }
@@ -182,7 +182,7 @@ public class SettingsEditorTests : IDisposable
     public async Task SaveAsync_WithError_DoesNothing()
     {
         // Arrange
-        _editor.Set("climb", s => s with { ClimbEdges = true });
+        _editor.Set("climb", s => s with { AutoCheckUpdates = false });
         _editor.SetError("sleep", "bad");
 
         // Act
@@ -190,7 +190,7 @@ public class SettingsEditorTests : IDisposable
 
         // Assert
         saved.Should().BeFalse();
-        _service.Current.ClimbEdges.Should().BeFalse();
+        _service.Current.AutoCheckUpdates.Should().BeTrue();
         _store.SaveCount.Should().Be(0);
     }
 
@@ -202,7 +202,7 @@ public class SettingsEditorTests : IDisposable
     {
         // Arrange
         _store.SaveException = new IOException("disk full");
-        _editor.Set("climb", s => s with { ClimbEdges = true });
+        _editor.Set("climb", s => s with { AutoCheckUpdates = false });
 
         // Act
         var saved = await _editor.SaveAsync();
@@ -210,7 +210,7 @@ public class SettingsEditorTests : IDisposable
         // Assert
         saved.Should().BeFalse();
         _editor.SaveFailure.Should().BeOfType<IOException>();
-        _service.Current.ClimbEdges.Should().BeTrue();
+        _service.Current.AutoCheckUpdates.Should().BeFalse();
         _editor.IsDirty.Should().BeFalse();
     }
 
@@ -224,10 +224,10 @@ public class SettingsEditorTests : IDisposable
         _editor.Set("size", s => s with { Size = PetSize.Large });
 
         // Act
-        await _service.UpdateAsync(s => s with { Size = PetSize.Small, ClimbEdges = true }, TestContext.Current.CancellationToken);
+        await _service.UpdateAsync(s => s with { Size = PetSize.Small, AutoCheckUpdates = false }, TestContext.Current.CancellationToken);
 
         // Assert
-        _editor.Draft.ClimbEdges.Should().BeTrue();
+        _editor.Draft.AutoCheckUpdates.Should().BeFalse();
         _editor.Draft.Size.Should().Be(PetSize.Large);
         _editor.IsDirty.Should().BeTrue();
     }
@@ -239,15 +239,15 @@ public class SettingsEditorTests : IDisposable
     public async Task SaveAsync_SavedSettingsChangedMeanwhile_KeepsTheOtherChange()
     {
         // Arrange
-        _editor.Set("chatter", s => s with { ChatterEnabled = true });
-        await _service.UpdateAsync(s => s with { ClimbEdges = true }, TestContext.Current.CancellationToken);
+        _editor.Set("chatter", s => s with { ChatterEnabled = false });
+        await _service.UpdateAsync(s => s with { AutoCheckUpdates = false }, TestContext.Current.CancellationToken);
 
         // Act
         await _editor.SaveAsync();
 
         // Assert
-        _service.Current.ClimbEdges.Should().BeTrue();
-        _service.Current.ChatterEnabled.Should().BeTrue();
+        _service.Current.AutoCheckUpdates.Should().BeFalse();
+        _service.Current.ChatterEnabled.Should().BeFalse();
     }
 
     /// <summary>
@@ -259,18 +259,18 @@ public class SettingsEditorTests : IDisposable
         // Arrange
         var release = new TaskCompletionSource();
         _store.SaveBlocker = release.Task;
-        _editor.Set("climb", s => s with { ClimbEdges = true });
+        _editor.Set("climb", s => s with { AutoCheckUpdates = false });
 
         // Act
         var saving = _editor.SaveAsync();
-        _editor.Set("chatter", s => s with { ChatterEnabled = true });
+        _editor.Set("chatter", s => s with { ChatterEnabled = false });
         release.SetResult();
         await saving;
 
         // Assert
-        _service.Current.ClimbEdges.Should().BeTrue();
-        _service.Current.ChatterEnabled.Should().BeFalse();
-        _editor.Draft.ChatterEnabled.Should().BeTrue();
+        _service.Current.AutoCheckUpdates.Should().BeFalse();
+        _service.Current.ChatterEnabled.Should().BeTrue();
+        _editor.Draft.ChatterEnabled.Should().BeFalse();
         _editor.IsDirty.Should().BeTrue();
     }
 
@@ -287,7 +287,7 @@ public class SettingsEditorTests : IDisposable
         using var editor = new SettingsEditor(service);
 
         // Act
-        editor.Set("climb", s => s with { ClimbEdges = true });
+        editor.Set("climb", s => s with { AutoCheckUpdates = false });
 
         // Assert
         editor.CanSave.Should().BeFalse();
@@ -306,7 +306,7 @@ public class SettingsEditorTests : IDisposable
         _editor.Changed += (_, _) => raised++;
 
         // Act
-        _editor.Set("climb", s => s with { ClimbEdges = true });
+        _editor.Set("climb", s => s with { AutoCheckUpdates = false });
         var afterEdit = raised;
         _editor.SetError("sleep", "bad");
         var afterError = raised;

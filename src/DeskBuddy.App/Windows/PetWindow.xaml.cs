@@ -22,11 +22,6 @@ namespace DeskBuddy.App.Windows;
 public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
 {
     /// <summary>
-    /// How long the pet hangs on to the screen edge before it lets go.
-    /// </summary>
-    private static readonly TimeSpan HangDuration = TimeSpan.FromSeconds(30);
-
-    /// <summary>
     /// How long the mouse must rest on the pet before it explains what it is doing, in milliseconds.
     /// </summary>
     private const int ToolTipDelayMilliseconds = 400;
@@ -80,16 +75,6 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     /// again.
     /// </summary>
     private PixelRect? _pixelBounds;
-
-    /// <summary>
-    /// Whether the pet is clinging to the edge of the screen.
-    /// </summary>
-    private bool _hanging;
-
-    /// <summary>
-    /// Whether the user allows the pet to climb along the edges of the screen.
-    /// </summary>
-    private bool _climbEdges;
 
     /// <summary>
     /// Moves the pet along the sides and the top edge of the screen.
@@ -342,7 +327,6 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
             EndFall(snapToLanding: false);
         }
 
-        _hanging = false;
         _moveTimer.Stop();
         _brain.HopDuration = pet.HopDuration;
 
@@ -385,22 +369,6 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
         ApplyFrameSize();
         SettleInWorkArea();
         RepositionBubble();
-    }
-
-    /// <summary>
-    /// Switches climbing along the edges of the screen on or off. Switching it off puts a crawling pet back on the
-    /// ground.
-    /// </summary>
-    /// <param name="enabled">
-    /// Whether the pet may climb along the edges.
-    /// </param>
-    public void SetClimbEdges(bool enabled)
-    {
-        _climbEdges = enabled;
-        if (!enabled && IsCrawling)
-        {
-            EndCrawl();
-        }
     }
 
     /// <summary>

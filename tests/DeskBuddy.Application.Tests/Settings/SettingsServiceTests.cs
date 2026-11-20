@@ -40,13 +40,13 @@ public class SettingsServiceTests
     public async Task InitializeAsync_SavedSettings_AreLoaded()
     {
         // Arrange
-        _store.Stored = PetSettings.Default with { ClimbEdges = true };
+        _store.Stored = PetSettings.Default with { AutoCheckUpdates = false };
 
         // Act
         await _service.InitializeAsync(TestContext.Current.CancellationToken);
 
         // Assert
-        _service.Current.ClimbEdges.Should().BeTrue();
+        _service.Current.AutoCheckUpdates.Should().BeFalse();
         _service.LoadFailure.Should().BeNull();
     }
 
@@ -74,7 +74,7 @@ public class SettingsServiceTests
     public async Task UpdateAsync_BeforeInitialize_AppliesChangeToSavedSettings()
     {
         // Arrange
-        _store.Stored = PetSettings.Default with { ClimbEdges = true };
+        _store.Stored = PetSettings.Default with { AutoCheckUpdates = false };
 
         // Act
         var result = await _service.UpdateAsync(
@@ -82,9 +82,9 @@ public class SettingsServiceTests
             TestContext.Current.CancellationToken);
 
         // Assert
-        result.ClimbEdges.Should().BeTrue();
+        result.AutoCheckUpdates.Should().BeFalse();
         result.ChatterEnabled.Should().BeFalse();
-        _store.Stored!.ClimbEdges.Should().BeTrue();
+        _store.Stored!.AutoCheckUpdates.Should().BeFalse();
     }
 
     /// <summary>
@@ -118,10 +118,10 @@ public class SettingsServiceTests
         _service.Changed += (_, settings) => announced = settings;
 
         // Act
-        var result = await _service.UpdateAsync(s => s with { ClimbEdges = true }, TestContext.Current.CancellationToken);
+        var result = await _service.UpdateAsync(s => s with { AutoCheckUpdates = false }, TestContext.Current.CancellationToken);
 
         // Assert
-        result.ClimbEdges.Should().BeTrue();
+        result.AutoCheckUpdates.Should().BeFalse();
         _service.Current.Should().Be(result);
         announced.Should().Be(result);
         _store.Stored.Should().Be(result);
@@ -156,11 +156,11 @@ public class SettingsServiceTests
         _store.SaveException = new IOException("disk full");
 
         // Act
-        var act = () => _service.UpdateAsync(s => s with { ClimbEdges = true });
+        var act = () => _service.UpdateAsync(s => s with { AutoCheckUpdates = false });
 
         // Assert
         await act.Should().ThrowAsync<IOException>();
-        _service.Current.ClimbEdges.Should().BeTrue();
+        _service.Current.AutoCheckUpdates.Should().BeFalse();
     }
 
     /// <summary>
@@ -177,13 +177,13 @@ public class SettingsServiceTests
         _service.Changed += (_, _) => notified = true;
 
         // Act
-        var act = () => _service.UpdateAsync(s => s with { ClimbEdges = true });
+        var act = () => _service.UpdateAsync(s => s with { AutoCheckUpdates = false });
 
         // Assert
         await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("subscriber");
         notified.Should().BeTrue();
-        _store.Stored!.ClimbEdges.Should().BeTrue();
-        _service.Current.ClimbEdges.Should().BeTrue();
+        _store.Stored!.AutoCheckUpdates.Should().BeFalse();
+        _service.Current.AutoCheckUpdates.Should().BeFalse();
     }
 
     /// <summary>
@@ -214,7 +214,7 @@ public class SettingsServiceTests
         await _service.InitializeAsync(TestContext.Current.CancellationToken);
 
         // Act
-        var act = () => _service.UpdateAsync(s => s with { ClimbEdges = true });
+        var act = () => _service.UpdateAsync(s => s with { AutoCheckUpdates = false });
 
         // Assert
         await act.Should().ThrowAsync<InvalidOperationException>();

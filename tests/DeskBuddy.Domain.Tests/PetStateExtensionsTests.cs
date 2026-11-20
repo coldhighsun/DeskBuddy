@@ -97,7 +97,6 @@ public class PetStateExtensionsTests
     [InlineData(PetState.Ceiling, true)]
     [InlineData(PetState.Idle, false)]
     [InlineData(PetState.Walk, false)]
-    [InlineData(PetState.Hang, false)]
     [InlineData(PetState.Fall, false)]
     [InlineData(PetState.Drag, false)]
     public void IsCrawl_State_MatchesExpectation(PetState state, bool expected)

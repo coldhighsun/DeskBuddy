@@ -26,12 +26,11 @@ public partial class PetWindow
     private bool IsCrawling => _shownState.IsCrawl();
 
     /// <summary>
-    /// Gets a value indicating whether the pet may crawl along the edges of the screen now: the user allows it and the
-    /// pet has the pictures for it.
+    /// Gets a value indicating whether the pet may crawl along the edges of the screen now: the pet has the pictures
+    /// for it.
     /// </summary>
     private bool CanCrawl =>
-        _climbEdges
-        && _pet.Animations.ContainsKey(PetState.Climb)
+        _pet.Animations.ContainsKey(PetState.Climb)
         && _pet.Animations.ContainsKey(PetState.Ceiling);
 
     /// <summary>
@@ -191,43 +190,6 @@ public partial class PetWindow
         }
 
         StartCrawl(crawlStart);
-        return true;
-    }
-
-    /// <summary>
-    /// Lets the pet cling to the left or right edge of the work area if it was dropped close to it, and the pet has a
-    /// way of showing that.
-    /// </summary>
-    /// <returns>
-    /// <see langword="true"/> if the pet now hangs on to an edge.
-    /// </returns>
-    private bool TryHangOnEdge()
-    {
-        if (!_pet.Animations.ContainsKey(PetState.Hang) || !_switches.Allows(PetState.Hang))
-        {
-            return false;
-        }
-
-        RefreshWorkArea();
-        var bounds = CreateMovementContext().Bounds;
-        var snapped = EdgeSnap.Find(
-            CurrentPosition(),
-            new Point2(Width, Height),
-            bounds,
-            EdgeSnapDistance,
-            allowLeft: !MonitorHelper.HasMonitorBeside(this, left: true),
-            allowRight: !MonitorHelper.HasMonitorBeside(this, left: false));
-        if (snapped is not { } snap)
-        {
-            return false;
-        }
-
-        Left = snap.Position.X;
-        Top = snap.Position.Y;
-        _facing = snap.Facing;
-        ApplyFacing();
-        _hanging = true;
-        _brain.ActOut(PetState.Hang, HangDuration);
         return true;
     }
 }
