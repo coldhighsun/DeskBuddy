@@ -47,10 +47,10 @@ $outDir = Join-Path $PSScriptRoot "..\pets\$PetName"
 New-Item -ItemType Directory -Force -Path $outDir | Out-Null
 Get-ChildItem $outDir -Filter *.png | Remove-Item
 
-# Renders one frame. Dy lifts it (negative is up, in drawing units), Tilt turns it clockwise about (PivotX, PivotY), Flip turns
+# Renders one frame. Dy lifts it (negative is up, in drawing units), Dx moves it sideways (positive is right), Tilt turns it clockwise about (PivotX, PivotY), Flip turns
 # it upside down and Mirror left to right (a side view is drawn facing left).
-function Save-Frame([string]$Name, [scriptblock]$Draw, [double]$Dy = 0, [switch]$Flip, [switch]$Mirror, [double]$Tilt = 0, [double]$PivotX = 32, [double]$PivotY = 48) {
-    $bmp = New-HdCanvas -Dy $Dy -Tilt $Tilt -PivotX $PivotX -PivotY $PivotY
+function Save-Frame([string]$Name, [scriptblock]$Draw, [double]$Dy = 0, [switch]$Flip, [switch]$Mirror, [double]$Tilt = 0, [double]$PivotX = 32, [double]$PivotY = 48, [double]$Dx = 0) {
+    $bmp = New-HdCanvas -Dy $Dy -Dx $Dx -Tilt $Tilt -PivotX $PivotX -PivotY $PivotY
     & $Draw
     Save-HdCanvas $bmp (Join-Path $outDir $Name) -Flip:$Flip -Mirror:$Mirror
 }
@@ -221,9 +221,10 @@ foreach ($i in 0..3) {
     if ($WalkHops) {
         $pose = $hopPoses[$i]
         $draw = { Add-PetSide $pose[0] $pose[1] }.GetNewClosure()
+        # On the wall the ground is the left edge, so the spring of a hop lifts the pet away from it, to the right.
         $turn = 90 + $pose[2]
-        Save-Frame "climb_$i.png" -Dy $pose[3] -Tilt $turn -PivotY 32 $draw
-        Save-Frame "climbdown_$i.png" -Flip -Dy $pose[3] -Tilt $turn -PivotY 32 $draw
+        Save-Frame "climb_$i.png" -Dx (-$pose[3]) -Tilt $turn -PivotY 32 $draw
+        Save-Frame "climbdown_$i.png" -Flip -Dx (-$pose[3]) -Tilt $turn -PivotY 32 $draw
         Save-Frame "ceiling_$i.png" -Flip -Mirror -Dy $pose[3] -Tilt $pose[2] $draw
     } else {
         $pose = $walkPoses[$i]
