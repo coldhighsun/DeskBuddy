@@ -1,5 +1,5 @@
-# Generates the application icon (tray, exe, windows, installer): the robot's head on a rounded navy tile, drawn on a
-# 16x16 art grid like the robot pet and scaled up without smoothing, so it stays crisp at every size.
+# Generates the application icon (tray, exe, windows, installer): the robot pet's vector head icon (pets/robot/icon.png)
+# on a rounded navy tile, resampled smoothly for every size.
 # Output: src/DeskBuddy.App/Assets/DeskBuddy.ico (PNG-compressed, 16-256 px) and DeskBuddy.png (256 px preview).
 # Usage: powershell -NoProfile -File tools/GenerateAppIcon.ps1
 Add-Type -AssemblyName System.Drawing
@@ -7,59 +7,40 @@ Add-Type -AssemblyName System.Drawing
 $outDir = Join-Path $PSScriptRoot '..\src\DeskBuddy.App\Assets'
 New-Item -ItemType Directory -Force -Path $outDir | Out-Null
 $outDir = (Resolve-Path $outDir).Path
+$head = New-Object System.Drawing.Bitmap (Resolve-Path (Join-Path $PSScriptRoot '../pets/robot/icon.png')).Path
 
-# Palette, shared with GenerateRobotPet.ps1 where the colors have the same meaning.
-$colors = @{
-    'B' = @(54, 72, 112)     # tile background
-    'K' = @(18, 24, 40)      # head outline
-    'S' = @(110, 150, 200)   # Steel
-    'L' = @(170, 200, 240)   # SteelLight (top highlight)
-    'D' = @(70, 100, 150)    # SteelDark (ears, antenna stem)
-    'N' = @(14, 22, 38)      # Screen
-    'E' = @(90, 255, 230)    # Cyan (eyes)
-    'M' = @(40, 120, 120)    # CyanDim (mouth)
-    'O' = @(255, 170, 40)    # Orange (antenna lamp)
-}
+# Rows of icon.png that belong to the head (the neck and the shoulders start below it).
+$HeadRows = 127
 
-# '.' is transparent: only the four corners, which rounds the tile.
-$grid = @(
-    '.BBBBBBBBBBBBBB.',
-    'BBBBBBBOOBBBBBBB',
-    'BBBBBBBOOBBBBBBB',
-    'BBBBBBBDDBBBBBBB',
-    'BBKKKKKKKKKKKKBB',
-    'BBKLLLLLLLLLLKBB',
-    'BBKSNNNNNNNNSKBB',
-    'BDKSNEENNEENSKDB',
-    'BDKSNEENNEENSKDB',
-    'BDKSNEENNEENSKDB',
-    'BDKSNNNNNNNNSKDB',
-    'BBKSNNMMMMNNSKBB',
-    'BBKSSSSSSSSSSKBB',
-    'BBKKKKKKKKKKKKBB',
-    'BBBBBBBBBBBBBBBB',
-    '.BBBBBBBBBBBBBB.'
-)
+$tileColor = [System.Drawing.Color]::FromArgb(255, 54, 72, 112)
 
-# Renders the grid at a size that is a multiple of 16 and returns the PNG bytes.
+# Renders the tile at the given size and returns the PNG bytes.
 function New-IconPng([int]$Size) {
-    $cell = $Size / 16
     $bmp = New-Object System.Drawing.Bitmap $Size, $Size
     $g = [System.Drawing.Graphics]::FromImage($bmp)
-    $g.SmoothingMode = 'None'
-    $g.PixelOffsetMode = 'Half'
+    $g.SmoothingMode = 'AntiAlias'
+    $g.InterpolationMode = 'HighQualityBicubic'
+    $g.PixelOffsetMode = 'HighQuality'
     $g.Clear([System.Drawing.Color]::Transparent)
-    for ($y = 0; $y -lt 16; $y++) {
-        for ($x = 0; $x -lt 16; $x++) {
-            $key = [string]$grid[$y][$x]
-            if ($key -eq '.') { continue }
-            $c = $colors[$key]
-            $brush = New-Object System.Drawing.SolidBrush ([System.Drawing.Color]::FromArgb(255, $c[0], $c[1], $c[2]))
-            $g.FillRectangle($brush, ($x * $cell), ($y * $cell), $cell, $cell)
-            $brush.Dispose()
-        }
-    }
-    $g.Dispose()
+    $radius = $Size * 0.22
+    $path = New-Object System.Drawing.Drawing2D.GraphicsPath
+    $d = $radius * 2
+    $path.AddArc(0, 0, $d, $d, 180, 90)
+    $path.AddArc($Size - $d, 0, $d, $d, 270, 90)
+    $path.AddArc($Size - $d, $Size - $d, $d, $d, 0, 90)
+    $path.AddArc(0, $Size - $d, $d, $d, 90, 90)
+    $path.CloseFigure()
+    $brush = New-Object System.Drawing.SolidBrush $tileColor
+    $g.FillPath($brush, $path)
+    $inset = $Size * 0.06
+    # Draw only the head: the rows below HeadRows hold the neck and the shoulders. Keep the aspect ratio, centered.
+    $box = $Size - 2 * $inset
+    $scale = [Math]::Min($box / $head.Width, $box / $HeadRows)
+    $w = $head.Width * $scale
+    $h = $HeadRows * $scale
+    $dest = New-Object System.Drawing.RectangleF ([single](($Size - $w) / 2)), ([single](($Size - $h) / 2)), ([single]$w), ([single]$h)
+    $g.DrawImage($head, $dest, (New-Object System.Drawing.RectangleF 0, 0, $head.Width, $HeadRows), [System.Drawing.GraphicsUnit]::Pixel)
+    $brush.Dispose(); $path.Dispose(); $g.Dispose()
     $stream = New-Object System.IO.MemoryStream
     $bmp.Save($stream, [System.Drawing.Imaging.ImageFormat]::Png)
     $bmp.Dispose()
