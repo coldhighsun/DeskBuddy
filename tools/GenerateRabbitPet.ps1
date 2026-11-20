@@ -1,125 +1,121 @@
-# Generates the pixel-art rabbit pet (no third-party artwork). Art faces right.
-# Usage: powershell -NoProfile -File tools/GenerateRabbitPet.ps1
-. (Join-Path $PSScriptRoot 'PetDrawing.ps1')
+# Generates the rabbit pet into pets\rabbit: smooth vector art (see PetVectorDrawing.ps1), no third-party artwork. The animation
+# set comes from PetVectorAnimations.ps1; this script only draws the poses.
+# Run: powershell -NoProfile -File tools/GenerateRabbitPet.ps1
+. (Join-Path $PSScriptRoot 'PetVectorDrawing.ps1')
 
 $PetName = 'rabbit'
 $HasHop = $false
 $WalkHops = $true
-$ClimbFromWalk = $true
 $WalkFps = 6
-$PetNames = @{ En = 'Rabbit'; Zh = '兔子' }
-$IconBox = @(8, 2, 16, 18)
+# 兔子 spelled with code points, so the script does not depend on its own file encoding.
+$PetNames = @{ En = 'Rabbit'; Zh = ([string][char]0x5154 + [string][char]0x5B50) }
+$IconBox = @(13, 1, 38, 38)
+$HeadBox = @(17, 16, 47, 39)
 $pal = @{
-    Outline  = New-Brush 70 55 80
-    Body     = New-Brush 236 230 240
-    BodyDark = New-Brush 190 180 200
-    Belly    = New-Brush 255 252 255
-    Paw      = New-Brush 255 252 255
-    Pink     = New-Brush 255 150 175
-    Iris     = New-Brush 200 70 90
-    EyeWhite = New-Brush 255 255 255
-    Lid      = New-Brush 70 55 80
-    Black    = New-Brush 24 22 28
-    Whisker  = New-Brush 225 220 235
-    White    = New-Brush 240 244 250
-    Blue     = New-Brush 110 170 230
-    Red      = New-Brush 255 70 70
-    Yellow   = New-Brush 255 210 70
-    Accent   = New-Brush 245 140 50
-    Green    = New-Brush 90 190 90
+    Outline  = New-HdColor 100 80 112
+    Body     = New-HdColor 240 234 244
+    BodyDark = New-HdColor 204 192 216
+    Belly    = New-HdColor 255 252 255
+    Paw      = New-HdColor 255 252 255
+    Pink     = New-HdColor 255 150 175
+    Accent   = New-HdColor 245 140 50
+    Black    = New-HdColor 56 40 68
 }
-$textFont = New-Object System.Drawing.Font 'Consolas', 16, ([System.Drawing.FontStyle]::Bold)
-
-# Looking up from the side: the long ear lies back along the head.
-$ClimbHead = @(
-    'XXXpXXXXX......',
-    'XcccooooX......',
-    'XcccokkoX......',
-    'XcccoggoX......',
-    'XcccooooXXXXXXX',
-    'XoooooooXoooopX',
-    'XoooooooXXXXXXX',
-    'XoooooooX......',
-    'XXXXXXXXX......'
-)
 
 # The fluffy tail, bobbing with Phase (0-3).
 function Add-PetBack([int]$Phase) {
-    $y = 24 + @(0, 1, 0, -1)[$Phase]
-    Px Outline 21 $y 7 6; Px Belly 22 ($y + 1) 5 4
+    Add-HdOval 'Belly' 48 (56 + @(0, 1, 0, -1)[$Phase]) 5.4 5.2
 }
 
-# Body, front legs, and the head with long upright ears.
+# The body with the big thighs and hind feet peeking out at the sides, and the front legs that are not raised.
 function Add-PetBody([bool]$LeftDown, [bool]$RightDown) {
-    Px Outline 8 24 16 6; Px Body 9 25 14 4
-    Px Outline 9 17 14 8; Px Body 10 18 12 7
-    Px Belly 13 20 6 9
-    if ($LeftDown) { Px Outline 11 23 4 7; Px Belly 12 24 2 5 }
-    if ($RightDown) { Px Outline 17 23 4 7; Px Belly 18 24 2 5 }
-    # Long ears, then the head.
-    Px Outline 10 0 5 9; Px Body 11 1 3 8; Px Pink 12 2 1 6
-    Px Outline 17 0 5 9; Px Body 18 1 3 8; Px Pink 19 2 1 6
-    Px Outline 8 7 16 10; Px Body 9 8 14 8
-    Px Belly 13 12 6 4
-    Px Pink 15 12 2 1
-    Px Outline 15 13 2 1; Px Outline 14 14 1 1; Px Outline 17 14 1 1
-    Px White 15 14 2 2; Px Outline 16 14 1 2
-    Px Whisker 5 12 3 1; Px Whisker 5 14 3 1; Px Whisker 24 12 3 1; Px Whisker 24 14 3 1
+    Add-HdOval 'Body' 19.5 55.5 7.6 6.2
+    Add-HdOval 'Body' 44.5 55.5 7.6 6.2
+    Add-HdOval 'Belly' 17.5 60.6 6.6 2.7
+    Add-HdOval 'Belly' 46.5 60.6 6.6 2.7
+    Add-HdOval 'Body' 32 49 13.5 12
+    Add-HdOval 'Belly' 32 52.5 8 8.5 ''
+    foreach ($leg in @(@(27, $LeftDown), @(37, $RightDown))) {
+        if ($leg[1]) {
+            Add-HdLimb @($leg[0], 48, $leg[0], 58) 'Body' 4.8
+            Add-HdOval 'Paw' $leg[0] 59.4 3.6 2.6
+        }
+    }
 }
 
-# The rabbit lying down, ears flat along its back.
+# The head: long upright ears with a pink inside, round cheeks, a nose and whiskers.
+function Add-PetHead {
+    Add-HdOval 'Body' 24.5 12.8 4.7 11.4 'Outline' 1.2 -6
+    Add-HdOval 'Pink' 24.5 13.5 2.2 8.6 '' 0 -6
+    Add-HdOval 'Body' 39.5 12.8 4.7 11.4 'Outline' 1.2 6
+    Add-HdOval 'Pink' 39.5 13.5 2.2 8.6 '' 0 6
+    Add-HdOval 'Body' 32 28 15.2 11.6
+    Add-HdOval 'Belly' 32 33.6 8.4 5.4 ''
+    Add-HdOval 'Pink' 32 31 1.9 1.4 ''
+    Add-HdStroke @(32, 32.2, 32, 33.6) 'Outline' 0.8
+    Add-HdStroke (Get-HdBezier 29 34 30.4 36 33.6 36 35 34 6) 'Outline' 0.8
+    foreach ($side in -1, 1) {
+        Add-HdStroke @((32 + $side * 9), 32.4, (32 + $side * 17.5), 31) 'BodyDark' 0.7
+        Add-HdStroke @((32 + $side * 9), 34.2, (32 + $side * 17.5), 35.6) 'BodyDark' 0.7
+    }
+}
+
+# The rabbit lying down, its ears flat along its back.
 function Add-PetLie {
-    Px Outline 5 19 22 11; Px Body 6 20 20 9
-    Px Outline 22 22 8 8; Px Belly 23 23 6 6
-    Px Outline 9 10 14 5; Px Body 10 11 12 3; Px Pink 12 12 8 1
-    Px Outline 4 14 14 11; Px Body 5 15 12 9
-    Px Belly 9 20 4 3; Px Pink 10 20 2 1
-    Px Whisker 1 19 3 1; Px Whisker 1 21 3 1; Px Whisker 18 19 3 1; Px Whisker 18 21 3 1
+    Add-HdOval 'Belly' 58 53.5 5.2 5
+    Add-HdOval 'Body' 37 51 22 10.4
+    Add-HdOval 'Belly' 50 59.6 8 2.8
+    Add-HdOval 'Body' 35 41.4 12.5 3.6 'Outline' 1.1 -6
+    Add-HdOval 'Pink' 35 41.4 8.4 1.3 '' 0 -6
+    Add-HdOval 'Belly' 12 59.3 4.6 2.6
+    Add-HdOval 'Body' 19 49 12.5 9.6
+    Add-HdOval 'Belly' 19 54.2 7 4.4 ''
+    Add-HdOval 'Pink' 19 52.2 1.9 1.4 ''
 }
 
-# The rabbit seen from the side, facing left, in one of three poses of a hop chosen by D: 0 crouched on its haunches (a
-# big thigh above a long flat hind foot), below 0 launched (the hind leg stretched out behind as thigh, shin and a long
-# foot), above 0 tucked in the air. The front legs are short in every pose. TipY (8-12) bobs the tail.
-function Add-PetSide([int]$D, [int]$TipY) {
-    # Fluffy tail at the rump.
-    Px Outline 24 ($TipY + 4) 5 5; Px Belly 25 ($TipY + 5) 3 3
-
-    Px Outline 8 15 17 9; Px Body 9 16 15 7
-    Px Belly 9 19 4 4
-
-    # Head in profile with a long ear laid back along the body.
-    Px Outline 2 9 12 10; Px Body 3 10 10 8
-    Px Belly 3 14 4 4; Px Pink 2 14 1 1
-    Px Iris 4 12 2 2; Px Black 4 12 1 2
-    Px Whisker 7 14 4 1; Px Whisker 7 16 3 1
-    Add-Limb 9 9 13 1 Outline Body
-    Px Pink 11 3 1 4
-
+# The rabbit seen from the side, facing left, in one of three poses of a hop chosen by D: 0 crouched on its haunches (a big
+# thigh above a long flat hind foot), below 0 launched (the hind leg stretched out behind), above 0 tucked in the air. The front
+# legs are short in every pose. Lift raises the fluffy tail.
+function Add-PetSide([double]$D, [double]$Lift) {
+    Add-HdOval 'Belly' 53 (44 - $Lift * 0.5) 4.8 4.6
+    Add-HdOval 'Body' 36 46 15 10
+    Add-HdOval 'Belly' 28 52 7 3.6 ''
     if ($D -eq 0) {
-        # Crouched: the thigh sits on a long hind foot, the short front paws on the ground.
-        Px Outline 16 16 10 10; Px Body 17 17 8 8; Px BodyDark 19 20 4 4
-        Px Outline 12 26 15 4; Px Body 13 27 13 2
-        Px Outline 8 23 5 7; Px Body 9 24 3 5
+        Add-HdOval 'Body' 43 60.4 11 2.8
+        Add-HdOval 'Body' 44 50 8.5 8.6
+        Add-HdLimb @(20, 50, 18, 59) 'Body' 4
+        Add-HdOval 'Paw' 17.2 60.2 3.3 2.2
     } elseif ($D -lt 0) {
-        # Launched: the hind leg stretched back, thigh then shin then foot, the front legs stretched forward but short.
-        Add-Limb 19 19 23 21 Outline Body 4; Add-Limb 23 22 27 24 Outline Body 1; Add-Limb 27 24 31 25 Outline Belly 1
-        Add-Limb 10 21 7 24 Outline Body
+        Add-HdOval 'Body' 46 47 7.6 5 'Outline' 1.1 24
+        Add-HdLimb @(49, 49, 57, 53.5) 'Body' 3.6
+        Add-HdLimb @(57, 53.5, 63, 55.5) 'Paw' 2.8
+        Add-HdLimb @(21, 50, 11, 53.5) 'Body' 4
+        Add-HdOval 'Paw' 9.6 54 3 2.2
     } else {
-        # Tucked: the thigh and the folded foot under the body, the front legs reaching down to land.
-        Px Outline 17 16 8 8; Px Body 18 17 6 6; Px BodyDark 19 19 3 3
-        Add-Limb 17 24 24 26 Outline Body
-        Add-Limb 10 21 7 25 Outline Body
+        Add-HdOval 'Body' 43 47.5 8 7.4
+        Add-HdLimb @(40, 56, 53, 58.5) 'Body' 3.4
+        Add-HdLimb @(20, 50, 15, 58.5) 'Body' 4
+        Add-HdOval 'Paw' 14 59.6 3.2 2.2
     }
+    # The head in profile with a long ear laid back along the body.
+    Add-HdOval 'Body' 26 19.5 12.4 3.7 'Outline' 1.1 -33
+    Add-HdOval 'Pink' 26 19.5 8.6 1.4 '' 0 -33
+    Add-HdOval 'Body' 14.5 36 10.3 8.6
+    Add-HdOval 'Belly' 9.5 40 5.8 3.3 ''
+    Add-HdOval 'Pink' 3.9 37.4 1.8 1.4 ''
+    Add-HdOval 'Black' 10.2 33.2 1.5 2.1 ''
+    Add-HdOval 'Shine' 10.7 32.4 0.55 0.7 ''
+    Add-HdStroke @(7, 38, 1, 37.4) 'BodyDark' 0.6
+    Add-HdStroke @(7, 39.6, 1.4, 41) 'BodyDark' 0.6
 }
 
-# A carrot held in the paw, nibbled down to the stalk.
+# A carrot held in the paw, nibbled down to the leaves.
 function Add-PetFood([int]$Len) {
+    Add-HdStroke @(49, 25, 45.6, 22.4) 'Green' 1.6
+    Add-HdStroke @(49, 25, 45, 26.6) 'Green' 1.6
     if ($Len -gt 0) {
-        Px Outline 23 10 ($Len + 1) 4; Px Accent 24 11 ($Len - 1) 2
-        if ($Len -ge 5) { Px Green 31 10 1 1; Px Green 31 13 1 1 }
-    } else {
-        Px Green 24 12 5 1
+        Add-HdPoly 'Accent' @(49, 22.4, (50 + 1.8 * $Len), 25, 49, 27.6) 'Outline' 0.9
     }
 }
 
-. (Join-Path $PSScriptRoot 'PetAnimations.ps1')
+. (Join-Path $PSScriptRoot 'PetVectorAnimations.ps1')

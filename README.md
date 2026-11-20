@@ -60,7 +60,7 @@ for; anything missing falls back to a similar state.
 
 **Pets**
 
-- Seven pets come with the app: robot (the default), cat, dog, rabbit, penguin, ghost and fox (smooth vector art at 4x resolution).
+- Seven pets come with the app: robot (the default), cat, dog, rabbit, penguin, ghost and fox, all drawn as smooth vector art at 4x resolution.
 
 | **robot** | **cat** | **dog** | **rabbit** | **penguin** | **ghost** | **fox** |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: |

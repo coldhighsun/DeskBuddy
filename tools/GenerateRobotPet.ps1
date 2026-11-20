@@ -1,141 +1,115 @@
-# Generates the pixel-art robot pet for programmers (no third-party artwork). Art faces right.
-# The robot sits at a desk and types code while the Coding state is on.
-# Usage: powershell -NoProfile -File tools/GenerateRobotPet.ps1
-. (Join-Path $PSScriptRoot 'PetDrawing.ps1')
+# Generates the robot pet for programmers into pets\robot: smooth vector art (see PetVectorDrawing.ps1), no third-party artwork.
+# The robot sits at a desk and types code while the Coding state is on. It is the default pet, and it has its own state list
+# (scenario states with a small label above the head), so it does not use PetVectorAnimations.ps1.
+# Run: powershell -NoProfile -File tools/GenerateRobotPet.ps1
+. (Join-Path $PSScriptRoot 'PetVectorDrawing.ps1')
+
+$PetName = 'robot'
+# 机器人 spelled with code points, so the script does not depend on its own file encoding.
+$PetNameZh = [string][char]0x673A + [string][char]0x5668 + [string][char]0x4EBA
 
 $outDir = Join-Path $PSScriptRoot '..\pets\robot'
 New-Item -ItemType Directory -Force -Path $outDir | Out-Null
 Get-ChildItem $outDir -Filter *.png | Remove-Item
 
 $pal = @{
-    Outline    = New-Brush 28 36 56
-    Steel      = New-Brush 110 150 200
-    SteelLight = New-Brush 170 200 240
-    SteelDark  = New-Brush 70 100 150
-    Screen     = New-Brush 14 22 38
-    Cyan       = New-Brush 90 255 230
-    CyanDim    = New-Brush 40 120 120
-    Orange     = New-Brush 255 170 40
-    Red        = New-Brush 255 70 70
-    Green      = New-Brush 90 230 130
-    Pink       = New-Brush 255 140 170
-    White      = New-Brush 235 240 250
-    Gray       = New-Brush 150 158 175
-    Wood       = New-Brush 160 118 76
-    WoodDark   = New-Brush 112 80 52
-    Brown      = New-Brush 190 90 60
+    Outline    = New-HdColor 28 36 56
+    Steel      = New-HdColor 112 152 202
+    SteelLight = New-HdColor 176 206 244
+    SteelDark  = New-HdColor 70 100 150
+    Screen     = New-HdColor 14 22 38
+    Cyan       = New-HdColor 90 255 230
+    CyanDim    = New-HdColor 40 120 120
+    Orange     = New-HdColor 255 170 40
+    Red        = New-HdColor 255 70 70
+    Green      = New-HdColor 90 230 130
+    Pink       = New-HdColor 255 140 170
+    White      = New-HdColor 235 240 250
+    Gray       = New-HdColor 150 158 175
+    Wood       = New-HdColor 160 118 76
+    WoodDark   = New-HdColor 112 80 52
+    Brown      = New-HdColor 190 90 60
 }
-$textFont = New-Object System.Drawing.Font 'Consolas', 16, ([System.Drawing.FontStyle]::Bold)
+Set-HdDefaultColors
+$textFont = New-Object System.Drawing.Font ('Consolas', [single]9, [System.Drawing.FontStyle]::Bold, [System.Drawing.GraphicsUnit]::Pixel)
 
+# Everything below is drawn in the units of a grounded frame minus four: the robot's tread ends at y 60 and a frame that stands on
+# the ground is lowered by four to rest on the bottom edge, which sits on the taskbar. $script:sink is how far the body sinks into
+# the tread (a slouch), which stays on the ground.
 $script:sink = 0
 
 # Wisps of steam rising from an overheating head.
 function Add-Steam([int]$Frame) {
     if ($Frame % 2 -eq 0) {
-        Px White 12 3 1 2; Px White 15 1 1 2; Px White 19 3 1 2
+        Add-HdStroke @(24, 7, 23, 5, 24.4, 3, 23.6, 1) 'White' 1.3
+        Add-HdStroke @(31, 5, 32.4, 3, 31, 1.4) 'White' 1.3
+        Add-HdStroke @(39, 7, 38, 5, 39.4, 3, 38.6, 1) 'White' 1.3
     } else {
-        Px White 12 2 1 2; Px White 16 2 1 2; Px White 19 1 1 2
+        Add-HdStroke @(24, 6, 25.4, 4, 24, 2) 'White' 1.3
+        Add-HdStroke @(32, 7, 31, 5, 32.4, 3, 31.6, 1) 'White' 1.3
+        Add-HdStroke @(38, 5, 39.4, 3, 38, 1.4) 'White' 1.3
     }
 }
 
-# A 3x5 pixel font for the small labels that say what the robot is doing. Each glyph is five rows of three pixels.
-$glyphs = @{
-    'A' = @('.X.', 'X.X', 'XXX', 'X.X', 'X.X'); 'B' = @('XX.', 'X.X', 'XX.', 'X.X', 'XX.')
-    'C' = @('.XX', 'X..', 'X..', 'X..', '.XX'); 'D' = @('XX.', 'X.X', 'X.X', 'X.X', 'XX.')
-    'E' = @('XXX', 'X..', 'XX.', 'X..', 'XXX'); 'F' = @('XXX', 'X..', 'XX.', 'X..', 'X..')
-    'G' = @('.XX', 'X..', 'X.X', 'X.X', '.XX'); 'H' = @('X.X', 'X.X', 'XXX', 'X.X', 'X.X')
-    'I' = @('XXX', '.X.', '.X.', '.X.', 'XXX'); 'J' = @('..X', '..X', '..X', 'X.X', '.X.')
-    'K' = @('X.X', 'X.X', 'XX.', 'X.X', 'X.X'); 'L' = @('X..', 'X..', 'X..', 'X..', 'XXX')
-    'M' = @('X.X', 'XXX', 'XXX', 'X.X', 'X.X'); 'N' = @('XX.', 'X.X', 'X.X', 'X.X', 'X.X')
-    'O' = @('.X.', 'X.X', 'X.X', 'X.X', '.X.'); 'P' = @('XX.', 'X.X', 'XX.', 'X..', 'X..')
-    'R' = @('XX.', 'X.X', 'XX.', 'X.X', 'X.X'); 'S' = @('.XX', 'X..', '.X.', '..X', 'XX.')
-    'T' = @('XXX', '.X.', '.X.', '.X.', '.X.'); 'U' = @('X.X', 'X.X', 'X.X', 'X.X', 'XXX')
-    'V' = @('X.X', 'X.X', 'X.X', 'X.X', '.X.'); 'W' = @('X.X', 'X.X', 'XXX', 'XXX', 'X.X')
-    'X' = @('X.X', 'X.X', '.X.', 'X.X', 'X.X'); 'Y' = @('X.X', 'X.X', '.X.', '.X.', '.X.')
-    'Z' = @('XXX', '..X', '.X.', 'X..', 'XXX'); '3' = @('XXX', '..X', '.XX', '..X', 'XXX')
-    '!' = @('.X.', '.X.', '.X.', '...', '.X.'); '?' = @('XX.', '..X', '.X.', '...', '.X.')
+# A small dark label with up to three letters in the top left corner that says what the robot is doing. It does not move with
+# the robot's bounce.
+function Add-Tag([string]$Text, [string]$Color) {
+    $width = 5 + 6.6 * $Text.Length
+    Add-HdRoundRect 'Outline' 0.5 0.5 $width 11.5 3 '' 0
+    $font = New-Object System.Drawing.Font ('Consolas', [single]8.6, [System.Drawing.FontStyle]::Bold, [System.Drawing.GraphicsUnit]::Pixel)
+    $format = New-Object System.Drawing.StringFormat
+    $format.Alignment = 'Center'; $format.LineAlignment = 'Center'
+    $brush = New-Object System.Drawing.SolidBrush (Get-HdColor $Color)
+    try {
+        $script:g.DrawString($Text, $font, $brush, (New-Object System.Drawing.RectangleF ([single]0.5), ([single]0.8), ([single]$width), ([single]11.5)), $format)
+    } finally { $brush.Dispose(); $font.Dispose(); $format.Dispose() }
 }
 
-# A dark label with up to three letters in a top corner (13x6 art pixels), above the head and beside the antenna lamp.
-# It does not move with the robot's bounce.
-function Add-Tag([string]$Text, [string]$Color, [string]$Side) {
-    $saved = $script:dy
-    $script:dy = 0
-    $width = 4 * $Text.Length + 1
-    $x0 = if ($Side -eq 'Right') { 32 - $width } else { 0 }
-    Px Outline $x0 0 $width 6
-    for ($i = 0; $i -lt $Text.Length; $i++) {
-        $rows = $glyphs["$($Text[$i])"]
-        for ($r = 0; $r -lt 5; $r++) {
-            for ($c = 0; $c -lt 3; $c++) {
-                if ($rows[$r][$c] -eq 'X') { Px $Color ($x0 + 1 + 4 * $i + $c) (1 + $r) }
-            }
-        }
-    }
-    $script:dy = $saved
-}
-
-# Renders one frame by running $Draw with a fresh canvas, then saves it. A label is drawn on top when Tag is given.
-# The robot's tread ends two art pixels above the bottom of the frame, so every frame is lowered by two to stand on the
-# bottom edge, which rests on the taskbar. A negative Dy is a jump; a positive one sinks the body into the tread, which
-# stays on the ground (a slouch). Air is for the frames in which the robot is not on the ground: hanging, dragged,
-# climbing, on the ceiling.
-# Flip turns the finished picture upside down, for a robot hanging from the top of the screen. Mirror turns it left to
-# right, for a side view drawn facing left that has to face right.
-function Save-Frame([string]$Name, [scriptblock]$Draw, [int]$Dy = 0, [string]$Tag = '', [string]$TagColor = 'White', [string]$TagSide = 'Left', [switch]$Flip, [switch]$Mirror, [switch]$Air) {
-    $bmp = New-Canvas
+# Renders one frame by running $Draw with a fresh canvas, then saves it; a label is drawn on top when Tag is given. Dy is in
+# half units (art pixels of the old pixel version): a negative Dy is a jump, a positive one sinks the body into the tread.
+# Air is for the frames in which the robot is not on the ground (hanging, dragged, climbing, on the ceiling): they are not
+# lowered. Flip turns the finished picture upside down, for a robot on the ceiling; Mirror turns it left to right, for a side
+# view drawn facing left. Tilt turns the drawing clockwise by that many degrees about the centre of the frame.
+function Save-Frame([string]$Name, [scriptblock]$Draw, [int]$Dy = 0, [string]$Tag = '', [string]$TagColor = 'White', [switch]$Flip, [switch]$Mirror, [switch]$Air, [double]$Tilt = 0) {
     if ($Air) {
         $script:sink = 0
-        $script:dy = $Dy
+        $offset = 2 * $Dy
     } else {
-        $script:sink = [Math]::Max($Dy, 0)
-        $script:dy = [Math]::Min($Dy, 0) + 2 + $script:sink
+        $script:sink = 2 * [Math]::Max($Dy, 0)
+        $offset = 2 * [Math]::Min($Dy, 0) + 4 + $script:sink
     }
+    $bmp = New-HdCanvas -Dy $offset -Tilt $Tilt
     & $Draw
-    if ($Tag) { Add-Tag $Tag $TagColor $TagSide }
-    Save-Canvas $bmp (Join-Path $outDir $Name) -Flip:$Flip -Mirror:$Mirror
-}
-
-# A check mark of 5x4 art pixels at the given top-left corner.
-function Add-Check([int]$X, [int]$Y) {
-    Px Green $X ($Y + 2) 1 2; Px Green ($X + 1) ($Y + 3) 1 1
-    Px Green ($X + 2) ($Y + 2) 1 1; Px Green ($X + 3) ($Y + 1) 1 1; Px Green ($X + 4) $Y 1 1
-}
-
-# A small plus-shaped sparkle centered on the given art pixel.
-function Add-Sparkle([int]$X, [int]$Y) {
-    Px White $X ($Y - 1) 1 3; Px White ($X - 1) $Y 3 1
-}
-
-# A cardboard parcel with tape, $Size art pixels square (3 or 5).
-function Add-Box([int]$X, [int]$Y, [int]$Size) {
-    $mid = [int](($Size - 1) / 2)
-    Px Outline $X $Y $Size $Size
-    Px Wood ($X + 1) ($Y + 1) ($Size - 2) ($Size - 2)
-    Px Brown ($X + $mid) ($Y + 1) 1 ($Size - 2)
-}
-
-# A magnifying glass, lens first at the given top-left corner, handle pointing down-left.
-function Add-Magnifier([int]$X, [int]$Y) {
-    Px White ($X + 1) $Y 3 1; Px White ($X + 1) ($Y + 4) 3 1
-    Px White $X ($Y + 1) 1 3; Px White ($X + 4) ($Y + 1) 1 3
-    Px CyanDim ($X + 1) ($Y + 1) 3 3
-    Px Gray ($X - 1) ($Y + 5) 1 1; Px Gray ($X - 2) ($Y + 6) 1 1
-}
-
-# A lightning bolt, 4x5 art pixels.
-function Add-Bolt([int]$X, [int]$Y) {
-    $rows = @('..XX', '.XX.', 'XXXX', '.XX.', 'XX..')
-    for ($r = 0; $r -lt 5; $r++) {
-        for ($c = 0; $c -lt 4; $c++) {
-            if ($rows[$r][$c] -eq 'X') { Px Orange ($X + $c) ($Y + $r) }
-        }
+    if ($Tag) {
+        $script:g.ResetTransform()
+        $script:g.ScaleTransform($HdScale, $HdScale)
+        Add-Tag $Tag $TagColor
     }
+    Save-HdCanvas $bmp (Join-Path $outDir $Name) -Flip:$Flip -Mirror:$Mirror
 }
 
-# A crescent moon, 3x4 art pixels.
-function Add-Moon([int]$X, [int]$Y) {
-    Px White ($X + 1) $Y 2 1; Px White $X ($Y + 1) 1 2; Px White ($X + 1) ($Y + 3) 2 1
+# A parcel with tape, S units square.
+function Add-Box([double]$X, [double]$Y, [double]$S) {
+    Add-HdRoundRect 'Wood' $X $Y $S $S 1 'Outline' 1
+    Add-HdRoundRect 'Brown' ($X + $S / 2 - 1) ($Y + 0.7) 2 ($S - 1.4) 0.5 '' 0
+}
+
+# A magnifying glass, the lens centered on the given point and the handle pointing down-left.
+function Add-Magnifier([double]$Cx, [double]$Cy) {
+    Add-HdStroke @(($Cx - 3.4), ($Cy + 3.4), ($Cx - 7.4), ($Cy + 7.4)) 'Gray' 2.2
+    Add-HdOval 'CyanDim' $Cx $Cy 4.4 4.4 'White' 1.3
+}
+
+# A lightning bolt, about 8 units wide and 11 tall, with its top left corner at the given point.
+function Add-Bolt([double]$X, [double]$Y) {
+    Add-HdPoly 'Orange' @(($X + 5), $Y, $X, ($Y + 6), ($X + 3.6), ($Y + 6), ($X + 1.4), ($Y + 11), ($X + 8), ($Y + 4.4), ($X + 4.2), ($Y + 4.4), ($X + 6.6), $Y) 'Outline' 0.7
+}
+
+# One tread: a dark belt with two wheels.
+function Add-Tread([double]$X) {
+    Add-HdRoundRect 'SteelDark' $X 53.6 12 6 2.8 'Outline' 1.1
+    Add-HdOval 'SteelLight' ($X + 3.2) 56.6 1.3 1.3 ''
+    Add-HdOval 'SteelLight' ($X + 8.8) 56.6 1.3 1.3 ''
 }
 
 # The standing robot. Eyes: open | closed | happy | tired | focus | surprised | none. Feet: stride offset.
@@ -146,178 +120,210 @@ function Add-Robot {
     param(
         [string]$Eyes = 'open', [string]$Lamp = 'Orange', [string]$Light = 'Cyan',
         [int]$Feet = 0, [switch]$ArmsUp, [switch]$Headset, [switch]$Glasses,
-        [int]$EyeShift = 0, [int]$Spinner = -1, [int]$Progress = -1,
-        [switch]$RightArmUp, [int]$RightArmDx = 0, [switch]$Mic,
+        [double]$EyeShift = 0, [int]$Spinner = -1, [int]$Progress = -1,
+        [switch]$RightArmUp, [double]$RightArmDx = 0, [switch]$Mic,
         [switch]$Battery, [int]$BatteryBars = 0, [string]$BatteryColor = 'Red',
-        [int]$EyeDy = 0, [switch]$LeftArmReach, [int]$ReachY = 12, [switch]$HoldOverhead
+        [double]$EyeDy = 0, [switch]$LeftArmReach, [double]$ReachY = 27, [switch]$HoldOverhead
     )
 
     # Treads, which stay on the ground when the rest of the robot sinks into a slouch.
-    $script:dy -= $script:sink
-    Px Outline (9 + $Feet) 27 6 3;  Px SteelDark (10 + $Feet) 28 4 1
-    Px Outline (17 - $Feet) 27 6 3; Px SteelDark (18 - $Feet) 28 4 1
-    $script:dy += $script:sink
+    $state = $script:g.Save()
+    $script:g.TranslateTransform(0, [single](-$script:sink))
+    Add-Tread (18 + 2 * $Feet)
+    Add-Tread (34 - 2 * $Feet)
+    $script:g.Restore($state)
 
     # Arms. Held overhead, they go up outside the head and in again behind it, so the hands meet on either side of the antenna.
     if ($HoldOverhead) {
-        Add-Limb 8 18 5 10 Outline Steel; Add-Limb 5 10 12 4 Outline Steel
-        Add-Limb 23 18 26 10 Outline Steel; Add-Limb 26 10 19 4 Outline Steel
-    }
-    $ayLeft = if ($ArmsUp) { 12 } else { 18 }
-    $ayRight = if ($ArmsUp -or $RightArmUp) { 12 } else { 18 }
-    if ($HoldOverhead) {
-        # No arms at the sides; the hands are drawn over the head, below.
-    } elseif ($LeftArmReach) {
-        # The left arm stretches out sideways to hold on to the edge of the screen.
-        Px Outline 0 $ReachY 10 3; Px Steel 1 ($ReachY + 1) 8 1; Px Orange 0 $ReachY 2 3
+        Add-HdLimb @(16, 36, 10, 20, 24, 8) 'Steel' 3.6
+        Add-HdLimb @(48, 36, 54, 20, 40, 8) 'Steel' 3.6
     } else {
-        Px Outline 7 $ayLeft 3 7;  Px Steel 8 ($ayLeft + 1) 1 5
+        if ($LeftArmReach) {
+            # The left arm stretches out sideways to hold on to the edge of the screen.
+            Add-HdLimb @(20, 28, 5, $ReachY) 'Steel' 3.4
+            Add-HdOval 'Orange' 3.6 $ReachY 3.2 2.8
+        } else {
+            $y0 = if ($ArmsUp) { 26 } else { 38 }
+            Add-HdLimb @(17, $y0, 17, ($y0 + 10)) 'Steel' 3.6
+        }
+        $y1 = if ($ArmsUp -or $RightArmUp) { 26 } else { 38 }
+        Add-HdLimb @((47 + $RightArmDx), $y1, (47 + $RightArmDx), ($y1 + 10)) 'Steel' 3.6
     }
-    if (-not $HoldOverhead) { Px Outline (22 + $RightArmDx) $ayRight 3 7; Px Steel (23 + $RightArmDx) ($ayRight + 1) 1 5 }
 
     # Torso with a chest panel and status light.
-    Px Outline 10 17 12 10; Px Steel 11 18 10 8
-    Px Screen 13 20 6 4
+    Add-HdRoundRect 'Steel' 20 34 24 20 4 'Outline' 1.1
+    Add-HdStroke @(22.6, 37, 22.6, 50) 'SteelLight' 1.1
+    Add-HdRoundRect 'Screen' 26 40 12 8 2 '' 0
     if ($Battery) {
         # A battery icon with up to three bars.
-        Px White 13 20 5 4; Px Screen 14 21 3 2; Px White 18 21 1 2
-        if ($BatteryBars -gt 0) { Px $BatteryColor 14 21 $BatteryBars 2 }
+        Add-HdRoundRect 'White' 26.6 40.8 10 6.4 1.2 '' 0
+        Add-HdRoundRect 'White' 36.4 42.4 1.6 3.2 0.5 '' 0
+        Add-HdRoundRect 'Screen' 27.6 41.8 8 4.4 0.8 '' 0
+        foreach ($i in 0..($BatteryBars - 1)) { if ($BatteryBars -gt 0) { Add-HdRoundRect $BatteryColor (28.1 + 2.4 * $i) 42.4 1.9 3.2 0.5 '' 0 } }
     } elseif ($Progress -ge 0) {
-        Px CyanDim 14 21 4 2
-        if ($Progress -gt 0) { Px Green 14 21 $Progress 2 }
+        Add-HdRoundRect 'CyanDim' 27.6 42.4 8.8 3.2 1.4 '' 0
+        if ($Progress -gt 0) { Add-HdRoundRect 'Green' 27.6 42.4 (2.2 * $Progress) 3.2 1.4 '' 0 }
     } else {
-        Px $Light 15 21 2 2
+        Add-HdOval $Light 32 44 2.2 2.2 ''
     }
 
-    # Neck and head with a screen for a face.
-    Px Outline 14 16 4 1
+    # Neck, then the headset (behind the head), then the head with a screen for a face.
+    Add-HdRoundRect 'SteelDark' 28 31 8 4 1 'Outline' 0.9
     if ($Headset) {
-        Px SteelDark 9 5 14 1
-        Px Outline 7 8 3 6; Px Outline 22 8 3 6
-        Px Orange 7 10 1 2; Px Orange 24 10 1 2
+        Add-HdStroke (Get-HdBezier 16.4 24 16.4 4 47.6 4 47.6 24 20) 'SteelDark' 2.4
+        Add-HdRoundRect 'SteelDark' 13.4 17 6 13 2.8 'Outline' 1
+        Add-HdRoundRect 'SteelDark' 44.6 17 6 13 2.8 'Outline' 1
+        Add-HdRoundRect 'Orange' 15 21 1.8 4.4 0.8 '' 0
+        Add-HdRoundRect 'Orange' 47.2 21 1.8 4.4 0.8 '' 0
         if ($Mic) {
             # A microphone boom from the left ear cup to the mouth.
-            Px SteelDark 8 14 1 3; Px SteelDark 9 16 2 1; Px Red 11 16 1 1
+            Add-HdStroke @(16.4, 30, 17.4, 36, 22.6, 36.6) 'SteelDark' 1.5
+            Add-HdOval 'Red' 24 36.6 1.5 1.3 ''
         }
     }
-    Px Outline 9 6 14 10; Px Steel 10 7 12 8; Px Screen 11 8 10 6
+    Add-HdRoundRect 'Steel' 18 12 28 20 5.5 'Outline' 1.1
+    Add-HdRoundRect 'Screen' 21 15 22 14 3.5 '' 0
 
     # Antenna with a lamp.
-    Px SteelDark 15 3 2 3
-    Px $Lamp 14 1 4 2
+    Add-HdRoundRect 'SteelDark' 30 5 4 7 1 'Outline' 0.9
+    Add-HdOval $Lamp 32 4.6 4 3 'Outline' 1
 
+    $ex = 2 * $EyeShift
+    $ey = 2 * $EyeDy
     switch ($Eyes) {
-        'open'      { Px Cyan (13 + $EyeShift) (9 + $EyeDy) 2 3; Px Cyan (17 + $EyeShift) (9 + $EyeDy) 2 3 }
-        'closed'    { Px Cyan 13 10 2 1; Px Cyan 17 10 2 1 }
-        'happy'     {
-            foreach ($x0 in 12, 17) { Px Cyan $x0 10; Px Cyan ($x0 + 1) 9; Px Cyan ($x0 + 2) 10 }
-            Px Pink 12 12; Px Pink 19 12
+        'open' {
+            Add-HdRoundRect 'Cyan' (26 + $ex) (18 + $ey) 4 6 1.8 '' 0
+            Add-HdRoundRect 'Cyan' (34 + $ex) (18 + $ey) 4 6 1.8 '' 0
         }
-        'tired'     { Px CyanDim 13 10 3 2; Px CyanDim 17 10 3 2; Px Steel 13 9 3 1; Px Steel 17 9 3 1 }
-        'focus'     { Px Cyan 13 10 3 2; Px Cyan 17 10 3 2; Px White 12 9 5 1; Px White 17 9 5 1 }
-        'surprised' { Px Cyan 13 9 3 3; Px Screen 14 10; Px Cyan 17 9 3 3; Px Screen 18 10 }
+        'closed' {
+            Add-HdRoundRect 'Cyan' 26 20.2 4 1.8 0.9 '' 0
+            Add-HdRoundRect 'Cyan' 34 20.2 4 1.8 0.9 '' 0
+        }
+        'happy' {
+            Add-HdStroke @(25.4, 22.4, 28, 19.2, 30.6, 22.4) 'Cyan' 1.8
+            Add-HdStroke @(33.4, 22.4, 36, 19.2, 38.6, 22.4) 'Cyan' 1.8
+            Add-HdOval 'Pink' 24.6 25.6 1.7 1.2 ''
+            Add-HdOval 'Pink' 39.4 25.6 1.7 1.2 ''
+        }
+        'tired' {
+            Add-HdRoundRect 'CyanDim' 26 19.6 6 4.4 1.8 '' 0
+            Add-HdRoundRect 'CyanDim' 34 19.6 6 4.4 1.8 '' 0
+            Add-HdRoundRect 'Steel' 25.4 17.6 7.2 2.6 0.8 '' 0
+            Add-HdRoundRect 'Steel' 33.4 17.6 7.2 2.6 0.8 '' 0
+        }
+        'focus' {
+            Add-HdRoundRect 'Cyan' 26 20 6 4 1.6 '' 0
+            Add-HdRoundRect 'Cyan' 34 20 6 4 1.6 '' 0
+            Add-HdRoundRect 'White' 24.4 17.6 9.6 1.8 0.8 '' 0
+            Add-HdRoundRect 'White' 33.4 17.6 9.6 1.8 0.8 '' 0
+        }
+        'surprised' {
+            Add-HdRoundRect 'Cyan' 25.6 17.6 6.4 6.4 2.4 '' 0
+            Add-HdRoundRect 'Cyan' 34 17.6 6.4 6.4 2.4 '' 0
+            Add-HdOval 'Screen' 28.8 20.8 1.2 1.2 ''
+            Add-HdOval 'Screen' 37.2 20.8 1.2 1.2 ''
+        }
     }
 
     if ($Spinner -ge 0) {
-        $dots = @(@(13, 9), @(17, 9), @(17, 11), @(13, 11))
+        $dots = @(@(28, 20), @(36, 20), @(36, 26), @(28, 26))
         for ($i = 0; $i -lt 4; $i++) {
-            Px $(if ($i -eq $Spinner) { 'Cyan' } else { 'CyanDim' }) $dots[$i][0] $dots[$i][1] 2 2
+            Add-HdOval $(if ($i -eq $Spinner) { 'Cyan' } else { 'CyanDim' }) $dots[$i][0] $dots[$i][1] 2.2 2.2 ''
         }
     }
 
     if ($Glasses) {
-        foreach ($x0 in 11, 16) {
-            Px White ($x0) 8 5 1; Px White ($x0) 12 5 1
-            Px White ($x0) 9 1 3;  Px White ($x0 + 4) 9 1 3
-        }
+        Add-HdRing 'White' 27.4 21 4.8 4.6 1.1
+        Add-HdRing 'White' 36.6 21 4.8 4.6 1.1
+        Add-HdStroke @(32.2, 20.6, 31.8, 20.6) 'White' 1.1
     }
 
     if ($HoldOverhead) {
-        Px Orange 11 3 3 3; Px Orange 18 3 3 3
+        Add-HdOval 'Orange' 25 9 3 3
+        Add-HdOval 'Orange' 39 9 3 3
     }
 }
 
 # The body of the robot seen from the side, facing left: backpack at the back, torso with the chest panel at the front,
 # neck, head in profile with the screen at the front and a single eye, ear cup at the back, antenna. EyeY is the top of
-# the eye (9 looks up, 10 looks ahead).
+# the eye. With HeadUp the head is turned a quarter turn clockwise about its centre, so the face looks up.
 function Add-SideBody {
-    param([string]$Lamp = 'Orange', [int]$EyeY = 9, [switch]$HeadUp, [int]$HeadShiftX = 0)
+    param([string]$Lamp = 'Orange', [double]$EyeY = 20, [switch]$HeadUp, [double]$HeadShiftX = 0)
 
-    Px Outline 18 18 3 7; Px SteelDark 19 19 1 5
-    Px Outline 9 17 9 10; Px Steel 10 18 7 8
-    Px Screen 10 20 2 4; Px Cyan 10 21 1 2
+    Add-HdRoundRect 'SteelDark' 36 36 7 14 2.2 'Outline' 1
+    Add-HdRoundRect 'Steel' 18 34 18 20 4 'Outline' 1.1
+    Add-HdRoundRect 'Screen' 20 40 4 8 1.4 '' 0
+    Add-HdRoundRect 'Cyan' 20.4 42 1.6 4 0.7 '' 0
+    Add-HdRoundRect 'SteelDark' 24 31 5 4 1 'Outline' 0.9
 
-    Px Outline 12 16 2 1
-
-    # With HeadUp the head is turned a quarter turn clockwise around its centre (13, 11), so the face looks up. A rectangle
-    # (x, y, w, h) of the head then lands at (24 - y - h, x - 2, h, w). HeadShiftX moves the head sideways by that many
-    # pixels.
-    $headPx = {
-        param([string]$Color, [int]$X, [int]$Y, [int]$W = 1, [int]$H = 1)
-
+    $state = $script:g.Save()
+    try {
+        $script:g.TranslateTransform([single]$HeadShiftX, 0)
         if ($HeadUp) {
-            Px $Color (24 - $Y - $H + $HeadShiftX) ($X - 2) $H $W
+            $script:g.TranslateTransform(26, 22)
+            $script:g.RotateTransform(90)
+            $script:g.TranslateTransform(-26, -22)
         }
-        else {
-            Px $Color ($X + $HeadShiftX) $Y $W $H
-        }
+        Add-HdRoundRect 'SteelDark' 30 18 4 8 2 'Outline' 0.9
+        Add-HdRoundRect 'Steel' 16 12 20 20 5 'Outline' 1.1
+        Add-HdRoundRect 'Screen' 18 16 10 12 3 '' 0
+        Add-HdRoundRect 'Cyan' 20 $EyeY 4 6 1.8 '' 0
+        Add-HdRoundRect 'SteelDark' 24 5 4 7 1 'Outline' 0.9
+        Add-HdOval $Lamp 26 4.6 4 3 'Outline' 1
+    } finally {
+        $script:g.Restore($state)
     }
-
-    & $headPx Outline 8 6 10 10; & $headPx Steel 9 7 8 8
-    & $headPx Screen 9 8 5 6; & $headPx Cyan 10 $EyeY 2 3
-    & $headPx SteelDark 15 9 2 4
-    & $headPx SteelDark 12 3 2 3; & $headPx $Lamp 11 1 4 2
 }
 
 # The robot seen from the side, facing left, walking: the arms swing and the tread rolls under the body. Hand is where
-# the near hand is, and the far hand is on the other side of the swing; Roll (0 to 3) moves the light and dark blocks of
-# the tread, a pixel further each frame, so the tread seems to roll backward along the ground.
+# the near hand is, and the far hand is on the other side of the swing; Roll (0 to 3) moves the light blocks of the tread, a
+# little further each frame, so the tread seems to roll backward along the ground.
 function Add-RobotSideWalk {
-    param([int]$NearHandX, [int]$FarHandX, [int]$Roll, [string]$Lamp = 'Orange')
+    param([double]$NearHandX, [double]$FarHandX, [int]$Roll, [string]$Lamp = 'Orange')
 
     # Far arm, behind the body.
-    Add-Limb 12 19 $FarHandX 23 Outline SteelDark
-    Px Orange ($FarHandX - 1) 22 3 3
+    Add-HdLimb @(24, 40, (2 * $FarHandX), 47) 'SteelDark' 3.4
+    Add-HdOval 'Orange' (2 * $FarHandX) 48 2.6 2.4
 
-    Add-SideBody -Lamp $Lamp -EyeY 10
+    Add-SideBody -Lamp $Lamp -EyeY 20
 
-    # Tread under the body: a dark belt with light blocks two pixels wide every four, shifted by Roll.
-    Px Outline 6 26 12 4; Px SteelDark 7 27 10 2
+    # Tread under the body: a dark belt with light blocks every eight units, shifted by Roll.
+    Add-HdRoundRect 'SteelDark' 12 52 24 8 3.6 'Outline' 1.1
     foreach ($n in -1..3) {
-        $x1 = [Math]::Max(7 + $n * 4 + $Roll, 7)
-        $x2 = [Math]::Min(7 + $n * 4 + $Roll + 2, 17)
-        if ($x2 -gt $x1) { Px SteelLight $x1 27 ($x2 - $x1) 2 }
+        $x1 = [Math]::Max(14 + $n * 8 + 2 * $Roll, 14)
+        $x2 = [Math]::Min(14 + $n * 8 + 2 * $Roll + 4, 34)
+        if ($x2 -gt $x1) { Add-HdRoundRect 'SteelLight' $x1 54.4 ($x2 - $x1) 3.2 1.2 '' 0 }
     }
 
     # The near arm, in front of the tread.
-    Add-Limb 12 19 $NearHandX 23 Outline Steel
-    Px Orange ($NearHandX - 1) 22 3 3
+    Add-HdLimb @(24, 40, (2 * $NearHandX), 47) 'Steel' 3.4
+    Add-HdOval 'Orange' (2 * $NearHandX) 48 2.6 2.4
 }
 
-# The robot seen from the side, facing left, climbing a wall at the left edge of the frame: the head is turned a quarter turn so the face looks straight up and is moved
-# away from the wall, and and the near and far arm and leg reach for the edge of the frame at the given heights: the hands and the feet
-# touch it. The edge of the screen is the wall, so none is drawn; the picture is shifted left to put the hands and feet
-# on the edge.
-function Add-RobotSide {
-    param([int]$NearHandY, [int]$FarHandY, [int]$NearFootY, [int]$FarFootY, [string]$Lamp = 'Orange')
+# The robot climbing a wall: the side walk turned a quarter turn clockwise (Save-Frame -Tilt 90), so the tread runs up the left
+# edge of the frame, which is the wall, and the face looks up. The arms reach up past the head in turn, hand over hand: NearHand
+# and FarHand are where the hands are before the turn (smaller x is higher up the wall, smaller y is further from it). Roll (0
+# to 3) moves the light blocks of the tread, so it seems to roll up the wall.
+function Add-RobotClimb {
+    param([double[]]$NearHand, [double[]]$FarHand, [int]$Roll, [string]$Lamp = 'Orange')
 
-    $script:offsetX = -3
+    # Far arm, behind the body.
+    Add-HdLimb @(24, 40, $FarHand[0], $FarHand[1]) 'SteelDark' 3.4
+    Add-HdOval 'Orange' $FarHand[0] $FarHand[1] 2.6 2.4
 
-    # Far arm and far leg, behind the body.
-    Add-Limb 10 19 4 $FarHandY Outline SteelDark
-    Px Orange 3 ($FarHandY - 1) 3 3
-    Add-Limb 12 26 4 $FarFootY Outline SteelDark
-    Px Gray 3 ($FarFootY - 1) 3 3
+    Add-SideBody -Lamp $Lamp -EyeY 20
 
-    Add-SideBody -Lamp $Lamp -HeadUp -HeadShiftX 3
+    # The tread against the wall, its light blocks shifted by Roll the other way round from the walk.
+    Add-HdRoundRect 'SteelDark' 12 52 24 8 3.6 'Outline' 1.1
+    foreach ($n in -1..3) {
+        $x1 = [Math]::Max(14 + $n * 8 - 2 * $Roll + 6, 14)
+        $x2 = [Math]::Min(14 + $n * 8 - 2 * $Roll + 10, 34)
+        if ($x2 -gt $x1) { Add-HdRoundRect 'SteelLight' $x1 54.4 ($x2 - $x1) 3.2 1.2 '' 0 }
+    }
 
-    # Near leg and arm, in front of the body.
-    Add-Limb 11 26 4 $NearFootY Outline Steel
-    Px Gray 3 ($NearFootY - 1) 3 3
-    Add-Limb 9 19 4 $NearHandY Outline Steel
-    Px Orange 3 ($NearHandY - 1) 3 3
-
-    $script:offsetX = 0
+    # The near arm, in front of the body.
+    Add-HdLimb @(24, 40, $NearHand[0], $NearHand[1]) 'Steel' 3.4
+    Add-HdOval 'Orange' $NearHand[0] $NearHand[1] 2.6 2.4
 }
 
 # Idle: stands and blinks now and then.
@@ -335,7 +341,7 @@ Save-Frame 'walk_3.png' -Mirror { Add-RobotSideWalk -NearHandX 11 -FarHandX 10 -
 
 # Sleep: standby mode, dim lights, floating z.
 Save-Frame 'sleep_0.png' -Dy 1 { Add-Robot -Eyes closed -Lamp SteelDark -Light CyanDim }
-Save-Frame 'sleep_1.png' -Dy 1 { Add-Robot -Eyes closed -Lamp SteelDark -Light CyanDim; Add-Text 'z' 'White' 98 18; Add-Text 'Z' 'White' 106 4 }
+Save-Frame 'sleep_1.png' -Dy 1 { Add-Robot -Eyes closed -Lamp SteelDark -Light CyanDim; Add-HdLabel 'z' 'White' 49 9 'Outline' 8; Add-HdLabel 'Z' 'White' 53 1 'Outline' 9 }
 
 # Drag: lifted by the antenna, arms up, treads dangling.
 Save-Frame 'drag_0.png' -Air { Add-Robot -Eyes surprised -ArmsUp -Feet 1 }
@@ -351,15 +357,15 @@ Save-Frame 'tired_0.png' -Dy 1 { Add-Robot -Eyes tired -Lamp Red -Light CyanDim;
 Save-Frame 'tired_1.png' -Dy 1 { Add-Robot -Eyes tired -Lamp SteelDark -Light CyanDim; Add-Steam 1 }
 
 # Alert: jumps with a flashing red lamp and an exclamation mark.
-Save-Frame 'alert_0.png' -Dy -2 { Add-Robot -Eyes surprised -ArmsUp -Lamp Red -Light Red -Feet 1; Add-Text '!' 'Red' 100 6 }
-Save-Frame 'alert_1.png' { Add-Robot -Eyes surprised -ArmsUp -Lamp Orange -Light Red -Feet -1; Add-Text '!' 'Red' 100 6 }
+Save-Frame 'alert_0.png' -Dy -2 { Add-Robot -Eyes surprised -ArmsUp -Lamp Red -Light Red -Feet 1; Add-HdLabel '!' 'Red' 52 3 'Outline' 10 }
+Save-Frame 'alert_1.png' { Add-Robot -Eyes surprised -ArmsUp -Lamp Orange -Light Red -Feet -1; Add-HdLabel '!' 'Red' 52 3 'Outline' 10 }
 
 # Focus: headset on, eyes narrowed, quietly concentrating.
 Save-Frame 'focus_0.png' { Add-Robot -Eyes focus -Headset }
 Save-Frame 'focus_1.png' { Add-Robot -Eyes focus -Headset -Lamp SteelDark }
 
 # Happy: bounces with smiling eyes and a heart.
-Save-Frame 'happy_0.png' -Dy -2 { Add-Robot -Eyes happy -ArmsUp -Feet 1; Add-Heart 24 2 }
+Save-Frame 'happy_0.png' -Dy -2 { Add-Robot -Eyes happy -ArmsUp -Feet 1; Add-HdHeart 'Pink' 55 8 3.4 }
 Save-Frame 'happy_1.png' { Add-Robot -Eyes happy -ArmsUp -Feet -1 }
 
 # Building: a loading ring on the face and a filling bar on the chest, while the lamp blinks.
@@ -370,27 +376,27 @@ foreach ($f in 0..3) {
 }
 
 # BuildDone: arms up, smiling, a green check mark; the second frame adds a sparkle.
-Save-Frame 'builddone_0.png' -Tag 'OK!' -TagColor Green -Dy -2 { Add-Robot -Eyes happy -ArmsUp -Feet 1; Add-Check 24 2 }
-Save-Frame 'builddone_1.png' -Tag 'OK!' -TagColor Green { Add-Robot -Eyes happy -ArmsUp -Feet -1; Add-Check 24 2; Add-Sparkle 4 5 }
+Save-Frame 'builddone_0.png' -Tag 'OK!' -TagColor Green -Dy -2 { Add-Robot -Eyes happy -ArmsUp -Feet 1; Add-HdCheck 'Green' 54 9 3.6 2.4 }
+Save-Frame 'builddone_1.png' -Tag 'OK!' -TagColor Green { Add-Robot -Eyes happy -ArmsUp -Feet -1; Add-HdCheck 'Green' 54 9 3.6 2.4; Add-HdSparkle 'White' 9 12 3.2 }
 
 # GitPush: holds a parcel overhead, throws it up, and it flies off.
-Save-Frame 'gitpush_0.png' -Tag 'GIT' -TagColor Cyan { Add-Robot -Eyes open -ArmsUp; Add-Box 21 6 5 }
-Save-Frame 'gitpush_1.png' -Tag 'GIT' -TagColor Cyan -Dy -1 { Add-Robot -Eyes happy -ArmsUp -Feet 1; Add-Box 25 2 5 }
-Save-Frame 'gitpush_2.png' -Tag 'GIT' -TagColor Cyan { Add-Robot -Eyes happy; Add-Box 28 0 3; Px Gray 25 2 2 1; Px Gray 26 4 2 1 }
+Save-Frame 'gitpush_0.png' -Tag 'GIT' -TagColor Cyan { Add-Robot -Eyes open -ArmsUp; Add-Box 43 11 10 }
+Save-Frame 'gitpush_1.png' -Tag 'GIT' -TagColor Cyan -Dy -1 { Add-Robot -Eyes happy -ArmsUp -Feet 1; Add-Box 50 3 10 }
+Save-Frame 'gitpush_2.png' -Tag 'GIT' -TagColor Cyan { Add-Robot -Eyes happy; Add-Box 56 0.5 6; Add-HdOval 'Gray' 51.5 6 2 0.9 ''; Add-HdOval 'Gray' 53.5 9.5 2 0.9 '' }
 
 # Reading: round glasses, eyes scanning along, a magnifying glass held up.
 foreach ($f in 0..3) {
     $shift = @(-1, 0, 1, 0)[$f]
-    $bob = @(0, 1, 0, 1)[$f]
-    $draw = { Add-Robot -Eyes open -ArmsUp -Glasses -EyeShift $shift; Add-Magnifier 25 (7 + $bob) }.GetNewClosure()
+    $bob = @(0, 2, 0, 2)[$f]
+    $draw = { Add-Robot -Eyes open -ArmsUp -Glasses -EyeShift $shift; Add-Magnifier 55 (19 + $bob) }.GetNewClosure()
     Save-Frame "reading_$f.png" -Tag 'WEB' -TagColor Cyan $draw
 }
 
 # Welcome: waves hello with one arm and hearts floating up.
 foreach ($f in 0..3) {
-    $dx = @(0, 1, 0, -1)[$f]
+    $dx = @(0, 2, 0, -2)[$f]
     $hearts = ($f % 2 -eq 0)
-    $draw = { Add-Robot -Eyes happy -RightArmUp -RightArmDx $dx; if ($hearts) { Add-Heart 24 2 } }.GetNewClosure()
+    $draw = { Add-Robot -Eyes happy -RightArmUp -RightArmDx $dx; if ($hearts) { Add-HdHeart 'Pink' 56 8 3.4 } }.GetNewClosure()
     Save-Frame "welcome_$f.png" -Tag 'HI!' -TagColor Pink $draw
 }
 
@@ -399,7 +405,7 @@ foreach ($f in 0..3) {
     $count = $f
     $draw = {
         Add-Robot -Eyes open -Headset -Mic -Lamp $(if ($count % 2 -eq 0) { 'Red' } else { 'SteelDark' })
-        for ($i = 0; $i -lt $count; $i++) { Px White (24 + 2 * $i) 4 1 1 }
+        foreach ($i in 0..2) { if ($i -lt $count) { Add-HdOval 'White' (50 + 4 * $i) 8 1.2 1.2 '' } }
     }.GetNewClosure()
     Save-Frame "meeting_$f.png" -Tag 'MTG' -TagColor Red $draw
 }
@@ -410,8 +416,10 @@ foreach ($f in 0..3) {
     $nod = @(0, 1, 0, 1)[$f]
     $draw = {
         Add-Robot -Eyes happy
-        Px Outline 22 2 9 7; Px White 23 3 7 5; Px Outline 23 9 2 1; Px White 23 8 1 1
-        for ($i = 0; $i -lt $dots; $i++) { Px Cyan (24 + 2 * $i) 5 1 1 }
+        Add-HdRoundRect 'White' 44 3 18 14 5 'Outline' 1.1
+        Add-HdPoly 'White' @(46, 15.6, 51.5, 15.6, 45, 20.4) 'Outline' 1.1
+        Add-HdRoundRect 'White' 46.6 14.6 4.4 2 0.5 '' 0
+        foreach ($i in 0..2) { if ($i -lt $dots) { Add-HdOval 'Cyan' (48.8 + 4.2 * $i) 10 1.3 1.3 '' } }
     }.GetNewClosure()
     Save-Frame "chatting_$f.png" -Tag 'CHT' -TagColor Cyan -Dy $nod $draw
 }
@@ -425,10 +433,13 @@ foreach ($f in 0..3) {
     $bars = $f
     $bolt = ($f % 2 -eq 0)
     $draw = {
+        Add-HdStroke @(45, 43, 54, 45, 58, 43) 'Outline' 2.6
+        Add-HdStroke @(45, 43, 54, 45, 58, 43) 'Gray' 1.2
+        Add-HdRoundRect 'Gray' 42 40.4 4.6 5.6 1.2 'Outline' 0.9
+        Add-HdRoundRect 'White' 58 37.6 6.4 10.4 1.6 'Outline' 1
+        Add-HdRoundRect 'Outline' 59.6 41.6 1.6 2 0.4 '' 0
         Add-Robot -Eyes happy -Battery -BatteryBars $bars -BatteryColor Green
-        Px Gray 22 21 7 1; Px Outline 21 20 2 3
-        Px White 29 19 2 5; Px Outline 29 21 1 1
-        if ($bolt) { Add-Bolt 24 2 }
+        if ($bolt) { Add-Bolt 47 3 }
     }.GetNewClosure()
     Save-Frame "charging_$f.png" -Tag 'CHG' -TagColor Green $draw
 }
@@ -436,64 +447,83 @@ foreach ($f in 0..3) {
 # Meal: holds a steaming bowl of rice in one hand and eats with chopsticks.
 foreach ($f in 0..3) {
     $steamUp = ($f % 2 -eq 0)
-    $stickY = @(8, 6, 8, 7)[$f]
+    $stickY = @(16, 12, 16, 14)[$f]
     $eyes = if ($f -eq 3) { 'closed' } else { 'happy' }
     $draw = {
         Add-Robot -Eyes $eyes -RightArmUp
         # The bowl: rice heaped over a brown bowl, steam above it.
-        Px White 26 12 4 1; Px White 25 13 6 1
-        Px Brown 25 14 6 2; Px Outline 26 16 4 1
-        if ($steamUp) { Px White 26 10 1 2; Px White 29 9 1 2 } else { Px White 27 9 1 2; Px White 29 10 1 2 }
+        Add-HdOval 'White' 56 27.4 5.6 3.2 ''
+        Add-HdShape 'Brown' @(50, 28, 50.6, 33, 53, 35, 56, 35, 59, 35, 61.4, 33, 62, 28) 'Outline' 1
+        if ($steamUp) {
+            Add-HdStroke @(54, 22, 53, 20, 54.4, 18) 'White' 1.2
+            Add-HdStroke @(59, 21, 60, 19, 59, 17) 'White' 1.2
+        } else {
+            Add-HdStroke @(55, 21, 56, 19, 55, 17) 'White' 1.2
+            Add-HdStroke @(59, 22, 58, 20, 59.4, 18) 'White' 1.2
+        }
         # A pair of chopsticks dipping into the rice.
-        Px Wood 27 $stickY 1 5; Px Wood 29 ($stickY - 1) 1 5
+        Add-HdStroke @(55, $stickY, 56.6, ($stickY + 11)) 'Wood' 1.2
+        Add-HdStroke @(58.6, ($stickY - 2), 57.4, ($stickY + 9)) 'Wood' 1.2
     }.GetNewClosure()
     Save-Frame "meal_$f.png" -Tag 'EAT' -TagColor Orange $draw
 }
 
 # ClockOut: smiling arms-up robot beside a big clock that rings at six.
 foreach ($f in 0..3) {
-    $shake = @(0, 1, 0, -1)[$f]
+    $shake = @(0, 2, 0, -2)[$f]
     $ringing = ($f % 2 -eq 0)
     $draw = {
         Add-Robot -Eyes happy -ArmsUp -Feet ($f % 2)
-        $cx = 24 + $shake
-        Px Outline ($cx + 1) 2 5 1; Px Outline $cx 3 7 5; Px Outline ($cx + 1) 8 5 1
-        Px White ($cx + 1) 3 5 5
-        Px Outline ($cx + 3) 3 1 3; Px Red ($cx + 3) 5 1 2
-        if ($ringing) { Px Orange ($cx - 1) 1 1 2; Px Orange ($cx + 7) 1 1 2 }
+        $cx = 55 + $shake
+        Add-HdOval 'White' $cx 12 6.8 6.8 'Outline' 1.2
+        Add-HdStroke @($cx, 12, $cx, 7.4) 'Outline' 1.2
+        Add-HdStroke @($cx, 12, ($cx + 3), 13.6) 'Red' 1.2
+        Add-HdOval 'Outline' $cx 12 0.9 0.9 ''
+        if ($ringing) {
+            Add-HdStroke @(($cx - 7), 3.4, ($cx - 9), 5.8) 'Orange' 1.2
+            Add-HdStroke @(($cx + 7), 3.4, ($cx + 9), 5.8) 'Orange' 1.2
+        }
     }.GetNewClosure()
     Save-Frame "clockout_$f.png" -Tag 'BYE' -TagColor Orange $draw
 }
 
 # Chime: rings a small golden bell on the hour, with sound waves beside it.
 foreach ($f in 0..3) {
-    $swing = @(-1, 0, 1, 0)[$f]
+    $swing = @(-2, 0, 2, 0)[$f]
     $waves = ($f % 2 -eq 0)
     $dy = if ($f % 2 -eq 1) { -1 } else { 0 }
     $draw = {
         Add-Robot -Eyes open -RightArmUp
-        Px Orange 27 9 3 1; Px Orange 26 10 5 3; Px Orange 25 13 7 1
-        Px White 27 10 1 2; Px Brown (28 + $swing) 14 1 1
-        if ($waves) { Px White 24 10 1 2; Px White 31 10 1 2 } else { Px White 24 8 1 2; Px White 31 8 1 2 }
+        Add-HdShape 'Orange' @(53, 28, 53.4, 20, 56, 18, 58.6, 20, 59, 28, 61, 29.4, 51, 29.4, 53, 28) 'Outline' 1
+        Add-HdOval 'Brown' (56 + $swing) 30.6 1.4 1.4 ''
+        Add-HdStroke @(55, 20.6, 54.4, 25) 'White' 0.9
+        if ($waves) {
+            Add-HdStroke @(49.4, 20, 48.2, 23) 'White' 1.1
+            Add-HdStroke @(62.6, 20, 63.8, 23) 'White' 1.1
+        } else {
+            Add-HdStroke @(49.4, 16, 48.2, 19) 'White' 1.1
+            Add-HdStroke @(62.6, 16, 63.8, 19) 'White' 1.1
+        }
     }.GetNewClosure()
-    Save-Frame "chime_$f.png" -Tag 'BEL' -TagColor Orange $draw -Dy $dy
+    Save-Frame "chime_$f.png" -Tag 'BEL' -TagColor Orange -Dy $dy $draw
 }
 
 # Festive: a striped party hat on the head, confetti falling around the cheering robot.
 $confetti = @(
-    @(@(3, 3, 'Orange'), @(28, 6, 'Green'), @(5, 14, 'Pink'), @(27, 15, 'Cyan')),
-    @(@(4, 6, 'Pink'), @(27, 3, 'Orange'), @(3, 17, 'Green'), @(28, 12, 'White')),
-    @(@(2, 9, 'Green'), @(29, 9, 'Pink'), @(5, 3, 'Cyan'), @(26, 17, 'Orange')),
-    @(@(3, 12, 'Cyan'), @(28, 3, 'White'), @(4, 20, 'Orange'), @(27, 8, 'Pink'))
+    @(@(6, 6, 'Orange'), @(56, 12, 'Green'), @(10, 28, 'Pink'), @(54, 30, 'Cyan')),
+    @(@(8, 12, 'Pink'), @(54, 6, 'Orange'), @(6, 34, 'Green'), @(56, 24, 'White')),
+    @(@(4, 18, 'Green'), @(58, 18, 'Pink'), @(10, 6, 'Cyan'), @(52, 34, 'Orange')),
+    @(@(6, 24, 'Cyan'), @(56, 6, 'White'), @(8, 40, 'Orange'), @(54, 16, 'Pink'))
 )
 foreach ($f in 0..3) {
     $bits = $confetti[$f]
     $draw = {
         Add-Robot -Eyes happy -ArmsUp -Feet ($f % 2)
-        # The hat covers the antenna: a cone with a pompom on top.
-        Px White 16 0 1 1
-        Px Pink 16 1 1 1; Px Orange 15 2 3 1; Px Pink 14 3 5 1; Px Orange 13 4 7 1; Px Pink 12 5 9 1
-        foreach ($bit in $bits) { Px $bit[2] $bit[0] $bit[1] 1 1 }
+        # The hat covers the antenna: a striped cone with a pompom on top.
+        Add-HdPoly 'Pink' @(32, 1.6, 42, 12.6, 22, 12.6) 'Outline' 1
+        Add-HdPoly 'Orange' @(29.4, 5.4, 34.6, 5.4, 37.4, 8.6, 26.6, 8.6) '' 0
+        Add-HdOval 'White' 32 1.8 2 2 'Outline' 0.8
+        foreach ($bit in $bits) { Add-HdOval $bit[2] $bit[0] $bit[1] 1.4 1 '' 0 35 }
     }.GetNewClosure()
     Save-Frame "festive_$f.png" -Tag 'YAY' -TagColor Pink $draw -Dy $(if ($f % 2 -eq 0) { 0 } else { 1 })
 }
@@ -502,18 +532,21 @@ foreach ($f in 0..3) {
 Save-Frame 'hang_0.png' -Air { Add-Robot -Eyes open -LeftArmReach -Feet 1 }
 Save-Frame 'hang_1.png' -Air { Add-Robot -Eyes open -LeftArmReach -Feet -1 -Lamp SteelDark }
 
-# Climb: the robot seen from the side climbs the left edge of the screen, which is the wall: hands and feet on the edge of
-# the frame, hand over hand with the opposite foot, the body pulled up a little between grips. Mirrored for the right edge.
-Save-Frame 'climb_0.png' -Air { Add-RobotSide -NearHandY 11 -FarHandY 16 -NearFootY 29 -FarFootY 24 }
-Save-Frame 'climb_1.png' -Air -Dy -1 { Add-RobotSide -NearHandY 13 -FarHandY 14 -NearFootY 27 -FarFootY 26 -Lamp SteelDark }
-Save-Frame 'climb_2.png' -Air { Add-RobotSide -NearHandY 16 -FarHandY 11 -NearFootY 24 -FarFootY 29 }
-Save-Frame 'climb_3.png' -Air -Dy -1 { Add-RobotSide -NearHandY 14 -FarHandY 13 -NearFootY 26 -FarFootY 27 -Lamp SteelDark }
-
-# ClimbDown: the climb played backwards, so the robot goes down the wall with its head still up.
-Save-Frame 'climbdown_0.png' -Air -Dy -1 { Add-RobotSide -NearHandY 14 -FarHandY 13 -NearFootY 26 -FarFootY 27 -Lamp SteelDark }
-Save-Frame 'climbdown_1.png' -Air { Add-RobotSide -NearHandY 16 -FarHandY 11 -NearFootY 24 -FarFootY 29 }
-Save-Frame 'climbdown_2.png' -Air -Dy -1 { Add-RobotSide -NearHandY 13 -FarHandY 14 -NearFootY 27 -FarFootY 26 -Lamp SteelDark }
-Save-Frame 'climbdown_3.png' -Air { Add-RobotSide -NearHandY 11 -FarHandY 16 -NearFootY 29 -FarFootY 24 }
+# Climb: the robot rolls up the left edge of the screen, which is the wall, with its tread against it, reaching up hand over
+# hand. Mirrored for the right edge.
+$climbPoses = @(
+    @(@(10, 40), @(22, 47), 0, 'Orange'),
+    @(@(14, 44), @(17, 44), 1, 'SteelDark'),
+    @(@(22, 47), @(10, 40), 2, 'Orange'),
+    @(@(17, 44), @(14, 44), 3, 'SteelDark')
+)
+foreach ($i in 0..3) {
+    $pose = $climbPoses[$i]
+    $draw = { Add-RobotClimb -NearHand $pose[0] -FarHand $pose[1] -Roll $pose[2] -Lamp $pose[3] }.GetNewClosure()
+    Save-Frame "climb_$i.png" -Air -Dy 3 -Tilt 90 $draw
+    # ClimbDown: the climb played backwards, so the robot rolls down the wall with its head still up.
+    Save-Frame "climbdown_$(3 - $i).png" -Air -Dy 3 -Tilt 90 $draw
+}
 
 # Ceiling: walks along the top of the screen upside down, in the same side view as walking on the ground.
 Save-Frame 'ceiling_0.png' -Flip -Mirror { Add-RobotSideWalk -NearHandX 7 -FarHandX 14 -Roll 0 }
@@ -522,12 +555,13 @@ Save-Frame 'ceiling_2.png' -Flip -Mirror { Add-RobotSideWalk -NearHandX 14 -FarH
 Save-Frame 'ceiling_3.png' -Flip -Mirror { Add-RobotSideWalk -NearHandX 11 -FarHandX 10 -Roll 3 -Lamp SteelDark }
 
 # Idle looks: the eyes follow the mouse pointer.
-Save-Frame 'idle_left.png'  { Add-Robot -Eyes open -EyeShift -2 }
-Save-Frame 'idle_right.png' { Add-Robot -Eyes open -EyeShift 2 }
+Save-Frame 'idle_left.png'  { Add-Robot -Eyes open -EyeShift -1.5 }
+Save-Frame 'idle_right.png' { Add-Robot -Eyes open -EyeShift 1.5 }
 Save-Frame 'idle_up.png'    { Add-Robot -Eyes open -EyeDy -1 }
 Save-Frame 'idle_down.png'  { Add-Robot -Eyes open -EyeDy 1 }
 
-# Coding: the robot sits in a chair at a desk, typing while code scrolls on the monitor.
+# Coding: the robot sits in a chair at a desk, typing while code scrolls on the monitor. Each line of code is its indent,
+# its length (in 2-unit steps) and its color.
 $codeLines = @(
     @(0, 5, 'Green'), @(2, 3, 'Cyan'), @(2, 6, 'Orange'), @(0, 2, 'Green'),
     @(2, 5, 'Green'), @(4, 3, 'Cyan'), @(2, 4, 'Orange'), @(0, 6, 'Green')
@@ -536,74 +570,83 @@ $codeLines = @(
 # Night: heavy eyes, a moon and stars, a steaming coffee and a sleepy 'zZ' now and then.
 function Add-CodingScene([int]$Frame, [switch]$Night) {
     if ($Night) {
-        Add-Moon 16 1
-        Px White 13 3; Px White 20 4
+        Add-HdMoon 'White' 36 7 4
+        Add-HdSparkle 'White' 27 7 2
+        Add-HdSparkle 'White' 42 10 1.8
     }
 
     # Chair.
-    Px SteelDark 1 15 2 10
-    Px SteelDark 1 24 11 2
-    Px Outline 6 26 2 3
-    Px Outline 3 29 8 1
+    Add-HdRoundRect 'SteelDark' 2 30 4 20 1.6 'Outline' 0.9
+    Add-HdRoundRect 'SteelDark' 2 48 22 4 1.6 'Outline' 0.9
+    Add-HdRoundRect 'SteelDark' 12 52 4 6 1 'Outline' 0.9
+    Add-HdRoundRect 'SteelDark' 6 58 16 2 1 'Outline' 0.7
 
     # Desk.
-    Px Outline 29 23 2 7
-    Px Wood 11 20 21 2
-    Px WoodDark 11 22 21 1
+    Add-HdRoundRect 'WoodDark' 58 46 4 14 1 'Outline' 0.9
+    Add-HdRoundRect 'Wood' 22 40 42 4 1.4 'Outline' 1
+    Add-HdRoundRect 'WoodDark' 24 43.6 38 1.8 0.8 '' 0
 
     # Monitor showing scrolling code and a blinking cursor.
-    Px SteelDark 24 16 2 3
-    Px SteelDark 22 19 6 1
-    Px Outline 19 6 12 10
-    Px Screen 20 7 10 8
+    Add-HdRoundRect 'SteelDark' 48 32 4 8 1 'Outline' 0.9
+    Add-HdRoundRect 'SteelDark' 44 38 12 2.4 1 'Outline' 0.9
+    Add-HdRoundRect 'SteelDark' 38 12 24 20 2.6 'Outline' 1.1
+    Add-HdRoundRect 'Screen' 40 14.4 20 15.2 1.6 '' 0
     for ($i = 0; $i -lt 4; $i++) {
         $line = $codeLines[($Frame + $i) % $codeLines.Count]
-        Px $line[2] (21 + $line[0]) (8 + 2 * $i) $line[1] 1
+        Add-HdRoundRect $line[2] (41.6 + 1.6 * $line[0]) (16.4 + 3.4 * $i) (1.9 * $line[1]) 1.5 0.7 '' 0
         if ($i -eq 3 -and $Frame % 2 -eq 0) {
-            Px White ([Math]::Min(21 + $line[0] + $line[1] + 1, 28)) 14 1 1
+            Add-HdRoundRect 'White' ([Math]::Min(41.6 + 1.6 * $line[0] + 1.9 * $line[1] + 1.4, 57)) 26.6 1.6 2.4 0.4 '' 0
         }
     }
 
     # Keyboard and a mug of coffee.
-    Px Gray 12 19 6 1
-    Px Brown 19 18 2 2
-    Px White (19 + $Frame % 2) 17 1 1
+    Add-HdRoundRect 'Gray' 24 37.6 12 2.4 1 'Outline' 0.7
+    Add-HdRoundRect 'Brown' 38 35.4 5 4.6 1.2 'Outline' 0.8
+    Add-HdStroke @((40 + 1.4 * ($Frame % 2)), 33.6, (39.4 + 1.4 * ($Frame % 2)), 31.6) 'White' 1
 
     # The robot: legs under the desk, torso, head looking at the screen.
-    Px Outline 8 22 8 3;   Px SteelDark 9 23 6 1
-    Px Outline 14 24 3 5;  Px Outline 14 28 5 2
-    Px Outline 3 15 8 8;   Px Steel 4 16 6 6
-    Px Screen 5 17 4 3
-    Px $(if ($Frame % 2 -eq 0) { 'Cyan' } else { 'CyanDim' }) 6 18 2 1
-    Px Outline 7 14 3 1
-    Px Outline 3 5 11 9;   Px Steel 4 6 9 7;  Px Screen 5 7 8 5
-    Px SteelDark 7 3 2 2
-    Px $(if ($Frame % 2 -eq 0) { 'Orange' } else { 'SteelDark' }) 6 1 4 2
+    Add-HdRoundRect 'SteelDark' 16 44 17 6 2.6 'Outline' 1
+    Add-HdRoundRect 'SteelDark' 28 48 6 11 2.4 'Outline' 1
+    Add-HdRoundRect 'SteelDark' 28 56 10 4 1.8 'Outline' 1
+    Add-HdRoundRect 'Steel' 6 30 16 16 3.5 'Outline' 1.1
+    Add-HdRoundRect 'Screen' 10 34 8 6 1.6 '' 0
+    Add-HdRoundRect $(if ($Frame % 2 -eq 0) { 'Cyan' } else { 'CyanDim' }) 12 36.2 4 2 0.9 '' 0
+    Add-HdRoundRect 'SteelDark' 12 27.4 6 3.2 1 'Outline' 0.8
+    Add-HdRoundRect 'Steel' 6 10 22 18 5 'Outline' 1.1
+    Add-HdRoundRect 'Screen' 10 13.4 14 11 3.2 '' 0
+    Add-HdRoundRect 'SteelDark' 14 5.6 4 5 1 'Outline' 0.8
+    Add-HdOval $(if ($Frame % 2 -eq 0) { 'Orange' } else { 'SteelDark' }) 16 4.6 4 2.8 'Outline' 1
     if ($Night) {
         # Half-lidded eyes with dark circles under them; the last frame nods off.
         if ($Frame -eq 3) {
-            Px CyanDim 8 9 2 1; Px CyanDim 11 9 2 1
+            Add-HdRoundRect 'CyanDim' 15.4 18.2 4 1.8 0.8 '' 0
+            Add-HdRoundRect 'CyanDim' 21.4 18.2 4 1.8 0.8 '' 0
         } else {
-            Px CyanDim 8 8 2 2; Px CyanDim 11 8 2 2; Px Steel 8 8 2 1; Px Steel 11 8 2 1
+            Add-HdRoundRect 'CyanDim' 15.4 16.4 4 3.6 1.4 '' 0
+            Add-HdRoundRect 'CyanDim' 21.4 16.4 4 3.6 1.4 '' 0
+            Add-HdRoundRect 'Steel' 14.8 15.4 5.2 2 0.6 '' 0
+            Add-HdRoundRect 'Steel' 20.8 15.4 5.2 2 0.6 '' 0
         }
-        Px SteelDark 8 10 2 1; Px SteelDark 11 10 2 1
+        Add-HdRoundRect 'SteelDark' 15.4 20.8 4 1.2 0.5 '' 0
+        Add-HdRoundRect 'SteelDark' 21.4 20.8 4 1.2 0.5 '' 0
     } elseif ($Frame -eq 3) {
-        Px Cyan 8 9 2 1; Px Cyan 11 9 2 1
+        Add-HdRoundRect 'Cyan' 15.6 18.2 4 1.8 0.8 '' 0
+        Add-HdRoundRect 'Cyan' 21.6 18.2 4 1.8 0.8 '' 0
     } else {
-        Px Cyan 8 8 2 2; Px Cyan 11 8 2 2
+        Add-HdRoundRect 'Cyan' 15.6 16.2 4 4 1.6 '' 0
+        Add-HdRoundRect 'Cyan' 21.6 16.2 4 4 1.6 '' 0
     }
 
     # Arms reaching the keyboard; the hands take turns pressing keys.
     $a = $Frame % 2
-    Px Outline 9 16 2 3
-    Px Outline 10 17 6 2
-    Px SteelLight 14 (18 + $a) 2 1
-    Px SteelLight 16 (19 - $a) 2 1
+    Add-HdLimb @(17, 33, 23, 36, 29, 37.4) 'Steel' 3.2
+    Add-HdOval 'SteelLight' 29 (36.6 + 2 * $a) 1.7 1.5 ''
+    Add-HdOval 'SteelLight' 33 (38.2 - 2 * $a) 1.7 1.5 ''
 
     if ($Night) {
         # A second wisp of steam over the coffee.
-        Px White (20 - $Frame % 2) 16 1 1
-        if ($Frame % 2 -eq 1) { Add-Text 'zZ' 'White' 84 1 }
+        Add-HdStroke @((38.6 + 1.2 * ($Frame % 2)), 32.6, 38, 30.4) 'White' 1
+        if ($Frame % 2 -eq 1) { Add-HdLabel 'zZ' 'White' 42 0 'Outline' 8 }
     }
 }
 
@@ -614,10 +657,10 @@ foreach ($f in 0..3) {
     Save-Frame "nightcoding_$f.png" -Tag '3AM' -TagColor Orange $night
 }
 
-$manifest = @'
+$manifest = @"
 {
   "name": "robot",
-  "names": { "en": "Robot", "zh": "机器人" },
+  "names": { "en": "Robot", "zh": "$PetNameZh" },
   "frameSize": [64, 64],
   "states": {
     "Idle":   { "fps": 2, "frames": ["idle_0.png", "idle_1.png", "idle_2.png", "idle_3.png"] },
@@ -654,16 +697,15 @@ $manifest = @'
     "Idle.Down":   { "fps": 1, "frames": ["idle_down.png"] }
   }
 }
-'@
+"@
 
 Write-PetManifest (Join-Path $outDir 'manifest.json') $manifest
 
-# The tray icon: the antenna and the head.
-Save-PetIcon (Join-Path $outDir 'idle_0.png') (Join-Path $outDir 'icon.png') @(8, 3, 16, 16)
+# The tray icon: the antenna and the head (drawing units: x, y, width, height).
+Save-HdIcon (Join-Path $outDir 'idle_0.png') (Join-Path $outDir 'icon.png') @(15, 5, 34, 34)
 
 # Pack the single frames into the atlas the program reads.
 . (Join-Path $PSScriptRoot 'PackPetAtlas.ps1')
 Invoke-PetAtlasPacking $outDir
 
-
-Write-Host "Robot pet written to $outDir"
+Write-Host "$PetName pet written to $outDir"

@@ -2,7 +2,7 @@
 # them; this turns that into the form the program reads: atlas.png with all the different frames in a grid of equal cells,
 # and a manifest whose frames are the numbers of their cells (counted along the rows from the top left). Frames that are
 # the same picture share one cell. The single frame files are deleted afterwards, except icon.png, which the tray reads
-# as it is. Dot-source this file and call Invoke-PetAtlasPacking; PetDrawing.ps1 must be dot-sourced as well.
+# as it is. Dot-source this file and call Invoke-PetAtlasPacking; PetVectorDrawing.ps1 (for Write-PetManifest) must be dot-sourced as well.
 Add-Type -AssemblyName System.Drawing
 
 # Cells in a row of the atlas.

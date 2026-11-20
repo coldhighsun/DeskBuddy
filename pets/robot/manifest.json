@@ -2,7 +2,7 @@
   "name": "robot",
   "names": { "en": "Robot", "zh": "机器人" },
   "frameSize": [64, 64],
-  "atlas": { "image": "atlas.png", "cell": [128, 128], "columns": 10 },
+  "atlas": { "image": "atlas.png", "cell": [256, 256], "columns": 10 },
   "states": {
     "Idle":   { "fps": 2, "frames": [0, 1, 0, 2] },
     "Walk":   { "fps": 8, "frames": [3, 4, 5, 6] },
