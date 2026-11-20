@@ -135,6 +135,10 @@ internal static class AppUpdates
             IsAutoCheckEnabled = () => isAutoCheckEnabled() && !IsDevelopmentBuild(version),
             DownloadDirectory = downloadDirectory,
             CleanDownloadDirectory = true,
+
+            // A manual check only finds out; the update dialog, which the user opens afterwards, asks whether to install and
+            // shows the download.
+            AskToInstallAfterManualCheck = false,
             InstallerLaunchOptions = InstallerLaunchOptions.InnoSetupSilent.WithArguments(RelaunchArgument),
 
             // An installer is only started if its checksum was verified against what the release publishes (a sidecar file,

@@ -49,7 +49,6 @@ public sealed class TrayUpdatePresenterTests : IDisposable
         presenter.ReportUpToDate();
         presenter.ReportCheckFailed(new AssetNotFoundException("none", []));
         presenter.ReportCheckFailed(null);
-        presenter.ReportDownloading(update);
         presenter.ReportInstallFailed(update, new IOException("disk"));
         var exitsBefore = exits;
         presenter.InstallerStarted(update);
@@ -57,6 +56,24 @@ public sealed class TrayUpdatePresenterTests : IDisposable
         // Assert
         exitsBefore.Should().Be(0);
         exits.Should().Be(1);
+    }
+
+    /// <summary>
+    /// The user decided by pressing the button of the update dialog, so the controller is never answered with a refusal
+    /// and no second question is asked.
+    /// </summary>
+    [Fact]
+    public async Task ConfirmInstallAsync_Always_AgreesWithoutAsking()
+    {
+        // Arrange
+        var update = await FindUpdateAsync();
+        var presenter = new TrayUpdatePresenter(() => null, () => { }, NullLogger.Instance);
+
+        // Act
+        var agreed = await presenter.ConfirmInstallAsync(update, GitHubReleaseUpdater.Versioning.SemanticVersion.Parse("0.1.0"));
+
+        // Assert
+        agreed.Should().BeTrue();
     }
 
     /// <summary>

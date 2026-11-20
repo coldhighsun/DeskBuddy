@@ -7,8 +7,8 @@ using GitHubReleaseUpdater.Versioning;
 namespace DeskBuddy.App.Presentation;
 
 /// <summary>
-/// Talks to the user about updates through balloon notices of the tray icon and a message box, and closes the
-/// application when the installer has been started.
+/// Talks to the user about updates through balloon notices of the tray icon, and closes the application when the installer
+/// has been started. The offer itself, the download and its failures are shown by the update dialog.
 /// </summary>
 /// <param name="tray">
 /// Gives the tray icon, which is made after the controller that uses this presenter; <see langword="null"/> while it does
@@ -52,26 +52,22 @@ internal sealed class TrayUpdatePresenter(Func<TrayIconService?> tray, Action ex
     }
 
     /// <inheritdoc />
+    /// <remarks>
+    /// The user has already decided by pressing the button of the update dialog, which is the only way to start an
+    /// installation, so nothing is asked again.
+    /// </remarks>
     public ValueTask<bool> ConfirmInstallAsync(AvailableUpdate update, SemanticVersion currentVersion)
     {
-        var question = string.Format(CultureInfo.CurrentCulture, Strings.UpdateConfirm, update.Version, currentVersion);
-        var answer = Dialogs.Show(null, Strings.UpdateConfirmTitle, question, DialogKind.Question, DialogModel.YesNoButtons());
-        return ValueTask.FromResult(answer == DialogChoice.Yes);
+        return ValueTask.FromResult(true);
     }
 
     /// <inheritdoc />
-    public void ReportDownloading(AvailableUpdate update)
-    {
-        tray()?.ShowInfoNotice(
-            Strings.AppName,
-            string.Format(CultureInfo.CurrentCulture, Strings.UpdateDownloading, update.Version));
-    }
-
-    /// <inheritdoc />
+    /// <remarks>
+    /// Only logged: the update dialog that started the installation shows the reason itself, with a button to try again.
+    /// </remarks>
     public void ReportInstallFailed(AvailableUpdate update, Exception error)
     {
         logger.LogWarning(error, "Version {Version} could not be installed.", update.Version);
-        tray()?.ShowErrorNotice(Strings.AppName, string.Format(CultureInfo.CurrentCulture, Strings.UpdateInstallFailed, UpdateErrorText.For(error)));
     }
 
     /// <inheritdoc />

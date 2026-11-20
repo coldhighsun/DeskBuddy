@@ -334,6 +334,29 @@
         </Setter>
     </Style>
 
+    <!-- ========== Progress bar: a rounded track with a filled part. Only the determinate bar is drawn; a download whose
+         size is unknown leaves it empty and says how much has arrived in the text next to it. ========== -->
+    <Style TargetType="ProgressBar">
+        <Setter Property="Height" Value="6" />
+        <Setter Property="Foreground" Value="{DynamicResource AppPrimary}" />
+        <Setter Property="Background" Value="{DynamicResource AppPrimarySoft}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ProgressBar">
+                    <Grid>
+                        <Border x:Name="PART_Track"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="3" />
+                        <Border x:Name="PART_Indicator"
+                                HorizontalAlignment="Left"
+                                Background="{TemplateBinding Foreground}"
+                                CornerRadius="3" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- ========== Groups, cards and chips ========== -->
     <!-- A bordered group of related settings; the next group sits 12 below it. -->
     <Style x:Key="SettingsGroupStyle" TargetType="Border">

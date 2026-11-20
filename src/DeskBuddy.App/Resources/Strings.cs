@@ -456,9 +456,79 @@ internal static class Strings
     public static string UpdateConfirmTitle => Get();
 
     /// <summary>
-    /// Gets the format of the question whether to install a found version; <c>{0}</c> is the new and <c>{1}</c> the current version.
+    /// Gets the format of the line that tells the running version in the update dialog; <c>{0}</c> is the version.
     /// </summary>
-    public static string UpdateConfirm => Get();
+    public static string UpdateCurrentVersion => Get();
+
+    /// <summary>
+    /// Gets the heading above the release notes in the update dialog.
+    /// </summary>
+    public static string UpdateReleaseNotes => Get();
+
+    /// <summary>
+    /// Gets the sentence in the update dialog that explains what updating does.
+    /// </summary>
+    public static string UpdateInstallNote => Get();
+
+    /// <summary>
+    /// Gets the label of the button that starts the update.
+    /// </summary>
+    public static string UpdateNow => Get();
+
+    /// <summary>
+    /// Gets the label of the button that tries a failed update again.
+    /// </summary>
+    public static string UpdateRetry => Get();
+
+    /// <summary>
+    /// Gets the label of the button that skips the version that was found.
+    /// </summary>
+    public static string UpdateSkip => Get();
+
+    /// <summary>
+    /// Gets the label of the button that leaves the update for later.
+    /// </summary>
+    public static string UpdateRemindLater => Get();
+
+    /// <summary>
+    /// Gets the label of the button that closes the update dialog after a failure.
+    /// </summary>
+    public static string UpdateClose => Get();
+
+    /// <summary>
+    /// Gets the label of the button that opens the release page.
+    /// </summary>
+    public static string UpdateViewRelease => Get();
+
+    /// <summary>
+    /// Gets the label of the button that stops the download.
+    /// </summary>
+    public static string UpdateCancelDownload => Get();
+
+    /// <summary>
+    /// Gets the format of the download progress; <c>{0}</c> is the size received, <c>{1}</c> the total size and <c>{2}</c> the speed.
+    /// </summary>
+    public static string UpdateProgress => Get();
+
+    /// <summary>
+    /// Gets the format of the download progress when the total size is not known; <c>{0}</c> is the size received and <c>{1}</c> the speed.
+    /// </summary>
+    public static string UpdateProgressUnknownTotal => Get();
+
+    /// <summary>
+    /// Gets the message shown when the installer was downloaded but did not start.
+    /// </summary>
+    public static string UpdateNotStarted => Get();
+
+    /// <summary>
+    /// Gets the message shown when the update cannot start because a check or an installation is running.
+    /// </summary>
+    public static string UpdateBusy => Get();
+
+    /// <summary>
+    /// Gets the message shown when skipping the version could not be recorded.
+    /// </summary>
+    public static string UpdateSkipFailed => Get();
 
     /// <summary>
     /// Gets the format of the status shown while the installer is downloaded; <c>{0}</c> is the version.

@@ -115,6 +115,28 @@ public sealed class AppUpdatesTests : IDisposable
     }
 
     /// <summary>
+    /// A check by hand only finds out: whether to install is asked in the update dialog, so the presenter is neither asked
+    /// nor told, and nothing is downloaded.
+    /// </summary>
+    [Fact]
+    public async Task CheckAsync_ManualAndNewerRelease_FindsOutWithoutAskingToInstall()
+    {
+        // Arrange
+        _handler.Respond(HttpStatusCode.OK, ReleaseJson("v0.2.0", "DeskBuddy-Setup-0.2.0.exe", digest: InstallerDigest));
+        _presenter.ConfirmAnswer = true;
+        var controller = CreateController("0.1.0");
+
+        // Act
+        await controller.CheckAsync(manual: true, TestContext.Current.CancellationToken);
+
+        // Assert
+        controller.State.Should().Be(UpdateState.Available);
+        controller.Available!.Version.ToString().Should().Be("0.2.0");
+        _presenter.Confirmations.Should().Be(0);
+        _launcher.Launched.Should().BeEmpty();
+    }
+
+    /// <summary>
     /// Only a file with <c>Setup</c> in its name and the <c>.exe</c> extension is taken for the installer.
     /// </summary>
     [Fact]
