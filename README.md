@@ -73,7 +73,7 @@ for; anything missing falls back to a similar state.
 **The app**
 
 - English and Simplified Chinese: the interface follows the system language, or choose one in the settings (a change
-  takes full effect after a restart). Translations live in `src/DeskBuddy.App/Resources` (`Strings.resx` is Chinese,
+  takes effect immediately, no restart). Translations live in `src/DeskBuddy.App/Resources` (`Strings.resx` is Chinese,
   `Strings.en.resx` is English).
 - Light and dark themes: the panel, tray menu and speech bubble follow the Windows app theme and switch as it changes, or
   choose light or dark under Appearance in the settings (takes effect at once). A Windows high-contrast theme is respected.
@@ -82,9 +82,9 @@ for; anything missing falls back to a similar state.
 
 ## Add your own pet
 
-A pet is a folder under `pets/` with a sprite sheet `atlas.png` (all frames in equal cells) and a `manifest.json` that
+A pet is a folder with a sprite sheet `atlas.png` (all frames in equal cells) and a `manifest.json` that
 lists the states, their frame numbers and speeds. Drop the folder in and it shows up in the panel; no code changes are
-needed. An optional `icon.png` (just the head) is used as the tray icon. See [pets/robot](pets/robot) for an example.
+needed. Put it in `%LOCALAPPDATA%\DeskBuddy\pets` (the "Open pet folder" button on the Pets tab opens it; upgrades never touch it) or in `pets/` next to the program. An optional `icon.png` (just the head) is used as the tray icon. See [pets/robot](pets/robot) for an example.
 The bundled pets are drawn by the scripts in [tools](tools) (for example `tools/GenerateRobotPet.ps1`).
 
 ## Install
