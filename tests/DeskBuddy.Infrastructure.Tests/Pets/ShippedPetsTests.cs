@@ -148,7 +148,7 @@ public class ShippedPetsTests
     /// <param name="canHop">Whether the pet defines the optional hop animation.</param>
     [Theory]
     [InlineData("dog", true)]
-    [InlineData("rabbit", false)]
+    [InlineData("rabbit", true)]
     [InlineData("penguin", false)]
     [InlineData("ghost", false)]
     public async Task TemplatePet_Loads_WithEverydayAndScreenEdgeStates(string name, bool canHop)

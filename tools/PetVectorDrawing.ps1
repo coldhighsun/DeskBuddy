@@ -225,7 +225,7 @@ function Add-HdLabel([string]$Text, [string]$Color, [double]$X, [double]$Y, [str
 # Starts a frame: a transparent canvas of 64 units a side that the Add-Hd functions draw on through $script:g. Dy lifts
 # everything (negative is up); Tilt turns it clockwise by that many degrees about the point (PivotX, PivotY), by default the
 # middle of the frame. Returns the bitmap.
-function New-HdCanvas([double]$Dy = 0, [double]$Tilt = 0, [double]$PivotX = 32, [double]$PivotY = 32) {
+function New-HdCanvas([double]$Dy = 0, [double]$Tilt = 0, [double]$PivotX = 32, [double]$PivotY = 32, [double]$Dx = 0) {
     if ($null -eq $pal -or $null -eq $textFont) { throw 'Define $pal and $textFont before drawing a frame.' }
     $size = $HdEdge * $HdScale
     $bmp = New-Object System.Drawing.Bitmap $size, $size
@@ -236,7 +236,7 @@ function New-HdCanvas([double]$Dy = 0, [double]$Tilt = 0, [double]$PivotX = 32, 
     $script:g.TextRenderingHint = 'AntiAlias'
     $script:g.Clear([System.Drawing.Color]::Transparent)
     $script:g.ScaleTransform($HdScale, $HdScale)
-    $script:g.TranslateTransform([single]$PivotX, [single]($PivotY + $Dy))
+    $script:g.TranslateTransform([single]($PivotX + $Dx), [single]($PivotY + $Dy))
     $script:g.RotateTransform([single]$Tilt)
     $script:g.TranslateTransform([single](-$PivotX), [single](-$PivotY))
     return $bmp
