@@ -349,7 +349,7 @@ public partial class UpdateDialog : Window
     /// </param>
     private void OnViewReleaseClick(object sender, RoutedEventArgs e)
     {
-        var address = _update.Release.HtmlUrl is { Length: > 0 } url ? url : AboutInfo.ProjectUri.AbsoluteUri + "/releases/latest";
+        var address = UpdateDialogModel.ReleasePageAddress(_update.Release.HtmlUrl, AboutInfo.ProjectUri);
         try
         {
             Process.Start(new ProcessStartInfo(address) { UseShellExecute = true })?.Dispose();

@@ -293,4 +293,39 @@ public sealed class UpdateDialogModelTests : IDisposable
         text.Should().Contain(Strings.UpdateErrorChecksum);
         text.Should().NotContain("secret internal detail");
     }
+
+    /// <summary>
+    /// A secure web address of the release is used as it is.
+    /// </summary>
+    [Fact]
+    public void ReleasePageAddress_HttpsUrl_IsUsed()
+    {
+        // Act
+        var address = UpdateDialogModel.ReleasePageAddress("https://example.com/releases/v1", new Uri("https://example.com/project"));
+
+        // Assert
+        address.Should().Be("https://example.com/releases/v1");
+    }
+
+    /// <summary>
+    /// A missing address, or one that is not a secure web address, is replaced by the latest release page of the project.
+    /// </summary>
+    /// <param name="releaseUrl">
+    /// The address the release gave.
+    /// </param>
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("not a url")]
+    [InlineData("http://example.com/releases/v1")]
+    [InlineData("file:///C:/Windows/System32/calc.exe")]
+    [InlineData("ms-settings:privacy")]
+    public void ReleasePageAddress_NotHttps_FallsBackToProjectPage(string? releaseUrl)
+    {
+        // Act
+        var address = UpdateDialogModel.ReleasePageAddress(releaseUrl, new Uri("https://example.com/project/"));
+
+        // Assert
+        address.Should().Be("https://example.com/project/releases/latest");
+    }
 }

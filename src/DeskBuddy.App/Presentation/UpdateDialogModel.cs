@@ -230,4 +230,26 @@ internal static class UpdateDialogModel
             ? Strings.UpdateNotStarted
             : string.Format(CultureInfo.CurrentCulture, Strings.UpdateInstallFailed, UpdateErrorText.For(error));
     }
+
+    /// <summary>
+    /// Chooses the address the "release page" button opens. The address comes from the release the server described, so it is
+    /// only used if it is a secure web address; anything else (a file, another program's scheme) is not handed to the shell.
+    /// </summary>
+    /// <param name="releaseUrl">
+    /// The address of the release page, or <see langword="null"/> or empty if the release has none.
+    /// </param>
+    /// <param name="projectUri">
+    /// The address of the project, whose latest release page is used instead.
+    /// </param>
+    /// <returns>
+    /// The address to open.
+    /// </returns>
+    public static string ReleasePageAddress(string? releaseUrl, Uri projectUri)
+    {
+        ArgumentNullException.ThrowIfNull(projectUri);
+
+        return Uri.TryCreate(releaseUrl, UriKind.Absolute, out var uri) && uri.Scheme == Uri.UriSchemeHttps
+            ? uri.AbsoluteUri
+            : projectUri.AbsoluteUri.TrimEnd('/') + "/releases/latest";
+    }
 }
