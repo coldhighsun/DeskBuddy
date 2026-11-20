@@ -5,7 +5,7 @@
 # DeskBuddy
 
 [![CI](https://github.com/coldhighsun/DeskBuddy/actions/workflows/ci.yml/badge.svg)](https://github.com/coldhighsun/DeskBuddy/actions/workflows/ci.yml)
-[![Unit tests: 1446](https://img.shields.io/badge/unit%20tests-1446-brightgreen)](tests)
+[![Unit tests: 1449](https://img.shields.io/badge/unit%20tests-1449-brightgreen)](tests)
 [![Latest Release](https://img.shields.io/github/v/release/coldhighsun/DeskBuddy)](https://github.com/coldhighsun/DeskBuddy/releases/latest)
 [![Latest Pre-release](https://img.shields.io/github/v/release/coldhighsun/DeskBuddy?include_prereleases&label=pre-release)](https://github.com/coldhighsun/DeskBuddy/releases)
 [![GitHub All Releases](https://img.shields.io/github/downloads/coldhighsun/DeskBuddy/total)](https://github.com/coldhighsun/DeskBuddy/releases)
@@ -49,11 +49,11 @@
 
 **宠物**
 
-- 自带六只宠物：robot（默认）、cat、dog、rabbit、penguin、ghost。
+- 自带七只宠物：robot（默认）、cat、dog、rabbit、penguin、ghost、fox（平滑矢量风格，4 倍分辨率）。
 
-| **robot** | **cat** | **dog** | **rabbit** | **penguin** | **ghost** |
-| :---: | :---: | :---: | :---: | :---: | :---: |
-| <img src="docs/pets/robot.png" width="96" alt="robot"> | <img src="docs/pets/cat.png" width="96" alt="cat"> | <img src="docs/pets/dog.png" width="96" alt="dog"> | <img src="docs/pets/rabbit.png" width="96" alt="rabbit"> | <img src="docs/pets/penguin.png" width="96" alt="penguin"> | <img src="docs/pets/ghost.png" width="96" alt="ghost"> |
+| **robot** | **cat** | **dog** | **rabbit** | **penguin** | **ghost** | **fox** |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| <img src="docs/pets/robot.png" width="96" alt="robot"> | <img src="docs/pets/cat.png" width="96" alt="cat"> | <img src="docs/pets/dog.png" width="96" alt="dog"> | <img src="docs/pets/rabbit.png" width="96" alt="rabbit"> | <img src="docs/pets/penguin.png" width="96" alt="penguin"> | <img src="docs/pets/ghost.png" width="96" alt="ghost"> | <img src="docs/pets/fox.png" width="96" alt="fox"> |
 
 - 面板的第一个标签列出所有已安装的宠物，带动画预览、画面尺寸和能力标签（跟随鼠标、攀爬屏幕边缘、开发陪伴、情境动作），
   方便对比后选择；托盘菜单也可以切换宠物和尺寸。

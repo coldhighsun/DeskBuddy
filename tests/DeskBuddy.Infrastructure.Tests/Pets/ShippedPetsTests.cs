@@ -76,6 +76,7 @@ public class ShippedPetsTests
     [InlineData("rabbit")]
     [InlineData("penguin")]
     [InlineData("ghost")]
+    [InlineData("fox")]
     public async Task ShippedPet_Folder_HoldsOnlyManifestAtlasAndIcon(string name)
     {
         // Arrange
@@ -105,6 +106,7 @@ public class ShippedPetsTests
     [InlineData("rabbit")]
     [InlineData("penguin")]
     [InlineData("ghost")]
+    [InlineData("fox")]
     public async Task ShippedPet_Loads_WithEnglishAndChineseNames(string name)
     {
         // Act
@@ -116,6 +118,26 @@ public class ShippedPetsTests
         english.Should().NotBe(chinese);
         english.Should().MatchRegex("^[A-Za-z ]+$");
         chinese.Should().MatchRegex("\\p{IsCJKUnifiedIdeographs}");
+    }
+
+    /// <summary>
+    /// The fox is drawn as smooth vector art at several times the resolution of its frame size, covers the everyday and
+    /// screen-edge states, and leaves the scenario states and the optional hop to the fallback rules.
+    /// </summary>
+    [Fact]
+    public async Task Fox_Loads_WithEverydayStatesAndLeavesScenariosToFallback()
+    {
+        // Act
+        var pet = await _loader.LoadAsync(Path.Combine(ShippedPets, "fox"), TestContext.Current.CancellationToken);
+
+        // Assert
+        pet.Name.Should().Be("fox");
+        pet.Animations.Keys.Should().Contain(
+            [PetState.Idle, PetState.Walk, PetState.Sleep, PetState.Drag, PetState.Happy, PetState.Glide, PetState.Hang, PetState.Climb, PetState.ClimbDown, PetState.Ceiling]);
+        pet.Animations.Keys.Should().NotContain([PetState.Hop, PetState.Coding]);
+        pet.GetAnimation(PetState.Coding).FrameIds.Should().NotBeEmpty();
+        pet.GazeAnimations.Keys.Should().BeEquivalentTo(
+            [GazeDirection.Left, GazeDirection.Right, GazeDirection.Up, GazeDirection.Down]);
     }
 
     /// <summary>

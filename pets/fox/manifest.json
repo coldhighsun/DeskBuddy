@@ -1,0 +1,26 @@
+﻿{
+  "name": "fox",
+  "names": { "en": "Fox", "zh": "狐狸" },
+  "frameSize": [64, 64],
+  "atlas": { "image": "atlas.png", "cell": [256, 256], "columns": 10 },
+  "states": {
+    "Idle":    { "fps": 2, "frames": [0, 1, 2, 3] },
+    "Walk":    { "fps": 8, "frames": [4, 5, 6, 7] },
+    "Sleep":   { "fps": 1, "frames": [8, 9] },
+    "Drag":    { "fps": 6, "frames": [10, 11] },
+    "Glide":   { "fps": 4, "frames": [12, 13] },
+    "Tired":   { "fps": 2, "frames": [14, 15] },
+    "Alert":   { "fps": 4, "frames": [16, 17] },
+    "Happy":   { "fps": 5, "frames": [18, 19] },
+    "Welcome": { "fps": 4, "frames": [20, 21, 22, 23] },
+    "Hang":    { "fps": 2, "frames": [24, 25] },
+    "Climb":   { "fps": 6, "frames": [26, 27, 28, 29] },
+    "ClimbDown": { "fps": 6, "frames": [30, 31, 32, 33] },
+    "Ceiling": { "fps": 6, "frames": [34, 35, 36, 37] },
+    "Idle.Left":  { "fps": 1, "frames": [38] },
+    "Idle.Right": { "fps": 1, "frames": [39] },
+    "Idle.Up":    { "fps": 1, "frames": [40] },
+    "Idle.Down":  { "fps": 1, "frames": [41] }
+  }
+}
+
