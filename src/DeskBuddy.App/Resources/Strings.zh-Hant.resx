@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Traditional Chinese (Taiwan wording) translation of Strings.resx. Keep the key set identical to the neutral file. -->
+
+  <data name="AppName" xml:space="preserve"><value>DeskBuddy</value></data>
+
+  <data name="TrayHidePet" xml:space="preserve"><value>隱藏寵物</value></data>
+  <data name="TrayShowPet" xml:space="preserve"><value>顯示寵物</value></data>
+  <data name="TrayExit" xml:space="preserve"><value>結束</value></data>
+
+  <data name="TraySettings" xml:space="preserve"><value>設定</value></data>
+  <data name="TraySwitchPet" xml:space="preserve"><value>切換寵物</value></data>
+  <data name="TrayPetSize" xml:space="preserve"><value>寵物大小</value></data>
+
+  <data name="MessageSedentary" xml:space="preserve"><value>你已經連續工作 {0} 分鐘了，起來活動一下、喝口水吧～</value></data>
+
+  <data name="Chatter0" xml:space="preserve"><value>今天也要加油喔～</value></data>
+  <data name="Chatter1" xml:space="preserve"><value>喝口水吧，我幫你看著螢幕～</value></data>
+  <data name="Chatter2" xml:space="preserve"><value>你敲鍵盤的樣子真認真！</value></data>
+  <data name="Chatter3" xml:space="preserve"><value>我在桌面上巡邏，一切正常。</value></data>
+  <data name="Chatter4" xml:space="preserve"><value>坐直一點，挺胸抬頭～</value></data>
+  <data name="Chatter5" xml:space="preserve"><value>眼睛累了就看看遠處吧。</value></data>
+  <data name="Chatter6" xml:space="preserve"><value>不用理我，繼續忙吧！</value></data>
+  <data name="Chatter7" xml:space="preserve"><value>有我陪著你，不孤單～</value></data>
+
+  <data name="ActionDismiss" xml:space="preserve"><value>知道了</value></data>
+  <data name="ActionSnoozeReminder" xml:space="preserve"><value>稍後提醒</value></data>
+
+  <data name="TabPets" xml:space="preserve"><value>寵物</value></data>
+  <data name="PetsCurrent" xml:space="preserve"><value>目前</value></data>
+  <data name="PetsUse" xml:space="preserve"><value>使用</value></data>
+  <data name="PetsInfo" xml:space="preserve"><value>畫面 {0}×{1} · 動作 {2}/{3}</value></data>
+  <data name="PetsCapLookAround" xml:space="preserve"><value>眼睛跟隨滑鼠</value></data>
+  <data name="PetsCapEdges" xml:space="preserve"><value>攀爬螢幕邊緣 {0}/{1}</value></data>
+  <data name="PetsCapDevelopment" xml:space="preserve"><value>開發陪伴 {0}/{1}</value></data>
+  <data name="PetsCapScenarios" xml:space="preserve"><value>情境動作 {0}/{1}</value></data>
+  <data name="PetsLoadFailed" xml:space="preserve"><value>無法載入：{0}</value></data>
+  <data name="PetsEmpty" xml:space="preserve"><value>找不到寵物。</value></data>
+  <data name="PetsOpenFolder" xml:space="preserve"><value>開啟寵物資料夾</value></data>
+  <data name="PetsOpenFolderHint" xml:space="preserve"><value>把寵物資料夾（含 manifest.json 和 atlas.png）放進去，就會出現在這裡；同名時優先於內建的寵物。</value></data>
+  <data name="PetsLoading" xml:space="preserve"><value>正在載入寵物…</value></data>
+  <data name="PetStateNameIdle" xml:space="preserve"><value>待機</value></data>
+  <data name="PetStateNameWalk" xml:space="preserve"><value>走路</value></data>
+  <data name="PetStateNameSleep" xml:space="preserve"><value>睡覺</value></data>
+  <data name="PetStateNameHappy" xml:space="preserve"><value>開心</value></data>
+  <data name="PetStateNameAlert" xml:space="preserve"><value>警覺</value></data>
+  <data name="PetStateNameTired" xml:space="preserve"><value>疲憊</value></data>
+  <data name="PetStateNameClimb" xml:space="preserve"><value>攀爬</value></data>
+  <data name="PetStateNameCoding" xml:space="preserve"><value>寫程式</value></data>
+  <data name="PetStateNameMeal" xml:space="preserve"><value>吃飯</value></data>
+  <data name="TabAppearance" xml:space="preserve"><value>外觀</value></data>
+  <data name="TabBehavior" xml:space="preserve"><value>行為</value></data>
+  <data name="TabSystem" xml:space="preserve"><value>系統</value></data>
+  <data name="TabAbout" xml:space="preserve"><value>關於</value></data>
+  <data name="SettingsAppearance" xml:space="preserve"><value>外觀</value></data>
+  <data name="SettingsTiming" xml:space="preserve"><value>時間</value></data>
+  <data name="SettingsSedentary" xml:space="preserve"><value>久坐提醒間隔（分鐘）</value></data>
+  <data name="SettingsSleep" xml:space="preserve"><value>無操作多久後睡著（分鐘）</value></data>
+  <data name="SettingsBossKey" xml:space="preserve"><value>老闆鍵（一鍵隱藏或顯示寵物）</value></data>
+  <data name="BossKeyHint" xml:space="preserve"><value>點擊輸入框，然後按下新的組合鍵（需包含 Ctrl、Alt、Shift 或 Win）。點「清除」可不設定老闆鍵。</value></data>
+  <data name="BossKeyClear" xml:space="preserve"><value>清除</value></data>
+  <data name="BossKeyNone" xml:space="preserve"><value>未設定</value></data>
+  <data name="BossKeyFailed" xml:space="preserve"><value>快速鍵 {0} 無法使用：{1}</value></data>
+  <data name="BossKeyInvalid" xml:space="preserve"><value>這個組合鍵不能用作老闆鍵：請帶上 Ctrl、Alt、Shift 或 Win，並搭配字母、數字或 F1–F24。</value></data>
+  <data name="SettingsFullscreen" xml:space="preserve"><value>全螢幕</value></data>
+  <data name="AutoHide" xml:space="preserve"><value>全螢幕或簡報時自動隱藏寵物</value></data>
+  <data name="CoveredMonitor" xml:space="preserve"><value>前景視窗鋪滿整個顯示器時也算全螢幕</value></data>
+  <data name="BlacklistLabel" xml:space="preserve"><value>這些程式在前景時算全螢幕，如 zoom</value></data>
+  <data name="SettingsScenarios" xml:space="preserve"><value>情境彩蛋</value></data>
+  <data name="ScenariosEnabled" xml:space="preserve"><value>讓寵物依情境自己做動作</value></data>
+  <data name="ScenarioBuilding" xml:space="preserve"><value>編譯器占滿 CPU 時顯示「載入中」</value></data>
+  <data name="ScenarioBuildDone" xml:space="preserve"><value>建置結束時歡呼（無法判斷成敗）</value></data>
+  <data name="ScenarioGitPush" xml:space="preserve"><value>git 與遠端同步時寄快遞</value></data>
+  <data name="ScenarioNightCoding" xml:space="preserve"><value>深夜連續開發數小時後喝咖啡</value></data>
+  <data name="ScenarioReading" xml:space="preserve"><value>開發後去瀏覽器查資料時戴眼鏡</value></data>
+  <data name="ScenarioWelcome" xml:space="preserve"><value>久別歸來時揮手歡迎</value></data>
+  <data name="ScenarioMeeting" xml:space="preserve"><value>會議軟體在前景時戴耳機安靜陪伴</value></data>
+  <data name="ScenarioChatting" xml:space="preserve"><value>聊天軟體在前景時陪著聊天</value></data>
+  <data name="ScenarioLowBattery" xml:space="preserve"><value>電量低且未充電時舉著空電池</value></data>
+  <data name="ScenarioCharging" xml:space="preserve"><value>插上電源時開心充電</value></data>
+  <data name="ScenarioMeal" xml:space="preserve"><value>用餐時間端起碗筷，午餐、晚餐各一次</value></data>
+  <data name="ScenarioClockOut" xml:space="preserve"><value>到下班時間看錶，每天一次</value></data>
+  <data name="ScenarioChime" xml:space="preserve"><value>白天整點敲小鐘報時</value></data>
+  <data name="ScenarioFestive" xml:space="preserve"><value>元旦、春節、程式設計師節、聖誕節戴上派對帽</value></data>
+  <data name="ScenarioNameBuilding" xml:space="preserve"><value>載入中提示</value></data>
+  <data name="ScenarioNameBuildDone" xml:space="preserve"><value>建置完成歡呼</value></data>
+  <data name="ScenarioNameGitPush" xml:space="preserve"><value>寄快遞</value></data>
+  <data name="ScenarioNameNightCoding" xml:space="preserve"><value>深夜咖啡</value></data>
+  <data name="ScenarioNameReading" xml:space="preserve"><value>查資料戴眼鏡</value></data>
+  <data name="ScenarioNameWelcome" xml:space="preserve"><value>久別歡迎</value></data>
+  <data name="ScenarioNameMeeting" xml:space="preserve"><value>會議陪伴</value></data>
+  <data name="ScenarioNameChatting" xml:space="preserve"><value>陪聊</value></data>
+  <data name="ScenarioNameLowBattery" xml:space="preserve"><value>低電量</value></data>
+  <data name="ScenarioNameCharging" xml:space="preserve"><value>充電</value></data>
+  <data name="ScenarioNameMeal" xml:space="preserve"><value>用餐時間</value></data>
+  <data name="ScenarioNameClockOut" xml:space="preserve"><value>下班看錶</value></data>
+  <data name="ScenarioNameChime" xml:space="preserve"><value>整點報時</value></data>
+  <data name="ScenarioNameFestive" xml:space="preserve"><value>節日派對帽</value></data>
+  <data name="ScenariosHoverHint" xml:space="preserve"><value>滑鼠停留在情境上可查看說明</value></data>
+  <data name="ClockOutTimeLabel" xml:space="preserve"><value>下班時間</value></data>
+  <data name="RemarkMeal1" xml:space="preserve"><value>午餐時間到～先吃飯再忙吧！</value></data>
+  <data name="RemarkMeal2" xml:space="preserve"><value>晚餐時間到囉，別餓著肚子工作～</value></data>
+  <data name="RemarkClockOut1" xml:space="preserve"><value>下班時間到了，今天辛苦啦～</value></data>
+  <data name="RemarkClockOut2" xml:space="preserve"><value>週五下班啦！週末愉快～</value></data>
+  <data name="RemarkChime" xml:space="preserve"><value>{0} 點整囉～</value></data>
+  <data name="RemarkFestive1" xml:space="preserve"><value>元旦快樂！新的一年，萬事順利～</value></data>
+  <data name="RemarkFestive2" xml:space="preserve"><value>程式設計師節快樂！1024～</value></data>
+  <data name="RemarkFestive3" xml:space="preserve"><value>聖誕快樂！</value></data>
+  <data name="RemarkFestive4" xml:space="preserve"><value>新年快樂！恭喜發財～</value></data>
+  <data name="MeetingProcessesLabel" xml:space="preserve"><value>會議軟體，如 Zoom</value></data>
+  <data name="ChatProcessesLabel" xml:space="preserve"><value>聊天軟體，如 Weixin</value></data>
+  <data name="RemarkWelcome" xml:space="preserve"><value>歡迎回來～</value></data>
+  <data name="RemarkLowBattery" xml:space="preserve"><value>電量不多囉，快去充電～</value></data>
+  <data name="RemarkNightCoding" xml:space="preserve"><value>夜深了，別熬太晚，早點休息喔～</value></data>
+  <data name="DevProcessesLabel" xml:space="preserve"><value>開發工具（前景且我在操作時算開發），如 Code</value></data>
+  <data name="SettingsSystem" xml:space="preserve"><value>系統</value></data>
+  <data name="AutoStart" xml:space="preserve"><value>開機自動啟動</value></data>
+  <data name="TrayUpdateTo" xml:space="preserve"><value>更新到 {0}</value></data>
+  <data name="SettingsAutoCheckUpdates" xml:space="preserve"><value>自動檢查更新</value></data>
+  <data name="AboutCheckUpdates" xml:space="preserve"><value>檢查更新</value></data>
+  <data name="UpdateChecking" xml:space="preserve"><value>正在檢查更新…</value></data>
+  <data name="UpdateUpToDate" xml:space="preserve"><value>目前已是最新版本。</value></data>
+  <data name="UpdateCheckFailed" xml:space="preserve"><value>檢查更新失敗。</value></data>
+  <data name="UpdateAvailable" xml:space="preserve"><value>發現新版本 {0}</value></data>
+  <data name="UpdateNoInstaller" xml:space="preserve"><value>發現新版本 {0}，但發佈頁面沒有可下載的安裝程式。</value></data>
+  <data name="UpdateNoInstallerNotice" xml:space="preserve"><value>發現新版本，但發佈頁面沒有可下載的安裝程式。</value></data>
+  <data name="UpdateErrorChecksum" xml:space="preserve"><value>安裝程式的檢查碼不符，檔案可能已損毀或遭竄改，已取消安裝。</value></data>
+  <data name="UpdateErrorUnverified" xml:space="preserve"><value>無法確認下載的安裝程式完整可信（缺少檢查碼、大小不符或下載不完整），已取消安裝。</value></data>
+  <data name="UpdateErrorLaunch" xml:space="preserve"><value>無法啟動安裝程式。</value></data>
+  <data name="UpdateErrorGeneric" xml:space="preserve"><value>下載或安裝時發生錯誤，詳情請見記錄檔。</value></data>
+  <data name="UpdateAvailableBody" xml:space="preserve"><value>點擊此處下載並安裝。</value></data>
+  <data name="UpdateConfirmTitle" xml:space="preserve"><value>更新 DeskBuddy</value></data>
+  <data name="UpdateCurrentVersion" xml:space="preserve"><value>目前版本：{0}</value></data>
+  <data name="UpdateReleaseNotes" xml:space="preserve"><value>更新內容</value></data>
+  <data name="UpdateInstallNote" xml:space="preserve"><value>將下載安裝程式並自動安裝，安裝完成後 DeskBuddy 會自動重新啟動。</value></data>
+  <data name="UpdateNow" xml:space="preserve"><value>立即更新</value></data>
+  <data name="UpdateRetry" xml:space="preserve"><value>重試</value></data>
+  <data name="UpdateSkip" xml:space="preserve"><value>略過此版本</value></data>
+  <data name="UpdateRemindLater" xml:space="preserve"><value>稍後提醒</value></data>
+  <data name="UpdateClose" xml:space="preserve"><value>關閉</value></data>
+  <data name="UpdateViewRelease" xml:space="preserve"><value>檢視發佈頁</value></data>
+  <data name="UpdateCancelDownload" xml:space="preserve"><value>取消下載</value></data>
+  <data name="UpdateProgress" xml:space="preserve"><value>{0} / {1}（{2}/秒）</value></data>
+  <data name="UpdateProgressUnknownTotal" xml:space="preserve"><value>已下載 {0}（{1}/秒）</value></data>
+  <data name="UpdateBusy" xml:space="preserve"><value>正在檢查或安裝其他更新，請稍後再試。</value></data>
+  <data name="UpdateSkipFailed" xml:space="preserve"><value>未能記錄「略過此版本」，請稍後再試。</value></data>
+  <data name="UpdateNotStarted" xml:space="preserve"><value>安裝程式沒有啟動（可能拒絕了系統的權限提示），更新已取消。</value></data>
+  <data name="UpdateDownloading" xml:space="preserve"><value>正在下載版本 {0}…</value></data>
+  <data name="UpdateInstallFailed" xml:space="preserve"><value>更新失敗：{0}</value></data>
+  <data name="AutoStartFailed" xml:space="preserve"><value>無法變更開機自動啟動：{0}</value></data>
+  <data name="CrashTitle" xml:space="preserve"><value>DeskBuddy 遇到了問題</value></data>
+  <data name="CrashMessage" xml:space="preserve"><value>發生了一個未處理的錯誤，已記錄到記錄檔，程式會繼續執行。如果反覆出現，請到「設定」裡開啟記錄檔資料夾。</value></data>
+  <data name="SettingsDiagnostics" xml:space="preserve"><value>診斷</value></data>
+  <data name="OpenLogs" xml:space="preserve"><value>開啟記錄檔資料夾</value></data>
+  <data name="MinutesRange" xml:space="preserve"><value>「{0}」需要 {1}–{2} 之間的整數分鐘數。</value></data>
+  <data name="SettingsSaveFailed" xml:space="preserve"><value>設定儲存失敗：{0}</value></data>
+  <data name="SettingsSave" xml:space="preserve"><value>儲存</value></data>
+  <data name="SettingsRevert" xml:space="preserve"><value>還原</value></data>
+  <data name="SettingsUnsaved" xml:space="preserve"><value>有未儲存的修改</value></data>
+  <data name="UnsavedCloseMessage" xml:space="preserve"><value>有未儲存的修改，要儲存嗎？</value></data>
+  <data name="UnsavedInvalidCloseMessage" xml:space="preserve"><value>有無法儲存的輸入。要捨棄這些修改並關閉嗎？</value></data>
+  <data name="SettingsLoadFailed" xml:space="preserve"><value>設定讀取失敗（{0}）。為避免覆蓋原有設定，已暫停修改，請檢查檔案後重新啟動。</value></data>
+  <data name="PetStartupFailed" xml:space="preserve"><value>無法載入寵物，DeskBuddy 即將結束。可以在記錄檔裡查看原因。</value></data>
+  <data name="ErrorInvalidData" xml:space="preserve"><value>檔案內容格式不正確</value></data>
+  <data name="ErrorNotFound" xml:space="preserve"><value>找不到檔案</value></data>
+  <data name="ErrorAccessDenied" xml:space="preserve"><value>沒有存取權限</value></data>
+  <data name="ErrorFileInUse" xml:space="preserve"><value>檔案無法讀寫，可能正被其他程式占用</value></data>
+  <data name="ErrorImage" xml:space="preserve"><value>圖片無法解碼</value></data>
+  <data name="ErrorGeneric" xml:space="preserve"><value>發生了意外錯誤，詳情請見記錄檔</value></data>
+  <data name="PetSwitchFailed" xml:space="preserve"><value>無法切換寵物：{0}</value></data>
+
+  <data name="SettingsLanguage" xml:space="preserve"><value>語言 / Language</value></data>
+  <data name="SettingsPetSize" xml:space="preserve"><value>寵物大小</value></data>
+  <data name="SettingsStrollWhileBusy" xml:space="preserve"><value>寫程式、開會時每隔一會兒起身走幾步</value></data>
+  <data name="SettingsChatter" xml:space="preserve"><value>偶爾主動說一句話</value></data>
+  <data name="StateHintClimb" xml:space="preserve"><value>正在爬螢幕邊緣</value></data>
+  <data name="StateHintClimbDown" xml:space="preserve"><value>正在沿螢幕邊緣往下爬</value></data>
+  <data name="StateHintCeiling" xml:space="preserve"><value>掛在螢幕頂部移動</value></data>
+  <data name="PetSizeSmall" xml:space="preserve"><value>小</value></data>
+  <data name="PetSizeMedium" xml:space="preserve"><value>中</value></data>
+  <data name="PetSizeLarge" xml:space="preserve"><value>大</value></data>
+  <data name="LanguageAuto" xml:space="preserve"><value>跟隨系統</value></data>
+  <data name="LanguageZhCN" xml:space="preserve"><value>简体中文</value></data>
+  <data name="LanguageZhHant" xml:space="preserve"><value>繁體中文</value></data>
+  <data name="LanguageEn" xml:space="preserve"><value>English</value></data>
+  <data name="SettingsTheme" xml:space="preserve"><value>主題</value></data>
+  <data name="ThemeAuto" xml:space="preserve"><value>跟隨系統</value></data>
+  <data name="ThemeLight" xml:space="preserve"><value>淺色</value></data>
+  <data name="ThemeDark" xml:space="preserve"><value>深色</value></data>
+
+  <data name="StateHintCoding" xml:space="preserve"><value>正在陪你寫程式</value></data>
+  <data name="StateHintBuilding" xml:space="preserve"><value>正在建置（編譯器占滿 CPU）</value></data>
+  <data name="StateHintBuildDone" xml:space="preserve"><value>建置結束（無法判斷成敗）</value></data>
+  <data name="StateHintGitPush" xml:space="preserve"><value>git 正在與遠端儲存庫同步</value></data>
+  <data name="StateHintNightCoding" xml:space="preserve"><value>深夜加班中，注意休息</value></data>
+  <data name="StateHintReading" xml:space="preserve"><value>正在查資料</value></data>
+  <data name="StateHintWelcome" xml:space="preserve"><value>歡迎回來</value></data>
+  <data name="StateHintMeeting" xml:space="preserve"><value>會議中，安靜陪伴</value></data>
+  <data name="StateHintChatting" xml:space="preserve"><value>聊天中</value></data>
+  <data name="StateHintLowBattery" xml:space="preserve"><value>電量低，請充電</value></data>
+  <data name="StateHintCharging" xml:space="preserve"><value>已接上電源，正在充電</value></data>
+  <data name="StateHintMeal" xml:space="preserve"><value>用餐時間到了</value></data>
+  <data name="StateHintClockOut" xml:space="preserve"><value>下班時間到了</value></data>
+  <data name="StateHintChime" xml:space="preserve"><value>整點報時</value></data>
+  <data name="StateHintFestive" xml:space="preserve"><value>節日快樂</value></data>
+  <data name="StateHintFall" xml:space="preserve"><value>從高處落下</value></data>
+  <data name="StateHintGlide" xml:space="preserve"><value>撐開傘，慢慢飄落</value></data>
+  <data name="SettingsPrograms" xml:space="preserve"><value>辨識程式</value></data>
+  <data name="ProgramsHint" xml:space="preserve"><value>每行一個處理程序名稱，不含空格；同一個處理程序只能放在一個清單裡。</value></data>
+  <data name="SettingsActions" xml:space="preserve"><value>動作</value></data>
+  <data name="PetSupportNote" xml:space="preserve"><value>部分動作需要寵物內建對應動畫，缺少時會用相近的動作代替。</value></data>
+  <data name="ProcessNameHasSpace" xml:space="preserve"><value>處理程序名稱不能含空格：{0}</value></data>
+  <data name="ProcessNameInOtherList" xml:space="preserve"><value>「{0}」已在「{1}」清單中</value></data>
+  <data name="ProcessListFullscreen" xml:space="preserve"><value>全螢幕</value></data>
+  <data name="ProcessListDevelopment" xml:space="preserve"><value>開發工具</value></data>
+  <data name="ProcessListMeeting" xml:space="preserve"><value>會議軟體</value></data>
+  <data name="ProcessListChat" xml:space="preserve"><value>聊天軟體</value></data>
+  <data name="ProcessesRemovedNotice" xml:space="preserve"><value>載入設定時，已移除以下不符合規則的處理程序名稱：</value></data>
+  <data name="ProcessRemovedHasSpace" xml:space="preserve"><value>「{0}」含空格，已從{1}清單移除</value></data>
+  <data name="ProcessRemovedInOtherList" xml:space="preserve"><value>「{0}」已在{2}清單中，已從{1}清單移除</value></data>
+  <data name="AboutVersion" xml:space="preserve"><value>版本 {0}</value></data>
+  <data name="AboutDescription" xml:space="preserve"><value>一隻住在 Windows 桌面上的寵物，陪你工作、提醒你休息。</value></data>
+  <data name="AboutLicense" xml:space="preserve"><value>MIT 授權 · © 2026 coldhighsun</value></data>
+  <data name="DialogOk" xml:space="preserve"><value>確定</value></data>
+  <data name="DialogYes" xml:space="preserve"><value>是</value></data>
+  <data name="DialogNo" xml:space="preserve"><value>否</value></data>
+  <data name="DialogCancel" xml:space="preserve"><value>取消</value></data>
+  <data name="DialogDontSave" xml:space="preserve"><value>不儲存</value></data>
+</root>

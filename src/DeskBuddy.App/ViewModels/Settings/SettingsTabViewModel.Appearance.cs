@@ -70,6 +70,7 @@ public sealed partial class SettingsTabViewModel
         return language switch
         {
             AppLanguage.ZhCN => Strings.LanguageZhCN,
+            AppLanguage.ZhHant => Strings.LanguageZhHant,
             AppLanguage.En => Strings.LanguageEn,
             _ => Strings.LanguageAuto,
         };

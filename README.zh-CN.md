@@ -5,7 +5,7 @@
 # DeskBuddy
 
 [![CI](https://github.com/coldhighsun/DeskBuddy/actions/workflows/ci.yml/badge.svg)](https://github.com/coldhighsun/DeskBuddy/actions/workflows/ci.yml)
-[![Unit tests: 1479](https://img.shields.io/badge/unit%20tests-1479-brightgreen)](tests)
+[![Unit tests: 1491](https://img.shields.io/badge/unit%20tests-1491-brightgreen)](tests)
 [![Latest Release](https://img.shields.io/github/v/release/coldhighsun/DeskBuddy)](https://github.com/coldhighsun/DeskBuddy/releases/latest)
 [![Latest Pre-release](https://img.shields.io/github/v/release/coldhighsun/DeskBuddy?include_prereleases&label=pre-release)](https://github.com/coldhighsun/DeskBuddy/releases)
 [![GitHub All Releases](https://img.shields.io/github/downloads/coldhighsun/DeskBuddy/total)](https://github.com/coldhighsun/DeskBuddy/releases)
@@ -17,7 +17,7 @@
 [![Open PRs](https://img.shields.io/github/issues-pr/coldhighsun/DeskBuddy)](https://github.com/coldhighsun/DeskBuddy/pulls)
 [![Last Commit](https://img.shields.io/github/last-commit/coldhighsun/DeskBuddy)](https://github.com/coldhighsun/DeskBuddy/commits/main)
 
-[English](README.md) | **简体中文**
+[English](README.md) | **简体中文** | [繁體中文](README.zh-TW.md)
 
 </div>
 
@@ -60,8 +60,8 @@
 
 **应用**
 
-- 支持简体中文和英文：界面默认跟随系统语言，也可以在设置里手动选择（立即生效，无需重启）。翻译文件在
-  `src/DeskBuddy.App/Resources`（`Strings.resx` 为中文，`Strings.en.resx` 为英文）。
+- 支持简体中文、繁体中文和英文：界面默认跟随系统语言，也可以在设置里手动选择（立即生效，无需重启）。翻译文件在
+  `src/DeskBuddy.App/Resources`（`Strings.resx` 为简体中文，`Strings.zh-Hant.resx` 为繁体中文，`Strings.en.resx` 为英文）。
 - 支持深色和浅色主题：面板、托盘菜单和对话气泡默认跟随 Windows 的应用主题并随之实时切换，也可以在设置的“外观”里手动选择浅色或深色（立即生效）。
   Windows 高对比度主题优先。
 - 设置页是“草稿 + 保存”：改动点“保存”后才生效，“还原”会丢弃改动。

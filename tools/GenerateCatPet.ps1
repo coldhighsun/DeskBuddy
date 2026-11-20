@@ -5,7 +5,7 @@
 $PetName = 'cat'
 $HasHop = $true
 # 猫 spelled with a code point, so the script does not depend on its own file encoding.
-$PetNames = @{ En = 'Cat'; Zh = [string][char]0x732B }
+$PetNames = @{ En = 'Cat'; Zh = [string][char]0x732B; ZhHant = [string][char]0x8C93 }
 $IconBox = @(12, 3, 40, 40)
 $pal = @{
     Outline    = New-HdColor 78 46 32

@@ -81,6 +81,9 @@ public class PetTests
     [Theory]
     [InlineData("zh-CN", "猫")]
     [InlineData("zh", "猫")]
+    [InlineData("zh-TW", "貓")]
+    [InlineData("zh-HK", "貓")]
+    [InlineData("zh-Hant", "貓")]
     [InlineData("en-US", "Cat")]
     [InlineData("en-GB", "British cat")]
     [InlineData("fr-FR", "cat")]
@@ -93,13 +96,35 @@ public class PetTests
             128,
             new Dictionary<PetState, PetAnimation> { [PetState.Idle] = Animation("idle.png") },
             null,
-            new Dictionary<string, string> { ["ZH"] = "猫", ["en"] = "Cat", ["en-GB"] = "British cat", ["de"] = " " });
+            new Dictionary<string, string> { ["ZH"] = "猫", ["zh-Hant"] = "貓", ["en"] = "Cat", ["en-GB"] = "British cat", ["de"] = " " });
 
         // Act
         var name = pet.GetDisplayName(CultureInfo.GetCultureInfo(culture));
 
         // Assert
         name.Should().Be(expected);
+    }
+
+    /// <summary>
+    /// A pet that predates Traditional Chinese, with only a <c>zh</c> name, is shown under it in Traditional Chinese too.
+    /// </summary>
+    [Fact]
+    public void GetDisplayName_TraditionalChineseWithoutOwnName_FallsBackToChinese()
+    {
+        // Arrange
+        var pet = new Pet(
+            "cat",
+            128,
+            128,
+            new Dictionary<PetState, PetAnimation> { [PetState.Idle] = Animation("idle.png") },
+            null,
+            new Dictionary<string, string> { ["zh"] = "猫", ["en"] = "Cat" });
+
+        // Act
+        var name = pet.GetDisplayName(CultureInfo.GetCultureInfo("zh-TW"));
+
+        // Assert
+        name.Should().Be("猫");
     }
 
     /// <summary>

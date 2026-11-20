@@ -1,6 +1,6 @@
 ﻿{
   "name": "fox",
-  "names": { "en": "Fox", "zh": "狐狸" },
+  "names": { "en": "Fox", "zh": "狐狸", "zh-Hant": "狐狸" },
   "frameSize": [64, 64],
   "atlas": { "image": "atlas.png", "cell": [256, 256], "columns": 10 },
   "states": {

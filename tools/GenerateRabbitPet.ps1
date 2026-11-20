@@ -10,7 +10,7 @@ $HasHop = $true
 $WalkHops = $true
 $WalkFps = 6
 # 兔子 spelled with code points, so the script does not depend on its own file encoding.
-$PetNames = @{ En = 'Rabbit'; Zh = ([string][char]0x5154 + [string][char]0x5B50) }
+$PetNames = @{ En = 'Rabbit'; Zh = ([string][char]0x5154 + [string][char]0x5B50); ZhHant = ([string][char]0x5154 + [string][char]0x5B50) }
 $IconBox = @(10, 1, 41, 41)
 $HeadBox = @(16, 15, 48, 41)
 $pal = @{

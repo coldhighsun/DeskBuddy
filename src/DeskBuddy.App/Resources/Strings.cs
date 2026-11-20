@@ -696,6 +696,11 @@ internal static class Strings
     public static string LanguageZhCN => Get();
 
     /// <summary>
+    /// Gets the name of the Traditional Chinese choice.
+    /// </summary>
+    public static string LanguageZhHant => Get();
+
+    /// <summary>
     /// Gets the name of the English choice.
     /// </summary>
     public static string LanguageEn => Get();

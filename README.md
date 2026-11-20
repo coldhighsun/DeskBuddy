@@ -5,7 +5,7 @@
 # DeskBuddy
 
 [![CI](https://github.com/coldhighsun/DeskBuddy/actions/workflows/ci.yml/badge.svg)](https://github.com/coldhighsun/DeskBuddy/actions/workflows/ci.yml)
-[![Unit tests: 1479](https://img.shields.io/badge/unit%20tests-1479-brightgreen)](tests)
+[![Unit tests: 1491](https://img.shields.io/badge/unit%20tests-1491-brightgreen)](tests)
 [![Latest Release](https://img.shields.io/github/v/release/coldhighsun/DeskBuddy)](https://github.com/coldhighsun/DeskBuddy/releases/latest)
 [![Latest Pre-release](https://img.shields.io/github/v/release/coldhighsun/DeskBuddy?include_prereleases&label=pre-release)](https://github.com/coldhighsun/DeskBuddy/releases)
 [![GitHub All Releases](https://img.shields.io/github/downloads/coldhighsun/DeskBuddy/total)](https://github.com/coldhighsun/DeskBuddy/releases)
@@ -17,7 +17,7 @@
 [![Open PRs](https://img.shields.io/github/issues-pr/coldhighsun/DeskBuddy)](https://github.com/coldhighsun/DeskBuddy/pulls)
 [![Last Commit](https://img.shields.io/github/last-commit/coldhighsun/DeskBuddy)](https://github.com/coldhighsun/DeskBuddy/commits/main)
 
-**English** | [简体中文](README.zh-CN.md)
+**English** | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md)
 
 </div>
 
@@ -72,9 +72,9 @@ for; anything missing falls back to a similar state.
 
 **The app**
 
-- English and Simplified Chinese: the interface follows the system language, or choose one in the settings (a change
-  takes effect immediately, no restart). Translations live in `src/DeskBuddy.App/Resources` (`Strings.resx` is Chinese,
-  `Strings.en.resx` is English).
+- English, Simplified Chinese and Traditional Chinese: the interface follows the system language, or choose one in the
+  settings (a change takes effect immediately, no restart). Translations live in `src/DeskBuddy.App/Resources`
+  (`Strings.resx` is Simplified Chinese, `Strings.zh-Hant.resx` is Traditional Chinese, `Strings.en.resx` is English).
 - Light and dark themes: the panel, tray menu and speech bubble follow the Windows app theme and switch as it changes, or
   choose light or dark under Appearance in the settings (takes effect at once). A Windows high-contrast theme is respected.
 - The settings are a draft: changes take effect when you click Save, and Revert discards them.

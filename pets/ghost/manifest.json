@@ -1,6 +1,6 @@
 ﻿{
   "name": "ghost",
-  "names": { "en": "Ghost", "zh": "幽灵" },
+  "names": { "en": "Ghost", "zh": "幽灵", "zh-Hant": "幽靈" },
   "frameSize": [64, 64],
   "atlas": { "image": "atlas.png", "cell": [256, 256], "columns": 10 },
   "states": {

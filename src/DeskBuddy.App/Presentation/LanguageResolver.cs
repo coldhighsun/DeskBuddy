@@ -15,19 +15,42 @@ public static class LanguageResolver
     /// The language of the operating system, used when the choice is <see cref="AppLanguage.Auto"/>.
     /// </param>
     /// <returns>
-    /// Simplified Chinese or English: any system language other than Chinese gets English.
+    /// Simplified Chinese, Traditional Chinese or English: a Chinese system language that is written in traditional
+    /// characters (Taiwan, Hong Kong, Macao, or the <c>zh-Hant</c> script) gets Traditional Chinese, any other Chinese gets
+    /// Simplified Chinese, and any other system language gets English.
     /// </returns>
     public static CultureInfo Resolve(AppLanguage language, CultureInfo system)
     {
         ArgumentNullException.ThrowIfNull(system);
 
-        var chinese = language switch
+        var name = language switch
         {
-            AppLanguage.ZhCN => true,
-            AppLanguage.En => false,
-            _ => string.Equals(system.TwoLetterISOLanguageName, "zh", StringComparison.OrdinalIgnoreCase),
+            AppLanguage.ZhCN => "zh-CN",
+            AppLanguage.ZhHant => "zh-Hant",
+            AppLanguage.En => "en",
+            _ => FromSystem(system),
         };
 
-        return CultureInfo.GetCultureInfo(chinese ? "zh-CN" : "en");
+        return CultureInfo.GetCultureInfo(name);
+    }
+
+    private static string FromSystem(CultureInfo system)
+    {
+        if (!string.Equals(system.TwoLetterISOLanguageName, "zh", StringComparison.OrdinalIgnoreCase))
+        {
+            return "en";
+        }
+
+        for (var current = system; current.Name.Length > 0; current = current.Parent)
+        {
+            if (current.Name.Contains("Hant", StringComparison.OrdinalIgnoreCase))
+            {
+                return "zh-Hant";
+            }
+        }
+
+        var region = system.Name.Split('-')[^1];
+
+        return region.ToUpperInvariant() is "TW" or "HK" or "MO" ? "zh-Hant" : "zh-CN";
     }
 }

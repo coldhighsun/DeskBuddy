@@ -19,4 +19,9 @@ public enum AppLanguage
     /// English.
     /// </summary>
     En,
+
+    /// <summary>
+    /// Traditional Chinese.
+    /// </summary>
+    ZhHant,
 }

@@ -6,7 +6,7 @@
 # (32, 27) and spans about x 16-48, y 14-39 (give the real box in $HeadBox), so the props and the labels of the scenario
 # frames fit every pet.
 #
-# Required: $PetName, $PetNames (@{ En = ...; Zh = ... }, the name in English and in Chinese), $IconBox (the head in the idle
+# Required: $PetName, $PetNames (@{ En = ...; Zh = ...; ZhHant = ... }, the name in English, in Simplified and in Traditional Chinese; ZhHant may be left out when it reads like Zh), $IconBox (the head in the idle
 # frame, x y width height in drawing units, for the tray icon), $pal.
 # Optional settings: $HasHop (a hop animation for the walk), $WalkHops (the walk is a series of hops; so is the climb, and the
 #   ceiling walk is the hops upside down), $WalkFps (frames per second of the walk), $NoArms (no arms: nothing is raised, held
@@ -260,7 +260,7 @@ $hopLine = if ($HasHop) { "    `"Hop`":     { `"fps`": 8, `"frames`": [`"hop_0.p
 $manifest = @"
 {
   "name": "$PetName",
-  "names": { "en": "$($PetNames.En)", "zh": "$($PetNames.Zh)" },
+  "names": { "en": "$($PetNames.En)", "zh": "$($PetNames.Zh)", "zh-Hant": "$(if ($PetNames.ZhHant) { $PetNames.ZhHant } else { $PetNames.Zh })" },
   "frameSize": [64, 64],
   "states": {
     "Idle":    { "fps": 2, "frames": ["idle_0.png", "idle_1.png", "idle_2.png", "idle_3.png"] },

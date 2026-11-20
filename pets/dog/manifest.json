@@ -1,6 +1,6 @@
 ﻿{
   "name": "dog",
-  "names": { "en": "Dog", "zh": "狗" },
+  "names": { "en": "Dog", "zh": "狗", "zh-Hant": "狗" },
   "frameSize": [64, 64],
   "atlas": { "image": "atlas.png", "cell": [256, 256], "columns": 10 },
   "states": {

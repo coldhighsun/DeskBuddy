@@ -1,6 +1,6 @@
 ﻿{
   "name": "penguin",
-  "names": { "en": "Penguin", "zh": "企鹅" },
+  "names": { "en": "Penguin", "zh": "企鹅", "zh-Hant": "企鵝" },
   "frameSize": [64, 64],
   "atlas": { "image": "atlas.png", "cell": [256, 256], "columns": 10 },
   "states": {

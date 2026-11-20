@@ -1,6 +1,6 @@
 ﻿{
   "name": "robot",
-  "names": { "en": "Robot", "zh": "机器人" },
+  "names": { "en": "Robot", "zh": "机器人", "zh-Hant": "機器人" },
   "frameSize": [64, 64],
   "atlas": { "image": "atlas.png", "cell": [256, 256], "columns": 10 },
   "states": {

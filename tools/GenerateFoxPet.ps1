@@ -6,7 +6,7 @@
 
 $PetName = 'fox'
 # 狐狸 spelled with code points, so the script does not depend on its own file encoding.
-$PetNames = @{ En = 'Fox'; Zh = ([string][char]0x72D0 + [string][char]0x72F8) }
+$PetNames = @{ En = 'Fox'; Zh = ([string][char]0x72D0 + [string][char]0x72F8); ZhHant = ([string][char]0x72D0 + [string][char]0x72F8) }
 
 $pal = @{
     Outline  = New-HdColor 84 44 24
@@ -243,7 +243,7 @@ Save-Frame 'idle_down.png'  { Add-Fox -EyeLift 1.3 }
 $manifest = @"
 {
   "name": "$PetName",
-  "names": { "en": "$($PetNames.En)", "zh": "$($PetNames.Zh)" },
+  "names": { "en": "$($PetNames.En)", "zh": "$($PetNames.Zh)", "zh-Hant": "$($PetNames.ZhHant)" },
   "frameSize": [64, 64],
   "states": {
     "Idle":    { "fps": 2, "frames": ["idle_0.png", "idle_1.png", "idle_2.png", "idle_3.png"] },

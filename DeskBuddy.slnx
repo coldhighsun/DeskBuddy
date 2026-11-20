@@ -8,6 +8,7 @@
     <File Path="nuget.config" />
     <File Path="README.md" />
     <File Path="README.zh-CN.md" />
+    <File Path="README.zh-TW.md" />
   </Folder>
   <Folder Name="/assets/.github/">
     <File Path=".github/dependabot.yml" />

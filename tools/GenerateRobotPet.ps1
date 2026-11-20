@@ -7,6 +7,7 @@
 $PetName = 'robot'
 # 机器人 spelled with code points, so the script does not depend on its own file encoding.
 $PetNameZh = [string][char]0x673A + [string][char]0x5668 + [string][char]0x4EBA
+$PetNameZhHant = [string][char]0x6A5F + [string][char]0x5668 + [string][char]0x4EBA
 
 $outDir = Join-Path $PSScriptRoot '..\pets\robot'
 New-Item -ItemType Directory -Force -Path $outDir | Out-Null
@@ -661,7 +662,7 @@ foreach ($f in 0..3) {
 $manifest = @"
 {
   "name": "robot",
-  "names": { "en": "Robot", "zh": "$PetNameZh" },
+  "names": { "en": "Robot", "zh": "$PetNameZh", "zh-Hant": "$PetNameZhHant" },
   "frameSize": [64, 64],
   "states": {
     "Idle":   { "fps": 2, "frames": ["idle_0.png", "idle_1.png", "idle_2.png", "idle_3.png"] },

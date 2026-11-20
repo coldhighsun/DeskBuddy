@@ -1,6 +1,6 @@
 ﻿{
   "name": "cat",
-  "names": { "en": "Cat", "zh": "猫" },
+  "names": { "en": "Cat", "zh": "猫", "zh-Hant": "貓" },
   "frameSize": [64, 64],
   "atlas": { "image": "atlas.png", "cell": [256, 256], "columns": 10 },
   "states": {
