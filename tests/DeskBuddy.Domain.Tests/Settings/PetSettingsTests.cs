@@ -370,12 +370,12 @@ public class PetSettingsTests
     }
 
     /// <summary>
-    /// The three sizes show a 64 pixel frame at 32, 48 and 64 pixels.
+    /// The three sizes show a 64 pixel frame at 48, 64 and 96 pixels.
     /// </summary>
     [Theory]
-    [InlineData(PetSize.Small, 32)]
-    [InlineData(PetSize.Medium, 48)]
-    [InlineData(PetSize.Large, 64)]
+    [InlineData(PetSize.Small, 48)]
+    [InlineData(PetSize.Medium, 64)]
+    [InlineData(PetSize.Large, 96)]
     public void Scale_Frame64_GivesTheSizeInPixels(PetSize size, double expected)
     {
         // Act
@@ -392,7 +392,7 @@ public class PetSettingsTests
     public void Scale_NonSquareAndTinyFrames_KeepProportionsAndStayPositive()
     {
         // Assert
-        PetSize.Medium.Scale(96).Should().Be(72);
+        PetSize.Medium.Scale(96).Should().Be(96);
         PetSize.Small.Scale(1).Should().Be(1);
     }
 

@@ -6,17 +6,17 @@ namespace DeskBuddy.Domain.Settings;
 public enum PetSize
 {
     /// <summary>
-    /// A small pet, half the reference size.
+    /// A small pet, three quarters of the reference size.
     /// </summary>
     Small,
 
     /// <summary>
-    /// A medium pet, three quarters of the reference size.
+    /// A medium pet, the reference size.
     /// </summary>
     Medium,
 
     /// <summary>
-    /// A large pet, the reference size.
+    /// A large pet, one and a half times the reference size.
     /// </summary>
     Large,
 }
@@ -28,7 +28,7 @@ public static class PetSizeExtensions
 {
     /// <summary>
     /// Gets the edge length in device independent pixels that pets are designed for, which is what the
-    /// <see cref="PetSize.Large"/> size shows.
+    /// <see cref="PetSize.Medium"/> size shows.
     /// </summary>
     public const double ReferenceEdge = 64;
 
@@ -39,15 +39,15 @@ public static class PetSizeExtensions
     /// The size.
     /// </param>
     /// <returns>
-    /// 0.5, 0.75 or 1.
+    /// 0.75, 1 or 1.5.
     /// </returns>
     public static double ToScale(this PetSize size)
     {
         return size switch
         {
-            PetSize.Small => 32 / ReferenceEdge,
-            PetSize.Medium => 48 / ReferenceEdge,
-            _ => 1,
+            PetSize.Small => 48 / ReferenceEdge,
+            PetSize.Medium => 1,
+            _ => 96 / ReferenceEdge,
         };
     }
 
