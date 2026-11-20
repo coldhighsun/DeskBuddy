@@ -13,6 +13,18 @@ namespace DeskBuddy.Domain.Pets;
 public sealed record PetAnimation(double Fps, IReadOnlyList<string> FrameIds)
 {
     /// <summary>
+    /// The slowest playback speed a pet may declare, in frames per second. Anything slower would make a frame last longer than
+    /// a timer can wait.
+    /// </summary>
+    public const double MinFps = 0.1;
+
+    /// <summary>
+    /// The fastest playback speed a pet may declare, in frames per second. Anything faster cannot be shown and would keep the
+    /// animation timer firing without a pause.
+    /// </summary>
+    public const double MaxFps = 120;
+
+    /// <summary>
     /// Gets the time each frame stays on screen.
     /// </summary>
     public TimeSpan FrameDuration => TimeSpan.FromSeconds(1 / Fps);

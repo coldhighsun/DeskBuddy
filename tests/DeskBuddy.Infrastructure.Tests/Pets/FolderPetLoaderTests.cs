@@ -466,4 +466,129 @@ public sealed class FolderPetLoaderTests : IDisposable
         // Assert
         await act.Should().ThrowAsync<InvalidDataException>();
     }
+
+    /// <summary>
+    /// A speed outside the range an animation timer can keep to is rejected, with the range in the message.
+    /// </summary>
+    /// <param name="fps">
+    /// The speed written in the manifest.
+    /// </param>
+    [Theory]
+    [InlineData("0.0000001")]
+    [InlineData("0.05")]
+    [InlineData("121")]
+    [InlineData("10000000")]
+    public async Task LoadAsync_FpsOutOfRange_ThrowsInvalidData(string fps)
+    {
+        // Arrange
+        WritePet("""{"frameSize":[8,8],%ATLAS%,"states":{"Idle":{"fps":@@,"frames":[0]}}}""".Replace("@@", fps));
+
+        // Act
+        var act = () => _loader.LoadAsync(_directory);
+
+        // Assert
+        (await act.Should().ThrowAsync<InvalidDataException>()).Which.Message.Should().Contain("fps");
+    }
+
+    /// <summary>
+    /// An atlas named by a path that leads out of the pet's folder is rejected, even when the file is there.
+    /// </summary>
+    /// <param name="image">
+    /// The image name written in the manifest.
+    /// </param>
+    [Theory]
+    [InlineData("../outside.png")]
+    [InlineData("sub/../../outside.png")]
+    public async Task LoadAsync_AtlasOutsidePetFolder_ThrowsInvalidData(string image)
+    {
+        // Arrange
+        WritePet("""{"frameSize":[8,8],"atlas":{"image":"@@","cell":[8,8]},"states":{"Idle":{"fps":1,"frames":[0]}}}""".Replace("@@", image));
+        var outside = Path.Combine(Path.GetDirectoryName(_directory)!, "outside.png");
+        File.WriteAllBytes(outside, PngHeader(32, 16));
+
+        try
+        {
+            // Act
+            var act = () => _loader.LoadAsync(_directory);
+
+            // Assert
+            (await act.Should().ThrowAsync<InvalidDataException>()).Which.Message.Should().Contain("not inside");
+        }
+        finally
+        {
+            File.Delete(outside);
+        }
+    }
+
+    /// <summary>
+    /// An atlas given by an absolute path is rejected.
+    /// </summary>
+    [Fact]
+    public async Task LoadAsync_AtlasAbsolutePath_ThrowsInvalidData()
+    {
+        // Arrange
+        var absolute = Path.Combine(Path.GetTempPath(), "other.png").Replace("\\", "/");
+        WritePet("""{"frameSize":[8,8],"atlas":{"image":"@@","cell":[8,8]},"states":{"Idle":{"fps":1,"frames":[0]}}}""".Replace("@@", absolute));
+
+        // Act
+        var act = () => _loader.LoadAsync(_directory);
+
+        // Assert
+        (await act.Should().ThrowAsync<InvalidDataException>()).Which.Message.Should().Contain("not inside");
+    }
+
+    /// <summary>
+    /// An atlas in a subfolder of the pet's folder is accepted.
+    /// </summary>
+    [Fact]
+    public async Task LoadAsync_AtlasInSubfolder_IsAccepted()
+    {
+        // Arrange
+        Directory.CreateDirectory(Path.Combine(_directory, "art"));
+        WritePet("""{"frameSize":[8,8],"atlas":{"image":"art/atlas.png","cell":[8,8]},"states":{"Idle":{"fps":1,"frames":[0]}}}""");
+        File.Move(Path.Combine(_directory, "atlas.png"), Path.Combine(_directory, "art", "atlas.png"));
+
+        // Act
+        var pet = await _loader.LoadAsync(_directory, TestContext.Current.CancellationToken);
+
+        // Assert
+        pet.GetAnimation(PetState.Idle).FrameIds.Should().ContainSingle();
+    }
+
+    /// <summary>
+    /// An atlas with more pixels than the limit is rejected before anything decodes it.
+    /// </summary>
+    [Fact]
+    public async Task LoadAsync_HugeAtlas_ThrowsInvalidData()
+    {
+        // Arrange
+        WritePet("""{"frameSize":[8,8],%ATLAS%,"states":{"Idle":{"fps":1,"frames":[0]}}}""", atlasWidth: 20000, atlasHeight: 20000);
+
+        // Act
+        var act = () => _loader.LoadAsync(_directory);
+
+        // Assert
+        (await act.Should().ThrowAsync<InvalidDataException>()).Which.Message.Should().Contain("allowed");
+    }
+
+    /// <summary>
+    /// The ends of the allowed range are accepted.
+    /// </summary>
+    /// <param name="fps">
+    /// The speed written in the manifest.
+    /// </param>
+    [Theory]
+    [InlineData("0.1")]
+    [InlineData("120")]
+    public async Task LoadAsync_FpsAtLimit_IsAccepted(string fps)
+    {
+        // Arrange
+        WritePet("""{"frameSize":[8,8],%ATLAS%,"states":{"Idle":{"fps":@@,"frames":[0]}}}""".Replace("@@", fps));
+
+        // Act
+        var pet = await _loader.LoadAsync(_directory, TestContext.Current.CancellationToken);
+
+        // Assert
+        pet.GetAnimation(PetState.Idle).FrameDuration.Should().BePositive();
+    }
 }

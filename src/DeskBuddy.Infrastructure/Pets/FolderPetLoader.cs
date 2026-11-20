@@ -25,6 +25,11 @@ public sealed class FolderPetLoader(ILogger<FolderPetLoader> logger) : IPetLoade
     private const string IdlePrefix = "Idle.";
 
     /// <summary>
+    /// The most pixels an atlas image may have (8192 by 8192), as it is decoded whole.
+    /// </summary>
+    private const long MaxAtlasPixels = 8192L * 8192;
+
+    /// <summary>
     /// Serializer options used to read the manifest.
     /// </summary>
     private static readonly JsonSerializerOptions SerializerOptions = new()
@@ -132,13 +137,27 @@ public sealed class FolderPetLoader(ILogger<FolderPetLoader> logger) : IPetLoade
             throw new InvalidDataException($"The atlas cell {cell[0]}x{cell[1]} does not have the proportions of the frame size {frameSize[0]}x{frameSize[1]}: {manifestPath}");
         }
 
-        var path = Path.GetFullPath(Path.Combine(petDirectory, image));
+        // The atlas belongs to the pet, so a name that points out of its folder (an absolute path, "..") is refused.
+        var root = Path.TrimEndingDirectorySeparator(Path.GetFullPath(petDirectory));
+        var path = Path.GetFullPath(Path.Combine(root, image));
+        if (!path.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidDataException($"Atlas image '{image}' is not inside the pet's folder: {manifestPath}");
+        }
+
         if (!File.Exists(path))
         {
             throw new InvalidDataException($"Atlas image '{image}' not found: {path}");
         }
 
         var (width, height) = ReadPngSize(path);
+
+        // The whole image is decoded to cut the frames out of it, so a huge one would take the memory of the application.
+        if ((long)width * height > MaxAtlasPixels)
+        {
+            throw new InvalidDataException($"Atlas image '{image}' is {width}x{height}, which is more than the {MaxAtlasPixels} pixels allowed.");
+        }
+
         var columns = dto.Columns ?? (width / cell[0]);
         if (columns <= 0 || (long)columns * cell[0] > width || cell[1] > height)
         {
@@ -200,9 +219,16 @@ public sealed class FolderPetLoader(ILogger<FolderPetLoader> logger) : IPetLoade
     /// </returns>
     private static PetAnimation BuildAnimation(Atlas atlas, string stateName, AnimationDto? animation)
     {
-        if (animation is not { Fps: > 0, Frames.Length: > 0 })
+        if (animation is not { Frames.Length: > 0 })
         {
-            throw new InvalidDataException($"State '{stateName}' needs a positive 'fps' and at least one frame.");
+            throw new InvalidDataException($"State '{stateName}' needs an 'fps' and at least one frame.");
+        }
+
+        // A speed the animation timer cannot keep to would freeze the window or make the timer throw.
+        if (!(animation.Fps is >= PetAnimation.MinFps and <= PetAnimation.MaxFps))
+        {
+            throw new InvalidDataException(
+                $"State '{stateName}' has an 'fps' of {animation.Fps}, which must be between {PetAnimation.MinFps} and {PetAnimation.MaxFps}.");
         }
 
         var cellCount = (long)atlas.Columns * atlas.Rows;
