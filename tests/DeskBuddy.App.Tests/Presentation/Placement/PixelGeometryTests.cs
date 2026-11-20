@@ -87,7 +87,7 @@ public sealed class PixelGeometryTests
         var workArea = new PixelRect(0, 0, 1920, 1040);
 
         // Act
-        var (left, top, centre) = BubblePlacement.Compute(pet, 300, 100, 35, workArea);
+        var (left, top, centre, _) = BubblePlacement.Compute(pet, 300, 100, 35, 35, workArea);
 
         // Assert
         left.Should().Be(930);
@@ -106,7 +106,7 @@ public sealed class PixelGeometryTests
         var workArea = new PixelRect(0, 0, 1920, 1040);
 
         // Act
-        var (left, _, _) = BubblePlacement.Compute(pet, 300, 100, 35, workArea);
+        var (left, _, _, _) = BubblePlacement.Compute(pet, 300, 100, 35, 35, workArea);
 
         // Assert
         left.Should().Be(1620);
@@ -123,27 +123,97 @@ public sealed class PixelGeometryTests
         var workArea = new PixelRect(-1920, 0, 0, 1040);
 
         // Act
-        var (left, _, _) = BubblePlacement.Compute(pet, 300, 100, 35, workArea);
+        var (left, _, _, _) = BubblePlacement.Compute(pet, 300, 100, 35, 35, workArea);
 
         // Assert
         left.Should().Be(-1920);
     }
 
     /// <summary>
-    /// A bubble taller than the room above the pet is held at the top of the work area.
+    /// A bubble taller than the room above the pet goes below the pet instead of covering it.
     /// </summary>
     [Fact]
-    public void Compute_PetNearTop_BubbleStopsAtWorkAreaTop()
+    public void Compute_PetNearTop_BubbleGoesBelowThePet()
     {
         // Arrange
         var pet = new PixelRect(500, 20, 660, 180);
         var workArea = new PixelRect(0, 0, 1920, 1040);
 
         // Act
-        var (_, top, _) = BubblePlacement.Compute(pet, 300, 200, 35, workArea);
+        var (_, top, _, below) = BubblePlacement.Compute(pet, 300, 200, 35, 35, workArea);
 
         // Assert
-        top.Should().Be(0);
+        below.Should().BeTrue();
+        top.Should().Be(pet.Bottom - 35);
+    }
+
+    /// <summary>
+    /// A pet at the very top of the work area, as when it crawls along the ceiling, gets its bubble below it.
+    /// </summary>
+    [Fact]
+    public void Compute_PetAtWorkAreaTop_BubbleStartsBelowTheSprite()
+    {
+        // Arrange
+        var pet = new PixelRect(500, 0, 660, 160);
+        var workArea = new PixelRect(0, 0, 1920, 1040);
+        var belowOverlap = BubblePlacement.TailOverlapBelow(pet.Height, 0.75, 4);
+
+        // Act
+        var (_, top, _, below) = BubblePlacement.Compute(pet, 300, 100, 0, belowOverlap, workArea);
+
+        // Assert
+        below.Should().BeTrue();
+        top.Should().Be(pet.Top + 120 + 4);
+    }
+
+    /// <summary>
+    /// With room above, the bubble stays above the pet.
+    /// </summary>
+    [Fact]
+    public void Compute_RoomAbove_IsNotBelow()
+    {
+        // Arrange
+        var pet = new PixelRect(1000, 800, 1160, 960);
+        var workArea = new PixelRect(0, 0, 1920, 1040);
+
+        // Act
+        var (_, _, _, below) = BubblePlacement.Compute(pet, 300, 100, 35, 35, workArea);
+
+        // Assert
+        below.Should().BeFalse();
+    }
+
+    /// <summary>
+    /// A bubble below the pet is kept inside the bottom of the work area.
+    /// </summary>
+    [Fact]
+    public void Compute_NoRoomAboveAndBelowTight_StaysInsideWorkArea()
+    {
+        // Arrange
+        var pet = new PixelRect(500, 0, 660, 160);
+        var workArea = new PixelRect(0, 0, 1920, 200);
+
+        // Act
+        var (_, top, _, _) = BubblePlacement.Compute(pet, 300, 100, 0, 0, workArea);
+
+        // Assert
+        top.Should().Be(100);
+    }
+
+    /// <summary>
+    /// The bubble starts a small gap below the sprite, however much transparent space the pet leaves under its feet.
+    /// </summary>
+    [Theory]
+    [InlineData(1.0, 4, -4)]
+    [InlineData(0.75, 4, 36)]
+    [InlineData(0.5, 0, 80)]
+    public void TailOverlapBelow_SpriteEndsHigherInWindow_ReachesUpToSprite(double spriteBottom, int gap, int expected)
+    {
+        // Act
+        var overlap = BubblePlacement.TailOverlapBelow(160, spriteBottom, gap);
+
+        // Assert
+        overlap.Should().Be(expected);
     }
 
     /// <summary>
@@ -174,7 +244,7 @@ public sealed class PixelGeometryTests
         var overlap = BubblePlacement.TailOverlap(pet.Height, 0.25, 4);
 
         // Act
-        var (_, top, _) = BubblePlacement.Compute(pet, 300, 100, overlap, workArea);
+        var (_, top, _, _) = BubblePlacement.Compute(pet, 300, 100, overlap, 35, workArea);
 
         // Assert
         (top + 100).Should().Be(pet.Top + 40 - 4);

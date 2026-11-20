@@ -62,6 +62,54 @@ public class AlphaMaskTests
     }
 
     /// <summary>
+    /// The sprite's bottom is the end of the last row that has an opaque pixel, as a fraction of the frame height.
+    /// </summary>
+    [Fact]
+    public void BottomOpaqueFraction_EmptyRowsBelow_ReturnsEndOfLastOpaqueRow()
+    {
+        // Arrange
+        var mask = new AlphaMask(2, 4, [0, 0, 0, 255, 0, 0, 0, 0]);
+
+        // Act
+        var bottom = mask.BottomOpaqueFraction();
+
+        // Assert
+        bottom.Should().Be(0.5);
+    }
+
+    /// <summary>
+    /// A sprite that touches the bottom edge ends at one.
+    /// </summary>
+    [Fact]
+    public void BottomOpaqueFraction_OpaqueLastRow_ReturnsOne()
+    {
+        // Arrange
+        var mask = new AlphaMask(2, 2, [0, 0, 0, 255]);
+
+        // Act
+        var bottom = mask.BottomOpaqueFraction();
+
+        // Assert
+        bottom.Should().Be(1);
+    }
+
+    /// <summary>
+    /// A frame with nothing opaque has no bottom, so it counts as one.
+    /// </summary>
+    [Fact]
+    public void BottomOpaqueFraction_FullyTransparent_ReturnsOne()
+    {
+        // Arrange
+        var mask = new AlphaMask(2, 2, [0, 0, 0, 0]);
+
+        // Act
+        var bottom = mask.BottomOpaqueFraction();
+
+        // Assert
+        bottom.Should().Be(1);
+    }
+
+    /// <summary>
     /// An alpha buffer of the wrong size is rejected.
     /// </summary>
     [Fact]

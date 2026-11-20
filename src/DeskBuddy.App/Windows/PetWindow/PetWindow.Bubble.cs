@@ -51,7 +51,7 @@ public partial class PetWindow
         }
 
         _bubble.SetContent(MessagePresenter.Present(message));
-        _bubble.PositionAbove(this, SpriteTop());
+        PositionBubble(_bubble);
         if (!_bubble.IsVisible)
         {
             _bubble.Show();
@@ -80,18 +80,19 @@ public partial class PetWindow
     {
         if (_bubble is { IsVisible: true })
         {
-            _bubble.PositionAbove(this, SpriteTop());
+            PositionBubble(_bubble);
         }
     }
 
     /// <summary>
-    /// Finds where the sprite being shown starts inside the pet window, so the speech bubble can sit just above it.
+    /// Puts the speech bubble next to the sprite being shown: above it, or below it when there is no room above.
     /// </summary>
-    /// <returns>
-    /// The top of the sprite as a fraction of the window height.
-    /// </returns>
-    private double SpriteTop()
+    /// <param name="bubble">
+    /// The bubble to place.
+    /// </param>
+    private void PositionBubble(BubbleWindow bubble)
     {
-        return _frames.GetMask(_player.CurrentFrameId).TopOpaqueFraction();
+        var mask = _frames.GetMask(_player.CurrentFrameId);
+        bubble.PositionNear(this, mask.TopOpaqueFraction(), mask.BottomOpaqueFraction());
     }
 }

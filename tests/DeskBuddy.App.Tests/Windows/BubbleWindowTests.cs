@@ -20,6 +20,11 @@ public sealed class BubbleWindowTests
     private const double SpriteTop = 0.25;
 
     /// <summary>
+    /// A fraction of the pet window's height at which the test sprite ends.
+    /// </summary>
+    private const double SpriteBottom = 0.9;
+
+    /// <summary>
     /// A message long enough to wrap to several lines in the bubble.
     /// </summary>
     private const string LongText = "You have been working for 60 minutes in a row, get up, move around a little and drink some water.";
@@ -94,7 +99,7 @@ public sealed class BubbleWindowTests
     private static void ShowMessage(Window pet, BubbleWindow bubble, string text)
     {
         bubble.SetContent(new BubbleContent(text, []));
-        bubble.PositionAbove(pet, SpriteTop);
+        bubble.PositionNear(pet, SpriteTop, SpriteBottom);
         if (!bubble.IsVisible)
         {
             bubble.Show();
@@ -200,13 +205,37 @@ public sealed class BubbleWindowTests
         {
             // Arrange
             bubble.SetContent(new BubbleContent(ShortText, []));
-            bubble.PositionAbove(pet, SpriteTop);
+            bubble.PositionNear(pet, SpriteTop, SpriteBottom);
 
             // Act
             ShowMessage(pet, bubble, LongText);
 
             // Assert
             AssertEndsAboveSprite(pet, bubble, spriteTopPixel);
+        });
+    }
+
+    /// <summary>
+    /// A pet at the top of the work area has no room above it, so the bubble goes below the sprite and does not cover
+    /// the pet.
+    /// </summary>
+    [Fact]
+    public void PositionNear_PetAtTopOfWorkArea_BubbleStartsBelowTheSprite()
+    {
+        Run((pet, bubble, _) =>
+        {
+            // Arrange
+            var work = MonitorHelper.GetWorkAreaPixels(pet);
+            var petBounds = MonitorHelper.GetWindowBoundsPixels(pet);
+            WindowMover.MoveToPixels(pet, petBounds.Left, work.Top);
+            petBounds = MonitorHelper.GetWindowBoundsPixels(pet);
+            var spriteBottomPixel = petBounds.Top + (int)Math.Round(petBounds.Height * SpriteBottom, MidpointRounding.AwayFromZero);
+
+            // Act
+            ShowMessage(pet, bubble, LongText);
+
+            // Assert
+            MonitorHelper.GetWindowBoundsPixels(bubble).Top.Should().BeGreaterThanOrEqualTo(spriteBottomPixel);
         });
     }
 
