@@ -117,7 +117,29 @@ public static class BubblePlacement
     }
 
     /// <summary>
-    /// Places the bubble above the pet, centred on it but kept inside the work area.
+    /// Works out how far the bubble's top reaches above the bottom of the pet window so that it starts just below the
+    /// sprite, whatever transparent space the pet leaves under its feet.
+    /// </summary>
+    /// <param name="petHeight">
+    /// The pet window's height in device pixels.
+    /// </param>
+    /// <param name="spriteBottom">
+    /// Where the sprite ends, as a fraction of the window height.
+    /// </param>
+    /// <param name="gap">
+    /// The space to leave between the bubble and the sprite, in device pixels.
+    /// </param>
+    /// <returns>
+    /// The overlap in device pixels; negative when the bubble has to stay clear of the window.
+    /// </returns>
+    public static int TailOverlapBelow(int petHeight, double spriteBottom, int gap)
+    {
+        return (int)Math.Round(petHeight * (1 - spriteBottom), MidpointRounding.AwayFromZero) - gap;
+    }
+
+    /// <summary>
+    /// Places the bubble above the pet, centred on it but kept inside the work area. When there is no room above, for
+    /// example while the pet crawls along the top of the screen or high up a side, it goes below the pet instead.
     /// </summary>
     /// <param name="pet">
     /// The pet window's bounds.
@@ -131,23 +153,36 @@ public static class BubblePlacement
     /// <param name="tailOverlap">
     /// How far the bubble's bottom reaches below the top of the pet window, in device pixels.
     /// </param>
+    /// <param name="belowOverlap">
+    /// How far the bubble's top reaches above the bottom of the pet window when it goes below the pet, in device pixels.
+    /// </param>
     /// <param name="workArea">
     /// The work area of the pet's monitor.
     /// </param>
     /// <returns>
-    /// The bubble's top-left corner, and the pet's horizontal centre, all in device pixels.
+    /// The bubble's top-left corner, the pet's horizontal centre and whether the bubble sits below the pet, all in
+    /// device pixels.
     /// </returns>
-    public static (int Left, int Top, double PetCenterX) Compute(
+    public static (int Left, int Top, double PetCenterX, bool Below) Compute(
         PixelRect pet,
         int bubbleWidth,
         int bubbleHeight,
         int tailOverlap,
+        int belowOverlap,
         PixelRect workArea)
     {
         var petCenter = pet.Left + (pet.Width / 2.0);
         var left = (int)Math.Round(petCenter - (bubbleWidth / 2.0), MidpointRounding.AwayFromZero);
         left = Math.Clamp(left, workArea.Left, Math.Max(workArea.Left, workArea.Right - bubbleWidth));
-        var top = Math.Max(workArea.Top, pet.Top + tailOverlap - bubbleHeight);
-        return (left, top, petCenter);
+
+        var above = pet.Top + tailOverlap - bubbleHeight;
+        if (above >= workArea.Top)
+        {
+            return (left, above, petCenter, false);
+        }
+
+        var below = pet.Bottom - belowOverlap;
+        var lowest = Math.Max(workArea.Top, workArea.Bottom - bubbleHeight);
+        return (left, Math.Min(below, lowest), petCenter, true);
     }
 }

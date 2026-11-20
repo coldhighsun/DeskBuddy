@@ -39,6 +39,16 @@ public partial class BubbleWindow : Window
     private double _anchorSpriteTop;
 
     /// <summary>
+    /// Where the anchor pet's sprite ends, as a fraction of the pet window's height, when the bubble was last placed.
+    /// </summary>
+    private double _anchorSpriteBottom = 1;
+
+    /// <summary>
+    /// A value indicating whether the bubble currently sits below the pet, with its tail pointing up.
+    /// </summary>
+    private bool _below;
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="BubbleWindow"/> class.
     /// </summary>
     public BubbleWindow()
@@ -106,8 +116,10 @@ public partial class BubbleWindow : Window
 
     /// <summary>
     /// Puts the bubble above the pet's sprite, horizontally centered on it but kept inside the monitor's work area,
-    /// with the tail still pointing at the pet. Call <see cref="SetContent"/> first when the message has changed. The
-    /// bubble keeps itself above the sprite when its size changes later, for example with another font or scaling.
+    /// with the tail still pointing at the pet. When there is no room above the sprite, for example while the pet is at
+    /// the top of the screen, it goes below the sprite with the tail pointing up. Call <see cref="SetContent"/> first
+    /// when the message has changed. The bubble keeps itself next to the sprite when its size changes later, for example
+    /// with another font or scaling.
     /// </summary>
     /// <param name="pet">
     /// The pet window to anchor to.
@@ -115,12 +127,16 @@ public partial class BubbleWindow : Window
     /// <param name="spriteTop">
     /// Where the sprite starts inside the pet window, as a fraction of the window height.
     /// </param>
-    public void PositionAbove(Window pet, double spriteTop)
+    /// <param name="spriteBottom">
+    /// Where the sprite ends inside the pet window, as a fraction of the window height.
+    /// </param>
+    public void PositionNear(Window pet, double spriteTop, double spriteBottom)
     {
         ArgumentNullException.ThrowIfNull(pet);
 
         _anchorPet = pet;
         _anchorSpriteTop = spriteTop;
+        _anchorSpriteBottom = spriteBottom;
 
         // A window that has never been laid out has nothing cached, so measure its content directly. Once it has been
         // laid out, its size is the one the window itself uses, and measuring again with another constraint would only
@@ -131,11 +147,11 @@ public partial class BubbleWindow : Window
             root.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
         }
 
-        Place(pet, spriteTop, root.DesiredSize);
+        Place(pet, spriteTop, spriteBottom, root.DesiredSize);
     }
 
     /// <summary>
-    /// Moves the bubble so that a bubble of the given size sits above the pet's sprite, and points the tail at the pet.
+    /// Moves the bubble so that a bubble of the given size sits next to the pet's sprite, and points the tail at the pet.
     /// </summary>
     /// <param name="pet">
     /// The pet window to anchor to.
@@ -143,11 +159,15 @@ public partial class BubbleWindow : Window
     /// <param name="spriteTop">
     /// Where the sprite starts inside the pet window, as a fraction of the window height.
     /// </param>
+    /// <param name="spriteBottom">
+    /// Where the sprite ends inside the pet window, as a fraction of the window height.
+    /// </param>
     /// <param name="size">
     /// The bubble's size in the device-independent pixels of the pet's monitor.
     /// </param>
-    private void Place(Window pet, double spriteTop, Size size)
+    private void Place(Window pet, double spriteTop, double spriteBottom, Size size)
     {
+        var gap = (int)Math.Round(SpriteGap * VisualTreeHelper.GetDpi(pet).DpiScaleX, MidpointRounding.AwayFromZero);
         // Everything is worked out in device pixels of the pet's monitor, where the bubble is going to be, and not in
         // this window's own scale, which is still that of the monitor it was last shown on.
         var petScale = VisualTreeHelper.GetDpi(pet).DpiScaleX;
@@ -156,16 +176,37 @@ public partial class BubbleWindow : Window
             petBounds,
             (int)Math.Ceiling(size.Width * petScale),
             (int)Math.Ceiling(size.Height * petScale),
-            BubblePlacement.TailOverlap(
-                petBounds.Height,
-                spriteTop,
-                (int)Math.Round(SpriteGap * petScale, MidpointRounding.AwayFromZero)),
+            BubblePlacement.TailOverlap(petBounds.Height, spriteTop, gap),
+            BubblePlacement.TailOverlapBelow(petBounds.Height, spriteBottom, gap),
             MonitorHelper.GetWorkAreaPixels(pet));
+        SetBelow(placement.Below);
         WindowMover.MoveToPixels(this, placement.Left, placement.Top);
 
         var tailX = ((placement.PetCenterX - placement.Left) / petScale) - (TailWidth / 2);
         var maxTailX = Math.Max(TailEdgeMargin, size.Width - TailEdgeMargin - TailWidth);
-        Tail.Margin = new Thickness(Math.Clamp(tailX, TailEdgeMargin, maxTailX), -1, 0, 0);
+        var x = Math.Clamp(tailX, TailEdgeMargin, maxTailX);
+        Tail.Margin = placement.Below ? new Thickness(x, 0, 0, -1) : new Thickness(x, -1, 0, 0);
+    }
+
+    /// <summary>
+    /// Puts the tail on the side of the bubble that faces the pet. The window keeps its size, only the tail moves from
+    /// below the bubble to above it.
+    /// </summary>
+    /// <param name="below">
+    /// <see langword="true"/> when the bubble sits below the pet and the tail has to point up.
+    /// </param>
+    private void SetBelow(bool below)
+    {
+        if (below == _below)
+        {
+            return;
+        }
+
+        _below = below;
+        Stack.Children.Remove(Tail);
+        Stack.Children.Insert(below ? 0 : Stack.Children.Count, Tail);
+        TailFlip.ScaleY = below ? -1 : 1;
+        Body.RenderTransformOrigin = new Point(0.5, below ? 0 : 1);
     }
 
     /// <summary>
@@ -189,7 +230,7 @@ public partial class BubbleWindow : Window
 
         // The new size is in this window's own scaling; the placement wants the scaling of the pet's monitor.
         var ratio = VisualTreeHelper.GetDpi(this).DpiScaleX / VisualTreeHelper.GetDpi(_anchorPet).DpiScaleX;
-        Place(_anchorPet, _anchorSpriteTop, new Size(e.NewSize.Width * ratio, e.NewSize.Height * ratio));
+        Place(_anchorPet, _anchorSpriteTop, _anchorSpriteBottom, new Size(e.NewSize.Width * ratio, e.NewSize.Height * ratio));
     }
 
     /// <summary>

@@ -20,7 +20,7 @@
                       CornerRadius="0"
                       UseAeroCaptionButtons="False" />
     </WindowChrome.WindowChrome>
-    <StackPanel>
+    <StackPanel x:Name="Stack">
         <Border x:Name="Body"
                 CornerRadius="14"
                 Background="{DynamicResource AppSurface}"
@@ -44,7 +44,11 @@
               Width="14"
               Height="9"
               HorizontalAlignment="Left"
-              Margin="0,-1,0,0">
+              Margin="0,-1,0,0"
+              RenderTransformOrigin="0.5,0.5">
+            <Grid.RenderTransform>
+                <ScaleTransform x:Name="TailFlip" ScaleY="1" />
+            </Grid.RenderTransform>
             <Path Data="M 0,0 L 14,0 L 7,9 Z"
                   Fill="{DynamicResource AppSurface}"
                   StrokeThickness="0" />

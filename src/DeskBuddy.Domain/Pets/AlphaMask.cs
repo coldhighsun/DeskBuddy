@@ -137,6 +137,32 @@ public sealed class AlphaMask
     }
 
     /// <summary>
+    /// Finds where the sprite ends: the bottom of the last row that holds an opaque pixel.
+    /// </summary>
+    /// <param name="threshold">
+    /// Minimum alpha value that counts as opaque.
+    /// </param>
+    /// <returns>
+    /// The bottom of the sprite as a fraction of the frame height, above 0 up to 1 (the frame's bottom edge); 1 when
+    /// the frame has no opaque pixel at all.
+    /// </returns>
+    public double BottomOpaqueFraction(byte threshold = DefaultThreshold)
+    {
+        for (var y = Height - 1; y >= 0; y--)
+        {
+            for (var x = 0; x < Width; x++)
+            {
+                if (_alpha[(y * Width) + x] >= threshold)
+                {
+                    return (y + 1) / (double)Height;
+                }
+            }
+        }
+
+        return 1;
+    }
+
+    /// <summary>
     /// Determines whether a position given as a fraction of the frame size hits an opaque pixel. Independent of DPI
     /// scaling, because the position is relative to the frame.
     /// </summary>
