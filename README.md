@@ -5,16 +5,17 @@
 # DeskBuddy
 
 [![CI](https://github.com/coldhighsun/DeskBuddy/actions/workflows/ci.yml/badge.svg)](https://github.com/coldhighsun/DeskBuddy/actions/workflows/ci.yml)
+[![Unit tests: 1446](https://img.shields.io/badge/unit%20tests-1446-brightgreen)](tests)
 [![Latest Release](https://img.shields.io/github/v/release/coldhighsun/DeskBuddy)](https://github.com/coldhighsun/DeskBuddy/releases/latest)
 [![Latest Pre-release](https://img.shields.io/github/v/release/coldhighsun/DeskBuddy?include_prereleases&label=pre-release)](https://github.com/coldhighsun/DeskBuddy/releases)
 [![GitHub All Releases](https://img.shields.io/github/downloads/coldhighsun/DeskBuddy/total)](https://github.com/coldhighsun/DeskBuddy/releases)
+[![.NET](https://img.shields.io/badge/.NET-11-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
+[![Platform: Windows](https://img.shields.io/badge/platform-Windows-0078D6?logo=windows)](https://github.com/coldhighsun/DeskBuddy)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![GitHub Stars](https://img.shields.io/github/stars/coldhighsun/DeskBuddy?style=flat)](https://github.com/coldhighsun/DeskBuddy/stargazers)
 [![Open Issues](https://img.shields.io/github/issues/coldhighsun/DeskBuddy)](https://github.com/coldhighsun/DeskBuddy/issues)
 [![Open PRs](https://img.shields.io/github/issues-pr/coldhighsun/DeskBuddy)](https://github.com/coldhighsun/DeskBuddy/pulls)
 [![Last Commit](https://img.shields.io/github/last-commit/coldhighsun/DeskBuddy)](https://github.com/coldhighsun/DeskBuddy/commits/main)
-[![GitHub Stars](https://img.shields.io/github/stars/coldhighsun/DeskBuddy?style=flat)](https://github.com/coldhighsun/DeskBuddy/stargazers)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![.NET](https://img.shields.io/badge/.NET-11-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
-[![Platform: Windows](https://img.shields.io/badge/platform-Windows-0078D6?logo=windows)](https://github.com/coldhighsun/DeskBuddy)
 
 **English** | [简体中文](README.zh-CN.md)
 
@@ -23,8 +24,6 @@
 ---
 
 A desktop pet for work computers. It lives on your desktop, reacts to what you are doing, and stays out of the way.
-
-> **Status:** early development. Features and APIs may change without notice.
 
 ## Features
 
