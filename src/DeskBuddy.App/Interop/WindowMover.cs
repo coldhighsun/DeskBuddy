@@ -18,6 +18,11 @@ public static partial class WindowMover
     private const uint SwpNoSize = 0x0001;
 
     /// <summary>
+    /// <c>SWP_NOMOVE</c>: keep the current position.
+    /// </summary>
+    private const uint SwpNoMove = 0x0002;
+
+    /// <summary>
     /// <c>SWP_NOZORDER</c>: keep the current position in the z-order.
     /// </summary>
     private const uint SwpNoZOrder = 0x0004;
@@ -171,6 +176,23 @@ public static partial class WindowMover
             0,
             0,
             SwpNoSize | SwpNoZOrder | SwpNoRedraw | SwpNoActivate | SwpNoOwnerZOrder);
+    }
+
+    /// <summary>
+    /// Puts a window just behind another one in the z-order, without moving, sizing or activating it, so what the other
+    /// window draws covers it where they overlap.
+    /// </summary>
+    /// <param name="window">
+    /// The window to put behind.
+    /// </param>
+    /// <param name="front">
+    /// The window it goes behind.
+    /// </param>
+    public static void PlaceBehind(Window window, Window front)
+    {
+        var handle = new WindowInteropHelper(window).EnsureHandle();
+        var frontHandle = new WindowInteropHelper(front).EnsureHandle();
+        SetWindowPos(handle, frontHandle, 0, 0, 0, 0, SwpNoSize | SwpNoMove | SwpNoActivate | SwpNoOwnerZOrder);
     }
 
     /// <summary>

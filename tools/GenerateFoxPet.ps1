@@ -80,6 +80,8 @@ function Add-FoxEyes([double]$Lx, [double]$Rx, [double]$Y, [string]$Eyes, [doubl
 
 # The tail's far tip for each swing phase of a pet sitting seen from the front.
 $tailTips = @(@(52, 25), @(54, 29), @(55, 34), @(53, 28))
+# Where the paws hold on to the umbrella or the parachute in the glide, outside the cheek ruff (the manifest's Glide grips).
+$glideGrips = @(@(10.4, 29), @(53.6, 29))
 
 # The pet sitting, seen from the front. ArmsUp raises both front paws, RightArmUp only the right one (RightArmDx sways it, for
 # a wave), LeftArmReach stretches the left one out to the edge of the frame to hold on to the screen, HoldOverhead raises both
@@ -94,38 +96,29 @@ function Add-Fox {
     $tip = $tailTips[$Tail % 4]
     if (-not $Portrait) { Add-FoxTail @(40, 54, 58, 58, 58, 40, $tip[0], $tip[1]) }
 
-    # Body and belly.
-    Add-HdOval 'Body' 32 49 13.5 12
-    Add-HdOval 'White' 32 52 8 9 ''
-
-    # Legs that are down (a hind foot shows where a front leg is raised), then the raised arms.
+    # Sitting as a real fox sits (see Add-HdSittingTorso), with a white bib; then the raised arms, joined to the body
+    # without a line.
+    Add-HdSittingTorso 'Body' 'White'
     $leftDown = -not $ArmsUp -and -not $LeftArmReach -and -not $HoldOverhead
     $rightDown = -not $ArmsUp -and -not $RightArmUp -and -not $HoldOverhead
-    foreach ($leg in @(@(25, $leftDown), @(39, $rightDown))) {
-        if ($leg[1] -or $HoldOverhead) {
-            Add-HdLimb @($leg[0], 48, $leg[0], 58) 'Body' 5.4
-            Add-HdOval 'Paw' $leg[0] 59.4 4.1 2.7
-        } else {
-            Add-HdOval 'Paw' ($leg[0] + ($leg[0] - 32) * 0.4) 59.8 4.7 2.6
-        }
-    }
+    Add-HdSittingLegs $leftDown $rightDown
     if ($HoldOverhead) {
-        Add-HdLimb @(21, 46, 10, 26, 27, 8) 'Body' 4.8
-        Add-HdLimb @(43, 46, 54, 26, 37, 8) 'Body' 4.8
-        Add-HdOval 'Paw' 27 7 3 3.1
-        Add-HdOval 'Paw' 37 7 3 3.1
+        # A real fox cannot reach over its head: the arms go straight up from the shoulders to the paws beside the cheeks,
+        # which are drawn in front of the head below.
+        Add-HdJoinedLimb @(22, 46, $glideGrips[0][0], ($glideGrips[0][1] + 1)) 'Body' 4.8
+        Add-HdJoinedLimb @(42, 46, $glideGrips[1][0], ($glideGrips[1][1] + 1)) 'Body' 4.8
     }
     if ($ArmsUp -or $RightArmUp) {
         $x = 53 + $RightArmDx
-        Add-HdLimb @(42, 46, $x, 34) 'Body' 5
+        Add-HdJoinedLimb @(42, 46, $x, 34) 'Body' 5
         Add-HdOval 'Paw' $x 33 3.1 3.1
     }
     if ($ArmsUp) {
-        Add-HdLimb @(22, 46, 11, 34) 'Body' 5
+        Add-HdJoinedLimb @(22, 46, 11, 34) 'Body' 5
         Add-HdOval 'Paw' 11 33 3.1 3.1
     }
     if ($LeftArmReach) {
-        Add-HdLimb @(22, 46, 3, $ReachY) 'Body' 5
+        Add-HdJoinedLimb @(22, 46, 3, $ReachY) 'Body' 5
         Add-HdOval 'Paw' 3.2 $ReachY 3.1 3.1
     }
 
@@ -139,6 +132,9 @@ function Add-Fox {
     Add-HdOval 'Black' 32 31.6 2.3 1.7 ''
     Add-HdStroke @(32, 33, 32, 34.8) 'Black' 0.9
     Add-HdStroke @(29.2, 35.6, 32, 36.6, 34.8, 35.6) 'Black' 0.9
+    if ($HoldOverhead) {
+        foreach ($grip in $glideGrips) { Add-HdOval 'Paw' $grip[0] $grip[1] 3 3.1 }
+    }
 }
 
 # The pet lying down. Eyes: closed | tired.
@@ -172,12 +168,14 @@ function Add-FoxSide([double]$D, [double]$TipY) {
         Add-HdLimb @($leg[0], 50, $foot, 59.5) 'Body' 4.6
         Add-HdOval 'Paw' ($foot - 1) 60.4 3.4 2.3
     }
-    # Head with the muzzle pointing left.
-    Add-FoxEar @(19, 27, 22, 13, 28, 25) @(21, 23.5, 22.6, 17, 25.6, 23.5)
+    # Head with the muzzle pointing left. Seen from the side the ears stand on top of the head behind the eye, leaning back
+    # a little: the far one, darker, peeks out behind the near one, and of the near one mostly the furred back shows, with
+    # the dark inside only as a sliver along its front edge.
+    Add-HdPoly 'BodyDark' @(20, 27, 27, 12, 28.6, 26) 'Outline' 1.2 -Smooth
     Add-HdOval 'White' 7 37.5 6.4 3.8
     Add-HdOval 'Body' 16 34 10.5 8.8
     Add-HdOval 'White' 13.5 39.6 6.4 3.4 ''
-    Add-FoxEar @(10, 28, 10, 12, 20, 25) @(11.6, 24.5, 11.6, 16.4, 17, 23.5)
+    Add-FoxEar @(15, 27.4, 21, 11, 24, 25.8) @(16.6, 25.4, 20.6, 13.4, 18.8, 25)
     Add-HdOval 'Black' 11.2 32 1.5 2.1 ''
     Add-HdOval 'Shine' 11.7 31.2 0.55 0.7 ''
     Add-HdOval 'Black' 1.6 36.6 1.8 1.5 ''
@@ -252,7 +250,7 @@ $manifest = @"
     "Walk":    { "fps": 8, "frames": ["walk_0.png", "walk_1.png", "walk_2.png", "walk_3.png"] },
     "Sleep":   { "fps": 1, "frames": ["sleep_0.png", "sleep_1.png"] },
     "Drag":    { "fps": 6, "frames": ["drag_0.png", "drag_1.png"] },
-    "Glide":   { "fps": 4, "frames": ["glide_0.png", "glide_1.png"] },
+    "Glide":   { "fps": 4, "frames": ["glide_0.png", "glide_1.png"], "grips": $(Format-GlideGrips $glideGrips -1) },
     "Tired":   { "fps": 2, "frames": ["tired_0.png", "tired_1.png"] },
     "Alert":   { "fps": 4, "frames": ["alert_0.png", "alert_1.png"] },
     "Happy":   { "fps": 5, "frames": ["happy_0.png", "happy_1.png"] },

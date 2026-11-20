@@ -8,7 +8,7 @@
     "Walk":    { "fps": 6, "frames": [3, 4, 5, 6] },
     "Sleep":   { "fps": 1, "frames": [7, 8] },
     "Drag":    { "fps": 6, "frames": [9, 9] },
-    "Glide":   { "fps": 4, "frames": [10, 10] },
+    "Glide":   { "fps": 4, "frames": [10, 10], "grips": [[13, 29], [51, 29]] },
     "Tired":   { "fps": 2, "frames": [11, 12] },
     "Alert":   { "fps": 4, "frames": [13, 14] },
     "Happy":   { "fps": 5, "frames": [15, 16] },

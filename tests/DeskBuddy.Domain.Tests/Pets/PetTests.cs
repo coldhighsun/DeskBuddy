@@ -25,6 +25,51 @@ public class PetTests
     }
 
     /// <summary>
+    /// A pet that does not say where it holds on to the canopy holds on at the default point; one that does keeps its own.
+    /// </summary>
+    [Fact]
+    public void GlideGrips_GivenOrNot_AreTheGripsOrTheDefault()
+    {
+        // Arrange
+        var animations = new Dictionary<PetState, PetAnimation> { [PetState.Idle] = Animation("idle.png") };
+
+        // Act
+        var plain = new Pet("plain", 48, 96, animations);
+        var holding = new Pet("holding", 48, 96, animations, glideGrips: [new FramePoint(0.1, 0.6), new FramePoint(0.9, 0.6)]);
+
+        // Assert
+        plain.GlideGrips.Should().Equal(Pet.DefaultGlideGrip);
+        holding.GlideGrips.Should().Equal(new FramePoint(0.1, 0.6), new FramePoint(0.9, 0.6));
+    }
+
+    /// <summary>
+    /// Grips must be one or two points on the frame.
+    /// </summary>
+    /// <param name="count">
+    /// How many grips to give.
+    /// </param>
+    /// <param name="x">
+    /// The horizontal place of each, as a fraction of the frame.
+    /// </param>
+    [Theory]
+    [InlineData(0, 0.5)]
+    [InlineData(3, 0.5)]
+    [InlineData(1, 1.01)]
+    [InlineData(2, -0.01)]
+    public void Constructor_InvalidGlideGrips_Throws(int count, double x)
+    {
+        // Arrange
+        var animations = new Dictionary<PetState, PetAnimation> { [PetState.Idle] = Animation("idle.png") };
+        var grips = Enumerable.Repeat(new FramePoint(x, 0.5), count).ToList();
+
+        // Act
+        var act = () => new Pet("test", 64, 64, animations, glideGrips: grips);
+
+        // Assert
+        act.Should().Throw<ArgumentException>();
+    }
+
+    /// <summary>
     /// The name shown comes from the manifest entry for the culture, else for its language, else it is the pet's own name.
     /// </summary>
     /// <param name="culture">

@@ -42,7 +42,9 @@ function Add-PetBody([bool]$LeftDown, [bool]$RightDown) {
     if ($RightDown) { Add-HdOval 'Body' 51.4 44 3.7 11 'Outline' 1.1 -8 }
 }
 
-# Gliding: both flippers raised up and out from the shoulders instead of arms reaching for the handle.
+# Gliding: both flippers raised up and out from the shoulders, holding on to the umbrella or the parachute with their tips
+# (the manifest's Glide grips, a little inside the tips so the flippers cover the ends of the shaft and the strings).
+$GlideGrips = @(@(5.6, 19.6), @(58.4, 19.6))
 function Add-PetHoldOverhead {
     Add-HdOval 'Body' 10.8 27 3.7 11 'Outline' 1.1 -35
     Add-HdOval 'Body' 53.2 27 3.7 11 'Outline' 1.1 35

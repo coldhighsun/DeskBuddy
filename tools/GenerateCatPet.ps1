@@ -28,24 +28,15 @@ function Add-PetBack([int]$Phase) {
     Add-HdStroke $curve[24..($curve.Count - 1)] 'BodyDark' 4.7
 }
 
-# The body with a cream belly and stripes, and the front legs that are not raised (which are the arms when raised; a hind
-# foot shows in place of a raised one).
+# The body sitting as a real cat sits (see Add-HdSittingTorso), with stripes on the sides and the haunches.
 function Add-PetBody([bool]$LeftDown, [bool]$RightDown) {
-    Add-HdOval 'Body' 32 49 13.5 12
-    Add-HdOval 'Belly' 32 52 8 9 ''
+    Add-HdSittingTorso
     foreach ($side in -1, 1) {
-        Add-HdStroke @((32 + $side * 13.2), 44, (32 + $side * 9.8), 44.6) 'BodyDark' 1.5
-        Add-HdStroke @((32 + $side * 13.4), 48.4, (32 + $side * 10), 48.8) 'BodyDark' 1.5
+        Add-HdStroke @((32 + $side * 11.2), 42.6, (32 + $side * 8.4), 43.4) 'BodyDark' 1.5
+        Add-HdStroke (Get-HdBezier (32 + $side * 13.6) 50.2 (32 + $side * 12.2) 49.6 (32 + $side * 10.6) 50.2 (32 + $side * 9.8) 51.4 6) 'BodyDark' 1.4
+        Add-HdStroke (Get-HdBezier (32 + $side * 14.4) 54 (32 + $side * 13.2) 53.2 (32 + $side * 11.4) 53.6 (32 + $side * 10.6) 54.8 6) 'BodyDark' 1.4
     }
-    foreach ($leg in @(@(25, $LeftDown), @(39, $RightDown))) {
-        if ($leg[1]) {
-            Add-HdLimb @($leg[0], 48, $leg[0], 58) 'Body' 5.2
-            Add-HdOval 'Paw' $leg[0] 59.4 4 2.7
-        } else {
-            # The hind foot shows where the front leg was raised.
-            Add-HdOval 'Paw' ($leg[0] + ($leg[0] - 32) * 0.4) 59.8 4.6 2.6
-        }
-    }
+    Add-HdSittingLegs $LeftDown $RightDown
 }
 
 # The head: pointed ears with a pink inside, a striped forehead, a cream muzzle, a nose and whiskers.
@@ -112,9 +103,12 @@ function Add-PetSide([double]$D, [double]$Lift) {
         Add-HdLimb @($leg[0], 50, $foot, 59.5) 'Body' 4.4
         Add-HdOval 'Paw' ($foot - 1) 60.4 3.4 2.3
     }
-    # Head in profile with the ear at the back of the head and the muzzle pointing left.
-    Add-HdPoly 'Body' @(15, 28.4, 17.4, 14.5, 26.4, 26) 'Outline' 1.2 -Smooth -Tension 0.3
-    Add-HdPoly 'Pink' @(17.4, 25, 18.8, 18.4, 22.8, 24.6) '' 0 -Smooth -Tension 0.3
+    # Head in profile with the muzzle pointing left. The ears stand up on top of the head behind the eye: the far one,
+    # darker, peeks out behind the near one, and of the near one mostly the furred back shows, with the pink inside only as
+    # a sliver along its front edge.
+    Add-HdPoly 'BodyDark' @(20.5, 27.5, 26, 14, 28.4, 27) 'Outline' 1.2 -Smooth -Tension 0.3
+    Add-HdPoly 'Body' @(14.4, 28.4, 20.4, 13.8, 25, 26.4) 'Outline' 1.2 -Smooth -Tension 0.3
+    Add-HdPoly 'Pink' @(16.2, 26, 19.8, 16.6, 18.4, 26) '' 0 -Smooth -Tension 0.3
     Add-HdOval 'Belly' 7.4 38.2 6 3.5
     Add-HdOval 'Body' 16 34 10.5 8.8
     Add-HdOval 'Belly' 11.6 39.4 6 3.3 ''

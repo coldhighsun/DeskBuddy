@@ -607,4 +607,99 @@ public sealed class FolderPetLoaderTests : IDisposable
         // Assert
         pet.GetAnimation(PetState.Idle).FrameDuration.Should().BePositive();
     }
+
+    /// <summary>
+    /// The Glide grips are read in the units of the frame size and kept as fractions of the frame, in their order.
+    /// </summary>
+    [Fact]
+    public async Task LoadAsync_GlideWithTwoGrips_ReadsThemAsFractionsOfTheFrame()
+    {
+        // Arrange
+        WritePet("""{"frameSize":[40,40],%ATLAS%,"states":{"Idle":{"fps":1,"frames":[0]},"Glide":{"fps":2,"frames":[1],"grips":[[10,30],[30,20]]}}}""");
+
+        // Act
+        var pet = await _loader.LoadAsync(_directory, TestContext.Current.CancellationToken);
+
+        // Assert
+        pet.GlideGrips.Should().Equal(new FramePoint(0.25, 0.75), new FramePoint(0.75, 0.5));
+    }
+
+    /// <summary>
+    /// A pet may hold on at a single point, and the edges of the frame count as on it.
+    /// </summary>
+    [Fact]
+    public async Task LoadAsync_GlideWithOneGripOnTheEdge_IsAccepted()
+    {
+        // Arrange
+        WritePet("""{"frameSize":[40,40],%ATLAS%,"states":{"Idle":{"fps":1,"frames":[0]},"Glide":{"fps":2,"frames":[1],"grips":[[40,0]]}}}""");
+
+        // Act
+        var pet = await _loader.LoadAsync(_directory, TestContext.Current.CancellationToken);
+
+        // Assert
+        pet.GlideGrips.Should().Equal(new FramePoint(1, 0));
+    }
+
+    /// <summary>
+    /// A pet that does not say where it holds on, or has no Glide state at all, holds on at the default point.
+    /// </summary>
+    /// <param name="states">
+    /// The states written in the manifest.
+    /// </param>
+    [Theory]
+    [InlineData("""{"Idle":{"fps":1,"frames":[0]},"Glide":{"fps":2,"frames":[1]}}""")]
+    [InlineData("""{"Idle":{"fps":1,"frames":[0]}}""")]
+    public async Task LoadAsync_NoGrips_HoldsOnAtTheDefault(string states)
+    {
+        // Arrange
+        WritePet("""{"frameSize":[40,40],%ATLAS%,"states":@@}""".Replace("@@", states));
+
+        // Act
+        var pet = await _loader.LoadAsync(_directory, TestContext.Current.CancellationToken);
+
+        // Assert
+        pet.GlideGrips.Should().Equal(Pet.DefaultGlideGrip);
+    }
+
+    /// <summary>
+    /// Grips given for a state other than Glide mean nothing and are ignored, even when they would not be valid.
+    /// </summary>
+    [Fact]
+    public async Task LoadAsync_GripsOnAnotherState_AreIgnored()
+    {
+        // Arrange
+        WritePet("""{"frameSize":[40,40],%ATLAS%,"states":{"Idle":{"fps":1,"frames":[0],"grips":[[99,99],[1,1],[2,2]]}}}""");
+
+        // Act
+        var pet = await _loader.LoadAsync(_directory, TestContext.Current.CancellationToken);
+
+        // Assert
+        pet.GlideGrips.Should().Equal(Pet.DefaultGlideGrip);
+    }
+
+    /// <summary>
+    /// Glide grips that are not one or two points [x, y] on the frame are rejected, with the reason in the message.
+    /// </summary>
+    /// <param name="grips">
+    /// The grips written in the manifest.
+    /// </param>
+    [Theory]
+    [InlineData("[]")]
+    [InlineData("[[1,1],[2,2],[3,3]]")]
+    [InlineData("[[41,10]]")]
+    [InlineData("[[10,-1]]")]
+    [InlineData("[[10]]")]
+    [InlineData("[[10,10,10]]")]
+    [InlineData("[null]")]
+    public async Task LoadAsync_InvalidGlideGrips_ThrowsInvalidData(string grips)
+    {
+        // Arrange
+        WritePet("""{"frameSize":[40,40],%ATLAS%,"states":{"Idle":{"fps":1,"frames":[0]},"Glide":{"fps":2,"frames":[1],"grips":@@}}}""".Replace("@@", grips));
+
+        // Act
+        var act = () => _loader.LoadAsync(_directory);
+
+        // Assert
+        (await act.Should().ThrowAsync<InvalidDataException>()).Which.Message.Should().Contain("grip");
+    }
 }

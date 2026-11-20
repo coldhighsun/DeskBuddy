@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Media;
+using DeskBuddy.Domain.Pets;
 
 namespace DeskBuddy.App.Windows;
 
@@ -38,12 +39,19 @@ public sealed class UmbrellaFollower(Window pet)
     public bool IsOpen => _canopy is { IsVisible: true };
 
     /// <summary>
-    /// Opens a canopy over the pet, an umbrella or a parachute by chance.
+    /// Opens a canopy over the pet, an umbrella or a parachute by chance, held where the pet's Glide frames hold on.
     /// </summary>
-    public void Open()
+    /// <param name="grips">
+    /// Where the pet holds on to the canopy, as its frames are drawn (see <see cref="Pet.GlideGrips"/>).
+    /// </param>
+    /// <param name="mirrored">
+    /// Whether the window shows the pet's frames mirrored left to right.
+    /// </param>
+    public void Open(IReadOnlyList<FramePoint> grips, bool mirrored)
     {
         _canopy ??= new UmbrellaWindow();
-        _canopy.Open(Random.Shared.Next(2) == 0 ? UmbrellaKind.Umbrella : UmbrellaKind.Parachute, pet);
+        var kind = Random.Shared.Next(2) == 0 ? UmbrellaKind.Umbrella : UmbrellaKind.Parachute;
+        _canopy.Open(CanopyRig.For(kind, grips, mirrored), pet);
     }
 
     /// <summary>

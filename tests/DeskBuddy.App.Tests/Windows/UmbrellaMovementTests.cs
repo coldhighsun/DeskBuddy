@@ -77,8 +77,8 @@ public sealed class UmbrellaMovementTests
             var afterRepeat = MonitorHelper.GetWindowBoundsPixels(canopy);
 
             // Assert
-            var expectedFirst = CanopyPlacement.For(first, pet.Width, scale);
-            var expectedSecond = CanopyPlacement.For(second, pet.Width, scale);
+            var expectedFirst = CanopyPlacement.For(first, pet.Width, scale, CanopyRig.Default);
+            var expectedSecond = CanopyPlacement.For(second, pet.Width, scale, CanopyRig.Default);
             (afterFirst.Left, afterFirst.Top).Should().Be((expectedFirst.X, expectedFirst.Y));
             (afterSecond.Left, afterSecond.Top).Should().Be((expectedSecond.X, expectedSecond.Y));
             afterRepeat.Should().Be(afterSecond);

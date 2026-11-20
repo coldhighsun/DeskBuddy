@@ -19,32 +19,30 @@
                       CornerRadius="0"
                       UseAeroCaptionButtons="False" />
     </WindowChrome.WindowChrome>
-    <Viewbox Stretch="Uniform">
-        <!-- The open canopy is drawn in a 140 x 112 box; the handle or strings end at the bottom centre. -->
-        <Canvas Width="140" Height="112">
+    <!-- The canopy window reaches from the dome down to where the pet holds on. The dome is drawn in a 140 x 64 box at
+         the top (rim at the bottom of it); the shaft or the strings are drawn in code from it down to the pet's grips,
+         behind the pet window, so its paws cover their ends. -->
+    <Canvas x:Name="Root">
+        <Path x:Name="Rigging" StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round" Opacity="0" />
+        <Viewbox x:Name="DomeBox" Stretch="Fill">
             <Canvas x:Name="Prop"
                     Width="140"
-                    Height="112"
+                    Height="64"
                     RenderTransformOrigin="0.5,1">
                 <Canvas.RenderTransform>
                     <ScaleTransform x:Name="PropScale" ScaleX="0.1" ScaleY="0.1" />
                 </Canvas.RenderTransform>
 
-                <!-- Umbrella: a red dome with a scalloped rim, a shaft and a hooked handle. -->
+                <!-- Umbrella: a red dome with a scalloped rim and ribs. -->
                 <Canvas x:Name="UmbrellaShape" Visibility="Collapsed">
-                    <Path Data="M 70,64 L 70,98 Q 70,108 62,108 Q 56,108 56,102"
-                          Stroke="#FF5A3A28" StrokeThickness="3.5" StrokeLineJoin="Round"
-                          StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
                     <Path Data="M 10,62 C 10,22 40,6 70,6 C 100,6 130,22 130,62 Q 118,52 106,62 Q 94,52 82,62 Q 70,52 58,62 Q 46,52 34,62 Q 22,52 10,62 Z"
                           Fill="#FFE4504A" Stroke="#FF8E2A26" StrokeThickness="2" StrokeLineJoin="Round" />
                     <Path Data="M 70,6 C 58,24 56,44 58,60 M 70,6 C 82,24 84,44 82,60"
                           Stroke="#FF8E2A26" StrokeThickness="1.6" />
                 </Canvas>
 
-                <!-- Parachute: a striped dome, scalloped rim and strings meeting under it. -->
+                <!-- Parachute: a striped dome with a scalloped rim. -->
                 <Canvas x:Name="ParachuteShape" Visibility="Collapsed">
-                    <Path Data="M 12,50 L 70,110 M 42,52 L 70,110 M 70,54 L 70,110 M 98,52 L 70,110 M 128,50 L 70,110"
-                          Stroke="#FF5A5A5A" StrokeThickness="1.4" />
                     <Path Data="M 8,50 C 8,14 36,4 70,4 C 104,4 132,14 132,50 Q 120,40 108,50 Q 96,40 84,50 Q 70,40 56,50 Q 44,40 32,50 Q 20,40 8,50 Z"
                           Fill="#FFF2F2F2" Stroke="#FF6A6A6A" StrokeThickness="2" StrokeLineJoin="Round" />
                     <Path Data="M 70,4 C 60,16 56,32 56,48 Q 63,42 70,48 Q 77,42 84,48 C 84,32 80,16 70,4 Z"
@@ -53,6 +51,6 @@
                           Fill="#FFF2B33D" />
                 </Canvas>
             </Canvas>
-        </Canvas>
-    </Viewbox>
+        </Viewbox>
+    </Canvas>
 </Window>

@@ -82,6 +82,64 @@ function Add-HdLimb([double[]]$Xy, [string]$Color, [double]$Width, [string]$Edge
     Add-HdStroke $Xy $Color $Width
 }
 
+# Ellipses (each @(Cx, Cy, Rx, Ry)) filled as one shape with a single outline around them all, with no line where they
+# overlap: the outlines go down first at twice the width and the fills cover their inner halves. The area is remembered
+# for the rest of the frame, so limbs drawn later with Add-HdJoinedLimb grow out of it without a line across the joint.
+function Add-HdMergedOvals([string]$Color, [object[]]$Ovals, [string]$Edge = 'Outline', [double]$Width = 1.1) {
+    foreach ($o in $Ovals) { Add-HdOval $Color $o[0] $o[1] $o[2] $o[3] $Edge (2 * $Width) }
+    $area = New-Object System.Drawing.Drawing2D.GraphicsPath
+    $area.FillMode = 'Winding'
+    foreach ($o in $Ovals) {
+        Add-HdOval $Color $o[0] $o[1] $o[2] $o[3] ''
+        $area.AddEllipse([single]($o[0] - $o[2]), [single]($o[1] - $o[3]), [single](2 * $o[2]), [single](2 * $o[3]))
+    }
+    if ($script:HdJoinArea) { $script:HdJoinArea.Dispose() }
+    $script:HdJoinArea = $area
+}
+
+# A limb (see Add-HdLimb) whose outline is left out inside the area of the last Add-HdMergedOvals of this frame, so it
+# joins the body without a line; with no such area it is a plain limb.
+function Add-HdJoinedLimb([double[]]$Xy, [string]$Color, [double]$Width, [string]$Edge = 'Outline') {
+    Add-HdLimb $Xy $Color $Width $Edge
+    if (-not $script:HdJoinArea) { return }
+    $state = $script:g.Save()
+    try {
+        $script:g.SetClip($script:HdJoinArea)
+        Add-HdStroke $Xy $Color ($Width + 2.6)
+    } finally { $script:g.Restore($state) }
+}
+
+# A four-legged pet sitting as a real one sits, seen from the front, in two parts so markings can go between them.
+# Add-HdSittingTorso: a pear-shaped torso with the folded hind legs as round haunches low at both sides, drawn as one shape
+# (no line where they join, nor where a raised arm joins), and a bib on the chest in BibColor narrowing to a point between
+# the tops of the front legs. Add-HdSittingLegs: the small hind feet peeking out just outside the front paws, and the
+# front legs that are down coming straight from the chest side by side, wide at the top and narrowing to the paws (a raised
+# front leg is an arm and is left out). HindRx is half the length of a hind foot, LegTop where the front legs start.
+function Add-HdSittingTorso([string]$Color = 'Body', [string]$BibColor = 'Belly') {
+    Add-HdMergedOvals $Color @(@(32, 48.5, 11.5, 12.5), @(23.2, 54, 6.2, 7), @(40.8, 54, 6.2, 7))
+    if ($BibColor) { Add-HdPoly $BibColor @(32, 39.6, 36.4, 40.8, 37.2, 43.2, 32, 47.6, 26.8, 43.2, 27.6, 40.8) '' -Smooth -Tension 0.45 }
+}
+
+function Add-HdSittingLegs([bool]$LeftDown, [bool]$RightDown, [string]$Color = 'Body', [string]$Paw = 'Paw', [double]$HindRx = 3.2, [double]$LegTop = 45.6) {
+    foreach ($side in -1, 1) { Add-HdOval $Paw (32 + $side * (6.4 + $HindRx)) 59.8 $HindRx 2.3 }
+    foreach ($leg in @(@(28.4, $LeftDown), @(35.6, $RightDown))) {
+        if ($leg[1]) {
+            Add-HdTaperedLeg $leg[0] $LegTop 58.6 3.4 2.4 $Color
+            Add-HdOval $Paw $leg[0] 59.6 3.5 2.5
+        }
+    }
+}
+
+# A leg growing out of the body, wide at the top and narrowing to the paw: outlined only along its two sides, with no line
+# across the top, so it reads as part of the body. HalfTop and HalfBottom are half the width at the top and at the bottom.
+function Add-HdTaperedLeg([double]$X, [double]$Top, [double]$Bottom, [double]$HalfTop, [double]$HalfBottom, [string]$Color, [string]$Edge = 'Outline', [double]$Width = 1.1) {
+    $sides = @(@(-1, $HalfTop, $HalfBottom), @(1, $HalfTop, $HalfBottom))
+    Add-HdPoly $Color @(($X - $HalfTop), $Top, ($X + $HalfTop), $Top, ($X + $HalfBottom), $Bottom, ($X - $HalfBottom), $Bottom) ''
+    foreach ($side in $sides) {
+        Add-HdStroke @(($X + $side[0] * $side[1]), $Top, ($X + $side[0] * $side[2]), $Bottom) $Edge $Width
+    }
+}
+
 # A filled ellipse with an optional outline (pass an empty Edge for none), turned clockwise by Angle degrees about its center.
 function Add-HdOval([string]$Color, [double]$Cx, [double]$Cy, [double]$Rx, [double]$Ry, [string]$Edge = 'Outline', [double]$Width = 1.1, [double]$Angle = 0) {
     $state = $script:g.Save()
@@ -236,6 +294,7 @@ function New-HdCanvas([double]$Dy = 0, [double]$Tilt = 0, [double]$PivotX = 32, 
     $script:g.TextRenderingHint = 'AntiAlias'
     $script:g.Clear([System.Drawing.Color]::Transparent)
     $script:g.ScaleTransform($HdScale, $HdScale)
+    if ($script:HdJoinArea) { $script:HdJoinArea.Dispose(); $script:HdJoinArea = $null }
     $script:g.TranslateTransform([single]($PivotX + $Dx), [single]($PivotY + $Dy))
     $script:g.RotateTransform([single]$Tilt)
     $script:g.TranslateTransform([single](-$PivotX), [single](-$PivotY))
@@ -252,6 +311,14 @@ function Save-HdCanvas($Bitmap, [string]$Path, [switch]$Flip, [switch]$Mirror) {
 }
 
 # Antivirus / indexers often hold freshly written files for a moment, so retry the manifest write whatever the failure.
+# The "grips" of a pet's Glide state for the manifest: the points (x, y in drawing units) where it holds on to the umbrella
+# or the parachute, moved by Dy, the lift its glide frames are saved with, and given in the units of the 64 x 64 frame.
+function Format-GlideGrips([object[]]$Points, [double]$Dy = 0) {
+    $inv = [System.Globalization.CultureInfo]::InvariantCulture
+    $items = foreach ($p in $Points) { '[' + ([double]$p[0]).ToString('0.##', $inv) + ', ' + ([double]$p[1] + $Dy).ToString('0.##', $inv) + ']' }
+    return '[' + ($items -join ', ') + ']'
+}
+
 function Write-PetManifest([string]$Path, [string]$Text) {
     foreach ($attempt in 1..10) {
         try {
