@@ -186,19 +186,19 @@ public sealed class PetBehaviorOptions
     /// <summary>
     /// Gets or sets the fastest a pet can be thrown, in device-independent pixels per second.
     /// </summary>
-    public double ThrowMaxSpeed { get; set; } = 2500;
+    public double ThrowMaxSpeed { get; set; } = 1500;
 
     /// <summary>
     /// Gets or sets how quickly the air slows down a thrown pet sideways: the fraction of its speed lost per second,
     /// as an exponential rate.
     /// </summary>
-    public double ThrowAirDrag { get; set; } = 1.2;
+    public double ThrowAirDrag { get; set; } = 2.0;
 
     /// <summary>
     /// Gets or sets how much of its sideways speed, from 0 to 1, a thrown pet keeps when it bounces off the end of the
     /// screen.
     /// </summary>
-    public double ThrowBounce { get; set; } = 0.4;
+    public double ThrowBounce { get; set; } = 0.3;
 
     /// <summary>
     /// Gets or sets the chance, from 0 to 1, that a pet walking into the left or right end of the screen starts to
