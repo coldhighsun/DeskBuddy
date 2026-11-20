@@ -229,6 +229,41 @@ public partial class App
             return;
         }
 
+        try
+        {
+            await StartApplicationAsync(e);
+        }
+        catch (Exception ex)
+        {
+            // Whatever the more specific handlers further in did not catch (the host, the settings, the theme): without a
+            // window and a tray icon the application could be neither used nor closed, yet it would keep the single-instance
+            // lock and make every later start exit silently, so it must not keep running.
+            if (_host?.Services.GetService<ILogger<App>>() is { } log)
+            {
+                log.LogCritical(ex, "Start-up failed.");
+            }
+            else
+            {
+                _fileLog?.Fatal(ex, "Start-up failed.");
+            }
+
+            MessageBox.Show(Strings.CrashMessage, Strings.CrashTitle, MessageBoxButton.OK, MessageBoxImage.Error);
+            Shutdown(1);
+        }
+    }
+
+    /// <summary>
+    /// Sets up the host, the settings, the pet window and the tray icon. Called once the start has been found to be the first
+    /// instance's, and wrapped by <see cref="OnStartup"/> so that a failure anywhere in it ends the application.
+    /// </summary>
+    /// <param name="e">
+    /// The start-up arguments.
+    /// </param>
+    /// <returns>
+    /// A task that completes when the application is up.
+    /// </returns>
+    private async Task StartApplicationAsync(StartupEventArgs e)
+    {
         _quitSignal = new InstanceSignal(QuitSignalName, () => Dispatcher.BeginInvoke(ExitApplication));
         _activateSignal = new InstanceSignal(ActivateSignalName, () => Dispatcher.BeginInvoke(OnActivationRequested));
 
