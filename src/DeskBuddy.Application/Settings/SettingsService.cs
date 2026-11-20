@@ -1,3 +1,5 @@
+using System.Runtime.ExceptionServices;
+
 namespace DeskBuddy.Application.Settings;
 
 /// <summary>
@@ -104,14 +106,52 @@ public sealed class SettingsService(ISettingsStore store)
             }
 
             Current = ProcessListRules.Enforce(change(Current).Normalize()).Settings;
-            Changed?.Invoke(this, Current);
+            var subscriberFailure = RaiseChanged();
+
+            // A subscriber that failed must not keep the change from being saved: it is in effect already.
             await store.SaveAsync(Current, cancellationToken);
+            subscriberFailure?.Throw();
             return Current;
         }
         finally
         {
             _gate.Release();
         }
+    }
+
+    /// <summary>
+    /// Raises <see cref="Changed"/>, giving every subscriber its turn even if an earlier one throws.
+    /// </summary>
+    /// <returns>
+    /// The failure of the subscribers to rethrow once the change is saved, or <see langword="null"/> if none failed.
+    /// </returns>
+    private ExceptionDispatchInfo? RaiseChanged()
+    {
+        if (Changed is not { } handlers)
+        {
+            return null;
+        }
+
+        List<Exception>? failures = null;
+        foreach (var handler in handlers.GetInvocationList().Cast<EventHandler<PetSettings>>())
+        {
+            try
+            {
+                handler(this, Current);
+            }
+            catch (Exception ex)
+            {
+                // Collected and thrown after the save, so that the change is not lost; see UpdateAsync.
+                (failures ??= []).Add(ex);
+            }
+        }
+
+        return failures switch
+        {
+            null => null,
+            [var single] => ExceptionDispatchInfo.Capture(single),
+            _ => ExceptionDispatchInfo.Capture(new AggregateException(failures)),
+        };
     }
 
     /// <summary>

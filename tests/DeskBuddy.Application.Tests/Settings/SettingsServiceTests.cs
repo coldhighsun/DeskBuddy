@@ -164,6 +164,29 @@ public class SettingsServiceTests
     }
 
     /// <summary>
+    /// A subscriber that throws does not keep the change from being saved or the other subscribers from being told; its
+    /// error still reaches the caller.
+    /// </summary>
+    [Fact]
+    public async Task UpdateAsync_SubscriberThrows_StillSavesAndNotifiesOthers()
+    {
+        // Arrange
+        await _service.InitializeAsync(TestContext.Current.CancellationToken);
+        var notified = false;
+        _service.Changed += (_, _) => throw new InvalidOperationException("subscriber");
+        _service.Changed += (_, _) => notified = true;
+
+        // Act
+        var act = () => _service.UpdateAsync(s => s with { ClimbEdges = true });
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("subscriber");
+        notified.Should().BeTrue();
+        _store.Stored!.ClimbEdges.Should().BeTrue();
+        _service.Current.ClimbEdges.Should().BeTrue();
+    }
+
+    /// <summary>
     /// A storage problem at startup is recorded and the defaults stay in effect.
     /// </summary>
     [Fact]
