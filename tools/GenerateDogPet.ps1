@@ -1,113 +1,127 @@
-# Generates the pixel-art dog pet (no third-party artwork). Art faces right.
-# Usage: powershell -NoProfile -File tools/GenerateDogPet.ps1
-. (Join-Path $PSScriptRoot 'PetDrawing.ps1')
+# Generates the dog pet into pets\dog: smooth vector art (see PetVectorDrawing.ps1), no third-party artwork. The animation set
+# comes from PetVectorAnimations.ps1; this script only draws the poses. Run: powershell -NoProfile -File tools/GenerateDogPet.ps1
+. (Join-Path $PSScriptRoot 'PetVectorDrawing.ps1')
 
 $PetName = 'dog'
 $HasHop = $true
-$PetNames = @{ En = 'Dog'; Zh = '狗' }
-$IconBox = @(6, 7, 20, 20)
+# 狗 spelled with a code point, so the script does not depend on its own file encoding.
+$PetNames = @{ En = 'Dog'; Zh = [string][char]0x72D7 }
+$IconBox = @(9, 9, 46, 46)
 $pal = @{
-    Outline  = New-Brush 52 34 28
-    Body     = New-Brush 214 160 96
-    BodyDark = New-Brush 140 90 52
-    Belly    = New-Brush 252 238 210
-    Paw      = New-Brush 252 238 210
-    Pink     = New-Brush 255 140 160
-    Iris     = New-Brush 120 80 50
-    EyeWhite = New-Brush 245 247 250
-    Lid      = New-Brush 52 34 28
-    Black    = New-Brush 24 22 28
-    Whisker  = New-Brush 240 230 215
-    White    = New-Brush 240 244 250
-    Blue     = New-Brush 110 170 230
-    Red      = New-Brush 235 60 60
-    Yellow   = New-Brush 255 210 70
-    Accent   = New-Brush 235 60 60
+    Outline  = New-HdColor 84 54 36
+    Body     = New-HdColor 224 170 102
+    BodyDark = New-HdColor 156 102 58
+    Belly    = New-HdColor 252 238 210
+    Paw      = New-HdColor 252 238 210
+    Collar   = New-HdColor 226 62 62
+    Nose     = New-HdColor 40 28 28
+    Black    = New-HdColor 40 28 28
 }
-$textFont = New-Object System.Drawing.Font 'Consolas', 16, ([System.Drawing.FontStyle]::Bold)
-
-# Looking up from the side: long muzzle at the top, a floppy ear hanging at the back of the head.
-$ClimbHead = @(
-    'XXXkkXXXX.....',
-    'XcccooooX.....',
-    'XcccokkoX.....',
-    'XcccoggoX.....',
-    'XcccooooXX....',
-    'XoooooooXdX...',
-    'XoooooooXddX..',
-    'XoooooooXdX...',
-    'XXXXXXXXXX....'
-)
 
 # The tail, wagging with Phase (0-3).
 function Add-PetBack([int]$Phase) {
-    $tipX = @(27, 28, 29, 28)[$Phase]
-    $tipY = @(22, 21, 22, 23)[$Phase]
-    Add-Limb 22 27 26 25 Outline Body
-    Add-Limb 26 25 $tipX $tipY Outline Body
-    Px BodyDark $tipX $tipY 2 2
+    $tip = @(@(53, 41), @(55, 44), @(56, 48), @(54, 43))[$Phase]
+    $curve = Get-HdBezier 40 57 50 58 56 52 $tip[0] $tip[1] 20
+    Add-HdStroke $curve 'Outline' 6
+    Add-HdStroke $curve 'Body' 4.3
+    Add-HdOval 'BodyDark' $tip[0] $tip[1] 2.3 2.3 ''
 }
 
-# Body with a cream belly and a collar, front legs, and the head with floppy ears and a muzzle.
+# The body with a cream belly and the front legs that are not raised (which are the arms when raised; a hind foot shows
+# in place of a raised one).
 function Add-PetBody([bool]$LeftDown, [bool]$RightDown) {
-    Px Outline 8 24 16 6; Px Body 9 25 14 4
-    Px Outline 9 17 14 8; Px Body 10 18 12 7
-    Px Belly 13 20 6 9
-    Px BodyDark 10 21 2 2; Px BodyDark 20 22 2 2
-    if ($LeftDown) { Px Outline 11 23 4 7; Px Belly 12 24 2 5 }
-    if ($RightDown) { Px Outline 17 23 4 7; Px Belly 18 24 2 5 }
-    Px Red 12 17 8 1
-    # Floppy ears behind the head, then the head.
-    Px Outline 5 7 5 10; Px BodyDark 6 8 3 8
-    Px Outline 22 7 5 10; Px BodyDark 23 8 3 8
-    Px Outline 8 6 16 11; Px Body 9 7 14 9
-    Px BodyDark 9 7 3 3; Px Belly 14 7 4 2
-    Px Belly 12 12 8 4; Px Black 15 12 2 2
-    Px Outline 15 14 2 1; Px Outline 14 15 1 1; Px Outline 17 15 1 1; Px Pink 15 15 2 1
+    Add-HdOval 'Body' 32 49 13.5 12
+    Add-HdOval 'Belly' 32 53 8 9 ''
+    foreach ($leg in @(@(25, $LeftDown), @(39, $RightDown))) {
+        if ($leg[1]) {
+            Add-HdLimb @($leg[0], 48, $leg[0], 58) 'Body' 5.4
+            Add-HdOval 'Paw' $leg[0] 59.4 4.1 2.7
+        } else {
+            # The hind foot shows where the front leg was raised.
+            Add-HdOval 'Paw' ($leg[0] + ($leg[0] - 32) * 0.4) 59.8 4.7 2.6
+        }
+    }
+    Add-HdStroke (Get-HdBezier 21 37 24 43.5 40 43.5 43 37 12) 'Outline' 4.2
+    Add-HdStroke (Get-HdBezier 21 37 24 43.5 40 43.5 43 37 12) 'Collar' 2.6
+}
+
+# The head: floppy ears, a patch round one eye, a cream muzzle with a nose and a little tongue.
+function Add-PetHead {
+    Add-HdOval 'BodyDark' 14.2 28 5.2 10.5 'Outline' 1.2 10
+    Add-HdOval 'BodyDark' 49.8 28 5.2 10.5 'Outline' 1.2 -10
+    Add-HdOval 'Body' 32 27 15.5 12.5
+    Add-HdOval 'BodyDark' 22.5 25.5 5.6 6.2 '' 0 -12
+    Add-HdOval 'Belly' 32 33.6 9 6.3 ''
+    Add-HdOval 'Pink' 32 37.2 1.9 2.2 ''
+    Add-HdOval 'Nose' 32 30.8 2.7 2 ''
+    Add-HdStroke @(32, 32.4, 32, 34.4) 'Nose' 0.9
+    Add-HdStroke (Get-HdBezier 28 34.4 29.5 36.8 34.5 36.8 36 34.4 6) 'Nose' 0.9
 }
 
 # The dog lying down, head on its paws.
 function Add-PetLie {
-    Px Outline 5 19 22 11; Px Body 6 20 20 9
-    Px BodyDark 14 21 3 2; Px BodyDark 20 22 3 2
-    Px Outline 22 25 8 4; Px Body 23 26 6 2; Px BodyDark 28 26 2 2
-    Px Outline 2 15 5 8; Px BodyDark 3 16 3 6
-    Px Outline 15 15 5 8; Px BodyDark 16 16 3 6
-    Px Outline 4 14 14 11; Px Body 5 15 12 9
-    Px Belly 8 20 6 4; Px Black 10 20 2 2
-    Px Red 5 24 12 1
+    Add-HdOval 'Body' 37 50 22 10.8
+    Add-HdOval 'Body' 46 52 9.5 7.8
+    $curve = Get-HdBezier 56 53 62 52 62 47 58 43 14
+    Add-HdStroke $curve 'Outline' 5.6
+    Add-HdStroke $curve 'Body' 3.9
+    Add-HdOval 'Belly' 26 59.2 5 2.7
+    Add-HdOval 'Belly' 12 59.2 5 2.7
+    Add-HdStroke @(30, 42, 33, 51, 31, 58) 'Outline' 4
+    Add-HdStroke @(30, 42, 33, 51, 31, 58) 'Collar' 2.4
+    Add-HdOval 'BodyDark' 8.4 47 4.2 8.4 'Outline' 1.1 16
+    Add-HdOval 'BodyDark' 29.6 47.6 4.2 8 'Outline' 1.1 -14
+    Add-HdOval 'Body' 19 49 12.5 9.6
+    Add-HdOval 'Belly' 19 54.2 7.6 4.6 ''
+    Add-HdOval 'Nose' 19 52.6 2.4 1.7 ''
 }
 
-# The dog seen from the side, facing left, walking: D (-3 to 3) swings the legs, TipY is the height of the tail's tip.
-function Add-PetSide([int]$D, [int]$TipY) {
-    Add-Limb 11 22 (11 - $D) 27 Outline BodyDark
-    Add-Limb 22 22 (22 + $D) 27 Outline BodyDark
-    Add-Limb 24 18 27 14 Outline Body
-    Add-Limb 27 14 29 $TipY Outline Body
-    Px BodyDark 29 $TipY 2 2
-
-    Px Outline 8 15 17 9; Px Body 9 16 15 7
-    Px Belly 9 19 4 4
-    Px BodyDark 16 16 3 3; Px BodyDark 20 18 3 2
-    Px Red 12 15 2 4
-
-    Px Outline 1 9 13 10; Px Body 2 10 11 8
-    Px Belly 2 14 5 4; Px Black 1 13 2 2
-    Px Iris 5 12 2 2; Px Black 5 12 1 2
-    Px Outline 8 8 5 10; Px BodyDark 9 9 3 8
-
-    Add-Limb 10 22 (10 + $D) 27 Outline Body
-    Add-Limb 21 22 (21 - $D) 27 Outline Body
+# The dog seen from the side, facing left, walking: D (-3 to 3) swings the legs, Lift raises the tip of the tail.
+function Add-PetSide([double]$D, [double]$Lift) {
+    $swing = $D * 2.2
+    $tailTip = 31 - $Lift
+    $curve = Get-HdBezier 47 43 54 42 58 38 56 $tailTip 18
+    Add-HdStroke $curve 'Outline' 6
+    Add-HdStroke $curve 'Body' 4.3
+    Add-HdOval 'BodyDark' 56 $tailTip 2.3 2.3 ''
+    foreach ($leg in @(@(30, (-$swing)), @(38, $swing))) {
+        $foot = $leg[0] + $leg[1]
+        Add-HdLimb @($leg[0], 50, $foot, 59.5) 'BodyDark' 4.4
+        Add-HdOval 'Paw' ($foot - 1) 60.4 3.2 2.2
+    }
+    Add-HdOval 'Body' 34 46 16.5 10
+    Add-HdOval 'Belly' 31 52 10.5 3.6 ''
+    Add-HdOval 'BodyDark' 36 42 4.6 3.2 '' 0 -10
+    foreach ($leg in @(@(25, $swing), @(42, (-$swing)))) {
+        $foot = $leg[0] + $leg[1]
+        Add-HdLimb @($leg[0], 50, $foot, 59.5) 'Body' 4.6
+        Add-HdOval 'Paw' ($foot - 1) 60.4 3.4 2.3
+    }
+    # The collar, then the head with the muzzle pointing left and the floppy ear.
+    Add-HdLimb @(21, 28, 24, 41) 'Collar' 2.4
+    Add-HdOval 'Belly' 8 37.6 7 4.2
+    Add-HdOval 'Body' 16 34 10.5 8.8
+    Add-HdOval 'Belly' 13.5 39.6 6.4 3.4 ''
+    Add-HdOval 'BodyDark' 21 34 4.5 8.4 'Outline' 1.1 -10
+    Add-HdOval 'Black' 11.2 31.6 1.5 2.1 ''
+    Add-HdOval 'Shine' 11.7 30.8 0.55 0.7 ''
+    Add-HdOval 'Nose' 1.9 36.2 1.9 1.6 ''
 }
 
 # A bone held in the paw, gnawed down to crumbs.
 function Add-PetFood([int]$Len) {
     if ($Len -gt 0) {
-        Px Outline 23 10 ($Len + 1) 4; Px White 24 11 ($Len - 1) 2
-        if ($Len -ge 5) { Px White 24 10 1 1; Px White 24 13 1 1; Px White 31 10 1 1; Px White 31 13 1 1 }
+        $end = 47 + 2 * $Len
+        Add-HdLimb @(47, 25, $end, 25) 'White' 2.6
+        Add-HdOval 'White' 46.4 23.6 2 2 'Outline' 0.9
+        Add-HdOval 'White' 46.4 26.4 2 2 'Outline' 0.9
+        if ($Len -ge 5) {
+            Add-HdOval 'White' ($end + 0.6) 23.6 2 2 'Outline' 0.9
+            Add-HdOval 'White' ($end + 0.6) 26.4 2 2 'Outline' 0.9
+        }
     } else {
-        Px White 24 12 5 1
+        Add-HdStroke @(48, 26, 52, 26) 'White' 1.2
     }
 }
 
-. (Join-Path $PSScriptRoot 'PetAnimations.ps1')
+. (Join-Path $PSScriptRoot 'PetVectorAnimations.ps1')

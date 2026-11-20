@@ -2,7 +2,7 @@
   "name": "cat",
   "names": { "en": "Cat", "zh": "猫" },
   "frameSize": [64, 64],
-  "atlas": { "image": "atlas.png", "cell": [128, 128], "columns": 10 },
+  "atlas": { "image": "atlas.png", "cell": [256, 256], "columns": 10 },
   "states": {
     "Idle":    { "fps": 2, "frames": [0, 1, 2, 3] },
     "Walk":    { "fps": 8, "frames": [4, 5, 6, 7] },

@@ -1,6 +1,6 @@
-# Drawing helpers for pets drawn as smooth, anti-aliased vector art instead of pixel art (see GenerateFoxPet.ps1).
-# Dot-source this file together with PetDrawing.ps1 (which supplies Write-PetManifest for the atlas packer); the caller
-# defines $pal (a hashtable of colors made with New-HdColor) and $textFont before it draws anything.
+# Drawing helpers shared by every pet generator: pets are drawn as smooth, anti-aliased vector art (see GenerateFoxPet.ps1 and
+# PetVectorAnimations.ps1). Dot-source this file first; the caller then defines $pal (a hashtable of colors made with
+# New-HdColor) before it draws anything, and may replace $textFont.
 #
 # Pets are drawn on a 64x64 unit grid (the pet's frameSize) at $HdScale device pixels per unit, so the frames come out at
 # 64 * $HdScale pixels square. The manifest keeps frameSize at 64: only the atlas cell grows, which makes the pet sharper
@@ -11,6 +11,9 @@ Add-Type -AssemblyName System.Drawing
 $HdScale = 4
 $HdEdge = 64
 
+# The font of the small texts (z, !, braces, ...), in drawing units.
+$textFont = New-Object System.Drawing.Font ('Arial', [single]9, [System.Drawing.FontStyle]::Bold, [System.Drawing.GraphicsUnit]::Pixel)
+
 function New-HdColor([int]$R, [int]$G, [int]$B, [int]$A = 255) {
     [System.Drawing.Color]::FromArgb($A, $R, $G, $B)
 }
@@ -18,6 +21,30 @@ function New-HdColor([int]$R, [int]$G, [int]$B, [int]$A = 255) {
 function Get-HdColor([string]$Key) {
     if (-not $pal.ContainsKey($Key)) { throw "The palette has no color named '$Key'; add it to `$pal." }
     $pal[$Key]
+}
+
+# Adds the colors that props, hearts and texts need to the palette of a pet, unless the pet defines them itself.
+function Set-HdDefaultColors {
+    $defaults = @{
+        Black      = (New-HdColor 44 28 24)
+        White      = (New-HdColor 255 255 255)
+        Shine      = (New-HdColor 255 255 255)
+        Pink       = (New-HdColor 255 140 150)
+        Heart      = (New-HdColor 255 96 128)
+        Red        = (New-HdColor 232 60 60)
+        Blue       = (New-HdColor 110 178 255)
+        Yellow     = (New-HdColor 255 210 70)
+        Green      = (New-HdColor 90 190 90)
+        Sleepy     = (New-HdColor 120 150 215)
+        ScreenGray = (New-HdColor 120 130 150)
+        ScreenDark = (New-HdColor 60 68 90)
+        Paper      = (New-HdColor 250 248 240)
+        PaperLine  = (New-HdColor 180 184 200)
+        PropEdge   = (New-HdColor 38 42 60)
+    }
+    foreach ($key in $defaults.Keys) {
+        if (-not $pal.ContainsKey($key)) { $pal[$key] = $defaults[$key] }
+    }
 }
 
 # A list of points from x, y pairs.
@@ -55,30 +82,88 @@ function Add-HdLimb([double[]]$Xy, [string]$Color, [double]$Width, [string]$Edge
     Add-HdStroke $Xy $Color $Width
 }
 
-# A filled ellipse with an optional outline (pass an empty Edge for none).
-function Add-HdOval([string]$Color, [double]$Cx, [double]$Cy, [double]$Rx, [double]$Ry, [string]$Edge = 'Outline', [double]$Width = 1.1) {
-    $brush = New-Object System.Drawing.SolidBrush (Get-HdColor $Color)
-    try { $script:g.FillEllipse($brush, [single]($Cx - $Rx), [single]($Cy - $Ry), [single](2 * $Rx), [single](2 * $Ry)) } finally { $brush.Dispose() }
-    if ($Edge) {
-        $pen = New-Object System.Drawing.Pen (Get-HdColor $Edge), ([single]$Width)
-        try { $script:g.DrawEllipse($pen, [single]($Cx - $Rx), [single]($Cy - $Ry), [single](2 * $Rx), [single](2 * $Ry)) } finally { $pen.Dispose() }
+# A filled ellipse with an optional outline (pass an empty Edge for none), turned clockwise by Angle degrees about its center.
+function Add-HdOval([string]$Color, [double]$Cx, [double]$Cy, [double]$Rx, [double]$Ry, [string]$Edge = 'Outline', [double]$Width = 1.1, [double]$Angle = 0) {
+    $state = $script:g.Save()
+    try {
+        if ($Angle -ne 0) {
+            $script:g.TranslateTransform([single]$Cx, [single]$Cy)
+            $script:g.RotateTransform([single]$Angle)
+            $script:g.TranslateTransform([single](-$Cx), [single](-$Cy))
+        }
+        $brush = New-Object System.Drawing.SolidBrush (Get-HdColor $Color)
+        try { $script:g.FillEllipse($brush, [single]($Cx - $Rx), [single]($Cy - $Ry), [single](2 * $Rx), [single](2 * $Ry)) } finally { $brush.Dispose() }
+        if ($Edge) {
+            $pen = New-Object System.Drawing.Pen (Get-HdColor $Edge), ([single]$Width)
+            try { $script:g.DrawEllipse($pen, [single]($Cx - $Rx), [single]($Cy - $Ry), [single](2 * $Rx), [single](2 * $Ry)) } finally { $pen.Dispose() }
+        }
+    } finally {
+        $script:g.Restore($state)
     }
 }
 
-# A filled polygon (or, with Smooth, a rounded closed curve through the points) with an optional outline.
-function Add-HdPoly([string]$Color, [double[]]$Xy, [string]$Edge = 'Outline', [double]$Width = 1.1, [switch]$Smooth) {
+# The outline of an ellipse only, without a fill.
+function Add-HdRing([string]$Edge, [double]$Cx, [double]$Cy, [double]$Rx, [double]$Ry, [double]$Width = 1.1) {
+    $pen = New-Object System.Drawing.Pen (Get-HdColor $Edge), ([single]$Width)
+    try { $script:g.DrawEllipse($pen, [single]($Cx - $Rx), [single]($Cy - $Ry), [single](2 * $Rx), [single](2 * $Ry)) } finally { $pen.Dispose() }
+}
+
+# A filled polygon (or, with Smooth, a rounded closed curve through the points; Tension 0 is a polygon, 0.4 gently
+# rounded, 1 very round) with an optional outline.
+function Add-HdPoly([string]$Color, [double[]]$Xy, [string]$Edge = 'Outline', [double]$Width = 1.1, [switch]$Smooth, [double]$Tension = 0.4) {
     $points = New-HdPoints $Xy
     $brush = New-Object System.Drawing.SolidBrush (Get-HdColor $Color)
     try {
-        if ($Smooth) { $script:g.FillClosedCurve($brush, $points, 'Alternate', [single]0.4) } else { $script:g.FillPolygon($brush, $points) }
+        if ($Smooth) { $script:g.FillClosedCurve($brush, $points, 'Alternate', [single]$Tension) } else { $script:g.FillPolygon($brush, $points) }
     } finally { $brush.Dispose() }
     if ($Edge) {
         $pen = New-Object System.Drawing.Pen (Get-HdColor $Edge), ([single]$Width)
         $pen.LineJoin = 'Round'
         try {
-            if ($Smooth) { $script:g.DrawClosedCurve($pen, $points, [single]0.4, 'Alternate') } else { $script:g.DrawPolygon($pen, $points) }
+            if ($Smooth) { $script:g.DrawClosedCurve($pen, $points, [single]$Tension, 'Alternate') } else { $script:g.DrawPolygon($pen, $points) }
         } finally { $pen.Dispose() }
     }
+}
+
+# A closed shape made of cubic Bezier segments: Xy is the start point (x, y) followed by any number of segments of three
+# points each (two control points and the end point); the shape is closed with a straight line back to the start.
+function Add-HdShape([string]$Color, [double[]]$Xy, [string]$Edge = 'Outline', [double]$Width = 1.1) {
+    $path = New-Object System.Drawing.Drawing2D.GraphicsPath
+    $brush = New-Object System.Drawing.SolidBrush (Get-HdColor $Color)
+    try {
+        $x = $Xy[0]; $y = $Xy[1]
+        for ($i = 2; $i + 5 -lt $Xy.Count; $i += 6) {
+            $path.AddBezier([single]$x, [single]$y, [single]$Xy[$i], [single]$Xy[$i + 1], [single]$Xy[$i + 2], [single]$Xy[$i + 3], [single]$Xy[$i + 4], [single]$Xy[$i + 5])
+            $x = $Xy[$i + 4]; $y = $Xy[$i + 5]
+        }
+        $path.CloseFigure()
+        $script:g.FillPath($brush, $path)
+        if ($Edge) {
+            $pen = New-Object System.Drawing.Pen (Get-HdColor $Edge), ([single]$Width)
+            $pen.LineJoin = 'Round'
+            try { $script:g.DrawPath($pen, $path) } finally { $pen.Dispose() }
+        }
+    } finally { $brush.Dispose(); $path.Dispose() }
+}
+
+# A rectangle with rounded corners (radius R) and an optional outline.
+function Add-HdRoundRect([string]$Color, [double]$X, [double]$Y, [double]$W, [double]$H, [double]$R, [string]$Edge = 'Outline', [double]$Width = 1.1) {
+    $d = [Math]::Min(2 * $R, [Math]::Min($W, $H))
+    $path = New-Object System.Drawing.Drawing2D.GraphicsPath
+    $path.AddArc([single]$X, [single]$Y, [single]$d, [single]$d, 180, 90)
+    $path.AddArc([single]($X + $W - $d), [single]$Y, [single]$d, [single]$d, 270, 90)
+    $path.AddArc([single]($X + $W - $d), [single]($Y + $H - $d), [single]$d, [single]$d, 0, 90)
+    $path.AddArc([single]$X, [single]($Y + $H - $d), [single]$d, [single]$d, 90, 90)
+    $path.CloseFigure()
+    $brush = New-Object System.Drawing.SolidBrush (Get-HdColor $Color)
+    try {
+        $script:g.FillPath($brush, $path)
+        if ($Edge) {
+            $pen = New-Object System.Drawing.Pen (Get-HdColor $Edge), ([single]$Width)
+            $pen.LineJoin = 'Round'
+            try { $script:g.DrawPath($pen, $path) } finally { $pen.Dispose() }
+        }
+    } finally { $brush.Dispose(); $path.Dispose() }
 }
 
 # A heart centered on the given point, S units across the half width.
@@ -90,14 +175,57 @@ function Add-HdHeart([string]$Color, [double]$Cx, [double]$Cy, [double]$S) {
     try { $script:g.FillPath($brush, $path) } finally { $brush.Dispose(); $path.Dispose() }
 }
 
+# A four-pointed sparkle centered on the given point, R units from the middle to a tip.
+function Add-HdSparkle([string]$Color, [double]$Cx, [double]$Cy, [double]$R) {
+    $k = $R * 0.28
+    $points = New-HdPoints @($Cx, ($Cy - $R), ($Cx + $k), ($Cy - $k), ($Cx + $R), $Cy, ($Cx + $k), ($Cy + $k), $Cx, ($Cy + $R), ($Cx - $k), ($Cy + $k), ($Cx - $R), $Cy, ($Cx - $k), ($Cy - $k))
+    $brush = New-Object System.Drawing.SolidBrush (Get-HdColor $Color)
+    try { $script:g.FillPolygon($brush, $points) } finally { $brush.Dispose() }
+}
+
+# A check mark whose bend is at the given point, S units across.
+function Add-HdCheck([string]$Color, [double]$X, [double]$Y, [double]$S, [double]$Width = 1.8) {
+    Add-HdStroke @(($X - $S * 0.9), ($Y - $S * 0.4), $X, ($Y + $S * 0.5), ($X + $S * 1.5), ($Y - $S * 1.1)) $Color $Width
+}
+
+# A crescent moon in the given circle of radius R, opening towards the lower right.
+function Add-HdMoon([string]$Color, [double]$Cx, [double]$Cy, [double]$R) {
+    $bite = New-Object System.Drawing.Drawing2D.GraphicsPath
+    $bite.AddEllipse([single]($Cx + $R * 0.45 - $R * 0.85), [single]($Cy - $R * 0.4 - $R * 0.85), [single]($R * 1.7), [single]($R * 1.7))
+    $state = $script:g.Save()
+    $brush = New-Object System.Drawing.SolidBrush (Get-HdColor $Color)
+    try {
+        $script:g.SetClip($bite, [System.Drawing.Drawing2D.CombineMode]::Exclude)
+        $script:g.FillEllipse($brush, [single]($Cx - $R), [single]($Cy - $R), [single](2 * $R), [single](2 * $R))
+    } finally {
+        $script:g.Restore($state)
+        $brush.Dispose(); $bite.Dispose()
+    }
+}
+
 function Add-HdText([string]$Text, [string]$Color, [double]$X, [double]$Y) {
     $brush = New-Object System.Drawing.SolidBrush (Get-HdColor $Color)
     try { $script:g.DrawString($Text, $textFont, $brush, [single]$X, [single]$Y) } finally { $brush.Dispose() }
 }
 
+# A text with an outline, so that it can be read on any desktop color. X and Y are the top-left corner and Size the height
+# of the letters' em box, in drawing units.
+function Add-HdLabel([string]$Text, [string]$Color, [double]$X, [double]$Y, [string]$Edge = 'PropEdge', [double]$Size = 9) {
+    $path = New-Object System.Drawing.Drawing2D.GraphicsPath
+    $path.AddString($Text, $textFont.FontFamily, [int]$textFont.Style, [single]$Size, (New-Object System.Drawing.PointF ([single]$X), ([single]$Y)), [System.Drawing.StringFormat]::GenericDefault)
+    $brush = New-Object System.Drawing.SolidBrush (Get-HdColor $Color)
+    $pen = New-Object System.Drawing.Pen (Get-HdColor $Edge), ([single]1.4)
+    $pen.LineJoin = 'Round'
+    try {
+        $script:g.DrawPath($pen, $path)
+        $script:g.FillPath($brush, $path)
+    } finally { $brush.Dispose(); $pen.Dispose(); $path.Dispose() }
+}
+
 # Starts a frame: a transparent canvas of 64 units a side that the Add-Hd functions draw on through $script:g. Dy lifts
-# everything (negative is up); Tilt turns it clockwise by that many degrees about the middle of the frame. Returns the bitmap.
-function New-HdCanvas([double]$Dy = 0, [double]$Tilt = 0) {
+# everything (negative is up); Tilt turns it clockwise by that many degrees about the point (PivotX, PivotY), by default the
+# middle of the frame. Returns the bitmap.
+function New-HdCanvas([double]$Dy = 0, [double]$Tilt = 0, [double]$PivotX = 32, [double]$PivotY = 32) {
     if ($null -eq $pal -or $null -eq $textFont) { throw 'Define $pal and $textFont before drawing a frame.' }
     $size = $HdEdge * $HdScale
     $bmp = New-Object System.Drawing.Bitmap $size, $size
@@ -108,10 +236,9 @@ function New-HdCanvas([double]$Dy = 0, [double]$Tilt = 0) {
     $script:g.TextRenderingHint = 'AntiAlias'
     $script:g.Clear([System.Drawing.Color]::Transparent)
     $script:g.ScaleTransform($HdScale, $HdScale)
-    $mid = $HdEdge / 2
-    $script:g.TranslateTransform([single]$mid, [single]($mid + $Dy))
+    $script:g.TranslateTransform([single]$PivotX, [single]($PivotY + $Dy))
     $script:g.RotateTransform([single]$Tilt)
-    $script:g.TranslateTransform([single](-$mid), [single](-$mid))
+    $script:g.TranslateTransform([single](-$PivotX), [single](-$PivotY))
     return $bmp
 }
 
@@ -122,6 +249,20 @@ function Save-HdCanvas($Bitmap, [string]$Path, [switch]$Flip, [switch]$Mirror) {
     if ($Mirror) { $Bitmap.RotateFlip([System.Drawing.RotateFlipType]::RotateNoneFlipX) }
     $Bitmap.Save($Path, [System.Drawing.Imaging.ImageFormat]::Png)
     $Bitmap.Dispose()
+}
+
+# Antivirus / indexers often hold freshly written files for a moment, so retry the manifest write whatever the failure.
+function Write-PetManifest([string]$Path, [string]$Text) {
+    foreach ($attempt in 1..10) {
+        try {
+            Set-Content -Encoding UTF8 -Path $Path -Value $Text -ErrorAction Stop
+            break
+        }
+        catch {
+            if ($attempt -eq 10) { throw }
+            Start-Sleep -Milliseconds 500
+        }
+    }
 }
 
 # Saves the pet's tray icon, icon.png in its folder: the part of a frame that shows its head, given in drawing units as the

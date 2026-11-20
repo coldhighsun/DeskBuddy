@@ -49,7 +49,7 @@
 
 **宠物**
 
-- 自带七只宠物：robot（默认）、cat、dog、rabbit、penguin、ghost、fox（平滑矢量风格，4 倍分辨率）。
+- 自带七只宠物：robot（默认）、cat、dog、rabbit、penguin、ghost、fox，全部为平滑矢量风格（4 倍分辨率）。
 
 | **robot** | **cat** | **dog** | **rabbit** | **penguin** | **ghost** | **fox** |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: |

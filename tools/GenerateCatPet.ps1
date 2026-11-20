@@ -1,359 +1,142 @@
-# Generates the pixel-art cat pet (no third-party artwork). Art faces right.
-# Usage: powershell -NoProfile -File tools/GenerateCatPet.ps1
-. (Join-Path $PSScriptRoot 'PetDrawing.ps1')
-# The cat's limbs have a core two art pixels thick.
-$script:LimbCore = 2
+# Generates the cat pet into pets\cat: smooth vector art (see PetVectorDrawing.ps1), no third-party artwork. The animation set
+# comes from PetVectorAnimations.ps1; this script only draws the poses. Run: powershell -NoProfile -File tools/GenerateCatPet.ps1
+. (Join-Path $PSScriptRoot 'PetVectorDrawing.ps1')
 
-$outDir = Join-Path $PSScriptRoot '..\pets\cat'
-New-Item -ItemType Directory -Force -Path $outDir | Out-Null
-Get-ChildItem $outDir -Filter *.png | Remove-Item
-
+$PetName = 'cat'
+$HasHop = $true
+# 猫 spelled with a code point, so the script does not depend on its own file encoding.
+$PetNames = @{ En = 'Cat'; Zh = [string][char]0x732B }
+$IconBox = @(12, 3, 40, 40)
 $pal = @{
-    Outline    = New-Brush 56 34 30
-    Orange     = New-Brush 240 160 70
-    OrangeDark = New-Brush 200 105 45
-    Cream      = New-Brush 255 238 210
-    Whisker    = New-Brush 240 230 215
-    Pink       = New-Brush 255 140 170
-    White      = New-Brush 240 244 250
-    Black      = New-Brush 24 22 28
-    EyeG       = New-Brush 110 210 120
-    Blue       = New-Brush 110 170 230
-    Red        = New-Brush 255 70 70
-    Yellow     = New-Brush 255 210 70
+    Outline    = New-HdColor 78 46 32
+    Body       = New-HdColor 242 164 76
+    BodyDark   = New-HdColor 206 110 46
+    Belly      = New-HdColor 255 241 216
+    Paw        = New-HdColor 255 241 216
+    EyeG       = New-HdColor 112 204 120
+    Black      = New-HdColor 36 28 30
 }
-$textFont = New-Object System.Drawing.Font 'Consolas', 16, ([System.Drawing.FontStyle]::Bold)
-
-# Renders one frame by running $Draw with a fresh canvas, then saves it. The cat's feet end two art pixels above the
-# bottom of the frame, so a grounded frame is lowered by two to stand on the bottom edge; a negative Dy is a jump. Air is
-# for frames in which the cat is not on the ground. Flip turns the picture upside down (hanging from the top of the
-# screen); Mirror turns it left to right (a side view drawn facing left that has to face right). Tilt turns the picture
-# clockwise by that many degrees as drawn facing left, so a positive one raises the nose.
-function Save-Frame([string]$Name, [scriptblock]$Draw, [int]$Dy = 0, [switch]$Flip, [switch]$Mirror, [switch]$Air, [double]$Tilt = 0) {
-    $bmp = New-Canvas
-    $script:dy = if ($Air) { $Dy } else { [Math]::Min($Dy, 0) + 2 }
-    & $Draw
-    Save-Canvas $bmp (Join-Path $outDir $Name) -Flip:$Flip -Mirror:$Mirror -Tilt $Tilt
-}
-
-# A small plus-shaped star centered on the given art pixel.
-function Add-Star([string]$Color, [int]$X, [int]$Y) {
-    Px $Color $X ($Y - 1) 1 3; Px $Color ($X - 1) $Y 3 1
-}
-
-# Draws a picture given as rows of characters, its top-left corner at the given art pixel: X outline, o orange, d dark
-# orange, c cream, p pink, g green, k black, w whisker, anything else is left clear.
-function Add-Sprite([int]$X, [int]$Y, [string[]]$Rows) {
-    $colors = @{ X = 'Outline'; o = 'Orange'; d = 'OrangeDark'; c = 'Cream'; p = 'Pink'; g = 'EyeG'; k = 'Black'; w = 'Whisker' }
-    for ($r = 0; $r -lt $Rows.Count; $r++) {
-        for ($c = 0; $c -lt $Rows[$r].Length; $c++) {
-            $color = $colors["$($Rows[$r][$c])"]
-            if ($color) { Px $color ($X + $c) ($Y + $r) }
-        }
-    }
-}
-
-# A pointed ear, an upright isosceles triangle 5 wide and 4 tall at the given top-left corner.
-function Add-Ear([int]$X, [int]$Y) {
-    Add-Sprite $X $Y @('..X..', '.XoX.', 'XopoX', 'XXXXX')
-}
+# Green eyes with a narrow pupil.
+$EyeKeys = @{ Fill = 'EyeG'; Pupil = 'Black'; Lid = 'Outline'; Brow = 'BodyDark'; FillRx = 2.8; FillRy = 3.4; PupilRx = 1; PupilRy = 2.9 }
 
 # The tail, a curve from the base to a tip that sways with Phase (0-3).
-function Add-Tail([int]$Phase) {
-    $tipX = @(27, 28, 29, 28)[$Phase]
-    $tipY = @(16, 17, 18, 17)[$Phase]
-    Add-Limb 22 27 27 24 Outline Orange
-    Add-Limb 27 24 $tipX $tipY Outline Orange
-    Px OrangeDark $tipX $tipY 2 2
+function Add-PetBack([int]$Phase) {
+    $tip = @(@(54, 23), @(56, 26), @(58, 29), @(56, 26))[$Phase]
+    $curve = Get-HdBezier 41 57 55 60 59 42 $tip[0] $tip[1] 24
+    Add-HdStroke $curve 'Outline' 6.4
+    Add-HdStroke $curve 'Body' 4.7
+    Add-HdStroke $curve[24..($curve.Count - 1)] 'BodyDark' 4.7
 }
 
-# The front face on a head whose outline spans x 8-23, y 6-16. Eyes: open | closed | happy | tired | surprised.
-# EyeShift moves the pupils sideways and EyeDy up or down.
-function Add-Face([string]$Eyes, [int]$EyeShift, [int]$EyeDy) {
-    Px OrangeDark 15 7 2 1; Px OrangeDark 13 8 1 1; Px OrangeDark 18 8 1 1
-    Px Cream 13 13 6 3
-    Px Whisker 5 12 3 1; Px Whisker 5 14 3 1; Px Whisker 24 12 3 1; Px Whisker 24 14 3 1
-    Px Pink 15 13 2 1
-    Px Outline 15 14 2 1; Px Outline 14 15 1 1; Px Outline 17 15 1 1
-    $y = 9 + $EyeDy
-    switch ($Eyes) {
-        'open' {
-            Px EyeG 11 $y 3 3; Px EyeG 18 $y 3 3
-            Px Black (12 + $EyeShift) $y 1 3; Px Black (19 + $EyeShift) $y 1 3
-        }
-        'closed' { Px Outline 11 10 3 1; Px Outline 18 10 3 1 }
-        'happy' {
-            foreach ($x0 in 11, 18) { Px Outline $x0 10; Px Outline ($x0 + 1) 9; Px Outline ($x0 + 2) 10 }
-            Px Pink 10 12 2 1; Px Pink 20 12 2 1
-        }
-        'tired' {
-            Px EyeG 11 10 3 2; Px EyeG 18 10 3 2; Px Black 12 10 1 2; Px Black 19 10 1 2
-            Px OrangeDark 11 9 3 1; Px OrangeDark 18 9 3 1
-        }
-        'surprised' {
-            Px White 11 8 3 4; Px White 18 8 3 4; Px Black 12 9 1 2; Px Black 19 9 1 2
-        }
+# The body with a cream belly and stripes, and the front legs that are not raised (which are the arms when raised; a hind
+# foot shows in place of a raised one).
+function Add-PetBody([bool]$LeftDown, [bool]$RightDown) {
+    Add-HdOval 'Body' 32 49 13.5 12
+    Add-HdOval 'Belly' 32 52 8 9 ''
+    foreach ($side in -1, 1) {
+        Add-HdStroke @((32 + $side * 13.2), 44, (32 + $side * 9.8), 44.6) 'BodyDark' 1.5
+        Add-HdStroke @((32 + $side * 13.4), 48.4, (32 + $side * 10), 48.8) 'BodyDark' 1.5
     }
-}
-
-# The sitting cat seen from the front. ArmsUp raises both front paws, RightArmUp only the right one (RightArmDx sways
-# it, for a wave), LeftArmReach stretches the left one out to the edge of the frame to hold on to the screen, and
-# HoldOverhead raises both behind the head to the handle of an umbrella or parachute above it.
-function Add-Cat {
-    param(
-        [string]$Eyes = 'open', [int]$Tail = 0, [int]$EyeShift = 0, [int]$EyeDy = 0,
-        [switch]$ArmsUp, [switch]$RightArmUp, [int]$RightArmDx = 0, [switch]$LeftArmReach, [int]$ReachY = 13,
-        [switch]$HoldOverhead
-    )
-
-    Add-Tail $Tail
-
-    # Both arms go up outside the head and in again behind it, so the paws meet over the head on either side of the handle.
-    if ($HoldOverhead) {
-        Add-Limb 10 20 4 12 Outline Orange; Add-Limb 4 12 13 3 Outline Orange
-        Add-Limb 21 20 27 12 Outline Orange; Add-Limb 27 12 18 3 Outline Orange
-    }
-
-    # Haunches and body with a cream belly and stripes.
-    Px Outline 8 24 16 6; Px Orange 9 25 14 4
-    Px Outline 9 17 14 8; Px Orange 10 18 12 7
-    Px Cream 13 20 6 9
-    Px OrangeDark 10 20 2 1; Px OrangeDark 10 22 2 1; Px OrangeDark 20 20 2 1; Px OrangeDark 20 22 2 1
-
-    # Front legs, unless raised.
-    if (-not $ArmsUp -and -not $LeftArmReach) { Px Outline 11 23 4 7; Px Cream 12 24 2 5 }
-    if (-not $ArmsUp -and -not $RightArmUp) { Px Outline 17 23 4 7; Px Cream 18 24 2 5 }
-
-    # Head with ears.
-    Add-Ear 8 2; Add-Ear 19 2
-    Px Outline 8 6 16 11; Px Orange 9 7 14 9
-    Add-Face $Eyes $EyeShift $EyeDy
-
-    # Raised or reaching paws, on top of everything.
-    if ($ArmsUp -or $RightArmUp) { Add-Limb 21 20 (26 + $RightArmDx) 13 Outline Orange; Px Cream (26 + $RightArmDx) 13 2 2 }
-    if ($ArmsUp) { Add-Limb 10 20 5 13 Outline Orange; Px Cream 5 13 2 2 }
-    if ($LeftArmReach) { Add-Limb 10 19 1 $ReachY Outline Orange; Px Cream 1 $ReachY 2 2 }
-    if ($HoldOverhead) { Px Cream 13 2 2 3; Px Cream 17 2 2 3 }
-}
-
-# The cat lying down in a loaf, head on its paws, tail across the front. Eyes: closed | tired.
-function Add-CatLie([string]$Eyes = 'closed') {
-    Px Outline 5 19 22 11; Px Orange 6 20 20 9
-    Px OrangeDark 14 20 1 2; Px OrangeDark 17 20 1 2; Px OrangeDark 20 20 1 2; Px OrangeDark 23 20 1 2
-    Px Outline 18 26 11 4; Px Orange 19 27 9 2; Px OrangeDark 26 27 2 2
-    Add-Ear 4 10; Add-Ear 13 10
-    Px Outline 4 14 14 11; Px Orange 5 15 12 9
-    Px Cream 9 20 4 3; Px Pink 10 20 2 1
-    Px Whisker 1 19 3 1; Px Whisker 1 21 3 1; Px Whisker 18 19 3 1; Px Whisker 18 21 3 1
-    if ($Eyes -eq 'tired') {
-        Px EyeG 6 18 3 1; Px EyeG 13 18 3 1; Px Outline 6 17 3 1; Px Outline 13 17 3 1
-        Px Blue 19 13 1 2
-    } else {
-        Px Outline 6 18 3 1; Px Outline 13 18 3 1
-    }
-}
-
-# The cat seen from the side, facing left, walking: D (-3 to 3) swings the legs, TipY is the height of the tail's tip.
-function Add-CatSideWalk([int]$D, [int]$TipY) {
-    # Far legs and tail, behind the body.
-    Add-Limb 11 22 (11 - $D) 27 Outline OrangeDark
-    Add-Limb 22 22 (22 + $D) 27 Outline OrangeDark
-    Add-Limb 24 18 27 14 Outline Orange
-    Add-Limb 27 14 29 $TipY Outline Orange
-    Px OrangeDark 29 $TipY 2 2
-
-    # Body and chest.
-    Px Outline 8 15 17 9; Px Orange 9 16 15 7
-    Px Cream 9 19 4 4
-    Px OrangeDark 14 16 1 3; Px OrangeDark 17 16 1 3; Px OrangeDark 20 16 1 3
-
-    # Head in profile, with the one ear that shows from the side, at the back of the head.
-    Add-Ear 9 5
-    Px Outline 2 9 12 10; Px Orange 3 10 10 8
-    Px Cream 3 14 4 4; Px Pink 2 14 1 1
-    Px EyeG 4 12 2 2; Px Black 4 12 1 2
-    Px Whisker 7 14 4 1; Px Whisker 7 16 3 1
-
-    # Near legs.
-    Add-Limb 10 22 (10 + $D) 27 Outline Orange
-    Add-Limb 21 22 (21 - $D) 27 Outline Orange
-}
-
-# The cat seen from the side climbing the left edge of the screen, which is the wall: head up and forward, body upright,
-# paws on the edge of the frame at the given heights. The head is raised and the eyes look up.
-function Add-CatClimb([int]$NearHandY, [int]$FarHandY, [int]$NearFootY, [int]$FarFootY, [int]$TailX) {
-    Add-Limb 7 14 1 $FarHandY Outline OrangeDark
-    Add-Limb 8 24 1 $FarFootY Outline OrangeDark
-    Add-Limb 12 25 $TailX 29 Outline Orange
-    Px OrangeDark $TailX 29 2 2
-
-    Px Outline 5 12 9 14; Px Orange 6 13 7 12
-    Px Cream 6 18 3 6
-    Px OrangeDark 10 14 3 1; Px OrangeDark 10 17 3 1; Px OrangeDark 10 20 3 1; Px OrangeDark 10 23 3 1
-
-    # The head, tilted back to look up: the standing head (ears on top, face at the front) turned a quarter turn
-    # clockwise, so the face with its cream muzzle points up and the ear (a triangle pointing back) sits at the back of the head, at the bottom. Seen from the side, it has one ear and
-    # one eye, and the skull is a square, 9 by 9 art pixels.
-    Add-Sprite 6 4 @(
-        'XXXpXXXXX.....',
-        'XcccooooX.....',
-        'XcccokkoX.....',
-        'XcccoggoX.....',
-        'XcccooooXX....',
-        'XoooooooXoX...',
-        'XoooooooXpoX..',
-        'XoooooooXoX...',
-        'XXXXXXXXXX....'
-    )
-
-
-
-    Add-Limb 8 25 1 $NearFootY Outline Orange; Px Cream 1 $NearFootY 2 2
-    Add-Limb 7 15 1 $NearHandY Outline Orange; Px Cream 1 $NearHandY 2 2
-}
-
-# Idle: sits with a swishing tail and blinks now and then.
-Save-Frame 'idle_0.png' { Add-Cat -Tail 0 }
-Save-Frame 'idle_1.png' { Add-Cat -Tail 1 }
-Save-Frame 'idle_2.png' { Add-Cat -Tail 2 }
-Save-Frame 'idle_3.png' { Add-Cat -Tail 1 -Eyes closed }
-
-# Walk: seen from the side on four legs, with a little bounce. Drawn facing left and mirrored.
-Save-Frame 'walk_0.png' -Mirror { Add-CatSideWalk -D -3 -TipY 10 }
-Save-Frame 'walk_1.png' -Mirror -Dy -1 { Add-CatSideWalk -D 0 -TipY 11 }
-Save-Frame 'walk_2.png' -Mirror { Add-CatSideWalk -D 3 -TipY 10 }
-Save-Frame 'walk_3.png' -Mirror -Dy -1 { Add-CatSideWalk -D 0 -TipY 9 }
-
-# Hop: a leap while walking, seen from the side. It crouches, pushes off nose up with the front legs reaching out, flies
-# level with the legs stretched, comes down nose first and lands. The window moves up and forward during the hop, so the
-# art supplies the angle of the body.
-Save-Frame 'hop_0.png' -Mirror -Dy 1 -Tilt -4 { Add-CatSideWalk -D 0 -TipY 12 }
-Save-Frame 'hop_1.png' -Mirror -Air -Dy -1 -Tilt 18 { Add-CatSideWalk -D -3 -TipY 8 }
-Save-Frame 'hop_2.png' -Mirror -Air -Dy -1 -Tilt 4 { Add-CatSideWalk -D -3 -TipY 9 }
-Save-Frame 'hop_3.png' -Mirror -Air -Dy 0 -Tilt -18 { Add-CatSideWalk -D -3 -TipY 10 }
-Save-Frame 'hop_4.png' -Mirror -Dy 1 -Tilt -6 { Add-CatSideWalk -D 0 -TipY 12 }
-
-# Sleep: curled up in a loaf, a floating z.
-Save-Frame 'sleep_0.png' { Add-CatLie }
-Save-Frame 'sleep_1.png' { Add-CatLie; Add-Text 'z' 'White' 98 18; Add-Text 'Z' 'White' 106 4 }
-
-# Drag: lifted by the scruff, paws up and surprised.
-Save-Frame 'drag_0.png' -Air { Add-Cat -Eyes surprised -ArmsUp -Tail 0 }
-Save-Frame 'drag_1.png' -Air { Add-Cat -Eyes surprised -ArmsUp -Tail 2 }
-
-# Tired: flopped down, heavy eyes, a drop of sweat.
-Save-Frame 'tired_0.png' { Add-CatLie -Eyes tired }
-Save-Frame 'tired_1.png' -Dy 0 { Add-CatLie -Eyes tired; Px Blue 19 11 1 2 }
-
-# Alert: jumps with wide eyes and an exclamation mark.
-Save-Frame 'alert_0.png' -Dy -2 { Add-Cat -Eyes surprised -ArmsUp -Tail 1; Add-Text '!' 'Red' 100 6 }
-Save-Frame 'alert_1.png' { Add-Cat -Eyes surprised -ArmsUp -Tail 3; Add-Text '!' 'Red' 100 6 }
-
-# Happy: bounces with smiling eyes and a heart.
-Save-Frame 'happy_0.png' -Dy -2 { Add-Cat -Eyes happy -ArmsUp -Tail 1; Add-Heart 24 2 }
-Save-Frame 'happy_1.png' { Add-Cat -Eyes happy -ArmsUp -Tail 3 }
-
-# Welcome: waves hello with one paw, hearts floating up.
-foreach ($f in 0..3) {
-    $dx = @(0, 1, 0, -1)[$f]
-    $hearts = ($f % 2 -eq 0)
-    $draw = { Add-Cat -Eyes happy -RightArmUp -RightArmDx $dx -Tail $f; if ($hearts) { Add-Heart 24 1 } }.GetNewClosure()
-    Save-Frame "welcome_$f.png" $draw
-}
-
-# Meal: nibbles a fish held in one paw until only the bone is left, then licks its lips.
-foreach ($f in 0..3) {
-    $len = @(7, 5, 3, 0)[$f]
-    $eyes = if ($f -eq 3) { 'closed' } else { 'happy' }
-    $draw = {
-        Add-Cat -Eyes $eyes -RightArmUp -Tail $f
-        if ($len -gt 0) {
-            Px Outline 23 10 ($len + 1) 4; Px Blue 24 11 ($len - 1) 2
-            if ($len -ge 5) { Px Blue 31 10 1 1; Px Blue 31 13 1 1; Px White 25 11 1 1 }
+    foreach ($leg in @(@(25, $LeftDown), @(39, $RightDown))) {
+        if ($leg[1]) {
+            Add-HdLimb @($leg[0], 48, $leg[0], 58) 'Body' 5.2
+            Add-HdOval 'Paw' $leg[0] 59.4 4 2.7
         } else {
-            Px White 24 12 5 1; Px White 28 11 1 3
+            # The hind foot shows where the front leg was raised.
+            Add-HdOval 'Paw' ($leg[0] + ($leg[0] - 32) * 0.4) 59.8 4.6 2.6
         }
-    }.GetNewClosure()
-    Save-Frame "meal_$f.png" $draw
+    }
 }
 
-# Glide: floating down under an umbrella or parachute, both paws on its handle, legs dangling. Drawn without the canopy, which the
-# program puts over the head.
-Save-Frame 'glide_0.png' -Air { Add-Cat -Eyes surprised -HoldOverhead -Tail 0 }
-Save-Frame 'glide_1.png' -Air { Add-Cat -Eyes surprised -HoldOverhead -Tail 2 }
-
-# Hang: clings to the left edge of the screen by one outstretched paw, legs dangling. Mirrored for the right edge.
-Save-Frame 'hang_0.png' -Air { Add-Cat -LeftArmReach -Tail 0 }
-Save-Frame 'hang_1.png' -Air { Add-Cat -LeftArmReach -Tail 2 }
-
-# Climb: seen from the side, climbs the left edge of the screen paw over paw. Mirrored for the right edge.
-Save-Frame 'climb_0.png' -Air { Add-CatClimb -NearHandY 8 -FarHandY 16 -NearFootY 29 -FarFootY 24 -TailX 16 }
-Save-Frame 'climb_1.png' -Air -Dy -1 { Add-CatClimb -NearHandY 12 -FarHandY 14 -NearFootY 27 -FarFootY 26 -TailX 18 }
-Save-Frame 'climb_2.png' -Air { Add-CatClimb -NearHandY 16 -FarHandY 8 -NearFootY 24 -FarFootY 29 -TailX 16 }
-Save-Frame 'climb_3.png' -Air -Dy -1 { Add-CatClimb -NearHandY 14 -FarHandY 12 -NearFootY 26 -FarFootY 27 -TailX 14 }
-
-# ClimbDown: the same climb turned upside down, so the cat climbs down head first with its face looking down.
-Save-Frame 'climbdown_0.png' -Air -Flip { Add-CatClimb -NearHandY 8 -FarHandY 16 -NearFootY 29 -FarFootY 24 -TailX 16 }
-Save-Frame 'climbdown_1.png' -Air -Flip -Dy -1 { Add-CatClimb -NearHandY 12 -FarHandY 14 -NearFootY 27 -FarFootY 26 -TailX 18 }
-Save-Frame 'climbdown_2.png' -Air -Flip { Add-CatClimb -NearHandY 16 -FarHandY 8 -NearFootY 24 -FarFootY 29 -TailX 16 }
-Save-Frame 'climbdown_3.png' -Air -Flip -Dy -1 { Add-CatClimb -NearHandY 14 -FarHandY 12 -NearFootY 26 -FarFootY 27 -TailX 14 }
-
-# Ceiling: walks along the top of the screen upside down, in the same side view as walking on the ground.
-Save-Frame 'ceiling_0.png' -Flip -Mirror { Add-CatSideWalk -D -3 -TipY 10 }
-Save-Frame 'ceiling_1.png' -Flip -Mirror -Dy -1 { Add-CatSideWalk -D 0 -TipY 11 }
-Save-Frame 'ceiling_2.png' -Flip -Mirror { Add-CatSideWalk -D 3 -TipY 10 }
-Save-Frame 'ceiling_3.png' -Flip -Mirror -Dy -1 { Add-CatSideWalk -D 0 -TipY 9 }
-
-# Idle looks: the eyes follow the mouse pointer.
-Save-Frame 'idle_left.png'  { Add-Cat -EyeShift -1 }
-Save-Frame 'idle_right.png' { Add-Cat -EyeShift 1 }
-Save-Frame 'idle_up.png'    { Add-Cat -EyeDy -1 }
-Save-Frame 'idle_down.png'  { Add-Cat -EyeDy 1 }
-
-# The situations the pet reacts to (writing code, reading, meetings and so on), drawn by the shared PetScenarios.ps1.
-function Add-ScenarioPet { Add-Cat @args }
-. (Join-Path $PSScriptRoot 'PetScenarios.ps1')
-
-$manifest = @'
-{
-  "name": "cat",
-  "names": { "en": "Cat", "zh": "猫" },
-  "frameSize": [64, 64],
-  "states": {
-    "Idle":    { "fps": 2, "frames": ["idle_0.png", "idle_1.png", "idle_2.png", "idle_3.png"] },
-    "Walk":    { "fps": 8, "frames": ["walk_0.png", "walk_1.png", "walk_2.png", "walk_3.png"] },
-    "Sleep":   { "fps": 1, "frames": ["sleep_0.png", "sleep_1.png"] },
-    "Drag":    { "fps": 6, "frames": ["drag_0.png", "drag_1.png"] },
-    "Glide":   { "fps": 4, "frames": ["glide_0.png", "glide_1.png"] },
-    "Tired":   { "fps": 2, "frames": ["tired_0.png", "tired_1.png"] },
-    "Alert":   { "fps": 4, "frames": ["alert_0.png", "alert_1.png"] },
-    "Happy":   { "fps": 5, "frames": ["happy_0.png", "happy_1.png"] },
-    "Welcome": { "fps": 4, "frames": ["welcome_0.png", "welcome_1.png", "welcome_2.png", "welcome_3.png"] },
-    "Meal":    { "fps": 3, "frames": ["meal_0.png", "meal_1.png", "meal_2.png", "meal_3.png"] },
-    "Hang":    { "fps": 2, "frames": ["hang_0.png", "hang_1.png"] },
-    "Climb":   { "fps": 6, "frames": ["climb_0.png", "climb_1.png", "climb_2.png", "climb_3.png"] },
-    "ClimbDown": { "fps": 6, "frames": ["climbdown_0.png", "climbdown_1.png", "climbdown_2.png", "climbdown_3.png"] },
-    "Ceiling": { "fps": 6, "frames": ["ceiling_0.png", "ceiling_1.png", "ceiling_2.png", "ceiling_3.png"] },
-    "Hop":     { "fps": 8, "frames": ["hop_0.png", "hop_1.png", "hop_2.png", "hop_3.png", "hop_4.png"] },
-    "Idle.Left":  { "fps": 1, "frames": ["idle_left.png"] },
-    "Idle.Right": { "fps": 1, "frames": ["idle_right.png"] },
-    "Idle.Up":    { "fps": 1, "frames": ["idle_up.png"] },
-    "Idle.Down":  { "fps": 1, "frames": ["idle_down.png"] }
-  }
+# The head: pointed ears with a pink inside, a striped forehead, a cream muzzle, a nose and whiskers.
+function Add-PetHead {
+    Add-HdPoly 'Body' @(17.5, 24, 18.4, 4.8, 29.5, 16.5) 'Outline' 1.2 -Smooth -Tension 0.3
+    Add-HdPoly 'Pink' @(20.4, 19.5, 20.8, 10, 26.4, 16.6) '' 0 -Smooth -Tension 0.3
+    Add-HdPoly 'Body' @(46.5, 24, 45.6, 4.8, 34.5, 16.5) 'Outline' 1.2 -Smooth -Tension 0.3
+    Add-HdPoly 'Pink' @(43.6, 19.5, 43.2, 10, 37.6, 16.6) '' 0 -Smooth -Tension 0.3
+    Add-HdOval 'Body' 32 27.5 15.5 11.5
+    Add-HdStroke @(32, 16.8, 32, 21) 'BodyDark' 1.4
+    Add-HdStroke @(27.6, 17.8, 28.6, 21.4) 'BodyDark' 1.3
+    Add-HdStroke @(36.4, 17.8, 35.4, 21.4) 'BodyDark' 1.3
+    Add-HdOval 'Belly' 32 34 8.2 4.8 ''
+    Add-HdOval 'Pink' 32 31 1.9 1.3 ''
+    Add-HdStroke @(32, 32.2, 32, 34) 'Outline' 0.8
+    Add-HdStroke (Get-HdBezier 29 34.2 30.4 36.2 33.6 36.2 35 34.2 6) 'Outline' 0.8
+    foreach ($side in -1, 1) {
+        Add-HdStroke @((32 + $side * 9.5), 32.6, (32 + $side * 18.5), 31) 'BodyDark' 0.7
+        Add-HdStroke @((32 + $side * 9.5), 34.4, (32 + $side * 18.5), 36) 'BodyDark' 0.7
+    }
 }
-'@
 
-$manifest = $manifest.Replace('    "Idle.Left"', $ScenarioManifest + '    "Idle.Left"')
+# The cat lying down in a loaf, head on its paws, tail across the front.
+function Add-PetLie {
+    Add-HdOval 'Body' 37 50 22 10.6
+    foreach ($x in 34, 40, 46, 52) { Add-HdStroke @($x, 41.2, ($x - 1), 44.6) 'BodyDark' 1.4 }
+    $tail = Get-HdBezier 58 54 63 61 46 63 30 60.6 20
+    Add-HdStroke $tail 'Outline' 5.8
+    Add-HdStroke $tail 'Body' 4.1
+    Add-HdStroke $tail[0..9] 'BodyDark' 4.1
+    Add-HdOval 'Belly' 12 59.4 4.4 2.5
+    Add-HdPoly 'Body' @(8.6, 45, 8, 32.8, 18.4, 40.6) 'Outline' 1.2 -Smooth -Tension 0.3
+    Add-HdPoly 'Pink' @(10.6, 41, 10.6, 36, 14.6, 40) '' 0 -Smooth -Tension 0.3
+    Add-HdPoly 'Body' @(29.4, 45, 30, 32.8, 19.6, 40.6) 'Outline' 1.2 -Smooth -Tension 0.3
+    Add-HdPoly 'Pink' @(27.4, 41, 27.4, 36, 23.4, 40) '' 0 -Smooth -Tension 0.3
+    Add-HdOval 'Body' 19 49 12.5 9.6
+    Add-HdOval 'Belly' 19 54.4 7.2 4 ''
+    Add-HdOval 'Pink' 19 52.4 1.9 1.3 ''
+    Add-HdStroke @(19, 40.8, 19, 43.8) 'BodyDark' 1.3
+    foreach ($side in -1, 1) {
+        Add-HdStroke @((19 + $side * 8), 53, (19 + $side * 16), 52) 'BodyDark' 0.7
+        Add-HdStroke @((19 + $side * 8), 54.6, (19 + $side * 16), 56) 'BodyDark' 0.7
+    }
+}
 
-$manifestPath = Join-Path $outDir 'manifest.json'
-Write-PetManifest $manifestPath $manifest
+# The cat seen from the side, facing left, walking: D (-3 to 3) swings the legs, Lift raises the tip of the tail.
+function Add-PetSide([double]$D, [double]$Lift) {
+    $swing = $D * 2.2
+    $tailTip = 24 - $Lift
+    $curve = Get-HdBezier 46 44 55 44 59 36 57 $tailTip 22
+    Add-HdStroke $curve 'Outline' 6.2
+    Add-HdStroke $curve 'Body' 4.5
+    Add-HdStroke $curve[22..($curve.Count - 1)] 'BodyDark' 4.5
+    foreach ($leg in @(@(30, (-$swing)), @(38, $swing))) {
+        $foot = $leg[0] + $leg[1]
+        Add-HdLimb @($leg[0], 50, $foot, 59.5) 'BodyDark' 4.2
+        Add-HdOval 'Paw' ($foot - 1) 60.4 3.2 2.2
+    }
+    Add-HdOval 'Body' 34 46 16.5 10
+    Add-HdOval 'Belly' 30 52 10.5 3.6 ''
+    foreach ($x in 30, 35, 40) { Add-HdStroke @($x, 36.8, ($x - 0.6), 40.4) 'BodyDark' 1.4 }
+    foreach ($leg in @(@(25, $swing), @(42, (-$swing)))) {
+        $foot = $leg[0] + $leg[1]
+        Add-HdLimb @($leg[0], 50, $foot, 59.5) 'Body' 4.4
+        Add-HdOval 'Paw' ($foot - 1) 60.4 3.4 2.3
+    }
+    # Head in profile with the ear at the back of the head and the muzzle pointing left.
+    Add-HdPoly 'Body' @(15, 28.4, 17.4, 14.5, 26.4, 26) 'Outline' 1.2 -Smooth -Tension 0.3
+    Add-HdPoly 'Pink' @(17.4, 25, 18.8, 18.4, 22.8, 24.6) '' 0 -Smooth -Tension 0.3
+    Add-HdOval 'Belly' 7.4 38.2 6 3.5
+    Add-HdOval 'Body' 16 34 10.5 8.8
+    Add-HdOval 'Belly' 11.6 39.4 6 3.3 ''
+    Add-HdOval 'EyeG' 10.8 32 2 2.6 ''
+    Add-HdOval 'Black' 10.4 32 0.8 2.3 ''
+    Add-HdOval 'Pink' 2.4 36.4 1.6 1.2 ''
+    Add-HdStroke @(8, 38.6, 1, 37.6) 'BodyDark' 0.6
+    Add-HdStroke @(8, 40.2, 1.6, 41.8) 'BodyDark' 0.6
+}
 
-# The tray icon: the ears and the head.
-Save-PetIcon (Join-Path $outDir 'idle_0.png') (Join-Path $outDir 'icon.png') @(8, 4, 16, 16)
+# A fish held in the paw, nibbled down to the bone.
+function Add-PetFood([int]$Len) {
+    if ($Len -gt 0) {
+        $center = 48 + $Len
+        if ($Len -le 5) { Add-HdPoly 'Blue' @((49 + 2 * $Len), 25, (52.4 + 2 * $Len), 21.6, (52.4 + 2 * $Len), 28.4) 'Outline' 0.8 }
+        Add-HdOval 'Blue' $center 25 ($Len + 1) 3.1 'Outline' 0.9
+        Add-HdOval 'White' ($center - $Len + 0.4) 24.3 0.8 0.8 ''
+    } else {
+        Add-HdStroke @(49, 25, 56, 25) 'White' 1
+        Add-HdStroke @(51, 22.8, 51, 27.2) 'White' 0.8
+        Add-HdStroke @(53.4, 23, 53.4, 27) 'White' 0.8
+    }
+}
 
-# Pack the single frames into the atlas the program reads.
-. (Join-Path $PSScriptRoot 'PackPetAtlas.ps1')
-Invoke-PetAtlasPacking $outDir
-
-
-Write-Host "Cat pet written to $outDir"
+. (Join-Path $PSScriptRoot 'PetVectorAnimations.ps1')
