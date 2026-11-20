@@ -8,7 +8,15 @@ namespace DeskBuddy.App.Tests;
 internal static class StaThread
 {
     /// <summary>
-    /// Runs an action on a new STA thread and waits for it; an exception it throws is thrown again here.
+    /// Lets only one STA thread run at a time. WPF initializes its static types lazily, and when several threads do that
+    /// for the first time together, the lock of its BAML schema context and the class constructor locks wait for each
+    /// other forever, which hangs the test run.
+    /// </summary>
+    private static readonly Lock Gate = new();
+
+    /// <summary>
+    /// Runs an action on a new STA thread and waits for it; an exception it throws is thrown again here. Calls from
+    /// different tests take turns.
     /// </summary>
     /// <param name="action">
     /// The action to run.
@@ -21,20 +29,24 @@ internal static class StaThread
         _ = System.Windows.Application.ResourceAssembly;
 
         ExceptionDispatchInfo? failure = null;
-        var thread = new Thread(() =>
+        lock (Gate)
         {
-            try
+            var thread = new Thread(() =>
             {
-                action();
-            }
-            catch (Exception exception)
-            {
-                failure = ExceptionDispatchInfo.Capture(exception);
-            }
-        });
-        thread.SetApartmentState(ApartmentState.STA);
-        thread.Start();
-        thread.Join();
+                try
+                {
+                    action();
+                }
+                catch (Exception exception)
+                {
+                    failure = ExceptionDispatchInfo.Capture(exception);
+                }
+            });
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+        }
+
         failure?.Throw();
     }
 }
