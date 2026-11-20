@@ -555,7 +555,7 @@ public class SettingsTabViewModelTests
 
         // Assert
         forDefaultPet.Should().OnlyContain(width => width == 0);
-        forMouse.Should().Equal(48, 72, 96);
+        forMouse.Should().Equal(48, 64, 96);
     }
 
     /// <summary>

@@ -46,8 +46,8 @@ public class PetSizeChoicesTests
         var choices = PetSizeChoices.For(Pets, "cat", PetSize.Large);
 
         // Assert
-        choices.Select(choice => choice.Width).Should().Equal(32, 48, 64);
-        choices.Select(choice => choice.Height).Should().Equal(32, 48, 64);
+        choices.Select(choice => choice.Width).Should().Equal(48, 64, 96);
+        choices.Select(choice => choice.Height).Should().Equal(48, 64, 96);
     }
 
     /// <summary>
@@ -63,8 +63,8 @@ public class PetSizeChoicesTests
         var choices = PetSizeChoices.For(pets, "mouse", PetSize.Small);
 
         // Assert
-        choices.Select(choice => choice.Width).Should().Equal(16, 24, 32);
-        choices.Select(choice => choice.Height).Should().Equal(16, 24, 32);
+        choices.Select(choice => choice.Width).Should().Equal(24, 32, 48);
+        choices.Select(choice => choice.Height).Should().Equal(24, 32, 48);
     }
 
     /// <summary>
@@ -81,8 +81,8 @@ public class PetSizeChoicesTests
         var choices = PetSizeChoices.For(pets, "giant", PetSize.Medium);
 
         // Assert
-        choices.Select(choice => choice.Width).Should().Equal(38, 58, 77);
-        choices.Select(choice => choice.Height).Should().Equal(48, 72, 96);
+        choices.Select(choice => choice.Width).Should().Equal(38, 51, 77);
+        choices.Select(choice => choice.Height).Should().Equal(48, 64, 96);
     }
 
     /// <summary>
@@ -92,14 +92,14 @@ public class PetSizeChoicesTests
     public void For_PetAtTheLimit_IsNotShrunk()
     {
         // Arrange
-        InstalledPet[] pets = [new("limit", "Limit", Picture, 96, 64)];
+        InstalledPet[] pets = [new("limit", "Limit", Picture, 64, 32)];
 
         // Act
         var choices = PetSizeChoices.For(pets, "limit", PetSize.Large);
 
         // Assert
-        choices.Select(choice => choice.Width).Should().Equal(48, 72, 96);
-        choices.Select(choice => choice.Height).Should().Equal(32, 48, 64);
+        choices.Select(choice => choice.Width).Should().Equal(48, 64, 96);
+        choices.Select(choice => choice.Height).Should().Equal(24, 32, 48);
     }
 
     /// <summary>
