@@ -7,6 +7,8 @@ $HasHop = $true
 # 狗 spelled with a code point, so the script does not depend on its own file encoding.
 $PetNames = @{ En = 'Dog'; Zh = [string][char]0x72D7 }
 $IconBox = @(9, 9, 46, 46)
+# Gliding, the paws hold on outside the floppy ears.
+$Arms = @{ OverL = @(22, 46, 6.6, 33); OverR = @(42, 46, 57.4, 33) }
 $pal = @{
     Outline  = New-HdColor 84 54 36
     Body     = New-HdColor 224 170 102
@@ -27,20 +29,10 @@ function Add-PetBack([int]$Phase) {
     Add-HdOval 'BodyDark' $tip[0] $tip[1] 2.3 2.3 ''
 }
 
-# The body with a cream belly and the front legs that are not raised (which are the arms when raised; a hind foot shows
-# in place of a raised one).
+# The body sitting as a real dog sits (see Add-HdSittingTorso), with a cream bib and the collar.
 function Add-PetBody([bool]$LeftDown, [bool]$RightDown) {
-    Add-HdOval 'Body' 32 49 13.5 12
-    Add-HdOval 'Belly' 32 53 8 9 ''
-    foreach ($leg in @(@(25, $LeftDown), @(39, $RightDown))) {
-        if ($leg[1]) {
-            Add-HdLimb @($leg[0], 48, $leg[0], 58) 'Body' 5.4
-            Add-HdOval 'Paw' $leg[0] 59.4 4.1 2.7
-        } else {
-            # The hind foot shows where the front leg was raised.
-            Add-HdOval 'Paw' ($leg[0] + ($leg[0] - 32) * 0.4) 59.8 4.7 2.6
-        }
-    }
+    Add-HdSittingTorso
+    Add-HdSittingLegs $LeftDown $RightDown
     Add-HdStroke (Get-HdBezier 21 37 24 43.5 40 43.5 43 37 12) 'Outline' 4.2
     Add-HdStroke (Get-HdBezier 21 37 24 43.5 40 43.5 43 37 12) 'Collar' 2.6
 }

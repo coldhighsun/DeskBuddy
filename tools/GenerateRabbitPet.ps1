@@ -35,21 +35,10 @@ function Add-PetBack([int]$Phase) {
     Add-HdOval 'White' 47 (53.8 + $bob) 1.8 1.4 ''
 }
 
-# The pear-shaped body: round haunches with long cream hind feet at the sides, a cream belly, and the short front legs that are
-# not raised (they are the arms when raised).
+# The body sitting as a real rabbit sits (see Add-HdSittingTorso), with long hind feet and short front legs.
 function Add-PetBody([bool]$LeftDown, [bool]$RightDown) {
-    Add-HdOval 'Body' 19.6 55 7.4 6.4
-    Add-HdOval 'Body' 44.4 55 7.4 6.4
-    Add-HdOval 'Paw' 17.4 60.4 6.8 2.6
-    Add-HdOval 'Paw' 46.6 60.4 6.8 2.6
-    Add-HdOval 'Body' 32 49 13.8 12.4
-    Add-HdOval 'Belly' 32 52.4 8.6 8.6 ''
-    foreach ($leg in @(@(27, $LeftDown), @(37, $RightDown))) {
-        if ($leg[1]) {
-            Add-HdLimb @($leg[0], 49, $leg[0], 57.6) 'Body' 4.6
-            Add-HdOval 'Paw' $leg[0] 59.2 3.5 2.5
-        }
-    }
+    Add-HdSittingTorso
+    Add-HdSittingLegs $LeftDown $RightDown -HindRx 5.6 -LegTop 47
 }
 
 # The ears behind the head: the right one stands up, the left one bends over at the middle so its tip flops out to the side

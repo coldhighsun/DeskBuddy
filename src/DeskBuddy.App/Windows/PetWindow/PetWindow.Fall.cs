@@ -110,7 +110,7 @@ public partial class PetWindow
 
         if (next.Opened && !current.Opened)
         {
-            _umbrella.Open();
+            _umbrella.Open(_pet.GlideGrips, mirrored: _facing < 0);
 
             // The pet takes hold of the handle as the canopy opens.
             _brain.OnFallOpened();

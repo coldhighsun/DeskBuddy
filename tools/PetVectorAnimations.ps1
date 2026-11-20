@@ -25,11 +25,16 @@
 #   Add-PetFood $Len                    Food held in the raised right paw (around x 46-62, y 18-30), Len 7, 5, 3 or 0.
 # Optional function:
 #   Add-PetHoldOverhead                 Both front limbs raised for the glide, drawn instead of the default overhead arms.
-# In the glide Add-PetBody always gets both front limbs as raised, so they are never drawn hanging as well.
+# In the glide Add-PetBody always gets both front limbs as raised, so they are never drawn hanging as well. A real pet cannot
+# reach over its head, so it holds the umbrella or the parachute (drawn by the program) with its paws beside its cheeks: the
+# arms OverL / OverR of $armSpec go straight up from the shoulders, and the paws at their ends are drawn in front of the head.
+# The program draws the shaft and the strings down to the manifest's Glide "grips", which are the paws, or $GlideGrips
+# (drawing units, before the glide's lift) for a pet that holds on otherwise: one that brings its own Add-PetHoldOverhead or
+# has $NoArms.
 $script:armSpec = @{
     Color = 'Body'; Paw = 'Paw'; Width = 5; PawRx = 3.1; PawRy = 3.1
     ShoulderL = @(22, 46); ShoulderR = @(42, 46); UpL = @(11, 34); UpR = @(53, 34)
-    OverL = @(21, 46, 10, 26, 27, 8); OverR = @(43, 46, 54, 26, 37, 8); OverPawL = @(27, 7); OverPawR = @(37, 7); OverWidth = 4.8
+    OverL = @(22, 46, 13, 31); OverR = @(42, 46, 51, 31); OverWidth = 4.8
     ReachFrom = @(22, 46); ReachX = 3
 }
 if ($Arms) { foreach ($key in $Arms.Keys) { $script:armSpec[$key] = $Arms[$key] } }
@@ -96,7 +101,7 @@ function Add-PetEyes([double]$Lx, [double]$Rx, [double]$Y, [string]$Eyes, [doubl
 
 # An arm from the shoulder through the given points to a paw at the last of them.
 function Add-PetArm([double[]]$Xy, [double]$Width = $script:armSpec.Width) {
-    Add-HdLimb $Xy $script:armSpec.Color $Width
+    Add-HdJoinedLimb $Xy $script:armSpec.Color $Width
     Add-HdOval $script:armSpec.Paw $Xy[$Xy.Count - 2] ($Xy[$Xy.Count - 1] - 1) $script:armSpec.PawRx $script:armSpec.PawRy
 }
 
@@ -130,6 +135,12 @@ function Add-Pet {
     }
     Add-PetHead
     Add-PetEyes $SitEyes.Lx $SitEyes.Rx $SitEyes.Y $Eyes $EyeShift $EyeLift
+    # Holding on, the paws close round the shaft or the strings in front of the cheeks and the ears.
+    if ($overhead -and -not (Get-Command Add-PetHoldOverhead -ErrorAction SilentlyContinue)) {
+        foreach ($arm in $arms.OverL, $arms.OverR) {
+            Add-HdOval $arms.Paw $arm[$arm.Count - 2] ($arm[$arm.Count - 1] - 1) $arms.PawRx $arms.PawRy
+        }
+    }
 }
 
 # The pet lying down. Eyes: closed | tired.
@@ -241,6 +252,10 @@ Save-Frame 'idle_down.png'  { Add-Pet -EyeLift 1.3 }
 function Add-ScenarioPet { Add-Pet @args }
 . (Join-Path $PSScriptRoot 'PetVectorScenarios.ps1')
 
+if ($null -eq $GlideGrips) {
+    $GlideGrips = foreach ($arm in $script:armSpec.OverL, $script:armSpec.OverR) { , @($arm[$arm.Count - 2], ($arm[$arm.Count - 1] - 1)) }
+}
+$glideGripsJson = Format-GlideGrips $GlideGrips -1
 $hopLine = if ($HasHop) { "    `"Hop`":     { `"fps`": 8, `"frames`": [`"hop_0.png`", `"hop_1.png`", `"hop_2.png`", `"hop_3.png`", `"hop_4.png`"] },`n" } else { '' }
 $manifest = @"
 {
@@ -252,7 +267,7 @@ $manifest = @"
     "Walk":    { "fps": $WalkFps, "frames": ["walk_0.png", "walk_1.png", "walk_2.png", "walk_3.png"] },
     "Sleep":   { "fps": 1, "frames": ["sleep_0.png", "sleep_1.png"] },
     "Drag":    { "fps": 6, "frames": ["drag_0.png", "drag_1.png"] },
-    "Glide":   { "fps": 4, "frames": ["glide_0.png", "glide_1.png"] },
+    "Glide":   { "fps": 4, "frames": ["glide_0.png", "glide_1.png"], "grips": $glideGripsJson },
     "Tired":   { "fps": 2, "frames": ["tired_0.png", "tired_1.png"] },
     "Alert":   { "fps": 4, "frames": ["alert_0.png", "alert_1.png"] },
     "Happy":   { "fps": 5, "frames": ["happy_0.png", "happy_1.png"] },

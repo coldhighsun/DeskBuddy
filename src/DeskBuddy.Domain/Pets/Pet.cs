@@ -46,8 +46,13 @@ public sealed class Pet
     /// The name of the pet in other languages, keyed by culture name (<c>zh-CN</c>) or language (<c>zh</c>), or
     /// <see langword="null"/> if it has none.
     /// </param>
+    /// <param name="glideGrips">
+    /// Where the pet holds on to the umbrella or parachute in its Glide frames (one or two points), or
+    /// <see langword="null"/> if it does not say, in which case it holds on at <see cref="DefaultGlideGrip"/>.
+    /// </param>
     /// <exception cref="ArgumentException">
-    /// Thrown when <paramref name="animations"/> has no <see cref="PetState.Idle"/> entry.
+    /// Thrown when <paramref name="animations"/> has no <see cref="PetState.Idle"/> entry, or when
+    /// <paramref name="glideGrips"/> does not have one or two points on the frame.
     /// </exception>
     public Pet(
         string name,
@@ -55,7 +60,8 @@ public sealed class Pet
         int frameHeight,
         IReadOnlyDictionary<PetState, PetAnimation> animations,
         IReadOnlyDictionary<GazeDirection, PetAnimation>? gazeAnimations = null,
-        IReadOnlyDictionary<string, string>? localizedNames = null)
+        IReadOnlyDictionary<string, string>? localizedNames = null,
+        IReadOnlyList<FramePoint>? glideGrips = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(frameWidth);
@@ -67,7 +73,13 @@ public sealed class Pet
             throw new ArgumentException("A pet must define an Idle animation.", nameof(animations));
         }
 
+        if (glideGrips is not null && (glideGrips.Count is < 1 or > MaxGlideGrips || glideGrips.Any(grip => !grip.IsOnFrame)))
+        {
+            throw new ArgumentException($"A pet holds on to its canopy at one or {MaxGlideGrips} points on its frame.", nameof(glideGrips));
+        }
+
         Name = name;
+        GlideGrips = glideGrips is null ? [DefaultGlideGrip] : [.. glideGrips];
         FrameWidth = frameWidth;
         FrameHeight = frameHeight;
         _animations = animations;
@@ -85,9 +97,27 @@ public sealed class Pet
     }
 
     /// <summary>
+    /// The most points a pet may hold on to its umbrella or parachute at: one for each front paw.
+    /// </summary>
+    public const int MaxGlideGrips = 2;
+
+    /// <summary>
+    /// Gets where a pet that does not say otherwise holds on to its umbrella or parachute: the middle of the top of its
+    /// frame, a little way down, where the head usually is.
+    /// </summary>
+    public static FramePoint DefaultGlideGrip { get; } = new(0.5, 0.12);
+
+    /// <summary>
     /// Gets the display name of the pet.
     /// </summary>
     public string Name { get; }
+
+    /// <summary>
+    /// Gets where the pet holds on to the umbrella or parachute while gliding down: one or two points on its frame (as
+    /// drawn, facing the way its frames face). With two, the parachute's strings are split between them and the umbrella
+    /// is held at the one further right; with one, everything meets there.
+    /// </summary>
+    public IReadOnlyList<FramePoint> GlideGrips { get; }
 
     /// <summary>
     /// Gets the name of the pet to show in a language: the one the manifest gives for the culture, else for its parent

@@ -79,6 +79,7 @@ public sealed class FolderPetLoader(ILogger<FolderPetLoader> logger) : IPetLoade
 
         var animations = new Dictionary<PetState, PetAnimation>();
         var gazeAnimations = new Dictionary<GazeDirection, PetAnimation>();
+        IReadOnlyList<FramePoint>? glideGrips = null;
         foreach (var (stateName, animation) in manifest.States)
         {
             // "Idle.Left" and the like are the variants of Idle for looking in a direction.
@@ -104,11 +105,15 @@ public sealed class FolderPetLoader(ILogger<FolderPetLoader> logger) : IPetLoade
             }
 
             animations[state] = BuildAnimation(atlas, stateName, animation);
+            if (state == PetState.Glide && animation?.Grips is { } grips)
+            {
+                glideGrips = ReadGrips(grips, size, stateName);
+            }
         }
 
         try
         {
-            return new Pet(manifest.Name ?? Path.GetFileName(petDirectory), size[0], size[1], animations, gazeAnimations, manifest.Names);
+            return new Pet(manifest.Name ?? Path.GetFileName(petDirectory), size[0], size[1], animations, gazeAnimations, manifest.Names, glideGrips);
         }
         catch (ArgumentException ex)
         {
@@ -258,6 +263,50 @@ public sealed class FolderPetLoader(ILogger<FolderPetLoader> logger) : IPetLoade
     }
 
     /// <summary>
+    /// Reads the points where the pet holds on to its umbrella or parachute, given in the units of the frame size, and
+    /// checks them: one or two points, each two numbers on the frame.
+    /// </summary>
+    /// <param name="grips">
+    /// The points from the manifest.
+    /// </param>
+    /// <param name="frameSize">
+    /// The frame size from the manifest as <c>[width, height]</c>.
+    /// </param>
+    /// <param name="stateName">
+    /// Name of the state, used in error messages.
+    /// </param>
+    /// <returns>
+    /// The points as fractions of the frame.
+    /// </returns>
+    private static List<FramePoint> ReadGrips(double[]?[] grips, int[] frameSize, string stateName)
+    {
+        if (grips.Length is < 1 or > Pet.MaxGlideGrips)
+        {
+            throw new InvalidDataException($"State '{stateName}' has {grips.Length} 'grips'; it may have one or {Pet.MaxGlideGrips}.");
+        }
+
+        var points = new List<FramePoint>(grips.Length);
+        foreach (var grip in grips)
+        {
+            if (grip is not { Length: 2 })
+            {
+                throw new InvalidDataException($"Each of the 'grips' of state '{stateName}' must be a point [x, y].");
+            }
+
+            var point = new FramePoint(grip[0] / frameSize[0], grip[1] / frameSize[1]);
+            if (!point.IsOnFrame)
+            {
+                throw new InvalidDataException(
+                    $"The grip [{grip[0]}, {grip[1]}] of state '{stateName}' is not on the {frameSize[0]}x{frameSize[1]} frame.");
+            }
+
+            points.Add(point);
+        }
+
+        return points;
+    }
+
+    /// <summary>
     /// The atlas of a pet: one image that holds all its frames in a grid of equal cells.
     /// </summary>
     /// <param name="Path">
@@ -343,5 +392,11 @@ public sealed class FolderPetLoader(ILogger<FolderPetLoader> logger) : IPetLoade
         /// Gets or sets the frames as the numbers of their cells in the atlas, counted along the rows from the top left.
         /// </summary>
         public int[]? Frames { get; set; }
+
+        /// <summary>
+        /// Gets or sets where the pet holds on to its umbrella or parachute, as points <c>[x, y]</c> in the units of the
+        /// frame size; read only for the Glide state.
+        /// </summary>
+        public double[]?[]? Grips { get; set; }
     }
 }

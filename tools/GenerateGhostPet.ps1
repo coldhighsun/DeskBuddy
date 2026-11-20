@@ -6,6 +6,9 @@
 $PetName = 'ghost'
 $HasHop = $false
 $NoArms = $true  # a ghost has no arms or hands, just the sheet
+# With no hands, the umbrella or the parachute is held at the top of the head (the manifest's Glide grip), just inside the
+# sheet so it covers the ends of the shaft and the strings.
+$GlideGrips = @(, @(32, 17))
 # 幽灵 spelled with code points, so the script does not depend on its own file encoding.
 $PetNames = @{ En = 'Ghost'; Zh = ([string][char]0x5E7D + [string][char]0x7075) }
 $IconBox = @(12, 12, 40, 40)

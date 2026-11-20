@@ -168,4 +168,24 @@ public class ShippedPetsTests
         pet.GazeAnimations.Keys.Should().BeEquivalentTo(
             [GazeDirection.Left, GazeDirection.Right, GazeDirection.Up, GazeDirection.Down]);
     }
+
+    /// <summary>
+    /// Every shipped pet that glides says where its own paws, hands, flippers or head hold on to the umbrella or the
+    /// parachute, instead of leaving it to the default point meant for pets that predate the grips.
+    /// </summary>
+    [Fact]
+    public async Task EveryShippedGlidingPet_SaysWhereItHoldsOn()
+    {
+        foreach (var directory in Directory.GetDirectories(ShippedPets))
+        {
+            // Act
+            var pet = await _loader.LoadAsync(directory, TestContext.Current.CancellationToken);
+
+            // Assert
+            if (pet.Animations.ContainsKey(PetState.Glide))
+            {
+                pet.GlideGrips.Should().NotEqual([Pet.DefaultGlideGrip], because: $"{pet.Name} glides");
+            }
+        }
+    }
 }

@@ -112,6 +112,10 @@ function Add-Tread([double]$X) {
     Add-HdOval 'SteelLight' ($X + 8.8) 56.6 1.3 1.3 ''
 }
 
+# Where the hands hold on to the umbrella or the parachute in the glide, beside the head (the manifest's Glide grips; the
+# glide frames are saved with -Air and no lift, so these are their places in the frame).
+$glideGrips = @(@(13.4, 20), @(50.6, 20))
+
 # The standing robot. Eyes: open | closed | happy | tired | focus | surprised | none. Feet: stride offset.
 # Spinner: 0-3 lights one dot of a loading ring where the eyes are. Progress: 0-4 fills the chest bar (-1 hides it).
 # EyeShift moves open eyes sideways; Glasses puts round lenses over them. HoldOverhead raises both arms behind the
@@ -133,10 +137,12 @@ function Add-Robot {
     Add-Tread (34 - 2 * $Feet)
     $script:g.Restore($state)
 
-    # Arms. Held overhead, they go up outside the head and in again behind it, so the hands meet on either side of the antenna.
+    # Arms. Held up to the umbrella or parachute, they go straight up from the shoulders beside the head, and the hands
+    # (drawn last, in front) hold on at the manifest's Glide grips.
     if ($HoldOverhead) {
-        Add-HdLimb @(16, 36, 10, 20, 24, 8) 'Steel' 3.6
-        Add-HdLimb @(48, 36, 54, 20, 40, 8) 'Steel' 3.6
+        foreach ($side in @(@(16, $glideGrips[0]), @(48, $glideGrips[1]))) {
+            Add-HdLimb @($side[0], 36, $side[1][0], ($side[1][1] + 1)) 'Steel' 3.6
+        }
     } else {
         if ($LeftArmReach) {
             # The left arm stretches out sideways to hold on to the edge of the screen.
@@ -239,8 +245,7 @@ function Add-Robot {
     }
 
     if ($HoldOverhead) {
-        Add-HdOval 'Orange' 25 9 3 3
-        Add-HdOval 'Orange' 39 9 3 3
+        foreach ($grip in $glideGrips) { Add-HdOval 'Orange' $grip[0] $grip[1] 3 3 }
     }
 }
 
@@ -347,8 +352,8 @@ Save-Frame 'sleep_1.png' -Dy 1 { Add-Robot -Eyes closed -Lamp SteelDark -Light C
 Save-Frame 'drag_0.png' -Air { Add-Robot -Eyes surprised -ArmsUp -Feet 1 }
 Save-Frame 'drag_1.png' -Air { Add-Robot -Eyes surprised -ArmsUp -Feet -1 -Lamp SteelDark }
 
-# Glide: floating down under an umbrella or parachute, both hands up by the antenna, treads dangling. Drawn without the canopy, which
-# the program puts over the head.
+# Glide: floating down under an umbrella or parachute, both hands up beside the head, treads dangling. Drawn without the canopy, which
+# the program puts over the head with its shaft or strings down to the hands.
 Save-Frame 'glide_0.png' -Air { Add-Robot -Eyes surprised -HoldOverhead -Feet 1 }
 Save-Frame 'glide_1.png' -Air { Add-Robot -Eyes surprised -HoldOverhead -Feet -1 -Lamp SteelDark }
 
@@ -663,7 +668,7 @@ $manifest = @"
     "Walk":   { "fps": 8, "frames": ["walk_0.png", "walk_1.png", "walk_2.png", "walk_3.png"] },
     "Sleep":  { "fps": 1, "frames": ["sleep_0.png", "sleep_1.png"] },
     "Drag":   { "fps": 6, "frames": ["drag_0.png", "drag_1.png"] },
-    "Glide":   { "fps": 4, "frames": ["glide_0.png", "glide_1.png"] },
+    "Glide":   { "fps": 4, "frames": ["glide_0.png", "glide_1.png"], "grips": $(Format-GlideGrips $glideGrips) },
     "Tired":  { "fps": 2, "frames": ["tired_0.png", "tired_1.png"] },
     "Alert":  { "fps": 4, "frames": ["alert_0.png", "alert_1.png"] },
     "Focus":  { "fps": 1, "frames": ["focus_0.png", "focus_1.png"] },

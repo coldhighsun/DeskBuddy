@@ -6,24 +6,10 @@ using System.Windows.Media.Animation;
 namespace DeskBuddy.App.Windows;
 
 /// <summary>
-/// What a falling pet holds over its head.
-/// </summary>
-public enum UmbrellaKind
-{
-    /// <summary>
-    /// A red umbrella.
-    /// </summary>
-    Umbrella,
-
-    /// <summary>
-    /// A parachute.
-    /// </summary>
-    Parachute,
-}
-
-/// <summary>
-/// Click-through window drawn over the pet's head while it falls: an umbrella or parachute that opens when the fall
-/// speeds up and folds away on landing. Drawn in code, so it works with every pet.
+/// Click-through window drawn over the pet while it falls: an umbrella or parachute that opens when the fall speeds up
+/// and folds away on landing, with its shaft or strings reaching down to where the pet holds on (the pet's own grips,
+/// see <see cref="CanopyRig"/>). It is kept just behind the pet window, so the paws cover the ends of the shaft and
+/// the strings. Drawn in code, so it works with every pet.
 /// </summary>
 public partial class UmbrellaWindow : Window
 {
@@ -31,6 +17,31 @@ public partial class UmbrellaWindow : Window
     /// How long the umbrella takes to open or fold.
     /// </summary>
     private static readonly TimeSpan AnimationDuration = TimeSpan.FromMilliseconds(260);
+
+    /// <summary>
+    /// Where along the rim, in units of the canopy drawing, the parachute's strings start, from left to right.
+    /// </summary>
+    private static readonly Point[] StringAnchors = [new(12, 50), new(42, 52), new(70, 54), new(98, 52), new(128, 50)];
+
+    /// <summary>
+    /// The colour of the umbrella's shaft.
+    /// </summary>
+    private static readonly Brush ShaftBrush = Freeze(new SolidColorBrush(Color.FromRgb(0x5A, 0x3A, 0x28)));
+
+    /// <summary>
+    /// The colour of the parachute's strings.
+    /// </summary>
+    private static readonly Brush StringBrush = Freeze(new SolidColorBrush(Color.FromRgb(0x5A, 0x5A, 0x5A)));
+
+    /// <summary>
+    /// What is open and where the pet holds on to it.
+    /// </summary>
+    private CanopyRig _rig = CanopyRig.Default;
+
+    /// <summary>
+    /// The layout the shaft or strings were last drawn for, so they are only drawn again when it changes.
+    /// </summary>
+    private (CanopyRig Rig, double Width, double Height)? _drawnFor;
 
     /// <summary>
     /// Whether the canopy is folding away, so a fold that was overtaken by <see cref="Open"/> does not hide the window.
@@ -64,18 +75,20 @@ public partial class UmbrellaWindow : Window
     /// <summary>
     /// Opens the umbrella or parachute over the pet.
     /// </summary>
-    /// <param name="kind">
-    /// What to open.
+    /// <param name="rig">
+    /// What to open, and where the pet holds on to it.
     /// </param>
     /// <param name="pet">
     /// The pet window to anchor to.
     /// </param>
-    public void Open(UmbrellaKind kind, Window pet)
+    public void Open(CanopyRig rig, Window pet)
     {
+        ArgumentNullException.ThrowIfNull(rig);
         ArgumentNullException.ThrowIfNull(pet);
 
-        UmbrellaShape.Visibility = kind == UmbrellaKind.Umbrella ? Visibility.Visible : Visibility.Collapsed;
-        ParachuteShape.Visibility = kind == UmbrellaKind.Parachute ? Visibility.Visible : Visibility.Collapsed;
+        _rig = rig;
+        UmbrellaShape.Visibility = rig.Kind == UmbrellaKind.Umbrella ? Visibility.Visible : Visibility.Collapsed;
+        ParachuteShape.Visibility = rig.Kind == UmbrellaKind.Parachute ? Visibility.Visible : Visibility.Collapsed;
 
         _folding = false;
         PositionAbove(pet);
@@ -88,6 +101,7 @@ public partial class UmbrellaWindow : Window
             PositionAbove(pet);
         }
 
+        WindowMover.PlaceBehind(this, pet);
         Animate(1, onCompleted: null);
     }
 
@@ -178,7 +192,7 @@ public partial class UmbrellaWindow : Window
     /// </returns>
     private CanopyPlacement PrepareFor(Window pet, PixelRect petBounds, double petScale)
     {
-        var placement = CanopyPlacement.For(petBounds, pet.Width, petScale);
+        var placement = CanopyPlacement.For(petBounds, pet.Width, petScale, _rig);
 
         // Sizes are set in device-independent units at the scale of the monitor the window is on, so bring it onto the
         // pet's monitor first when the scaling differs; the size then comes out right.
@@ -194,7 +208,93 @@ public partial class UmbrellaWindow : Window
             Height = placement.Height;
         }
 
+        if (_drawnFor != (_rig, placement.Width, placement.Height))
+        {
+            DrawRigging(placement);
+            _drawnFor = (_rig, placement.Width, placement.Height);
+        }
+
         return placement;
+    }
+
+    /// <summary>
+    /// Sizes the dome and draws the shaft or the strings from it down to the pet's grips.
+    /// </summary>
+    /// <param name="placement">
+    /// The canopy window's layout.
+    /// </param>
+    private void DrawRigging(CanopyPlacement placement)
+    {
+        var scale = placement.Scale;
+        DomeBox.Width = placement.Width;
+        DomeBox.Height = CanopyPlacement.DomeHeight * scale;
+
+        var figures = new PathGeometry();
+        if (_rig.Kind == UmbrellaKind.Umbrella)
+        {
+            // From under the dome straight down to the paw, and a little past it, so the paw closes round it.
+            var grip = placement.Grips.MaxBy(point => point.X);
+            figures.Figures.Add(Line(new Point(grip.X, 30 * scale), new Point(grip.X, grip.Y + (3 * scale))));
+            Rigging.Stroke = ShaftBrush;
+            Rigging.StrokeThickness = 3.5 * scale;
+        }
+        else
+        {
+            // With one grip every string meets there. With two, the strings on the left go to the left one and those on
+            // the right to the right one, and the middle string, which would cross over the head, is left out.
+            var left = placement.Grips.MinBy(point => point.X);
+            var right = placement.Grips.MaxBy(point => point.X);
+            var single = placement.Grips.Count == 1;
+            var middle = StringAnchors.Length / 2;
+            for (var i = 0; i < StringAnchors.Length; i++)
+            {
+                if (!single && i == middle)
+                {
+                    continue;
+                }
+
+                var start = new Point(StringAnchors[i].X * scale, StringAnchors[i].Y * scale);
+                figures.Figures.Add(Line(start, single || i < middle ? left : right));
+            }
+
+            Rigging.Stroke = StringBrush;
+            Rigging.StrokeThickness = 1.4 * scale;
+        }
+
+        figures.Freeze();
+        Rigging.Data = figures;
+    }
+
+    /// <summary>
+    /// A straight line as a path figure.
+    /// </summary>
+    /// <param name="from">
+    /// Where it starts.
+    /// </param>
+    /// <param name="to">
+    /// Where it ends.
+    /// </param>
+    /// <returns>
+    /// The figure.
+    /// </returns>
+    private static PathFigure Line(Point from, Point to)
+    {
+        return new PathFigure(from, [new LineSegment(to, isStroked: true)], closed: false);
+    }
+
+    /// <summary>
+    /// Freezes a brush, so it can be shared.
+    /// </summary>
+    /// <param name="brush">
+    /// The brush.
+    /// </param>
+    /// <returns>
+    /// The same brush, frozen.
+    /// </returns>
+    private static Brush Freeze(Brush brush)
+    {
+        brush.Freeze();
+        return brush;
     }
 
     /// <summary>
@@ -231,6 +331,9 @@ public partial class UmbrellaWindow : Window
 
         PropScale.BeginAnimation(ScaleTransform.ScaleXProperty, animation);
         PropScale.BeginAnimation(ScaleTransform.ScaleYProperty, animation.Clone());
+
+        // The shaft or the strings do not grow with the dome, as their ends stay at the paws; they fade in and out.
+        Rigging.BeginAnimation(OpacityProperty, new DoubleAnimation(target > 0.5 ? 1 : 0, AnimationDuration));
     }
 
     /// <summary>
