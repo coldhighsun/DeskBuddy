@@ -14,9 +14,9 @@ public sealed class SlowTickLog(ILogger logger, TimeSpan? minGap = null)
 {
     /// <summary>
     /// How long a tick may take before it is logged; the move timer runs every 33 ms, so a tick past this one has cost the
-    /// animation a frame or more.
+    /// animation several frames. Set well above one frame so that ordinary hiccups do not fill the log.
     /// </summary>
-    public static readonly TimeSpan Threshold = TimeSpan.FromMilliseconds(40);
+    public static readonly TimeSpan Threshold = TimeSpan.FromMilliseconds(200);
 
     /// <summary>
     /// The shortest time between two entries about the same kind of slow event, here and in <see cref="SlowSensorLog"/>.

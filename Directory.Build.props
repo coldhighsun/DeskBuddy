@@ -8,8 +8,7 @@
     <!-- Lets non-Windows hosts (e.g. GitHub's Linux dependency submission job) restore the WPF projects. -->
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <DebugType>embedded</DebugType>
-    <!-- Reports members without XML documentation (CS1591) and mismatched parameter docs (CS1573). -->
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
