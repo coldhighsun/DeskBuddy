@@ -21,10 +21,13 @@
     </WindowChrome.WindowChrome>
     <!-- Pet art faces right; FlipTransform mirrors it when the pet walks left. The frame size in the manifest,
          scaled by the pet size setting, is the size on screen; the PNG frames are scaled to it, so they can have
-         more pixels for sharpness. -->
-    <Image x:Name="SpriteImage" Stretch="Fill" RenderOptions.BitmapScalingMode="HighQuality" RenderTransformOrigin="0.5,0.5">
-        <Image.RenderTransform>
-            <ScaleTransform x:Name="FlipTransform" ScaleX="1" ScaleY="1" />
-        </Image.RenderTransform>
-    </Image>
+         more pixels for sharpness.
+         SpriteHost carries the leave and enter animation when the pet is switched, so that it never touches the mirroring. -->
+    <Grid x:Name="SpriteHost" RenderTransformOrigin="0.5,1">
+        <Image x:Name="SpriteImage" Stretch="Fill" RenderOptions.BitmapScalingMode="HighQuality" RenderTransformOrigin="0.5,0.5">
+            <Image.RenderTransform>
+                <ScaleTransform x:Name="FlipTransform" ScaleX="1" ScaleY="1" />
+            </Image.RenderTransform>
+        </Image>
+    </Grid>
 </Window>

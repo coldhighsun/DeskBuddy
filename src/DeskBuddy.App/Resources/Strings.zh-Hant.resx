@@ -200,6 +200,12 @@
   <data name="ThemeAuto" xml:space="preserve"><value>跟隨系統</value></data>
   <data name="ThemeLight" xml:space="preserve"><value>淺色</value></data>
   <data name="ThemeDark" xml:space="preserve"><value>深色</value></data>
+  <data name="SettingsSwitchEffect" xml:space="preserve"><value>換寵物動畫</value></data>
+  <data name="SwitchEffectRandom" xml:space="preserve"><value>隨機</value></data>
+  <data name="SwitchEffectUfo" xml:space="preserve"><value>飛碟</value></data>
+  <data name="SwitchEffectClaw" xml:space="preserve"><value>夾娃娃機</value></data>
+  <data name="SwitchEffectSmoke" xml:space="preserve"><value>魔術煙霧</value></data>
+  <data name="SwitchEffectBeam" xml:space="preserve"><value>傳送光柱</value></data>
 
   <data name="StateHintCoding" xml:space="preserve"><value>正在陪你寫程式</value></data>
   <data name="StateHintBuilding" xml:space="preserve"><value>正在建置（編譯器占滿 CPU）</value></data>

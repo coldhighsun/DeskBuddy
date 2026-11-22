@@ -336,7 +336,8 @@ public partial class App
                     petWindow.SetPet(newPet, frames);
                 },
                 _host.Services.GetRequiredService<ILogger<PetSwitcher>>(),
-                async newPet => preparedFrames.AddOrUpdate(newPet, await PetFrameCache.CreateAsync(newPet)));
+                async newPet => preparedFrames.AddOrUpdate(newPet, await PetFrameCache.CreateAsync(newPet)),
+                () => petWindow.PlayLeaveAsync(_host.Services.GetRequiredService<SettingsService>().Current.SwitchEffect));
             _installedPets = new InstalledPets(
                 _host.Services.GetRequiredService<IPetCatalog>(),
                 _host.Services.GetRequiredService<IPetLoader>(),

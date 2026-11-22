@@ -127,6 +127,11 @@ public sealed partial class SettingsTabViewModel : ObservableObject
             option.Label = ThemeLabel(option.Value);
         }
 
+        foreach (var option in SwitchEffects)
+        {
+            option.Label = SwitchEffectLabel(option.Value);
+        }
+
         foreach (var scenario in Scenarios)
         {
             scenario.Label = Strings.ScenarioName(scenario.State);
@@ -335,6 +340,7 @@ public sealed partial class SettingsTabViewModel : ObservableObject
             ScenariosEnabled = settings.ScenariosEnabled;
             SelectedLanguage = settings.Language;
             SelectedTheme = settings.Theme;
+            SelectedSwitchEffect = settings.SwitchEffect;
             SelectedSize = settings.Size;
             UpdateSizeChoices(settings.PetName);
             ClockOutHour = settings.ClockOutTime.Hours;

@@ -207,6 +207,12 @@
   <data name="ThemeAuto" xml:space="preserve"><value>Follow system</value></data>
   <data name="ThemeLight" xml:space="preserve"><value>Light</value></data>
   <data name="ThemeDark" xml:space="preserve"><value>Dark</value></data>
+  <data name="SettingsSwitchEffect" xml:space="preserve"><value>Pet switch animation</value></data>
+  <data name="SwitchEffectRandom" xml:space="preserve"><value>Random</value></data>
+  <data name="SwitchEffectUfo" xml:space="preserve"><value>Flying saucer</value></data>
+  <data name="SwitchEffectClaw" xml:space="preserve"><value>Claw machine</value></data>
+  <data name="SwitchEffectSmoke" xml:space="preserve"><value>Magic smoke</value></data>
+  <data name="SwitchEffectBeam" xml:space="preserve"><value>Teleport beam</value></data>
 
   <data name="StateHintCoding" xml:space="preserve"><value>Keeping you company while you code</value></data>
   <data name="StateHintBuilding" xml:space="preserve"><value>Building (a compiler is using the CPU)</value></data>

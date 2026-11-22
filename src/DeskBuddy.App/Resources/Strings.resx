@@ -207,6 +207,12 @@
   <data name="ThemeAuto" xml:space="preserve"><value>跟随系统</value></data>
   <data name="ThemeLight" xml:space="preserve"><value>浅色</value></data>
   <data name="ThemeDark" xml:space="preserve"><value>深色</value></data>
+  <data name="SettingsSwitchEffect" xml:space="preserve"><value>换宠物动画</value></data>
+  <data name="SwitchEffectRandom" xml:space="preserve"><value>随机</value></data>
+  <data name="SwitchEffectUfo" xml:space="preserve"><value>飞碟</value></data>
+  <data name="SwitchEffectClaw" xml:space="preserve"><value>夹娃娃机</value></data>
+  <data name="SwitchEffectSmoke" xml:space="preserve"><value>魔术烟雾</value></data>
+  <data name="SwitchEffectBeam" xml:space="preserve"><value>传送光柱</value></data>
 
   <data name="StateHintCoding" xml:space="preserve"><value>正在陪你写代码</value></data>
   <data name="StateHintBuilding" xml:space="preserve"><value>正在构建（编译器占满 CPU）</value></data>

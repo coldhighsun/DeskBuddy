@@ -481,6 +481,28 @@ public class SettingsTabViewModelTests
     }
 
     /// <summary>
+    /// The chosen switch animation is stored, and the settings are shown with the animation they hold.
+    /// </summary>
+    [Fact]
+    public async Task SelectedSwitchEffect_Changed_IsStored()
+    {
+        // Arrange
+        _store.Stored = PetSettings.Default with { SwitchEffect = PetSwitchEffect.Smoke };
+        await CreateAsync();
+        var shownAtStart = _viewModel.SelectedSwitchEffect;
+
+        // Act
+        _viewModel.SelectedSwitchEffect = PetSwitchEffect.Beam;
+        await _viewModel.TrySaveAsync();
+
+        // Assert
+        shownAtStart.Should().Be(PetSwitchEffect.Smoke);
+        _settings.Current.SwitchEffect.Should().Be(PetSwitchEffect.Beam);
+        _viewModel.SwitchEffects.Select(option => option.Value).Should().Equal(Enum.GetValues<PetSwitchEffect>());
+        _viewModel.SwitchEffects.Should().OnlyContain(option => option.Label.Length > 0);
+    }
+
+    /// <summary>
     /// The chosen pet size is stored, and the settings are shown with the size they hold.
     /// </summary>
     [Fact]

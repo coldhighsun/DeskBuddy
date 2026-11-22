@@ -305,29 +305,9 @@ public partial class UmbrellaWindow : Window
     {
         var source = HwndSource.FromHwnd(new WindowInteropHelper(this).Handle)!;
         source.CompositionTarget.BackgroundColor = Colors.Transparent;
-        source.AddHook(HitTestHook);
+        source.AddHook(WindowStyleHelper.ClickThroughHook);
 
         WindowStyleHelper.MakeToolWindowNoActivate(this);
         WindowStyleHelper.RemoveDwmDecorations(this);
-    }
-
-    /// <summary>
-    /// Lets every mouse click pass through the window.
-    /// </summary>
-    /// <param name="hwnd">The window handle.</param>
-    /// <param name="msg">The message.</param>
-    /// <param name="wParam">The first message parameter.</param>
-    /// <param name="lParam">The second message parameter.</param>
-    /// <param name="handled">Set when the message was dealt with.</param>
-    /// <returns><c>HTTRANSPARENT</c> for hit tests, otherwise zero.</returns>
-    private static nint HitTestHook(nint hwnd, int msg, nint wParam, nint lParam, ref bool handled)
-    {
-        if (msg == WindowStyleHelper.WmNcHitTest)
-        {
-            handled = true;
-            return WindowStyleHelper.HtTransparent;
-        }
-
-        return 0;
     }
 }
