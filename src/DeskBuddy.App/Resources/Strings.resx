@@ -192,6 +192,10 @@
   <data name="SettingsLanguage" xml:space="preserve"><value>语言 / Language</value></data>
   <data name="SettingsPetSize" xml:space="preserve"><value>宠物大小</value></data>
   <data name="SettingsStrollWhileBusy" xml:space="preserve"><value>写代码、开会时每隔一会儿起身走几步</value></data>
+  <data name="SettingsInteractionReactions" xml:space="preserve"><value>点击宠物时，它会有所反应并说句话</value></data>
+  <data name="RemarkHappy1" xml:space="preserve"><value>嘿嘿～</value></data>
+  <data name="RemarkHappy2" xml:space="preserve"><value>再戳我就要生气啦～</value></data>
+  <data name="RemarkHappy3" xml:space="preserve"><value>别戳啦，好痒！</value></data>
   <data name="SettingsAutoSwitchPet" xml:space="preserve"><value>自动更换宠物</value></data>
   <data name="SettingsAutoSwitchPetInterval" xml:space="preserve"><value>更换间隔</value></data>
   <data name="AutoSwitchMinutes" xml:space="preserve"><value>{0} 分钟</value></data>

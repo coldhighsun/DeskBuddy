@@ -488,6 +488,12 @@
                                   AutomationProperties.AutomationId="StrollWhileBusyCheck">
                             <TextBlock Text="{res:Loc SettingsStrollWhileBusy}" TextWrapping="Wrap" />
                         </CheckBox>
+                        <CheckBox IsChecked="{Binding InteractionReactions}"
+                                  Margin="0,2,0,0" MinHeight="24"
+                                  AutomationProperties.Name="{res:Loc SettingsInteractionReactions}"
+                                  AutomationProperties.AutomationId="InteractionReactionsCheck">
+                            <TextBlock Text="{res:Loc SettingsInteractionReactions}" TextWrapping="Wrap" />
+                        </CheckBox>
 
 
                        </StackPanel>

@@ -699,6 +699,25 @@ public class SettingsTabViewModelTests
     }
 
     /// <summary>
+    /// The choice to react to clicks is shown from the stored settings (on by default) and stored when changed.
+    /// </summary>
+    [Fact]
+    public async Task InteractionReactions_Changed_IsStored()
+    {
+        // Arrange
+        await CreateAsync();
+        var shownAtStart = _viewModel.InteractionReactions;
+
+        // Act
+        _viewModel.InteractionReactions = false;
+        await _viewModel.TrySaveAsync();
+
+        // Assert
+        shownAtStart.Should().BeTrue();
+        _settings.Current.InteractionReactions.Should().BeFalse();
+    }
+
+    /// <summary>
     /// The choice to look for updates by itself is shown from the stored settings (on by default) and stored when
     /// changed.
     /// </summary>

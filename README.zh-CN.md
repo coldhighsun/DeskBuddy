@@ -5,7 +5,7 @@
 # DeskBuddy
 
 [![CI](https://github.com/coldhighsun/DeskBuddy/actions/workflows/ci.yml/badge.svg)](https://github.com/coldhighsun/DeskBuddy/actions/workflows/ci.yml)
-[![Unit tests: 1606](https://img.shields.io/badge/unit%20tests-1606-brightgreen)](tests)
+[![Unit tests: 1618](https://img.shields.io/badge/unit%20tests-1618-brightgreen)](tests)
 [![Latest Release](https://img.shields.io/github/v/release/coldhighsun/DeskBuddy)](https://github.com/coldhighsun/DeskBuddy/releases/latest)
 [![Latest Pre-release](https://img.shields.io/github/v/release/coldhighsun/DeskBuddy?include_prereleases&label=pre-release)](https://github.com/coldhighsun/DeskBuddy/releases)
 [![GitHub All Releases](https://img.shields.io/github/downloads/coldhighsun/DeskBuddy/total)](https://github.com/coldhighsun/DeskBuddy/releases)
@@ -32,6 +32,7 @@
 - 小巧的动画宠物：沿任务栏行走、睡觉、疲倦，被拖动时也有反应。站着不动时眼睛会跟着鼠标转。
 - 用鼠标甩一下，它会飞出去并在屏幕两端弹回。从任务栏上方高处松手，它会撑着雨伞或降落伞飘落。它还会
   随机沿屏幕两侧攀爬、挂在顶部横向移动（宠物需要有对应的画面）。
+- 右键点击宠物打开面板；左键点击它会有所反应并说句话（连续猛点会把它惹毛；可在“行为”里关闭）。
 - 处于长驻状态（写代码、开会等）时，它不会几个小时一动不动，而是每隔几秒短暂溜达一小段；可在“行为”里关闭“忙碌时溜达”。
 - 带有对应图片的宠物走路时偶尔会跳一下。打开“主动说话”（默认关闭）后，宠物会时不时随口说一句。
 

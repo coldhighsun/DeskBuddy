@@ -324,6 +324,7 @@ public sealed partial class SettingsTabViewModel : ObservableObject
         {
             ChatterEnabled = settings.ChatterEnabled;
             StrollWhileBusy = settings.StrollWhileBusy;
+            InteractionReactions = settings.InteractionReactions;
             AutoCheckUpdates = settings.AutoCheckUpdates;
             if (_editor.ErrorFor(SedentaryEditKey).Length == 0 && !(keepTypedText && MeansMinutes(SedentaryText, settings.SedentaryReminderAfter)))
             {

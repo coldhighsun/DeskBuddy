@@ -327,6 +327,16 @@ public class PetSettingsTests
     }
 
     /// <summary>
+    /// Reacting to clicks is on until the user switches it off.
+    /// </summary>
+    [Fact]
+    public void Default_InteractionReactions_IsOn()
+    {
+        // Assert
+        PetSettings.Default.InteractionReactions.Should().BeTrue();
+    }
+
+    /// <summary>
     /// Looking for updates by itself is on until the user switches it off.
     /// </summary>
     [Fact]

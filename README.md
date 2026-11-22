@@ -5,7 +5,7 @@
 # DeskBuddy
 
 [![CI](https://github.com/coldhighsun/DeskBuddy/actions/workflows/ci.yml/badge.svg)](https://github.com/coldhighsun/DeskBuddy/actions/workflows/ci.yml)
-[![Unit tests: 1606](https://img.shields.io/badge/unit%20tests-1606-brightgreen)](tests)
+[![Unit tests: 1618](https://img.shields.io/badge/unit%20tests-1618-brightgreen)](tests)
 [![Latest Release](https://img.shields.io/github/v/release/coldhighsun/DeskBuddy)](https://github.com/coldhighsun/DeskBuddy/releases/latest)
 [![Latest Pre-release](https://img.shields.io/github/v/release/coldhighsun/DeskBuddy?include_prereleases&label=pre-release)](https://github.com/coldhighsun/DeskBuddy/releases)
 [![GitHub All Releases](https://img.shields.io/github/downloads/coldhighsun/DeskBuddy/total)](https://github.com/coldhighsun/DeskBuddy/releases)
@@ -34,6 +34,7 @@ A desktop pet for work computers. It lives on your desktop, reacts to what you a
 - Fling it with the mouse and it flies off, bouncing off the screen ends. Drop it from high above the taskbar and it floats down under
   an umbrella or a parachute. It also climbs the sides of the
   screen and crawls along the top edge now and then (for pets that have the pictures for it).
+- Right-click the pet to open the panel. Click it and it reacts with a remark (clicking again and again makes it cross; turn it off under "Behavior").
 - While it is held in a long-running state (coding, a meeting...) it still takes a short stroll every few seconds
   instead of standing frozen for hours; switch this off with "stroll while busy" under Behavior.
 - Pets that have the pictures for it hop now and then while they walk. With "say something unprompted" switched on (off

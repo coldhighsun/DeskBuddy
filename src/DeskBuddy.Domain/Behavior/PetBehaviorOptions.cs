@@ -126,6 +126,11 @@ public sealed class PetBehaviorOptions
     public bool StrollEnabled { get; set; } = true;
 
     /// <summary>
+    /// Gets or sets whether the pet answers a click with a remark.
+    /// </summary>
+    public bool ReactionsEnabled { get; set; } = true;
+
+    /// <summary>
     /// Gets or sets the shortest time a pet held in a state such as coding or a meeting stays there before it takes a
     /// short walk. The walk lasts as long as any other walk (<see cref="WalkDurationMin"/> to
     /// <see cref="WalkDurationMax"/>).

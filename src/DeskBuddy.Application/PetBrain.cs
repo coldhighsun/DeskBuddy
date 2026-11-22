@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using DeskBuddy.Domain.Chatter;
 using DeskBuddy.Domain.Behavior;
+using DeskBuddy.Domain.Interaction;
 using DeskBuddy.Domain.Messages;
 using DeskBuddy.Domain.Sedentary;
 using DeskBuddy.Domain.SystemLoad;
@@ -30,6 +31,7 @@ namespace DeskBuddy.Application;
 /// <param name="systemScenarios">
 /// Works out what the pet should do because of things around the user: a meeting, coming back, the battery.
 /// </param>
+/// <param name="clickStreak">Counts quick clicks; <see langword="null"/> to use the real clock.</param>
 public sealed class PetBrain(
     IIdleDetector idleDetector,
     ISystemLoadMonitor loadMonitor,
@@ -41,8 +43,14 @@ public sealed class PetBrain(
     PetVisibility visibility,
     ChatterPolicy chatter,
     DevScenarios devScenarios,
-    SystemScenarios systemScenarios)
+    SystemScenarios systemScenarios,
+    ClickStreak? clickStreak = null)
 {
+    /// <summary>
+    /// Counts the clicks that follow each other closely.
+    /// </summary>
+    private readonly ClickStreak _clicks = clickStreak ?? new ClickStreak(TimeProvider.System);
+
     /// <summary>
     /// How long the user may be away from keyboard and mouse and still count as present for casual remarks.
     /// </summary>
@@ -400,9 +408,18 @@ public sealed class PetBrain(
     /// <summary>
     /// Notifies the brain that the user clicked the pet. Counts as acknowledging the message on screen.
     /// </summary>
-    public void OnClicked()
+    /// <param name="remark">Whether the pet also says something about it, by how often it has been clicked lately.</param>
+    /// <returns>How the pet takes the click, by how many clicks the user made in quick succession.</returns>
+    public ClickTier OnClicked(bool remark = false)
     {
         DismissMessage();
         stateMachine.OnClicked();
+        var tier = _clicks.Register();
+        if (remark)
+        {
+            Say(PetState.Happy, (int)tier);
+        }
+
+        return tier;
     }
 }

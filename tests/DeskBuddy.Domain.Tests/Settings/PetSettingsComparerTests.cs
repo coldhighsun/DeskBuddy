@@ -102,6 +102,7 @@ public class PetSettingsComparerTests
             [nameof(PetSettings.Size)] = baseline with { Size = PetSize.Large },
             [nameof(PetSettings.ChatterEnabled)] = baseline with { ChatterEnabled = !baseline.ChatterEnabled },
             [nameof(PetSettings.StrollWhileBusy)] = baseline with { StrollWhileBusy = !baseline.StrollWhileBusy },
+            [nameof(PetSettings.InteractionReactions)] = baseline with { InteractionReactions = !baseline.InteractionReactions },
             [nameof(PetSettings.AutoCheckUpdates)] = baseline with { AutoCheckUpdates = !baseline.AutoCheckUpdates },
             [nameof(PetSettings.AutoSwitchPet)] = baseline with { AutoSwitchPet = !baseline.AutoSwitchPet },
             [nameof(PetSettings.AutoSwitchPetInterval)] = baseline with { AutoSwitchPetInterval = TimeSpan.FromHours(1) },

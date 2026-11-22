@@ -665,6 +665,11 @@ internal static class Strings
     public static string SettingsStrollWhileBusy => Get();
 
     /// <summary>
+    /// Gets the label of the setting that lets the pet react to clicks.
+    /// </summary>
+    public static string SettingsInteractionReactions => Get();
+
+    /// <summary>
     /// Gets the label of the setting that changes the pet for another one by itself.
     /// </summary>
     public static string SettingsAutoSwitchPet => Get();
