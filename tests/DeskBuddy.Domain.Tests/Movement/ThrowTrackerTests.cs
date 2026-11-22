@@ -114,6 +114,41 @@ public class ThrowTrackerTests
     }
 
     /// <summary>
+    /// A fast flick straight up is limited to the fastest upward throw, so the pet does not fly across the whole screen.
+    /// </summary>
+    [Fact]
+    public void GetVelocity_FlickedUpTooFast_IsLimitedToTheUpwardMaximum()
+    {
+        // Arrange: 60 pixels up in 50 ms is 1200 pixels per second, below the overall maximum but above the upward one.
+        _tracker.Add(TimeSpan.FromMilliseconds(0), 100, 300);
+        _tracker.Add(TimeSpan.FromMilliseconds(50), 100, 240);
+
+        // Act
+        var (x, y) = _tracker.GetVelocity(TimeSpan.FromMilliseconds(50));
+
+        // Assert
+        x.Should().Be(0);
+        y.Should().BeApproximately(-_options.ThrowMaxUpSpeed, 0.001);
+    }
+
+    /// <summary>
+    /// A fast flick downwards is not held back by the upward limit.
+    /// </summary>
+    [Fact]
+    public void GetVelocity_FlickedDownFast_IsNotLimitedByTheUpwardMaximum()
+    {
+        // Arrange: 60 pixels down in 50 ms is 1200 pixels per second.
+        _tracker.Add(TimeSpan.FromMilliseconds(0), 100, 240);
+        _tracker.Add(TimeSpan.FromMilliseconds(50), 100, 300);
+
+        // Act
+        var (_, y) = _tracker.GetVelocity(TimeSpan.FromMilliseconds(50));
+
+        // Assert
+        y.Should().BeApproximately(1200, 0.001);
+    }
+
+    /// <summary>
     /// After a reset the positions of the previous drag no longer count.
     /// </summary>
     [Fact]
