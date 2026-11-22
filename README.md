@@ -94,6 +94,21 @@ The bundled pets are drawn by the scripts in [tools](tools) (for example `tools/
 
 Download `DeskBuddy-Setup-x.y.z.exe` from the [Releases](https://github.com/coldhighsun/DeskBuddy/releases) page and run it. It installs per user and needs no administrator rights or .NET runtime. Installing a newer version over an old one upgrades it, and the uninstaller asks whether to keep your settings and logs.
 
+Each release also offers two portable zips (no installation: unzip and run `DeskBuddy.exe`), told apart by the file name:
+
+| File | .NET runtime | Contents |
+| --- | --- | --- |
+| `DeskBuddy-Portable-x.y.z-win-x64-with-runtime.zip` | Included, nothing to install | `DeskBuddy.exe` plus its dll files and `pets/` (larger download) |
+| `DeskBuddy-Portable-x.y.z-win-x64-no-runtime.zip` | Not included, needs the [.NET 11 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/11.0) (x64) | A single `DeskBuddy.exe` plus `pets/` (much smaller download) |
+
+Pick the `with-runtime` zip if you are unsure; pick `no-runtime` if the .NET 11 Desktop Runtime is already installed.
+
+To verify a download, compare its SHA-256 with the matching line of `SHA256SUMS.txt` on the same release page:
+
+```powershell
+Get-FileHash .\DeskBuddy-Portable-x.y.z-win-x64-no-runtime.zip -Algorithm SHA256
+```
+
 ## Build
 
 Requires Windows and the [.NET 11 SDK](https://dotnet.microsoft.com/download).
@@ -110,14 +125,14 @@ To build the installer, install [Inno Setup 7](https://jrsoftware.org/isinfo.php
 powershell -NoProfile -File tools/Build-Installer.ps1
 ```
 
-A portable zip (a single exe plus `pets/`, no installation) is built with the script below into `artifacts/portable`:
+The two portable zips (`with-runtime`: exe plus dll files and `pets/`; `no-runtime`: a single exe plus `pets/`) are built with the script below into `artifacts/portable`; pass `-Variant WithRuntime` or `-Variant NoRuntime` to build only one:
 
 ```bash
 powershell -NoProfile -File tools/Build-Portable.ps1
 ```
 
 Versions are derived from git tags (`v1.2.3`) by [MinVer](https://github.com/adamralph/minver). Pushing a `v*` tag makes
-the CI workflow build and test, build the installer and the portable zip and publish them as a GitHub release (a tag with a hyphen, such as
+the CI workflow build and test, build the installer and the two portable zips and publish them as a GitHub release (a tag with a hyphen, such as
 `v1.2.0-rc.1`, is marked as a pre-release).
 
 ## License

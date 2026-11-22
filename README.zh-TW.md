@@ -79,6 +79,21 @@
 
 從 [Releases](https://github.com/coldhighsun/DeskBuddy/releases) 頁面下載 `DeskBuddy-Setup-x.y.z.exe` 並執行。依目前使用者安裝，無需系統管理員權限，也無需另外安裝 .NET 執行階段。直接覆蓋安裝新版本即可升級，解除安裝時會詢問是否保留設定和記錄檔。
 
+每個 Release 還提供兩個可攜式 zip（免安裝，解壓後執行 `DeskBuddy.exe`），以檔名區分：
+
+| 檔案 | .NET 執行階段 | 內容 |
+| --- | --- | --- |
+| `DeskBuddy-Portable-x.y.z-win-x64-with-runtime.zip` | 已包含，無需另外安裝 | `DeskBuddy.exe` 及其 dll 檔案 + `pets/`（體積較大） |
+| `DeskBuddy-Portable-x.y.z-win-x64-no-runtime.zip` | 不包含，需先安裝 [.NET 11 桌面執行階段](https://dotnet.microsoft.com/download/dotnet/11.0)（x64） | 單一 `DeskBuddy.exe` + `pets/`（體積小得多） |
+
+不確定時選 `with-runtime`；已安裝 .NET 11 桌面執行階段的可以選 `no-runtime`。
+
+如需驗證下載的檔案，請將其 SHA-256 與同一 Release 頁面上 `SHA256SUMS.txt` 中對應的一行比對：
+
+```powershell
+Get-FileHash .\DeskBuddy-Portable-x.y.z-win-x64-no-runtime.zip -Algorithm SHA256
+```
+
 ## 建置
 
 需要 Windows 和 [.NET 11 SDK](https://dotnet.microsoft.com/download)。
@@ -95,14 +110,14 @@ dotnet run --project src/DeskBuddy.App
 powershell -NoProfile -File tools/Build-Installer.ps1
 ```
 
-可攜式 zip 套件（單一 exe + `pets/`，免安裝）用下面的指令碼產生，輸出在 `artifacts/portable`：
+兩個可攜式 zip 套件（`with-runtime`：exe + dll 檔案 + `pets/`；`no-runtime`：單一 exe + `pets/`）用下面的指令碼產生，輸出在 `artifacts/portable`；加 `-Variant WithRuntime` 或 `-Variant NoRuntime` 可只產生其中一個：
 
 ```bash
 powershell -NoProfile -File tools/Build-Portable.ps1
 ```
 
 版本號由 [MinVer](https://github.com/adamralph/minver) 根據 git tag（`v1.2.3`）自動產生。推送 `v*` tag 後，CI 會建置、測試、
-封裝安裝程式和可攜式 zip，並發佈為 GitHub Release（帶連字號的 tag，如 `v1.2.0-rc.1`，會標記為預先發行）。
+封裝安裝程式和兩個可攜式 zip，並發佈為 GitHub Release（帶連字號的 tag，如 `v1.2.0-rc.1`，會標記為預先發行）。
 
 ## 授權
 

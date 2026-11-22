@@ -80,7 +80,7 @@ jobs:
         shell: pwsh
         run: ./tools/Build-Installer.ps1 -IsccPath $env:ISCC_PATH
 
-      - name: Build portable package
+      - name: Build portable packages
         shell: pwsh
         run: ./tools/Build-Portable.ps1
 
@@ -91,8 +91,16 @@ jobs:
         run: |
           $tag = "${{ github.ref_name }}"
           $setup = Get-ChildItem artifacts/installer -Filter "DeskBuddy-Setup-*.exe" | Select-Object -First 1
-          $portable = Get-ChildItem artifacts/portable -Filter "DeskBuddy-Portable-*.zip" | Select-Object -First 1
-          $ghArgs = @($tag, $setup.FullName, $portable.FullName, "--title", "DeskBuddy $tag", "--generate-notes", "--verify-tag")
+          $withRuntime = Get-ChildItem artifacts/portable -Filter "DeskBuddy-Portable-*-with-runtime.zip" | Select-Object -First 1
+          $noRuntime = Get-ChildItem artifacts/portable -Filter "DeskBuddy-Portable-*-no-runtime.zip" | Select-Object -First 1
+          # SHA256SUMS.txt lists the hash of every package in the format `sha256sum -c` reads: "<lowercase hash>  <file name>".
+          # Its name has no "Setup" in it, so the auto-updater never picks it.
+          $packages = @($setup, $withRuntime, $noRuntime)
+          $sums = Join-Path $PWD.Path "artifacts/SHA256SUMS.txt"
+          $lines = $packages | ForEach-Object { "{0}  {1}" -f (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant(), $_.Name }
+          [System.IO.File]::WriteAllText($sums, (($lines -join "`n") + "`n"), [System.Text.UTF8Encoding]::new($false))
+          Get-Content $sums
+          $ghArgs = @($tag, $setup.FullName, $withRuntime.FullName, $noRuntime.FullName, $sums, "--title", "DeskBuddy $tag", "--generate-notes", "--verify-tag")
           # A hyphen in the tag (v1.2.0-rc.1) marks a pre-release.
           if ($tag.Contains("-")) {
             $ghArgs += "--prerelease"
