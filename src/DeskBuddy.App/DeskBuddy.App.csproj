@@ -32,6 +32,7 @@
     <PackageReference Include="H.NotifyIcon.Wpf" />
     <PackageReference Include="Microsoft.Extensions.Hosting" />
     <PackageReference Include="MinVer" PrivateAssets="all" />
+    <PackageReference Include="ThrottledLogging" />
   </ItemGroup>
 
   <ItemGroup>
