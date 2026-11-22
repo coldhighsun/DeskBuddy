@@ -41,14 +41,18 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     private const double StartMargin = 2 * EdgeSnapDistance;
 
     /// <summary>
-    /// How often the pet's position is updated while walking. Only runs in the Walk state.
+    /// How often the pet's position is updated while walking, falling or crawling (20 steps a second). Movement is
+    /// computed from the real time between ticks, so a longer interval makes the steps bigger, not the pet slower.
+    /// Only runs while the pet moves. <see cref="WorkAreaRefreshEveryTicks"/> counts these ticks.
     /// </summary>
-    private static readonly TimeSpan MoveInterval = TimeSpan.FromMilliseconds(33);
+    private static readonly TimeSpan MoveInterval = TimeSpan.FromMilliseconds(50);
 
     /// <summary>
-    /// How often the brain re-reads sensors and re-evaluates the pet's state.
+    /// How often the brain re-reads sensors and re-evaluates the pet's state. The state machine counts time with the clock,
+    /// not with ticks, so a longer interval only delays how soon the pet notices a change in what the user is doing; a few
+    /// seconds is not noticed, and each tick costs a round of sensor queries on the UI thread.
     /// </summary>
-    private static readonly TimeSpan BrainInterval = TimeSpan.FromSeconds(1);
+    private static readonly TimeSpan BrainInterval = TimeSpan.FromSeconds(3);
 
     /// <summary>
     /// The pet being shown.

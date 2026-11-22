@@ -23,7 +23,7 @@ public partial class PetWindow
     /// <summary>
     /// How often the mouse pointer is looked at to turn the eyes towards it; the eyes need no finer a follow than this.
     /// </summary>
-    private static readonly TimeSpan PointerInterval = TimeSpan.FromMilliseconds(200);
+    private static readonly TimeSpan PointerInterval = TimeSpan.FromMilliseconds(500);
 
     /// <summary>
     /// Timer that reads the mouse pointer for the gaze; runs only while the pet is on screen and stands around.
@@ -102,8 +102,8 @@ public partial class PetWindow
 
     /// <summary>
     /// Runs the pointer timer only while the pet is on screen, stands around and can look around, so it costs nothing
-    /// while the pet walks, sleeps or is busy. Called when the state changes, and every second, as the switches can change
-    /// at any time.
+    /// while the pet walks, sleeps or is busy. Called when the state changes, and on every brain tick, as the switches can
+    /// change at any time.
     /// </summary>
     private void UpdatePointerTimer()
     {

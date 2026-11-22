@@ -23,7 +23,7 @@ public partial class PetWindow
     /// <summary>
     /// Number of movement ticks between refreshes of the cached work area (about one second).
     /// </summary>
-    private const int WorkAreaRefreshEveryTicks = 30;
+    private const int WorkAreaRefreshEveryTicks = 20;
 
     /// <summary>
     /// The range the pet may take, cached while walking: the work area of the monitor it is on, or, when it walks along

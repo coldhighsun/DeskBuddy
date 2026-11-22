@@ -58,6 +58,16 @@ public sealed class UiStallMonitor : IDisposable
     private volatile string _lastKnown = "not known yet";
 
     /// <summary>
+    /// This process, kept so that taking a sample does not look it up again.
+    /// </summary>
+    private readonly System.Diagnostics.Process _self = System.Diagnostics.Process.GetCurrentProcess();
+
+    /// <summary>
+    /// How the process and the machine were when the outstanding probe was posted; what a stall is measured against.
+    /// </summary>
+    private volatile PressureSample? _probeStart;
+
+    /// <summary>
     /// The watchdog thread, or <see langword="null"/> before <see cref="Start"/>.
     /// </summary>
     private Thread? _thread;
@@ -96,6 +106,7 @@ public sealed class UiStallMonitor : IDisposable
         _stopping.Set();
         _thread?.Join(TimeSpan.FromSeconds(1));
         _stopping.Dispose();
+        _self.Dispose();
     }
 
     /// <summary>
@@ -108,15 +119,17 @@ public sealed class UiStallMonitor : IDisposable
             var now = _time.GetUtcNow();
             if (_tracker.TryBeginProbe(now))
             {
+                _probeStart = PressureSample.Take(_self, now);
                 _dispatcher.BeginInvoke(DispatcherPriority.Input, OnProbeAnswered);
             }
 
             if (_tracker.CheckStalled(now) is { } waited)
             {
                 _logger.LogWarning(
-                    "The UI thread has not answered for {WaitedMs:F0} ms. What it was doing when it last answered: {LastKnown}",
+                    "The UI thread has not answered for {WaitedMs:F0} ms. What it was doing when it last answered: {LastKnown}. Since the probe: {Pressure}",
                     waited.TotalMilliseconds,
-                    _lastKnown);
+                    _lastKnown,
+                    DescribePressure(now));
             }
         }
     }
@@ -129,12 +142,25 @@ public sealed class UiStallMonitor : IDisposable
         var state = _describe();
         _lastKnown = state;
 
-        if (_tracker.Answer(_time.GetUtcNow()) is { } waited)
+        var now = _time.GetUtcNow();
+        if (_tracker.Answer(now) is { } waited)
         {
             _logger.LogWarning(
-                "The UI thread answered again after {WaitedMs:F0} ms. What it is doing now: {State}",
+                "The UI thread answered again after {WaitedMs:F0} ms. What it is doing now: {State}. Since the probe: {Pressure}",
                 waited.TotalMilliseconds,
-                state);
+                state,
+                DescribePressure(now));
         }
+    }
+
+    /// <summary>
+    /// Describes what the process and the machine did since the probe that is outstanding was posted.
+    /// </summary>
+    /// <param name="now">The time.</param>
+    /// <returns>The line for the log; see <see cref="PressureSample.Describe"/>.</returns>
+    private string DescribePressure(DateTimeOffset now)
+    {
+        var start = _probeStart;
+        return start is null ? "no sample" : PressureSample.Describe(start, PressureSample.Take(_self, now));
     }
 }
