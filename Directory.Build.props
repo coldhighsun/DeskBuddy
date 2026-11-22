@@ -8,7 +8,6 @@
     <!-- Lets non-Windows hosts (e.g. GitHub's Linux dependency submission job) restore the WPF projects. -->
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <DebugType>embedded</DebugType>
-    <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
