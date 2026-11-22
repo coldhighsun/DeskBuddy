@@ -216,12 +216,8 @@ internal static class Strings
     /// <summary>
     /// Gets the name of a state, shown under the pet preview.
     /// </summary>
-    /// <param name="state">
-    /// The state being previewed.
-    /// </param>
-    /// <returns>
-    /// The localized name.
-    /// </returns>
+    /// <param name="state">The state being previewed.</param>
+    /// <returns>The localized name.</returns>
     public static string PetStateName(PetState state)
     {
         return Manager.GetString($"PetStateName{state}", Current) ?? $"!PetStateName{state}!";
@@ -632,9 +628,7 @@ internal static class Strings
     /// Which remark, from 0 to <see cref="DeskBuddy.Domain.Chatter.ChatterPolicy.VariantCount"/> - 1; larger values
     /// wrap around.
     /// </param>
-    /// <returns>
-    /// The localized remark.
-    /// </returns>
+    /// <returns>The localized remark.</returns>
     public static string Chatter(int index)
     {
         var count = Domain.Chatter.ChatterPolicy.VariantCount;
@@ -723,12 +717,8 @@ internal static class Strings
     /// <summary>
     /// Gets the short explanation of what the pet is doing in a state, shown when the mouse rests on it.
     /// </summary>
-    /// <param name="state">
-    /// The state the pet is in.
-    /// </param>
-    /// <returns>
-    /// The localized explanation, or <see langword="null"/> if the state needs none.
-    /// </returns>
+    /// <param name="state">The state the pet is in.</param>
+    /// <returns>The localized explanation, or <see langword="null"/> if the state needs none.</returns>
     public static string? StateHint(PetState state)
     {
         return Manager.GetString($"StateHint{state}", Current);
@@ -767,12 +757,8 @@ internal static class Strings
     /// <summary>
     /// Gets the short name of one scenario, shown next to its switch.
     /// </summary>
-    /// <param name="state">
-    /// The scenario, identified by the state the pet shows for it.
-    /// </param>
-    /// <returns>
-    /// The localized name.
-    /// </returns>
+    /// <param name="state">The scenario, identified by the state the pet shows for it.</param>
+    /// <returns>The localized name.</returns>
     public static string ScenarioName(PetState state)
     {
         return Manager.GetString($"ScenarioName{state}", Current) ?? $"!ScenarioName{state}!";
@@ -781,12 +767,8 @@ internal static class Strings
     /// <summary>
     /// Gets the explanation of one scenario, shown as a tooltip of its switch.
     /// </summary>
-    /// <param name="state">
-    /// The scenario, identified by the state the pet shows for it.
-    /// </param>
-    /// <returns>
-    /// The localized text.
-    /// </returns>
+    /// <param name="state">The scenario, identified by the state the pet shows for it.</param>
+    /// <returns>The localized text.</returns>
     public static string ScenarioLabel(PetState state)
     {
         return Manager.GetString($"Scenario{state}", Current) ?? $"!Scenario{state}!";
@@ -795,12 +777,8 @@ internal static class Strings
     /// <summary>
     /// Gets the name of a process list, for saying where a process already is.
     /// </summary>
-    /// <param name="kind">
-    /// The list.
-    /// </param>
-    /// <returns>
-    /// The localized name.
-    /// </returns>
+    /// <param name="kind">The list.</param>
+    /// <returns>The localized name.</returns>
     public static string ProcessListName(ProcessListKind kind)
     {
         return Manager.GetString($"ProcessList{kind}", Current) ?? $"!ProcessList{kind}!";
@@ -809,12 +787,8 @@ internal static class Strings
     /// <summary>
     /// Gets the short remark that goes with a state the pet acts out.
     /// </summary>
-    /// <param name="code">
-    /// The state the remark belongs to and its wording, packed by <see cref="RemarkCode"/>.
-    /// </param>
-    /// <returns>
-    /// The localized remark, or an empty string if that state has none.
-    /// </returns>
+    /// <param name="code">The state the remark belongs to and its wording, packed by <see cref="RemarkCode"/>.</param>
+    /// <returns>The localized remark, or an empty string if that state has none.</returns>
     public static string Remark(int code)
     {
         var (state, variant) = RemarkCode.Decode(code);
@@ -827,12 +801,8 @@ internal static class Strings
     /// <summary>
     /// Looks up a string by its key, for the places that only know the key as text (the bindings of XAML).
     /// </summary>
-    /// <param name="key">
-    /// The resource key, which is the name of a property of this class.
-    /// </param>
-    /// <returns>
-    /// The localized text for the current UI culture, or <c>!key!</c> if it is missing.
-    /// </returns>
+    /// <param name="key">The resource key, which is the name of a property of this class.</param>
+    /// <returns>The localized text for the current UI culture, or <c>!key!</c> if it is missing.</returns>
     public static string Lookup(string key)
     {
         return Get(key);
@@ -841,12 +811,8 @@ internal static class Strings
     /// <summary>
     /// Looks up a string by the name of the calling property.
     /// </summary>
-    /// <param name="key">
-    /// The resource key; filled in automatically with the caller's name.
-    /// </param>
-    /// <returns>
-    /// The localized text for the current UI culture, or <c>!key!</c> if it is missing.
-    /// </returns>
+    /// <param name="key">The resource key; filled in automatically with the caller's name.</param>
+    /// <returns>The localized text for the current UI culture, or <c>!key!</c> if it is missing.</returns>
     private static string Get([CallerMemberName] string key = "")
     {
         return Manager.GetString(key, Current) ?? $"!{key}!";

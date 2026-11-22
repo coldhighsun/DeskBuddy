@@ -31,9 +31,7 @@ internal static partial class HighContrastReader
     /// <summary>
     /// Asks the system whether a high-contrast theme is on, and tells whether the system could answer.
     /// </summary>
-    /// <param name="on">
-    /// Whether a high-contrast theme is on; <see langword="false"/> when the call failed.
-    /// </param>
+    /// <param name="on">Whether a high-contrast theme is on; <see langword="false"/> when the call failed.</param>
     /// <returns>
     /// <see langword="true"/> when the system answered; <see langword="false"/> when the call failed, which would
     /// otherwise look the same as high contrast being off.
@@ -49,21 +47,11 @@ internal static partial class HighContrastReader
     /// <summary>
     /// Reads or changes a system-wide parameter.
     /// </summary>
-    /// <param name="action">
-    /// The parameter to read.
-    /// </param>
-    /// <param name="parameter">
-    /// The size of the structure.
-    /// </param>
-    /// <param name="info">
-    /// The structure that receives the settings.
-    /// </param>
-    /// <param name="flags">
-    /// Not used when reading.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> on success.
-    /// </returns>
+    /// <param name="action">The parameter to read.</param>
+    /// <param name="parameter">The size of the structure.</param>
+    /// <param name="info">The structure that receives the settings.</param>
+    /// <param name="flags">Not used when reading.</param>
+    /// <returns><see langword="true"/> on success.</returns>
     [LibraryImport("user32.dll", EntryPoint = "SystemParametersInfoW")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool SystemParametersInfo(uint action, uint parameter, ref HighContrast info, uint flags);

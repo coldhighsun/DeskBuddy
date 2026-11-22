@@ -63,33 +63,15 @@ public sealed class SettingsApplier
     /// <summary>
     /// Initializes a new instance of the <see cref="SettingsApplier"/> class and applies the current settings.
     /// </summary>
-    /// <param name="settings">
-    /// The settings to follow.
-    /// </param>
-    /// <param name="behavior">
-    /// The behavior options to update.
-    /// </param>
-    /// <param name="sedentary">
-    /// The sedentary options to update.
-    /// </param>
-    /// <param name="visibility">
-    /// The visibility rules to update.
-    /// </param>
-    /// <param name="chatter">
-    /// The policy for unprompted remarks to update.
-    /// </param>
-    /// <param name="devActivity">
-    /// The development detection to update.
-    /// </param>
-    /// <param name="scenarios">
-    /// The scenario switches to update.
-    /// </param>
-    /// <param name="meeting">
-    /// The meeting detection to update.
-    /// </param>
-    /// <param name="chat">
-    /// The chat detection to update.
-    /// </param>
+    /// <param name="settings">The settings to follow.</param>
+    /// <param name="behavior">The behavior options to update.</param>
+    /// <param name="sedentary">The sedentary options to update.</param>
+    /// <param name="visibility">The visibility rules to update.</param>
+    /// <param name="chatter">The policy for unprompted remarks to update.</param>
+    /// <param name="devActivity">The development detection to update.</param>
+    /// <param name="scenarios">The scenario switches to update.</param>
+    /// <param name="meeting">The meeting detection to update.</param>
+    /// <param name="chat">The chat detection to update.</param>
     /// <param name="reapplyOverrides">
     /// Runs after each application of the settings; <see langword="null"/> if nothing overrides them.
     /// </param>
@@ -132,9 +114,7 @@ public sealed class SettingsApplier
     /// <summary>
     /// Copies the settings into the option objects.
     /// </summary>
-    /// <param name="settings">
-    /// The settings to copy.
-    /// </param>
+    /// <param name="settings">The settings to copy.</param>
     private void Apply(PetSettings settings)
     {
         _behavior.SleepAfter = settings.SleepAfter;

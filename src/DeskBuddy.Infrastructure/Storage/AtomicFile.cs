@@ -36,18 +36,10 @@ internal static class AtomicFile
     /// <summary>
     /// Replaces a file's content by writing a temporary file next to it and then moving it over the original.
     /// </summary>
-    /// <param name="path">
-    /// The file to write. Its directory is created if missing.
-    /// </param>
-    /// <param name="content">
-    /// The complete new content.
-    /// </param>
-    /// <param name="cancellationToken">
-    /// Token used to cancel the operation.
-    /// </param>
-    /// <returns>
-    /// A task that completes when the file has been replaced.
-    /// </returns>
+    /// <param name="path">The file to write. Its directory is created if missing.</param>
+    /// <param name="content">The complete new content.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when the file has been replaced.</returns>
     public static Task WriteAllTextAsync(string path, string content, CancellationToken cancellationToken)
     {
         return RetryWhileInUseAsync(
@@ -94,15 +86,9 @@ internal static class AtomicFile
     /// <summary>
     /// Reads a whole UTF-8 file.
     /// </summary>
-    /// <param name="path">
-    /// The file to read.
-    /// </param>
-    /// <param name="cancellationToken">
-    /// Token used to cancel the operation.
-    /// </param>
-    /// <returns>
-    /// The file content.
-    /// </returns>
+    /// <param name="path">The file to read.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>The file content.</returns>
     public static Task<string> ReadAllTextAsync(string path, CancellationToken cancellationToken)
     {
         return RetryWhileInUseAsync(
@@ -114,18 +100,10 @@ internal static class AtomicFile
     /// Runs a file operation, trying again a few times if another process briefly has the file open. Any other
     /// failure, and a lock that outlasts the attempts, is thrown to the caller.
     /// </summary>
-    /// <typeparam name="T">
-    /// The result type of the operation.
-    /// </typeparam>
-    /// <param name="operation">
-    /// The operation to run.
-    /// </param>
-    /// <param name="cancellationToken">
-    /// Token used to cancel the operation.
-    /// </param>
-    /// <returns>
-    /// The result of the operation.
-    /// </returns>
+    /// <typeparam name="T">The result type of the operation.</typeparam>
+    /// <param name="operation">The operation to run.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>The result of the operation.</returns>
     private static async Task<T> RetryWhileInUseAsync<T>(Func<Task<T>> operation, CancellationToken cancellationToken)
     {
         for (var attempt = 1; ; attempt++)
@@ -145,12 +123,8 @@ internal static class AtomicFile
     /// Determines whether an exception means the file is open in another process. Windows reports that as a sharing
     /// or lock violation when opening the file, but as "access denied" when replacing or deleting it.
     /// </summary>
-    /// <param name="exception">
-    /// The exception to inspect.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> if retrying shortly may succeed.
-    /// </returns>
+    /// <param name="exception">The exception to inspect.</param>
+    /// <returns><see langword="true"/> if retrying shortly may succeed.</returns>
     private static bool IsInUse(Exception exception)
     {
         return exception is UnauthorizedAccessException

@@ -11,12 +11,8 @@ public sealed class ErrorTextTests
     /// <summary>
     /// Each kind of error gets a reason in the language of the interface instead of its English message.
     /// </summary>
-    /// <param name="error">
-    /// The error.
-    /// </param>
-    /// <param name="expectedKey">
-    /// The name of the string expected.
-    /// </param>
+    /// <param name="error">The error.</param>
+    /// <param name="expectedKey">The name of the string expected.</param>
     [Theory]
     [MemberData(nameof(Errors))]
     public void For_Error_GivesLocalizedReason(Exception error, string expectedKey)
@@ -35,9 +31,7 @@ public sealed class ErrorTextTests
     /// <summary>
     /// Gets the errors to try and the string each should give.
     /// </summary>
-    /// <returns>
-    /// Pairs of error and string name.
-    /// </returns>
+    /// <returns>Pairs of error and string name.</returns>
     public static TheoryData<Exception, string> Errors()
     {
         return new TheoryData<Exception, string>

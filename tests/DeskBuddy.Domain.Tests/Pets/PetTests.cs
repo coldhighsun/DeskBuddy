@@ -45,12 +45,8 @@ public class PetTests
     /// <summary>
     /// Grips must be one or two points on the frame.
     /// </summary>
-    /// <param name="count">
-    /// How many grips to give.
-    /// </param>
-    /// <param name="x">
-    /// The horizontal place of each, as a fraction of the frame.
-    /// </param>
+    /// <param name="count">How many grips to give.</param>
+    /// <param name="x">The horizontal place of each, as a fraction of the frame.</param>
     [Theory]
     [InlineData(0, 0.5)]
     [InlineData(3, 0.5)]
@@ -72,12 +68,8 @@ public class PetTests
     /// <summary>
     /// The name shown comes from the manifest entry for the culture, else for its language, else it is the pet's own name.
     /// </summary>
-    /// <param name="culture">
-    /// The language to show the name in.
-    /// </param>
-    /// <param name="expected">
-    /// The name that is expected.
-    /// </param>
+    /// <param name="culture">The language to show the name in.</param>
+    /// <param name="expected">The name that is expected.</param>
     [Theory]
     [InlineData("zh-CN", "猫")]
     [InlineData("zh", "猫")]
@@ -381,9 +373,7 @@ public class PetTests
     /// <summary>
     /// A pet climbing or hanging from the top with a pet that lacks those pictures looks like it walks.
     /// </summary>
-    /// <param name="state">
-    /// The state the pet lacks.
-    /// </param>
+    /// <param name="state">The state the pet lacks.</param>
     [Theory]
     [InlineData(PetState.Climb)]
     [InlineData(PetState.Ceiling)]
@@ -515,12 +505,8 @@ public class PetTests
     /// <summary>
     /// Builds a single-frame animation for tests.
     /// </summary>
-    /// <param name="name">
-    /// Frame file name.
-    /// </param>
-    /// <returns>
-    /// An animation at 4 fps with one frame.
-    /// </returns>
+    /// <param name="name">Frame file name.</param>
+    /// <returns>An animation at 4 fps with one frame.</returns>
     private static PetAnimation Animation(string name)
     {
         return new PetAnimation(4, [name]);

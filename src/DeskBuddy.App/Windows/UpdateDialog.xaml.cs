@@ -52,12 +52,8 @@ public partial class UpdateDialog : Window
     /// <summary>
     /// Initializes a new instance of the <see cref="UpdateDialog"/> class.
     /// </summary>
-    /// <param name="updates">
-    /// The controller that downloads and starts the installer.
-    /// </param>
-    /// <param name="update">
-    /// The update to offer.
-    /// </param>
+    /// <param name="updates">The controller that downloads and starts the installer.</param>
+    /// <param name="update">The update to offer.</param>
     internal UpdateDialog(UpdateController updates, AvailableUpdate update)
     {
         InitializeComponent();
@@ -94,15 +90,9 @@ public partial class UpdateDialog : Window
     /// Shows the dialog for the update the controller has found, unless one is open already or nothing was found. Must be
     /// used on the UI thread.
     /// </summary>
-    /// <param name="updates">
-    /// The controller that found the update.
-    /// </param>
-    /// <param name="owner">
-    /// The window the dialog belongs to; <see langword="null"/> centers it on the screen.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> if the installer was started, which ends the application.
-    /// </returns>
+    /// <param name="updates">The controller that found the update.</param>
+    /// <param name="owner">The window the dialog belongs to; <see langword="null"/> centers it on the screen.</param>
+    /// <returns><see langword="true"/> if the installer was started, which ends the application.</returns>
     internal static bool ShowFor(UpdateController updates, Window? owner)
     {
         ArgumentNullException.ThrowIfNull(updates);
@@ -133,9 +123,7 @@ public partial class UpdateDialog : Window
     /// <summary>
     /// Shows the controls that belong to a state and hides the rest.
     /// </summary>
-    /// <param name="state">
-    /// The state to show.
-    /// </param>
+    /// <param name="state">The state to show.</param>
     private void SetState(UpdateDialogState state)
     {
         _state = state;
@@ -162,12 +150,8 @@ public partial class UpdateDialog : Window
     /// <summary>
     /// Turns a flag into the visibility of a control.
     /// </summary>
-    /// <param name="visible">
-    /// Whether the control is shown.
-    /// </param>
-    /// <returns>
-    /// <see cref="Visibility.Visible"/> or <see cref="Visibility.Collapsed"/>.
-    /// </returns>
+    /// <param name="visible">Whether the control is shown.</param>
+    /// <returns><see cref="Visibility.Visible"/> or <see cref="Visibility.Collapsed"/>.</returns>
     private static Visibility Visible(bool visible)
     {
         return visible ? Visibility.Visible : Visibility.Collapsed;
@@ -176,9 +160,7 @@ public partial class UpdateDialog : Window
     /// <summary>
     /// Switches to the failed state and shows what went wrong.
     /// </summary>
-    /// <param name="message">
-    /// The reason, in the language of the interface.
-    /// </param>
+    /// <param name="message">The reason, in the language of the interface.</param>
     private void ShowFailure(string message)
     {
         ErrorText.Text = message;
@@ -188,12 +170,8 @@ public partial class UpdateDialog : Window
     /// <summary>
     /// Asks for the latest progress to be shown, from whichever thread the controller reports it on.
     /// </summary>
-    /// <param name="sender">
-    /// The controller.
-    /// </param>
-    /// <param name="e">
-    /// Event data.
-    /// </param>
+    /// <param name="sender">The controller.</param>
+    /// <param name="e">Event data.</param>
     private void OnProgressChanged(object? sender, EventArgs e)
     {
         if (Interlocked.Exchange(ref _progressPending, 1) == 0)
@@ -221,12 +199,8 @@ public partial class UpdateDialog : Window
     /// Downloads and starts the installer. When it has started the application ends, so the dialog only has to deal with
     /// what happens when it did not.
     /// </summary>
-    /// <param name="sender">
-    /// The button.
-    /// </param>
-    /// <param name="e">
-    /// Event data.
-    /// </param>
+    /// <param name="sender">The button.</param>
+    /// <param name="e">Event data.</param>
     private async void OnUpdateClick(object sender, RoutedEventArgs e)
     {
         // InstallAsync returns without doing anything while a check or another installation is running, or after a refusal
@@ -290,12 +264,8 @@ public partial class UpdateDialog : Window
     /// <summary>
     /// Stops the download that is running and goes back to the question.
     /// </summary>
-    /// <param name="sender">
-    /// The button.
-    /// </param>
-    /// <param name="e">
-    /// Event data.
-    /// </param>
+    /// <param name="sender">The button.</param>
+    /// <param name="e">Event data.</param>
     private void OnCancelDownloadClick(object sender, RoutedEventArgs e)
     {
         _downloadCancellation?.Cancel();
@@ -304,12 +274,8 @@ public partial class UpdateDialog : Window
     /// <summary>
     /// Remembers that this version is not wanted, so that only a check by hand offers it again, and closes.
     /// </summary>
-    /// <param name="sender">
-    /// The button.
-    /// </param>
-    /// <param name="e">
-    /// Event data.
-    /// </param>
+    /// <param name="sender">The button.</param>
+    /// <param name="e">Event data.</param>
     private async void OnSkipClick(object sender, RoutedEventArgs e)
     {
         var skipped = false;
@@ -341,12 +307,8 @@ public partial class UpdateDialog : Window
     /// <summary>
     /// Opens the page of the release in the browser, for a download by hand.
     /// </summary>
-    /// <param name="sender">
-    /// The button.
-    /// </param>
-    /// <param name="e">
-    /// Event data.
-    /// </param>
+    /// <param name="sender">The button.</param>
+    /// <param name="e">Event data.</param>
     private void OnViewReleaseClick(object sender, RoutedEventArgs e)
     {
         var address = UpdateDialogModel.ReleasePageAddress(_update.Release.HtmlUrl, AboutInfo.ProjectUri);
@@ -364,12 +326,8 @@ public partial class UpdateDialog : Window
     /// Fades the content in and brings the dialog to the front: it has no taskbar button, and when it is opened from the
     /// tray without an owner another window could otherwise cover it.
     /// </summary>
-    /// <param name="sender">
-    /// The window.
-    /// </param>
-    /// <param name="e">
-    /// Event data.
-    /// </param>
+    /// <param name="sender">The window.</param>
+    /// <param name="e">Event data.</param>
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         Motion.FadeIn((UIElement)Content);
@@ -381,12 +339,8 @@ public partial class UpdateDialog : Window
     /// <summary>
     /// Stops a download that is still running and lets go of the controller.
     /// </summary>
-    /// <param name="sender">
-    /// The window.
-    /// </param>
-    /// <param name="e">
-    /// Event data.
-    /// </param>
+    /// <param name="sender">The window.</param>
+    /// <param name="e">Event data.</param>
     private void OnClosed(object? sender, EventArgs e)
     {
         _closed = true;

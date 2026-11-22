@@ -10,9 +10,7 @@ internal static class SessionLock
     /// <summary>
     /// Tells what a session change means for the pet.
     /// </summary>
-    /// <param name="reason">
-    /// Why the session changed.
-    /// </param>
+    /// <param name="reason">Why the session changed.</param>
     /// <returns>
     /// <see langword="true"/> when the session was locked, <see langword="false"/> when it was unlocked, or
     /// <see langword="null"/> for any other change, which leaves the pet as it is.

@@ -10,12 +10,8 @@ namespace DeskBuddy.Infrastructure.Storage;
 /// so adding a setting later does not break older files; a file that cannot be parsed is set aside as
 /// <c>settings.json.bak</c> and the defaults are used, so a corrupt file is never silently overwritten.
 /// </summary>
-/// <param name="directory">
-/// The directory that holds the data files.
-/// </param>
-/// <param name="logger">
-/// Logger used to report a quarantined file.
-/// </param>
+/// <param name="directory">The directory that holds the data files.</param>
+/// <param name="logger">Logger used to report a quarantined file.</param>
 public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStore> logger) : ISettingsStore
 {
     /// <summary>
@@ -83,9 +79,7 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
     /// <summary>
     /// Moves an unreadable data file aside so the next save does not destroy it.
     /// </summary>
-    /// <param name="cause">
-    /// The parse error, if any.
-    /// </param>
+    /// <param name="cause">The parse error, if any.</param>
     private void QuarantineCorruptFile(Exception? cause)
     {
         var backupPath = _path + ".bak";
@@ -204,12 +198,8 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
         /// <summary>
         /// Creates the file shape from settings.
         /// </summary>
-        /// <param name="settings">
-        /// The settings to store.
-        /// </param>
-        /// <returns>
-        /// The file shape.
-        /// </returns>
+        /// <param name="settings">The settings to store.</param>
+        /// <returns>The file shape.</returns>
         public static SettingsFile From(PetSettings settings)
         {
             return new SettingsFile
@@ -241,9 +231,7 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
         /// not the default one: the defaults are for a first start without a settings file, and a file that exists holds
         /// what the user has.
         /// </summary>
-        /// <returns>
-        /// The settings, not yet normalized.
-        /// </returns>
+        /// <returns>The settings, not yet normalized.</returns>
         public PetSettings ToSettings()
         {
             var defaults = PetSettings.Default;
@@ -281,12 +269,8 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
         /// Reads the boss key. A missing value (including an explicit JSON <c>null</c>) and one that cannot be parsed
         /// take the default; an empty string is what the user chose when they removed the boss key.
         /// </summary>
-        /// <param name="defaults">
-        /// The default settings.
-        /// </param>
-        /// <returns>
-        /// The shortcut, or <see langword="null"/> if there is none.
-        /// </returns>
+        /// <param name="defaults">The default settings.</param>
+        /// <returns>The shortcut, or <see langword="null"/> if there is none.</returns>
         private HotkeyGesture? ParseBossKey(PetSettings defaults)
         {
             if (BossKey is null)

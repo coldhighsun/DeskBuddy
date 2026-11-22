@@ -11,33 +11,17 @@ namespace DeskBuddy.Application;
 /// Gathers sensor input and user interactions and drives the pet's behavior. This is the single
 /// place the UI talks to for "what should the pet be doing" and "is there something to tell the user".
 /// </summary>
-/// <param name="idleDetector">
-/// Reports how long the user has been inactive.
-/// </param>
-/// <param name="loadMonitor">
-/// Reports how busy the machine is.
-/// </param>
-/// <param name="loadPolicy">
-/// Smooths load readings into a stable "strained" flag.
-/// </param>
+/// <param name="idleDetector">Reports how long the user has been inactive.</param>
+/// <param name="loadMonitor">Reports how busy the machine is.</param>
+/// <param name="loadPolicy">Smooths load readings into a stable "strained" flag.</param>
 /// <param name="fullscreenDetector">
 /// Tells when the user must not be disturbed, so messages are held back and the pet may hide.
 /// </param>
-/// <param name="sedentary">
-/// Decides when to remind the user to get up.
-/// </param>
-/// <param name="messages">
-/// The queue of messages for the speech bubble.
-/// </param>
-/// <param name="stateMachine">
-/// The behavior state machine to drive.
-/// </param>
-/// <param name="visibility">
-/// Decides whether the pet is on screen.
-/// </param>
-/// <param name="chatter">
-/// Decides when the pet says something unprompted.
-/// </param>
+/// <param name="sedentary">Decides when to remind the user to get up.</param>
+/// <param name="messages">The queue of messages for the speech bubble.</param>
+/// <param name="stateMachine">The behavior state machine to drive.</param>
+/// <param name="visibility">Decides whether the pet is on screen.</param>
+/// <param name="chatter">Decides when the pet says something unprompted.</param>
 /// <param name="devScenarios">
 /// Works out what the pet should do because of the user's development work: sitting down to code, builds, git, long
 /// nights, reading up.
@@ -134,9 +118,7 @@ public sealed class PetBrain(
     /// Reads the sensors and advances the timer, message queue and state machine. Call periodically, and after any
     /// command so the result shows immediately.
     /// </summary>
-    /// <returns>
-    /// The state after the update.
-    /// </returns>
+    /// <returns>The state after the update.</returns>
     public PetState Tick()
     {
         var userIdle = idleDetector.GetIdleTime();
@@ -228,9 +210,7 @@ public sealed class PetBrain(
     /// <summary>
     /// Carries out an action chosen from a speech bubble, then closes the bubble.
     /// </summary>
-    /// <param name="action">
-    /// The chosen action.
-    /// </param>
+    /// <param name="action">The chosen action.</param>
     public void Invoke(MessageAction action)
     {
         switch (action)
@@ -259,12 +239,8 @@ public sealed class PetBrain(
     /// follows from the sensors, this one is chosen by the caller and lasts a fixed time. Ignored while the pet is
     /// being dragged.
     /// </summary>
-    /// <param name="state">
-    /// The state to act out.
-    /// </param>
-    /// <param name="duration">
-    /// How long to stay in it.
-    /// </param>
+    /// <param name="state">The state to act out.</param>
+    /// <param name="duration">How long to stay in it.</param>
     public void ActOut(PetState state, TimeSpan duration)
     {
         stateMachine.OnMoment(state, duration);
@@ -275,15 +251,11 @@ public sealed class PetBrain(
     /// user must not be disturbed. Unlike a reminder it is not queued for later: a remark that is no longer about what just
     /// happened would be worse than none. Call from within a <see cref="Tick"/> or after one.
     /// </summary>
-    /// <param name="state">
-    /// The state the remark belongs to; the UI finds the wording from it.
-    /// </param>
+    /// <param name="state">The state the remark belongs to; the UI finds the wording from it.</param>
     /// <param name="variant">
     /// Which wording of the state's remark, for states that have several (see <see cref="RemarkCode"/>).
     /// </param>
-    /// <returns>
-    /// <see langword="true"/> if the remark was queued.
-    /// </returns>
+    /// <returns><see langword="true"/> if the remark was queued.</returns>
     public bool Say(PetState state, int variant = 0)
     {
         if (!_canSpeak || stateMachine.State.IsFalling())
@@ -298,9 +270,7 @@ public sealed class PetBrain(
     /// <summary>
     /// Hides or shows the pet at the user's request.
     /// </summary>
-    /// <param name="hidden">
-    /// <see langword="true"/> to hide the pet.
-    /// </param>
+    /// <param name="hidden"><see langword="true"/> to hide the pet.</param>
     public void SetManuallyHidden(bool hidden)
     {
         if (visibility.SetManuallyHidden(hidden))
@@ -313,9 +283,7 @@ public sealed class PetBrain(
     /// Puts the pet away while the session is locked and brings it back once it is unlocked, so it uses no time
     /// animating and watching the pointer while nobody can see it.
     /// </summary>
-    /// <param name="locked">
-    /// <see langword="true"/> when the session has been locked.
-    /// </param>
+    /// <param name="locked"><see langword="true"/> when the session has been locked.</param>
     public void SetSessionLocked(bool locked)
     {
         if (visibility.SetSessionLocked(locked))

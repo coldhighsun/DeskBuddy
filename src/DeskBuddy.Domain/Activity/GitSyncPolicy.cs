@@ -4,12 +4,8 @@ namespace DeskBuddy.Domain.Activity;
 /// Notices git talking to a remote. Reports each start once, and not again until a cooldown has passed, so a chain of
 /// fetches does not keep the pet busy.
 /// </summary>
-/// <param name="options">
-/// The cooldown.
-/// </param>
-/// <param name="timeProvider">
-/// The time source.
-/// </param>
+/// <param name="options">The cooldown.</param>
+/// <param name="timeProvider">The time source.</param>
 public sealed class GitSyncPolicy(PetBehaviorOptions options, TimeProvider timeProvider)
 {
     /// <summary>
@@ -35,9 +31,7 @@ public sealed class GitSyncPolicy(PetBehaviorOptions options, TimeProvider timeP
     /// <summary>
     /// Takes in the latest reading.
     /// </summary>
-    /// <param name="remoteHelperRunning">
-    /// Whether a git remote helper process is running.
-    /// </param>
+    /// <param name="remoteHelperRunning">Whether a git remote helper process is running.</param>
     /// <returns>
     /// <see langword="true"/> when git has just started talking to a remote and the cooldown is over.
     /// </returns>

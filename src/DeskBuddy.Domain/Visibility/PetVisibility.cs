@@ -6,9 +6,7 @@ namespace DeskBuddy.Domain.Visibility;
 /// lasts only as long as that application is; and the session being locked, when nobody can see the pet anyway. Keeping
 /// them apart means a pet the user hid does not pop back up when a video ends or the computer is unlocked.
 /// </summary>
-/// <param name="timeProvider">
-/// The time source for the restore delay.
-/// </param>
+/// <param name="timeProvider">The time source for the restore delay.</param>
 /// <param name="restoreDelay">
 /// How long the full-screen condition must stay gone before the pet comes back. This stops the pet from flickering
 /// when a full-screen application briefly loses the foreground.
@@ -51,12 +49,8 @@ public sealed class PetVisibility(TimeProvider timeProvider, TimeSpan restoreDel
     /// <summary>
     /// Feeds in whether the session is locked.
     /// </summary>
-    /// <param name="locked">
-    /// <see langword="true"/> while the session is locked.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> if <see cref="IsVisible"/> changed.
-    /// </returns>
+    /// <param name="locked"><see langword="true"/> while the session is locked.</param>
+    /// <returns><see langword="true"/> if <see cref="IsVisible"/> changed.</returns>
     public bool SetSessionLocked(bool locked)
     {
         var wasVisible = IsVisible;
@@ -67,12 +61,8 @@ public sealed class PetVisibility(TimeProvider timeProvider, TimeSpan restoreDel
     /// <summary>
     /// Hides or shows the pet at the user's request.
     /// </summary>
-    /// <param name="hidden">
-    /// <see langword="true"/> to hide the pet.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> if <see cref="IsVisible"/> changed.
-    /// </returns>
+    /// <param name="hidden"><see langword="true"/> to hide the pet.</param>
+    /// <returns><see langword="true"/> if <see cref="IsVisible"/> changed.</returns>
     public bool SetManuallyHidden(bool hidden)
     {
         var wasVisible = IsVisible;
@@ -83,9 +73,7 @@ public sealed class PetVisibility(TimeProvider timeProvider, TimeSpan restoreDel
     /// <summary>
     /// Switches the user's hide on or off.
     /// </summary>
-    /// <returns>
-    /// <see langword="true"/> if <see cref="IsVisible"/> changed.
-    /// </returns>
+    /// <returns><see langword="true"/> if <see cref="IsVisible"/> changed.</returns>
     public bool ToggleManuallyHidden()
     {
         return SetManuallyHidden(!IsManuallyHidden);
@@ -98,9 +86,7 @@ public sealed class PetVisibility(TimeProvider timeProvider, TimeSpan restoreDel
     /// <param name="fullscreenActive">
     /// <see langword="true"/> while a full-screen, presenting or blacklisted application is in front.
     /// </param>
-    /// <returns>
-    /// <see langword="true"/> if <see cref="IsVisible"/> changed.
-    /// </returns>
+    /// <returns><see langword="true"/> if <see cref="IsVisible"/> changed.</returns>
     public bool UpdateFullscreen(bool fullscreenActive)
     {
         var wasVisible = IsVisible;

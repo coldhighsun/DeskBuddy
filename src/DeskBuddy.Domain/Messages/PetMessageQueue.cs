@@ -35,12 +35,8 @@ public sealed class PetMessageQueue
     /// <summary>
     /// Initializes a new instance of the <see cref="PetMessageQueue"/> class.
     /// </summary>
-    /// <param name="messageDuration">
-    /// How long a message stays up before it fades on its own.
-    /// </param>
-    /// <param name="timeProvider">
-    /// The time source.
-    /// </param>
+    /// <param name="messageDuration">How long a message stays up before it fades on its own.</param>
+    /// <param name="timeProvider">The time source.</param>
     public PetMessageQueue(TimeSpan messageDuration, TimeProvider timeProvider)
     {
         ArgumentNullException.ThrowIfNull(timeProvider);
@@ -62,9 +58,7 @@ public sealed class PetMessageQueue
     /// <summary>
     /// Adds a message to the back of the line. It appears on a later <see cref="Update"/>.
     /// </summary>
-    /// <param name="message">
-    /// The message to show.
-    /// </param>
+    /// <param name="message">The message to show.</param>
     public void Enqueue(PetMessage message)
     {
         ArgumentNullException.ThrowIfNull(message);
@@ -80,9 +74,7 @@ public sealed class PetMessageQueue
     /// <param name="suppressed">
     /// <see langword="true"/> while messages must not be shown (for example during a full-screen presentation).
     /// </param>
-    /// <returns>
-    /// <see langword="true"/> if <see cref="Current"/> changed.
-    /// </returns>
+    /// <returns><see langword="true"/> if <see cref="Current"/> changed.</returns>
     public bool Update(bool suppressed)
     {
         var now = _timeProvider.GetUtcNow();
@@ -129,12 +121,8 @@ public sealed class PetMessageQueue
     /// Removes the waiting messages of the given kind, for when they have become stale or are replaced by a newer
     /// one. The message on screen is left alone.
     /// </summary>
-    /// <param name="kind">
-    /// The kind of message to remove.
-    /// </param>
-    /// <returns>
-    /// The number of messages removed.
-    /// </returns>
+    /// <param name="kind">The kind of message to remove.</param>
+    /// <returns>The number of messages removed.</returns>
     public int RemoveWaiting(PetMessageKind kind)
     {
         var removed = 0;
@@ -175,9 +163,7 @@ public sealed class PetMessageQueue
     /// <summary>
     /// Closes the current message. The next waiting message appears on a later <see cref="Update"/>.
     /// </summary>
-    /// <returns>
-    /// <see langword="true"/> if there was a message to close.
-    /// </returns>
+    /// <returns><see langword="true"/> if there was a message to close.</returns>
     public bool Dismiss()
     {
         if (Current is null)

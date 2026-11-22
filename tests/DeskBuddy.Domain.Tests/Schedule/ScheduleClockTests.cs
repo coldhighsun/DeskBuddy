@@ -319,24 +319,12 @@ public class ScheduleClockTests
     /// <summary>
     /// Builds an instant for a wall-clock time, as the fake time source runs in UTC.
     /// </summary>
-    /// <param name="year">
-    /// The year.
-    /// </param>
-    /// <param name="month">
-    /// The month.
-    /// </param>
-    /// <param name="day">
-    /// The day.
-    /// </param>
-    /// <param name="hour">
-    /// The hour.
-    /// </param>
-    /// <param name="minute">
-    /// The minute.
-    /// </param>
-    /// <returns>
-    /// The instant.
-    /// </returns>
+    /// <param name="year">The year.</param>
+    /// <param name="month">The month.</param>
+    /// <param name="day">The day.</param>
+    /// <param name="hour">The hour.</param>
+    /// <param name="minute">The minute.</param>
+    /// <returns>The instant.</returns>
     private static DateTimeOffset At(int year, int month, int day, int hour, int minute)
     {
         return new DateTimeOffset(year, month, day, hour, minute, 0, TimeSpan.Zero);

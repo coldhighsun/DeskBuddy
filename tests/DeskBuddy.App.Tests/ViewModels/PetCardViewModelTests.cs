@@ -204,9 +204,7 @@ public class PetCardViewModelTests
     /// <summary>
     /// A card knows whether the first picture of its preview could be read, so the tab can load it again if not.
     /// </summary>
-    /// <param name="pictureAvailable">
-    /// Whether the pictures can be read.
-    /// </param>
+    /// <param name="pictureAvailable">Whether the pictures can be read.</param>
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
@@ -259,15 +257,11 @@ public class PetCardViewModelTests
     /// <summary>
     /// Creates a card whose pictures are looked up by file path and not decoded.
     /// </summary>
-    /// <param name="pet">
-    /// The pet.
-    /// </param>
+    /// <param name="pet">The pet.</param>
     /// <param name="random">
     /// The source of randomness for the order of the states, or <see langword="null"/> for the shared one.
     /// </param>
-    /// <returns>
-    /// The card.
-    /// </returns>
+    /// <returns>The card.</returns>
     private PetCardViewModel CreateCard(Pet pet, Random? random = null)
     {
         return new PetCardViewModel(
@@ -285,12 +279,8 @@ public class PetCardViewModelTests
     /// Creates a pet whose Idle animation has two pictures at 2 fps (500 ms each) and whose other states have two
     /// pictures too.
     /// </summary>
-    /// <param name="states">
-    /// The states to define besides Idle.
-    /// </param>
-    /// <returns>
-    /// The pet.
-    /// </returns>
+    /// <param name="states">The states to define besides Idle.</param>
+    /// <returns>The pet.</returns>
     private static Pet CreatePet(params PetState[] states)
     {
         var animations = new Dictionary<PetState, PetAnimation> { [PetState.Idle] = new(2, ["idle_0.png", "idle_1.png"]) };

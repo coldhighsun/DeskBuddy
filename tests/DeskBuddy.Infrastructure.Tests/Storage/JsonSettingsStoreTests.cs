@@ -43,12 +43,8 @@ public sealed class JsonSettingsStoreTests : IDisposable
     /// <summary>
     /// Writes raw content as the data file.
     /// </summary>
-    /// <param name="content">
-    /// The file content.
-    /// </param>
-    /// <returns>
-    /// A task that completes when the file is written.
-    /// </returns>
+    /// <param name="content">The file content.</param>
+    /// <returns>A task that completes when the file is written.</returns>
     private async Task WriteRawAsync(string content)
     {
         Directory.CreateDirectory(_directory);
@@ -316,9 +312,7 @@ public sealed class JsonSettingsStoreTests : IDisposable
     /// A theme that is not known, as a name or as a number, falls back to following the system without spoiling the
     /// rest of the file.
     /// </summary>
-    /// <param name="theme">
-    /// The stored value.
-    /// </param>
+    /// <param name="theme">The stored value.</param>
     [Theory]
     [InlineData("Purple")]
     [InlineData("42")]

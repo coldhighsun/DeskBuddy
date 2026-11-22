@@ -12,12 +12,8 @@ internal static class ErrorText
     /// <summary>
     /// Gets the reason to show for an error.
     /// </summary>
-    /// <param name="error">
-    /// What went wrong.
-    /// </param>
-    /// <returns>
-    /// The localized reason.
-    /// </returns>
+    /// <param name="error">What went wrong.</param>
+    /// <returns>The localized reason.</returns>
     public static string For(Exception error)
     {
         ArgumentNullException.ThrowIfNull(error);

@@ -47,12 +47,8 @@ public partial class PanelWindow
     /// <summary>
     /// Initializes a new instance of the <see cref="PanelWindow"/> class.
     /// </summary>
-    /// <param name="viewModel">
-    /// The view models behind the tabs.
-    /// </param>
-    /// <param name="updates">
-    /// Looks for updates; <see langword="null"/> leaves the check out of the about tab.
-    /// </param>
+    /// <param name="viewModel">The view models behind the tabs.</param>
+    /// <param name="updates">Looks for updates; <see langword="null"/> leaves the check out of the about tab.</param>
     /// <param name="logger">
     /// Reports what went wrong when a check for updates fails; <see langword="null"/> reports nothing.
     /// </param>
@@ -81,9 +77,7 @@ public partial class PanelWindow
     /// <summary>
     /// Brings the panel to the front, restoring it if it was hidden or minimized.
     /// </summary>
-    /// <param name="tab">
-    /// The tab to show; <see langword="null"/> keeps the tab that was showing.
-    /// </param>
+    /// <param name="tab">The tab to show; <see langword="null"/> keeps the tab that was showing.</param>
     public void ShowPanel(PanelTab? tab = null)
     {
         if (tab is { } requested)
@@ -123,9 +117,7 @@ public partial class PanelWindow
     /// Asks what to do with unsaved changes when the panel is closed: save them, drop them or keep the panel open. The
     /// panel stays open if saving is not possible, so the user can see what is wrong.
     /// </summary>
-    /// <returns>
-    /// A task that completes when the question is answered and acted on.
-    /// </returns>
+    /// <returns>A task that completes when the question is answered and acted on.</returns>
     private async Task AskBeforeHidingAsync()
     {
         if (!_viewModel.Settings.CanSave)
@@ -174,9 +166,7 @@ public partial class PanelWindow
     /// Hands an error of work started without waiting for it to the dispatcher, so it reaches the handler for unhandled
     /// errors instead of vanishing with the unobserved task.
     /// </summary>
-    /// <param name="work">
-    /// The work that was started.
-    /// </param>
+    /// <param name="work">The work that was started.</param>
     private void ReportFaults(Task work)
     {
         _ = work.ContinueWith(
@@ -189,12 +179,8 @@ public partial class PanelWindow
     /// <summary>
     /// Records the shortcut the user presses in the boss key box. Escape leaves the box without changing anything.
     /// </summary>
-    /// <param name="sender">
-    /// The text box.
-    /// </param>
-    /// <param name="e">
-    /// Key event data.
-    /// </param>
+    /// <param name="sender">The text box.</param>
+    /// <param name="e">Key event data.</param>
     private void OnBossKeyPreviewKeyDown(object sender, KeyEventArgs e)
     {
         e.Handled = true;
@@ -220,12 +206,8 @@ public partial class PanelWindow
     /// <summary>
     /// Refreshes external state when the panel is shown.
     /// </summary>
-    /// <param name="sender">
-    /// The event source.
-    /// </param>
-    /// <param name="e">
-    /// Event data.
-    /// </param>
+    /// <param name="sender">The event source.</param>
+    /// <param name="e">Event data.</param>
     private void OnIsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
     {
         if (IsVisible)
@@ -240,12 +222,8 @@ public partial class PanelWindow
     /// Picks the pet whose card was clicked, so its preview starts moving. The use button handles its own click, so
     /// pressing it does not get here.
     /// </summary>
-    /// <param name="sender">
-    /// The card.
-    /// </param>
-    /// <param name="e">
-    /// Mouse event data.
-    /// </param>
+    /// <param name="sender">The card.</param>
+    /// <param name="e">Mouse event data.</param>
     private void OnPetCardMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
         if (sender is FrameworkElement { DataContext: PetCardViewModel card })
@@ -257,12 +235,8 @@ public partial class PanelWindow
     /// <summary>
     /// Starts or stops the pet previews when another tab is chosen.
     /// </summary>
-    /// <param name="sender">
-    /// The event source.
-    /// </param>
-    /// <param name="e">
-    /// Event data.
-    /// </param>
+    /// <param name="sender">The event source.</param>
+    /// <param name="e">Event data.</param>
     private void OnTabsSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         // Selection events of the lists inside the tabs bubble up to the tab control; only its own matter here.
@@ -309,9 +283,7 @@ public partial class PanelWindow
     /// <summary>
     /// Looks for pets again.
     /// </summary>
-    /// <returns>
-    /// A task that completes when the list is up to date.
-    /// </returns>
+    /// <returns>A task that completes when the list is up to date.</returns>
     private async Task RefreshPetsAsync()
     {
         await _viewModel.Pets.RefreshAsync();
@@ -320,12 +292,8 @@ public partial class PanelWindow
     /// <summary>
     /// Moves the pet previews on by the time that really passed.
     /// </summary>
-    /// <param name="sender">
-    /// The event source.
-    /// </param>
-    /// <param name="e">
-    /// Event data.
-    /// </param>
+    /// <param name="sender">The event source.</param>
+    /// <param name="e">Event data.</param>
     private void OnPreviewTick(object? sender, EventArgs e)
     {
         var delta = _previewWatch.Elapsed;

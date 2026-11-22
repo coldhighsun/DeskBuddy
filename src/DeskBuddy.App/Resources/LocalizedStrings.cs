@@ -77,12 +77,8 @@ public sealed class LocalizedStrings : INotifyPropertyChanged
     /// <summary>
     /// Gets the text for a key in the interface language now in use.
     /// </summary>
-    /// <param name="key">
-    /// The name of the text in <c>Strings.resx</c>.
-    /// </param>
-    /// <returns>
-    /// The text, or <c>!key!</c> if there is none.
-    /// </returns>
+    /// <param name="key">The name of the text in <c>Strings.resx</c>.</param>
+    /// <returns>The text, or <c>!key!</c> if there is none.</returns>
     public string this[string key] => Strings.Lookup(key);
 
     /// <summary>
@@ -119,15 +115,9 @@ public sealed class LocalizedStrings : INotifyPropertyChanged
     /// <summary>
     /// Tells whether a weakly held listener is a given object.
     /// </summary>
-    /// <param name="held">
-    /// The weak reference of the listener, or <see langword="null"/> for a static method.
-    /// </param>
-    /// <param name="target">
-    /// The object to compare with, or <see langword="null"/> for a static method.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> if both are the same object (or both are static).
-    /// </returns>
+    /// <param name="held">The weak reference of the listener, or <see langword="null"/> for a static method.</param>
+    /// <param name="target">The object to compare with, or <see langword="null"/> for a static method.</param>
+    /// <returns><see langword="true"/> if both are the same object (or both are static).</returns>
     private static bool IsTarget(WeakReference<object>? held, object? target)
     {
         return held is null

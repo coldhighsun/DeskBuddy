@@ -13,9 +13,7 @@ public class ChatPolicyTests
     /// <summary>
     /// A chat application in front is chatting, whatever the case of its name.
     /// </summary>
-    /// <param name="name">
-    /// The foreground process name.
-    /// </param>
+    /// <param name="name">The foreground process name.</param>
     [Theory]
     [InlineData("Weixin")]
     [InlineData("WEIXIN")]
@@ -32,9 +30,7 @@ public class ChatPolicyTests
     /// <summary>
     /// Any other application, or none, is not chatting.
     /// </summary>
-    /// <param name="name">
-    /// The foreground process name.
-    /// </param>
+    /// <param name="name">The foreground process name.</param>
     [Theory]
     [InlineData("Code")]
     [InlineData("")]

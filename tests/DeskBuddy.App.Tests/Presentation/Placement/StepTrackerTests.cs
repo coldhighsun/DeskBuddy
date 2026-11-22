@@ -10,15 +10,9 @@ public class StepTrackerTests
     /// <summary>
     /// A window of 100 by 80 pixels with its top-left corner at the given pixels.
     /// </summary>
-    /// <param name="x">
-    /// The left edge.
-    /// </param>
-    /// <param name="y">
-    /// The top edge.
-    /// </param>
-    /// <returns>
-    /// The bounds.
-    /// </returns>
+    /// <param name="x">The left edge.</param>
+    /// <param name="y">The top edge.</param>
+    /// <returns>The bounds.</returns>
     private static PixelRect WindowAt(int x, int y)
     {
         return new PixelRect(x, y, x + 100, y + 80);

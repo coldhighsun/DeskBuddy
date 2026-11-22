@@ -5,12 +5,8 @@ namespace DeskBuddy.App.ViewModels;
 /// <summary>
 /// One choice in the language list of the settings.
 /// </summary>
-/// <param name="value">
-/// The language.
-/// </param>
-/// <param name="label">
-/// The name shown to the user.
-/// </param>
+/// <param name="value">The language.</param>
+/// <param name="label">The name shown to the user.</param>
 public sealed partial class LanguageOption(AppLanguage value, string label) : ObservableObject
 {
     /// <summary>

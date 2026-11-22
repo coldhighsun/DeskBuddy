@@ -70,15 +70,9 @@ public sealed class PetSettingsComparer : IEqualityComparer<PetSettings>
     /// <summary>
     /// Compares two property values, looking at the items when both are lists of names.
     /// </summary>
-    /// <param name="left">
-    /// The first value.
-    /// </param>
-    /// <param name="right">
-    /// The second value.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> if the values are equal.
-    /// </returns>
+    /// <param name="left">The first value.</param>
+    /// <param name="right">The second value.</param>
+    /// <returns><see langword="true"/> if the values are equal.</returns>
     private static bool ValuesEqual(object? left, object? right)
     {
         if (left is string || right is string)

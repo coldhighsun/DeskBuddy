@@ -45,12 +45,8 @@ public sealed class FolderPetCatalogTests : IDisposable
     /// <summary>
     /// Creates a subfolder, with a manifest if asked to.
     /// </summary>
-    /// <param name="name">
-    /// The folder name.
-    /// </param>
-    /// <param name="withManifest">
-    /// Whether to put a <c>manifest.json</c> in it.
-    /// </param>
+    /// <param name="name">The folder name.</param>
+    /// <param name="withManifest">Whether to put a <c>manifest.json</c> in it.</param>
     private void AddFolder(string name, bool withManifest)
     {
         var folder = Path.Combine(_directory, name);
@@ -169,12 +165,8 @@ public sealed class FolderPetCatalogTests : IDisposable
     /// <summary>
     /// Creates a pet folder with a manifest under a given folder.
     /// </summary>
-    /// <param name="root">
-    /// The folder of pets.
-    /// </param>
-    /// <param name="name">
-    /// The pet's folder name.
-    /// </param>
+    /// <param name="root">The folder of pets.</param>
+    /// <param name="name">The pet's folder name.</param>
     private static void AddPet(string root, string name)
     {
         var folder = Path.Combine(root, name);

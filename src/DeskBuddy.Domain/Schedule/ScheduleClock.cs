@@ -19,12 +19,8 @@ public readonly record struct ScheduleOccasion(PetState State, int Variant);
 /// Knows the times of day and dates the pet reacts to: mealtimes, the end of the working day, the full hour and
 /// festivals. Except for the chime each of them comes once a day.
 /// </summary>
-/// <param name="options">
-/// When the working day ends.
-/// </param>
-/// <param name="timeProvider">
-/// The time source; the local clock decides.
-/// </param>
+/// <param name="options">When the working day ends.</param>
+/// <param name="timeProvider">The time source; the local clock decides.</param>
 /// <param name="switches">
 /// Which scenarios the user has switched on; an occasion that is switched off never comes up.
 /// </param>
@@ -134,9 +130,7 @@ public sealed class ScheduleClock(PetBehaviorOptions options, TimeProvider timeP
     /// Checks the clock. Call only when the pet may act something out now (the user is at the computer and nothing
     /// forbids it): an occasion that comes up is used up, one that does not wait for the next call.
     /// </summary>
-    /// <returns>
-    /// The occasion to act out, or <see langword="null"/> if there is none.
-    /// </returns>
+    /// <returns>The occasion to act out, or <see langword="null"/> if there is none.</returns>
     public ScheduleOccasion? Update()
     {
         var now = timeProvider.GetLocalNow();
@@ -165,12 +159,8 @@ public sealed class ScheduleClock(PetBehaviorOptions options, TimeProvider timeP
     /// <summary>
     /// Finds the occasion that applies now and uses it up.
     /// </summary>
-    /// <param name="now">
-    /// The local time.
-    /// </param>
-    /// <returns>
-    /// The occasion, or <see langword="null"/> if there is none.
-    /// </returns>
+    /// <param name="now">The local time.</param>
+    /// <returns>The occasion, or <see langword="null"/> if there is none.</returns>
     private ScheduleOccasion? FindOccasion(DateTimeOffset now)
     {
         var today = DateOnly.FromDateTime(now.DateTime);

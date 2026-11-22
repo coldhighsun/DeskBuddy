@@ -84,9 +84,7 @@ public sealed class InstanceSignalTests
     /// <summary>
     /// Makes an event name no other test or process uses.
     /// </summary>
-    /// <returns>
-    /// A session-local event name.
-    /// </returns>
+    /// <returns>A session-local event name.</returns>
     private static string UniqueName()
     {
         return $@"Local\DeskBuddy.Tests.{Guid.NewGuid():N}";

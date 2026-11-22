@@ -23,18 +23,10 @@ public partial class DialogWindow : Window
     /// <summary>
     /// Initializes a new instance of the <see cref="DialogWindow"/> class.
     /// </summary>
-    /// <param name="title">
-    /// The title of the dialog.
-    /// </param>
-    /// <param name="message">
-    /// The text of the dialog.
-    /// </param>
-    /// <param name="kind">
-    /// The kind of dialog, which decides its icon.
-    /// </param>
-    /// <param name="buttons">
-    /// The buttons to offer.
-    /// </param>
+    /// <param name="title">The title of the dialog.</param>
+    /// <param name="message">The text of the dialog.</param>
+    /// <param name="kind">The kind of dialog, which decides its icon.</param>
+    /// <param name="buttons">The buttons to offer.</param>
     internal DialogWindow(string title, string message, DialogKind kind, IReadOnlyList<DialogButton> buttons)
     {
         InitializeComponent();
@@ -81,9 +73,7 @@ public partial class DialogWindow : Window
     /// <summary>
     /// Records an answer and closes the dialog.
     /// </summary>
-    /// <param name="choice">
-    /// The answer given.
-    /// </param>
+    /// <param name="choice">The answer given.</param>
     private void Answer(DialogChoice choice)
     {
         _answered = true;

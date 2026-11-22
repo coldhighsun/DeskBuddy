@@ -75,12 +75,8 @@ public partial class UmbrellaWindow : Window
     /// <summary>
     /// Opens the umbrella or parachute over the pet.
     /// </summary>
-    /// <param name="rig">
-    /// What to open, and where the pet holds on to it.
-    /// </param>
-    /// <param name="pet">
-    /// The pet window to anchor to.
-    /// </param>
+    /// <param name="rig">What to open, and where the pet holds on to it.</param>
+    /// <param name="pet">The pet window to anchor to.</param>
     public void Open(CanopyRig rig, Window pet)
     {
         ArgumentNullException.ThrowIfNull(rig);
@@ -129,9 +125,7 @@ public partial class UmbrellaWindow : Window
     /// Keeps the canopy centered over the pet's head. Placed in device pixels, as the speech bubble is, so it lands in
     /// the right place when the pet is on a monitor whose scaling differs from the one the canopy was last on.
     /// </summary>
-    /// <param name="pet">
-    /// The pet window to anchor to.
-    /// </param>
+    /// <param name="pet">The pet window to anchor to.</param>
     public void PositionAbove(Window pet)
     {
         ArgumentNullException.ThrowIfNull(pet);
@@ -150,15 +144,9 @@ public partial class UmbrellaWindow : Window
     /// Moves the pet to a new place and the canopy over it to its new place, in one call to the window manager, so the two
     /// are drawn in the same frame instead of the canopy lagging a step behind a fast-falling pet.
     /// </summary>
-    /// <param name="pet">
-    /// The pet window to move and anchor to.
-    /// </param>
-    /// <param name="petTarget">
-    /// Where the pet window is to be, in device pixels.
-    /// </param>
-    /// <param name="petScale">
-    /// Device pixels per device-independent pixel on the pet's monitor.
-    /// </param>
+    /// <param name="pet">The pet window to move and anchor to.</param>
+    /// <param name="petTarget">Where the pet window is to be, in device pixels.</param>
+    /// <param name="petScale">Device pixels per device-independent pixel on the pet's monitor.</param>
     public void MoveWithPet(Window pet, PixelRect petTarget, double petScale)
     {
         ArgumentNullException.ThrowIfNull(pet);
@@ -178,18 +166,10 @@ public partial class UmbrellaWindow : Window
     /// Works out where the canopy goes for a pet at the given place, after bringing the window onto the pet's monitor
     /// when its scaling differs and giving it the size that goes with the pet.
     /// </summary>
-    /// <param name="pet">
-    /// The pet window to anchor to.
-    /// </param>
-    /// <param name="petBounds">
-    /// Where the pet window is, or is about to be, in device pixels.
-    /// </param>
-    /// <param name="petScale">
-    /// Device pixels per device-independent pixel on the pet's monitor.
-    /// </param>
-    /// <returns>
-    /// The size and position of the canopy window.
-    /// </returns>
+    /// <param name="pet">The pet window to anchor to.</param>
+    /// <param name="petBounds">Where the pet window is, or is about to be, in device pixels.</param>
+    /// <param name="petScale">Device pixels per device-independent pixel on the pet's monitor.</param>
+    /// <returns>The size and position of the canopy window.</returns>
     private CanopyPlacement PrepareFor(Window pet, PixelRect petBounds, double petScale)
     {
         var placement = CanopyPlacement.For(petBounds, pet.Width, petScale, _rig);
@@ -220,9 +200,7 @@ public partial class UmbrellaWindow : Window
     /// <summary>
     /// Sizes the dome and draws the shaft or the strings from it down to the pet's grips.
     /// </summary>
-    /// <param name="placement">
-    /// The canopy window's layout.
-    /// </param>
+    /// <param name="placement">The canopy window's layout.</param>
     private void DrawRigging(CanopyPlacement placement)
     {
         var scale = placement.Scale;
@@ -268,15 +246,9 @@ public partial class UmbrellaWindow : Window
     /// <summary>
     /// A straight line as a path figure.
     /// </summary>
-    /// <param name="from">
-    /// Where it starts.
-    /// </param>
-    /// <param name="to">
-    /// Where it ends.
-    /// </param>
-    /// <returns>
-    /// The figure.
-    /// </returns>
+    /// <param name="from">Where it starts.</param>
+    /// <param name="to">Where it ends.</param>
+    /// <returns>The figure.</returns>
     private static PathFigure Line(Point from, Point to)
     {
         return new PathFigure(from, [new LineSegment(to, isStroked: true)], closed: false);
@@ -285,12 +257,8 @@ public partial class UmbrellaWindow : Window
     /// <summary>
     /// Freezes a brush, so it can be shared.
     /// </summary>
-    /// <param name="brush">
-    /// The brush.
-    /// </param>
-    /// <returns>
-    /// The same brush, frozen.
-    /// </returns>
+    /// <param name="brush">The brush.</param>
+    /// <returns>The same brush, frozen.</returns>
     private static Brush Freeze(Brush brush)
     {
         brush.Freeze();
@@ -300,12 +268,8 @@ public partial class UmbrellaWindow : Window
     /// <summary>
     /// Tells whether the canopy window is already at the place a placement asks for.
     /// </summary>
-    /// <param name="placement">
-    /// The placement.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> if the window was last moved to that place.
-    /// </returns>
+    /// <param name="placement">The placement.</param>
+    /// <returns><see langword="true"/> if the window was last moved to that place.</returns>
     private bool IsAt(CanopyPlacement placement)
     {
         return _lastPosition == (placement.X, placement.Y);
@@ -314,12 +278,8 @@ public partial class UmbrellaWindow : Window
     /// <summary>
     /// Scales the canopy to the given factor.
     /// </summary>
-    /// <param name="target">
-    /// The scale to reach.
-    /// </param>
-    /// <param name="onCompleted">
-    /// Called when the animation has finished, or <see langword="null"/>.
-    /// </param>
+    /// <param name="target">The scale to reach.</param>
+    /// <param name="onCompleted">Called when the animation has finished, or <see langword="null"/>.</param>
     private void Animate(double target, Action? onCompleted)
     {
         var easing = new BackEase { EasingMode = target > 0.5 ? EasingMode.EaseOut : EasingMode.EaseIn, Amplitude = 0.4 };
@@ -339,12 +299,8 @@ public partial class UmbrellaWindow : Window
     /// <summary>
     /// Configures the native window once its handle exists, the same way as the pet window, and makes it click-through.
     /// </summary>
-    /// <param name="sender">
-    /// The event source.
-    /// </param>
-    /// <param name="e">
-    /// Event data.
-    /// </param>
+    /// <param name="sender">The event source.</param>
+    /// <param name="e">Event data.</param>
     private void OnSourceInitialized(object? sender, EventArgs e)
     {
         var source = HwndSource.FromHwnd(new WindowInteropHelper(this).Handle)!;
@@ -358,24 +314,12 @@ public partial class UmbrellaWindow : Window
     /// <summary>
     /// Lets every mouse click pass through the window.
     /// </summary>
-    /// <param name="hwnd">
-    /// The window handle.
-    /// </param>
-    /// <param name="msg">
-    /// The message.
-    /// </param>
-    /// <param name="wParam">
-    /// The first message parameter.
-    /// </param>
-    /// <param name="lParam">
-    /// The second message parameter.
-    /// </param>
-    /// <param name="handled">
-    /// Set when the message was dealt with.
-    /// </param>
-    /// <returns>
-    /// <c>HTTRANSPARENT</c> for hit tests, otherwise zero.
-    /// </returns>
+    /// <param name="hwnd">The window handle.</param>
+    /// <param name="msg">The message.</param>
+    /// <param name="wParam">The first message parameter.</param>
+    /// <param name="lParam">The second message parameter.</param>
+    /// <param name="handled">Set when the message was dealt with.</param>
+    /// <returns><c>HTTRANSPARENT</c> for hit tests, otherwise zero.</returns>
     private static nint HitTestHook(nint hwnd, int msg, nint wParam, nint lParam, ref bool handled)
     {
         if (msg == WindowStyleHelper.WmNcHitTest)

@@ -58,9 +58,7 @@ public class WalkRangeTests
     /// <summary>
     /// Standing on either of two monitors that lie side by side, the range covers both and the seam is where they meet.
     /// </summary>
-    /// <param name="centerX">
-    /// The horizontal centre of the pet.
-    /// </param>
+    /// <param name="centerX">The horizontal centre of the pet.</param>
     [Theory]
     [InlineData(500)]
     [InlineData(1500)]
@@ -149,9 +147,7 @@ public class WalkRangeTests
     /// Two monitors of different height are one row from either of them: the pet can walk from the taller one back onto
     /// the shorter one as well as the other way round.
     /// </summary>
-    /// <param name="centerX">
-    /// The horizontal centre of the pet.
-    /// </param>
+    /// <param name="centerX">The horizontal centre of the pet.</param>
     [Theory]
     [InlineData(500)]
     [InlineData(1500)]
@@ -192,18 +188,10 @@ public class WalkRangeTests
     /// A pet over two monitors with taskbar lines at different heights keeps to what is on screen on both: above the
     /// higher taskbar line and below the lower top edge. Over one monitor it takes that monitor's.
     /// </summary>
-    /// <param name="left">
-    /// The window's left edge.
-    /// </param>
-    /// <param name="right">
-    /// The window's right edge.
-    /// </param>
-    /// <param name="expectedTop">
-    /// The expected top edge.
-    /// </param>
-    /// <param name="expectedBottom">
-    /// The expected taskbar line.
-    /// </param>
+    /// <param name="left">The window's left edge.</param>
+    /// <param name="right">The window's right edge.</param>
+    /// <param name="expectedTop">The expected top edge.</param>
+    /// <param name="expectedBottom">The expected taskbar line.</param>
     [Theory]
     [InlineData(800, 900, 0, 560)]
     [InlineData(1200, 1300, 100, 960)]
@@ -284,12 +272,8 @@ public class WalkRangeTests
     /// <summary>
     /// A pet whose centre is on the seam is on the monitor to the right of it, and one pixel before that on the left one.
     /// </summary>
-    /// <param name="centerX">
-    /// The horizontal centre of the pet.
-    /// </param>
-    /// <param name="expectedLeft">
-    /// The left edge of the monitor it is expected to be on.
-    /// </param>
+    /// <param name="centerX">The horizontal centre of the pet.</param>
+    /// <param name="expectedLeft">The left edge of the monitor it is expected to be on.</param>
     [Theory]
     [InlineData(999, 0)]
     [InlineData(1000, 1000)]
@@ -321,12 +305,8 @@ public class WalkRangeTests
     /// <summary>
     /// A pet window that lies on one monitor, or only touches the seam, is not across it.
     /// </summary>
-    /// <param name="left">
-    /// The window's left edge.
-    /// </param>
-    /// <param name="right">
-    /// The window's right edge.
-    /// </param>
+    /// <param name="left">The window's left edge.</param>
+    /// <param name="right">The window's right edge.</param>
     [Theory]
     [InlineData(800, 900)]
     [InlineData(900, 1000)]
@@ -357,18 +337,10 @@ public class WalkRangeTests
     /// A walking pet on a seam holds back every change of state except being picked up and falling; anywhere else
     /// nothing is held back.
     /// </summary>
-    /// <param name="shown">
-    /// The state shown now.
-    /// </param>
-    /// <param name="target">
-    /// The state to change to.
-    /// </param>
-    /// <param name="onSeam">
-    /// Whether the pet is on a seam.
-    /// </param>
-    /// <param name="expected">
-    /// Whether the change waits.
-    /// </param>
+    /// <param name="shown">The state shown now.</param>
+    /// <param name="target">The state to change to.</param>
+    /// <param name="onSeam">Whether the pet is on a seam.</param>
+    /// <param name="expected">Whether the change waits.</param>
     [Theory]
     [InlineData(PetState.Walk, PetState.Idle, true, true)]
     [InlineData(PetState.Walk, PetState.Happy, true, true)]
@@ -395,21 +367,11 @@ public class WalkRangeTests
     /// A window moving a distance crosses a seam if the seam lies in the span it sweeps over, or if it is across one
     /// already; one that only touches a seam and moves away from it does not.
     /// </summary>
-    /// <param name="left">
-    /// The window's left edge.
-    /// </param>
-    /// <param name="right">
-    /// The window's right edge.
-    /// </param>
-    /// <param name="facing">
-    /// The direction of the move.
-    /// </param>
-    /// <param name="travel">
-    /// How far the window moves.
-    /// </param>
-    /// <param name="expected">
-    /// Whether it crosses the seam at 1000.
-    /// </param>
+    /// <param name="left">The window's left edge.</param>
+    /// <param name="right">The window's right edge.</param>
+    /// <param name="facing">The direction of the move.</param>
+    /// <param name="travel">How far the window moves.</param>
+    /// <param name="expected">Whether it crosses the seam at 1000.</param>
     [Theory]
     [InlineData(500, 600, 1, 100, false)]
     [InlineData(800, 900, 1, 99, false)]
@@ -458,12 +420,8 @@ public class WalkRangeTests
     /// <summary>
     /// A window across a seam goes to the side where more of it is.
     /// </summary>
-    /// <param name="left">
-    /// The window's left edge, 100 wide.
-    /// </param>
-    /// <param name="expected">
-    /// The expected left edge.
-    /// </param>
+    /// <param name="left">The window's left edge, 100 wide.</param>
+    /// <param name="expected">The expected left edge.</param>
     [Theory]
     [InlineData(920, 900)]
     [InlineData(980, 1000)]

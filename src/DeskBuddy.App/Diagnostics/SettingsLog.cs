@@ -8,12 +8,8 @@ internal static class SettingsLog
     /// <summary>
     /// Logs each process name that was taken out of a list when the settings were loaded.
     /// </summary>
-    /// <param name="logger">
-    /// Where to write.
-    /// </param>
-    /// <param name="removed">
-    /// The names that were taken out.
-    /// </param>
+    /// <param name="logger">Where to write.</param>
+    /// <param name="removed">The names that were taken out.</param>
     public static void LogRemovedProcessNames(ILogger logger, IReadOnlyList<RemovedProcessName> removed)
     {
         ArgumentNullException.ThrowIfNull(logger);

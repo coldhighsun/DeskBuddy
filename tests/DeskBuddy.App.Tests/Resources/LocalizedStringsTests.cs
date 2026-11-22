@@ -149,9 +149,7 @@ public class LocalizedStringsTests : IDisposable
     /// <summary>
     /// Subscribes a listener and lets go of it, in a method of its own so that nothing on the stack keeps it alive.
     /// </summary>
-    /// <returns>
-    /// A weak reference to the listener.
-    /// </returns>
+    /// <returns>A weak reference to the listener.</returns>
     [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
     private static WeakReference<Listener> Subscribe()
     {
@@ -173,12 +171,8 @@ public class LocalizedStringsTests : IDisposable
         /// <summary>
         /// Counts a call.
         /// </summary>
-        /// <param name="sender">
-        /// The event source.
-        /// </param>
-        /// <param name="e">
-        /// Event data.
-        /// </param>
+        /// <param name="sender">The event source.</param>
+        /// <param name="e">Event data.</param>
         public void Handle(object? sender, EventArgs e)
         {
             Calls++;

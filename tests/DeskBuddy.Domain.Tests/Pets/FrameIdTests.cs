@@ -42,9 +42,7 @@ public class FrameIdTests
     /// <summary>
     /// A name that is only a path stands for the whole file.
     /// </summary>
-    /// <param name="id">
-    /// The name.
-    /// </param>
+    /// <param name="id">The name.</param>
     [Theory]
     [InlineData(@"C:\pets\cat\idle.png")]
     [InlineData(@"C:\C#\idle.png")]

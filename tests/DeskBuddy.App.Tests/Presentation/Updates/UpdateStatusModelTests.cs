@@ -130,9 +130,7 @@ public sealed class UpdateStatusModelTests : IDisposable
     /// <summary>
     /// Creates a controller for the running version 0.1.0 that talks to the stub.
     /// </summary>
-    /// <returns>
-    /// The controller.
-    /// </returns>
+    /// <returns>The controller.</returns>
     private UpdateController CreateController()
     {
         return AppUpdates.Create(

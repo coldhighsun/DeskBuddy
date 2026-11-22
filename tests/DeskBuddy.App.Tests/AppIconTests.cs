@@ -14,12 +14,8 @@ public class AppIconTests
     /// <summary>
     /// A pet's picture becomes an icon of the requested size, whatever the proportions of the picture.
     /// </summary>
-    /// <param name="pictureWidth">
-    /// The width of the picture in pixels.
-    /// </param>
-    /// <param name="pictureHeight">
-    /// The height of the picture in pixels.
-    /// </param>
+    /// <param name="pictureWidth">The width of the picture in pixels.</param>
+    /// <param name="pictureHeight">The height of the picture in pixels.</param>
     [Theory]
     [InlineData(64, 64)]
     [InlineData(64, 32)]
@@ -113,18 +109,10 @@ public class AppIconTests
     /// <summary>
     /// Makes a picture that is one color all over.
     /// </summary>
-    /// <param name="width">
-    /// The width in pixels.
-    /// </param>
-    /// <param name="height">
-    /// The height in pixels.
-    /// </param>
-    /// <param name="color">
-    /// The color.
-    /// </param>
-    /// <returns>
-    /// The frozen picture.
-    /// </returns>
+    /// <param name="width">The width in pixels.</param>
+    /// <param name="height">The height in pixels.</param>
+    /// <param name="color">The color.</param>
+    /// <returns>The frozen picture.</returns>
     private static BitmapSource SolidPicture(int width, int height, System.Windows.Media.Color color)
     {
         var pixels = new byte[width * height * 4];

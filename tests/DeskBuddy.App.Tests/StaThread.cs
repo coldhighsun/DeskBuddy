@@ -18,9 +18,7 @@ internal static class StaThread
     /// Runs an action on a new STA thread and waits for it; an exception it throws is thrown again here. Calls from
     /// different tests take turns.
     /// </summary>
-    /// <param name="action">
-    /// The action to run.
-    /// </param>
+    /// <param name="action">The action to run.</param>
     public static void Run(Action action)
     {
         // WPF registers the pack:// scheme, which the resource dictionaries are addressed with, when its Application type

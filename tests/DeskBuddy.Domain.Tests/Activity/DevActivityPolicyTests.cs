@@ -186,12 +186,8 @@ public class DevActivityPolicyTests
     /// <summary>
     /// Lets time pass while feeding the same reading once a second, as the application does.
     /// </summary>
-    /// <param name="duration">
-    /// How long to run.
-    /// </param>
-    /// <param name="foreground">
-    /// The foreground process name.
-    /// </param>
+    /// <param name="duration">How long to run.</param>
+    /// <param name="foreground">The foreground process name.</param>
     private void Pass(TimeSpan duration, string foreground)
     {
         for (var elapsed = TimeSpan.Zero; elapsed < duration; elapsed += TimeSpan.FromSeconds(1))

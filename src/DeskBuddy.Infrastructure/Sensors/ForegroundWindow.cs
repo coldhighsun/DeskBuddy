@@ -14,18 +14,14 @@ internal static unsafe partial class ForegroundWindow
     /// <summary>
     /// Gets the window the user is working in.
     /// </summary>
-    /// <returns>
-    /// The window handle, or zero if there is none.
-    /// </returns>
+    /// <returns>The window handle, or zero if there is none.</returns>
     [LibraryImport("user32.dll", EntryPoint = "GetForegroundWindow")]
     public static partial nint GetHandle();
 
     /// <summary>
     /// Gets the name of the process that owns a window, without the <c>.exe</c> extension.
     /// </summary>
-    /// <param name="window">
-    /// The window handle.
-    /// </param>
+    /// <param name="window">The window handle.</param>
     /// <returns>
     /// The process name, or <see langword="null"/> if it cannot be read (for example for protected system processes).
     /// </returns>
@@ -59,54 +55,30 @@ internal static unsafe partial class ForegroundWindow
     /// <summary>
     /// Gets the thread and process that created a window.
     /// </summary>
-    /// <param name="window">
-    /// The window handle.
-    /// </param>
-    /// <param name="processId">
-    /// Receives the process identifier.
-    /// </param>
-    /// <returns>
-    /// The thread identifier, or zero on failure.
-    /// </returns>
+    /// <param name="window">The window handle.</param>
+    /// <param name="processId">Receives the process identifier.</param>
+    /// <returns>The thread identifier, or zero on failure.</returns>
     [LibraryImport("user32.dll")]
     private static partial uint GetWindowThreadProcessId(nint window, out uint processId);
 
     /// <summary>
     /// Opens a process.
     /// </summary>
-    /// <param name="access">
-    /// The access rights requested.
-    /// </param>
-    /// <param name="inheritHandle">
-    /// Whether child processes inherit the handle.
-    /// </param>
-    /// <param name="processId">
-    /// The process identifier.
-    /// </param>
-    /// <returns>
-    /// The process handle, or zero on failure.
-    /// </returns>
+    /// <param name="access">The access rights requested.</param>
+    /// <param name="inheritHandle">Whether child processes inherit the handle.</param>
+    /// <param name="processId">The process identifier.</param>
+    /// <returns>The process handle, or zero on failure.</returns>
     [LibraryImport("kernel32.dll")]
     private static partial nint OpenProcess(uint access, [MarshalAs(UnmanagedType.Bool)] bool inheritHandle, uint processId);
 
     /// <summary>
     /// Gets the full path of a process's executable.
     /// </summary>
-    /// <param name="process">
-    /// The process handle.
-    /// </param>
-    /// <param name="flags">
-    /// Zero for a Win32 path.
-    /// </param>
-    /// <param name="exeName">
-    /// Receives the path.
-    /// </param>
-    /// <param name="size">
-    /// On input the capacity of <paramref name="exeName"/>, on output the length copied.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> on success.
-    /// </returns>
+    /// <param name="process">The process handle.</param>
+    /// <param name="flags">Zero for a Win32 path.</param>
+    /// <param name="exeName">Receives the path.</param>
+    /// <param name="size">On input the capacity of <paramref name="exeName"/>, on output the length copied.</param>
+    /// <returns><see langword="true"/> on success.</returns>
     [LibraryImport("kernel32.dll", EntryPoint = "QueryFullProcessImageNameW")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool QueryFullProcessImageName(nint process, uint flags, char* exeName, ref int size);
@@ -114,12 +86,8 @@ internal static unsafe partial class ForegroundWindow
     /// <summary>
     /// Closes a handle.
     /// </summary>
-    /// <param name="handle">
-    /// The handle to close.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> on success.
-    /// </returns>
+    /// <param name="handle">The handle to close.</param>
+    /// <returns><see langword="true"/> on success.</returns>
     [LibraryImport("kernel32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool CloseHandle(nint handle);

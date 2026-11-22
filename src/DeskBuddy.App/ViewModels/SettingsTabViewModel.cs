@@ -42,18 +42,10 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     /// <summary>
     /// Initializes a new instance of the <see cref="SettingsTabViewModel"/> class and shows the current settings.
     /// </summary>
-    /// <param name="settings">
-    /// The settings being edited.
-    /// </param>
-    /// <param name="bossKey">
-    /// The boss key registration.
-    /// </param>
-    /// <param name="autoStart">
-    /// Starts the application at sign-in.
-    /// </param>
-    /// <param name="openLogDirectory">
-    /// Opens the log directory in the file manager.
-    /// </param>
+    /// <param name="settings">The settings being edited.</param>
+    /// <param name="bossKey">The boss key registration.</param>
+    /// <param name="autoStart">Starts the application at sign-in.</param>
+    /// <param name="openLogDirectory">Opens the log directory in the file manager.</param>
     /// <param name="pets">
     /// The installed pets, whose pictures show what each size looks like; <see langword="null"/> to show the sizes by
     /// their names only.
@@ -121,12 +113,8 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     /// Writes the text this view model holds in the new interface language: the names in the lists of languages and
     /// themes and the scenario switches. The text in the XAML follows the language by itself.
     /// </summary>
-    /// <param name="sender">
-    /// The event source.
-    /// </param>
-    /// <param name="e">
-    /// Event data.
-    /// </param>
+    /// <param name="sender">The event source.</param>
+    /// <param name="e">Event data.</param>
     private void OnLanguageChanged(object? sender, EventArgs e)
     {
         foreach (var option in Languages)
@@ -272,9 +260,7 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     /// <summary>
     /// Saves from the save button.
     /// </summary>
-    /// <returns>
-    /// A task that completes when saving is done.
-    /// </returns>
+    /// <returns>A task that completes when saving is done.</returns>
     [RelayCommand(CanExecute = nameof(CanSave))]
     private Task SaveAsync()
     {
@@ -285,12 +271,8 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     /// Shows settings that were changed elsewhere, such as the size chosen in the tray menu. Entries the user has not
     /// edited follow along; the ones they edited keep their value.
     /// </summary>
-    /// <param name="sender">
-    /// The event source.
-    /// </param>
-    /// <param name="settings">
-    /// The new settings.
-    /// </param>
+    /// <param name="sender">The event source.</param>
+    /// <param name="settings">The new settings.</param>
     private void OnSettingsChanged(object? sender, PetSettings settings)
     {
         Refresh(_editor.Draft, keepTypedText: true);
@@ -299,12 +281,8 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     /// <summary>
     /// Tells the tab that what can be saved may have changed.
     /// </summary>
-    /// <param name="sender">
-    /// The event source.
-    /// </param>
-    /// <param name="e">
-    /// The event data.
-    /// </param>
+    /// <param name="sender">The event source.</param>
+    /// <param name="e">The event data.</param>
     private void OnEditorChanged(object? sender, EventArgs e)
     {
         NotifyUnsavedChanged();
@@ -324,9 +302,7 @@ public sealed partial class SettingsTabViewModel : ObservableObject
     /// Fills the properties from the draft without treating that as an edit. A box holding an entry that is not valid
     /// keeps what the user typed.
     /// </summary>
-    /// <param name="settings">
-    /// The settings to show.
-    /// </param>
+    /// <param name="settings">The settings to show.</param>
     /// <param name="keepTypedText">
     /// Whether a text box whose text already means the value to show is left alone, so a change made elsewhere does not
     /// rewrite what the user is typing; after saving or reverting the boxes show the cleaned-up values instead.

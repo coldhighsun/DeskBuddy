@@ -64,15 +64,9 @@ public sealed class PetBehaviorStateMachine
     /// <summary>
     /// Initializes a new instance of the <see cref="PetBehaviorStateMachine"/> class in the Idle state.
     /// </summary>
-    /// <param name="options">
-    /// The behavior timings.
-    /// </param>
-    /// <param name="timeProvider">
-    /// The time source.
-    /// </param>
-    /// <param name="random">
-    /// The random source.
-    /// </param>
+    /// <param name="options">The behavior timings.</param>
+    /// <param name="timeProvider">The time source.</param>
+    /// <param name="random">The random source.</param>
     public PetBehaviorStateMachine(PetBehaviorOptions options, TimeProvider timeProvider, Random random)
     {
         ArgumentNullException.ThrowIfNull(options);
@@ -118,12 +112,8 @@ public sealed class PetBehaviorStateMachine
     /// Idle/Walk cycle. A pet held in Ambient or Coding (see <see cref="PetStateExtensions.CanStroll"/>) leaves it now and
     /// then for a short walk, then goes back to it.
     /// </summary>
-    /// <param name="inputs">
-    /// The current user presence, system condition and pending notices.
-    /// </param>
-    /// <returns>
-    /// The state after the update.
-    /// </returns>
+    /// <param name="inputs">The current user presence, system condition and pending notices.</param>
+    /// <returns>The state after the update.</returns>
     public PetState Update(PetInputs inputs)
     {
         // A real fall lasts until it is over; a glide that is only being acted out (previewed) ends like any moment.
@@ -402,12 +392,8 @@ public sealed class PetBehaviorStateMachine
     /// a finished build or the user coming back. The state is held for the given time, then the pet carries on as
     /// usual. Ignored while the pet is being dragged or is falling; an alert, or the user being away, still takes over.
     /// </summary>
-    /// <param name="state">
-    /// The state to act out.
-    /// </param>
-    /// <param name="duration">
-    /// How long to stay in it.
-    /// </param>
+    /// <param name="state">The state to act out.</param>
+    /// <param name="duration">How long to stay in it.</param>
     public void OnMoment(PetState state, TimeSpan duration)
     {
         if (State == PetState.Drag || State.IsFalling() || State.IsCrawl())
@@ -423,9 +409,7 @@ public sealed class PetBehaviorStateMachine
     /// <summary>
     /// Switches to a state and schedules its end.
     /// </summary>
-    /// <param name="state">
-    /// The state to enter.
-    /// </param>
+    /// <param name="state">The state to enter.</param>
     private void Enter(PetState state)
     {
         State = state;
@@ -457,12 +441,8 @@ public sealed class PetBehaviorStateMachine
     /// Finds the state that holds the pet for the given inputs, if one does: the ambient state, tiredness or coding, in
     /// the order of priority <see cref="Update"/> gives them.
     /// </summary>
-    /// <param name="inputs">
-    /// The current user presence, system condition and pending notices.
-    /// </param>
-    /// <returns>
-    /// The state, or <see langword="null"/> if none holds the pet.
-    /// </returns>
+    /// <param name="inputs">The current user presence, system condition and pending notices.</param>
+    /// <returns>The state, or <see langword="null"/> if none holds the pet.</returns>
     private static PetState? SceneFor(PetInputs inputs)
     {
         if (inputs.Ambient is { } ambient)
@@ -481,9 +461,7 @@ public sealed class PetBehaviorStateMachine
     /// <summary>
     /// Sends the pet on a short walk out of the state it is held in, if that is allowed and its time has come.
     /// </summary>
-    /// <param name="now">
-    /// The current time.
-    /// </param>
+    /// <param name="now">The current time.</param>
     private void TryStartStroll(DateTimeOffset now)
     {
         if (!_options.StrollEnabled || !State.CanStroll() || now < _nextStrollAt)
@@ -499,9 +477,7 @@ public sealed class PetBehaviorStateMachine
     /// <summary>
     /// Makes the walking pet hop if its time has come and there is room for it.
     /// </summary>
-    /// <param name="now">
-    /// The current time.
-    /// </param>
+    /// <param name="now">The current time.</param>
     private void TryHop(DateTimeOffset now)
     {
         if (HopDuration is not { } hopDuration || State != PetState.Walk || now < _nextHopAt
@@ -525,9 +501,7 @@ public sealed class PetBehaviorStateMachine
     /// <summary>
     /// Picks the moment at which the walking pet next hops.
     /// </summary>
-    /// <param name="now">
-    /// The current time.
-    /// </param>
+    /// <param name="now">The current time.</param>
     private void ScheduleHop(DateTimeOffset now)
     {
         _nextHopAt = now + _random.NextTimeSpan(_options.HopIntervalMin, _options.HopIntervalMax);

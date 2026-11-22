@@ -32,9 +32,7 @@ public partial class PetWindow
     /// <summary>
     /// Switches the displayed state: swaps the animation, and starts or stops the walking timer.
     /// </summary>
-    /// <param name="state">
-    /// The state to show.
-    /// </param>
+    /// <param name="state">The state to show.</param>
     private void ApplyState(PetState state)
     {
         if (state == _shownState)
@@ -150,12 +148,8 @@ public partial class PetWindow
     /// stopped, so a hidden pet costs next to nothing; the brain timer keeps running because the
     /// check for the full-screen application going away depends on it.
     /// </summary>
-    /// <param name="sender">
-    /// The event source.
-    /// </param>
-    /// <param name="e">
-    /// Event data.
-    /// </param>
+    /// <param name="sender">The event source.</param>
+    /// <param name="e">Event data.</param>
     private void OnVisibilityChanged(object? sender, EventArgs e)
     {
         if (_brain.Visibility.IsVisible)
@@ -209,12 +203,8 @@ public partial class PetWindow
     /// <summary>
     /// Advances the animation by the real elapsed time and swaps the sprite when the frame changes.
     /// </summary>
-    /// <param name="sender">
-    /// The event source.
-    /// </param>
-    /// <param name="e">
-    /// Event data.
-    /// </param>
+    /// <param name="sender">The event source.</param>
+    /// <param name="e">Event data.</param>
     private void OnAnimationTick(object? sender, EventArgs e)
     {
         var startedAt = Stopwatch.GetTimestamp();
@@ -232,12 +222,8 @@ public partial class PetWindow
     /// <summary>
     /// Lets the brain re-evaluate the pet's state and shows the result.
     /// </summary>
-    /// <param name="sender">
-    /// The event source.
-    /// </param>
-    /// <param name="e">
-    /// Event data.
-    /// </param>
+    /// <param name="sender">The event source.</param>
+    /// <param name="e">Event data.</param>
     private void OnBrainTick(object? sender, EventArgs e)
     {
         var startedAt = Stopwatch.GetTimestamp();

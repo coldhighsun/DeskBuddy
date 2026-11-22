@@ -44,15 +44,9 @@ public sealed class FolderPetLoaderTests : IDisposable
     /// <summary>
     /// Writes a manifest into the temp directory, and an atlas image of the given size next to it.
     /// </summary>
-    /// <param name="manifestJson">
-    /// Manifest content, in which <c>%ATLAS%</c> stands for the atlas section.
-    /// </param>
-    /// <param name="atlasWidth">
-    /// Width of the atlas image in pixels, or 0 for no atlas file.
-    /// </param>
-    /// <param name="atlasHeight">
-    /// Height of the atlas image in pixels.
-    /// </param>
+    /// <param name="manifestJson">Manifest content, in which <c>%ATLAS%</c> stands for the atlas section.</param>
+    /// <param name="atlasWidth">Width of the atlas image in pixels, or 0 for no atlas file.</param>
+    /// <param name="atlasHeight">Height of the atlas image in pixels.</param>
     private void WritePet(string manifestJson, int atlasWidth = 32, int atlasHeight = 16)
     {
         File.WriteAllText(Path.Combine(_directory, FolderPetLoader.ManifestFileName), manifestJson.Replace("%ATLAS%", Atlas));
@@ -65,15 +59,9 @@ public sealed class FolderPetLoaderTests : IDisposable
     /// <summary>
     /// Makes the start of a PNG file with the given size: the signature and the header chunk, which is all the loader reads.
     /// </summary>
-    /// <param name="width">
-    /// The width in pixels.
-    /// </param>
-    /// <param name="height">
-    /// The height in pixels.
-    /// </param>
-    /// <returns>
-    /// The bytes.
-    /// </returns>
+    /// <param name="width">The width in pixels.</param>
+    /// <param name="height">The height in pixels.</param>
+    /// <returns>The bytes.</returns>
     private static byte[] PngHeader(int width, int height)
     {
         var bytes = new byte[33];
@@ -89,15 +77,9 @@ public sealed class FolderPetLoaderTests : IDisposable
     /// <summary>
     /// The name a frame has in an atlas of the temp directory.
     /// </summary>
-    /// <param name="x">
-    /// The left edge of the cell in pixels.
-    /// </param>
-    /// <param name="y">
-    /// The top edge of the cell in pixels.
-    /// </param>
-    /// <returns>
-    /// The name of the frame.
-    /// </returns>
+    /// <param name="x">The left edge of the cell in pixels.</param>
+    /// <param name="y">The top edge of the cell in pixels.</param>
+    /// <returns>The name of the frame.</returns>
     private string Cell(int x, int y)
     {
         return FrameId.Create(Path.Combine(_directory, "atlas.png"), x, y, 8, 8);
@@ -351,12 +333,8 @@ public sealed class FolderPetLoaderTests : IDisposable
     /// <summary>
     /// An atlas file that ends inside the PNG header, or whose first chunk is not the header, is rejected.
     /// </summary>
-    /// <param name="length">
-    /// How many bytes of a valid header are kept.
-    /// </param>
-    /// <param name="corruptChunkName">
-    /// Whether the name of the header chunk is spoiled.
-    /// </param>
+    /// <param name="length">How many bytes of a valid header are kept.</param>
+    /// <param name="corruptChunkName">Whether the name of the header chunk is spoiled.</param>
     [Theory]
     [InlineData(10, false)]
     [InlineData(23, false)]
@@ -433,9 +411,7 @@ public sealed class FolderPetLoaderTests : IDisposable
     /// <summary>
     /// A frame that is not a cell of the atlas is rejected.
     /// </summary>
-    /// <param name="cell">
-    /// The number of the cell; the atlas has cells 0 to 7.
-    /// </param>
+    /// <param name="cell">The number of the cell; the atlas has cells 0 to 7.</param>
     [Theory]
     [InlineData(8)]
     [InlineData(-1)]
@@ -486,9 +462,7 @@ public sealed class FolderPetLoaderTests : IDisposable
     /// <summary>
     /// A speed outside the range an animation timer can keep to is rejected, with the range in the message.
     /// </summary>
-    /// <param name="fps">
-    /// The speed written in the manifest.
-    /// </param>
+    /// <param name="fps">The speed written in the manifest.</param>
     [Theory]
     [InlineData("0.0000001")]
     [InlineData("0.05")]
@@ -509,9 +483,7 @@ public sealed class FolderPetLoaderTests : IDisposable
     /// <summary>
     /// An atlas named by a path that leads out of the pet's folder is rejected, even when the file is there.
     /// </summary>
-    /// <param name="image">
-    /// The image name written in the manifest.
-    /// </param>
+    /// <param name="image">The image name written in the manifest.</param>
     [Theory]
     [InlineData("../outside.png")]
     [InlineData("sub/../../outside.png")]
@@ -590,9 +562,7 @@ public sealed class FolderPetLoaderTests : IDisposable
     /// <summary>
     /// The ends of the allowed range are accepted.
     /// </summary>
-    /// <param name="fps">
-    /// The speed written in the manifest.
-    /// </param>
+    /// <param name="fps">The speed written in the manifest.</param>
     [Theory]
     [InlineData("0.1")]
     [InlineData("120")]
@@ -643,9 +613,7 @@ public sealed class FolderPetLoaderTests : IDisposable
     /// <summary>
     /// A pet that does not say where it holds on, or has no Glide state at all, holds on at the default point.
     /// </summary>
-    /// <param name="states">
-    /// The states written in the manifest.
-    /// </param>
+    /// <param name="states">The states written in the manifest.</param>
     [Theory]
     [InlineData("""{"Idle":{"fps":1,"frames":[0]},"Glide":{"fps":2,"frames":[1]}}""")]
     [InlineData("""{"Idle":{"fps":1,"frames":[0]}}""")]
@@ -680,9 +648,7 @@ public sealed class FolderPetLoaderTests : IDisposable
     /// <summary>
     /// Glide grips that are not one or two points [x, y] on the frame are rejected, with the reason in the message.
     /// </summary>
-    /// <param name="grips">
-    /// The grips written in the manifest.
-    /// </param>
+    /// <param name="grips">The grips written in the manifest.</param>
     [Theory]
     [InlineData("[]")]
     [InlineData("[[1,1],[2,2],[3,3]]")]

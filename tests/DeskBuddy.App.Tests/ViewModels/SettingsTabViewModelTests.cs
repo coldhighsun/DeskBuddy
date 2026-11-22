@@ -52,12 +52,8 @@ public class SettingsTabViewModelTests
     /// Waits until a condition holds, for updates that finish on another thread after a held save is released; gives up
     /// after a few seconds, leaving the assertions to say what is wrong.
     /// </summary>
-    /// <param name="condition">
-    /// The condition to wait for.
-    /// </param>
-    /// <returns>
-    /// A task that completes when the condition holds or the time is up.
-    /// </returns>
+    /// <param name="condition">The condition to wait for.</param>
+    /// <returns>A task that completes when the condition holds or the time is up.</returns>
     private static async Task WaitUntilAsync(Func<bool> condition)
     {
         var deadline = DateTimeOffset.UtcNow + TimeSpan.FromSeconds(5);
@@ -70,12 +66,8 @@ public class SettingsTabViewModelTests
     /// <summary>
     /// Loads the settings and creates the view model over fakes.
     /// </summary>
-    /// <param name="pets">
-    /// The installed pets the sizes are drawn with, or <see langword="null"/> for none.
-    /// </param>
-    /// <returns>
-    /// A task that completes when the view model is ready.
-    /// </returns>
+    /// <param name="pets">The installed pets the sizes are drawn with, or <see langword="null"/> for none.</param>
+    /// <returns>A task that completes when the view model is ready.</returns>
     private async Task CreateAsync(InstalledPets? pets = null)
     {
         _settings = new SettingsService(_store);
@@ -114,12 +106,8 @@ public class SettingsTabViewModelTests
     /// <summary>
     /// Waits, briefly, for something that happens after a hand-off to another continuation.
     /// </summary>
-    /// <param name="condition">
-    /// The condition to wait for.
-    /// </param>
-    /// <returns>
-    /// A task that completes when the condition holds, or after a timeout.
-    /// </returns>
+    /// <param name="condition">The condition to wait for.</param>
+    /// <returns>A task that completes when the condition holds, or after a timeout.</returns>
     private static async Task EventuallyAsync(Func<bool> condition)
     {
         for (var i = 0; i < 200 && !condition(); i++)
@@ -227,15 +215,9 @@ public class SettingsTabViewModelTests
     /// <summary>
     /// The largest number of minutes is accepted and one more is refused, which also blocks saving.
     /// </summary>
-    /// <param name="property">
-    /// The property to type into.
-    /// </param>
-    /// <param name="limit">
-    /// The largest accepted number of minutes.
-    /// </param>
-    /// <returns>
-    /// A task that completes when the test is done.
-    /// </returns>
+    /// <param name="property">The property to type into.</param>
+    /// <param name="limit">The largest accepted number of minutes.</param>
+    /// <returns>A task that completes when the test is done.</returns>
     [Theory]
     [InlineData("SedentaryText", 480)]
     [InlineData("SleepText", 720)]

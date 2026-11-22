@@ -8,9 +8,7 @@ public interface ISettingsStore
     /// <summary>
     /// Loads the saved settings.
     /// </summary>
-    /// <param name="cancellationToken">
-    /// Token used to cancel the operation.
-    /// </param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
     /// <returns>
     /// The saved settings, normalized; <see cref="PetSettings.Default"/> if nothing usable has been saved yet.
     /// </returns>
@@ -22,12 +20,8 @@ public interface ISettingsStore
     /// <summary>
     /// Replaces the saved settings.
     /// </summary>
-    /// <param name="settings">
-    /// The complete settings.
-    /// </param>
-    /// <param name="cancellationToken">
-    /// Token used to cancel the operation.
-    /// </param>
+    /// <param name="settings">The complete settings.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
     /// <exception cref="IOException">
     /// Thrown when the storage cannot be written.
     /// </exception>

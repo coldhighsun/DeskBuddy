@@ -18,15 +18,9 @@ public class DockedMovementTests
     /// <summary>
     /// Creates a context at a position, walking at 100 units per second.
     /// </summary>
-    /// <param name="x">
-    /// Horizontal position.
-    /// </param>
-    /// <param name="y">
-    /// Vertical position.
-    /// </param>
-    /// <returns>
-    /// The context.
-    /// </returns>
+    /// <param name="x">Horizontal position.</param>
+    /// <param name="y">Vertical position.</param>
+    /// <returns>The context.</returns>
     private static MovementContext At(double x, double y = 800)
     {
         return new MovementContext(new Point2(x, y), new Point2(128, 128), Bounds, Speed: 100);

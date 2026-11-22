@@ -171,9 +171,7 @@ internal sealed class FakeAutoStartService : IAutoStartService
 /// <summary>
 /// Pet catalog stub with a list that tests can change.
 /// </summary>
-/// <param name="names">
-/// The pet names to report at first.
-/// </param>
+/// <param name="names">The pet names to report at first.</param>
 internal sealed class FakePetCatalog(params string[] names) : IPetCatalog
 {
     /// <summary>
@@ -253,12 +251,8 @@ internal sealed class FakePetLoader : IPetLoader
     /// <summary>
     /// Creates a minimal pet.
     /// </summary>
-    /// <param name="name">
-    /// The pet name.
-    /// </param>
-    /// <returns>
-    /// A pet with a single idle frame.
-    /// </returns>
+    /// <param name="name">The pet name.</param>
+    /// <returns>A pet with a single idle frame.</returns>
     public static Pet CreatePet(string name)
     {
         return CreatePet(name, []);
@@ -267,15 +261,9 @@ internal sealed class FakePetLoader : IPetLoader
     /// <summary>
     /// Creates a pet that defines some states besides Idle.
     /// </summary>
-    /// <param name="name">
-    /// The pet name.
-    /// </param>
-    /// <param name="extraStates">
-    /// The states to define besides Idle, each with two pictures.
-    /// </param>
-    /// <returns>
-    /// A pet with an idle frame and two pictures for each extra state.
-    /// </returns>
+    /// <param name="name">The pet name.</param>
+    /// <param name="extraStates">The states to define besides Idle, each with two pictures.</param>
+    /// <returns>A pet with an idle frame and two pictures for each extra state.</returns>
     public static Pet CreatePet(string name, IEnumerable<PetState> extraStates)
     {
         var animations = new Dictionary<PetState, PetAnimation>
@@ -299,9 +287,7 @@ internal static class TestBrain
     /// <summary>
     /// Creates a brain with quiet fake sensors.
     /// </summary>
-    /// <returns>
-    /// The brain.
-    /// </returns>
+    /// <returns>The brain.</returns>
     public static PetBrain Create()
     {
         var clock = new FakeTimeProvider();
@@ -412,9 +398,7 @@ internal static class TestBrain
 /// <summary>
 /// A logger that remembers the levels it was asked to log at.
 /// </summary>
-/// <typeparam name="T">
-/// The type the logger is for.
-/// </typeparam>
+/// <typeparam name="T">The type the logger is for.</typeparam>
 internal sealed class RecordingLogger<T> : ILogger<T>
 {
     /// <summary>

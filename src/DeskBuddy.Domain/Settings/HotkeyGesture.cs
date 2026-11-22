@@ -7,12 +7,8 @@ namespace DeskBuddy.Domain.Settings;
 /// and function keys are supported, and at least one modifier is required so that a plain key is never taken over
 /// system-wide.
 /// </summary>
-/// <param name="Modifiers">
-/// The modifier keys.
-/// </param>
-/// <param name="VirtualKey">
-/// The Win32 virtual-key code of the main key.
-/// </param>
+/// <param name="Modifiers">The modifier keys.</param>
+/// <param name="VirtualKey">The Win32 virtual-key code of the main key.</param>
 public readonly record struct HotkeyGesture(HotkeyModifiers Modifiers, int VirtualKey)
 {
     /// <summary>
@@ -44,15 +40,9 @@ public readonly record struct HotkeyGesture(HotkeyModifiers Modifiers, int Virtu
     /// Parses text such as <c>Ctrl+Alt+H</c>. Names are case-insensitive; <c>Control</c>, <c>Win</c> and
     /// <c>Windows</c> are accepted as aliases.
     /// </summary>
-    /// <param name="text">
-    /// The text to parse.
-    /// </param>
-    /// <param name="gesture">
-    /// The parsed gesture when successful.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> if the text is a valid gesture.
-    /// </returns>
+    /// <param name="text">The text to parse.</param>
+    /// <param name="gesture">The parsed gesture when successful.</param>
+    /// <returns><see langword="true"/> if the text is a valid gesture.</returns>
     public static bool TryParse(string? text, out HotkeyGesture gesture)
     {
         gesture = default;
@@ -95,9 +85,7 @@ public readonly record struct HotkeyGesture(HotkeyModifiers Modifiers, int Virtu
     /// <summary>
     /// Formats the gesture in its canonical form, e.g. <c>Ctrl+Alt+H</c>.
     /// </summary>
-    /// <returns>
-    /// The text form.
-    /// </returns>
+    /// <returns>The text form.</returns>
     public override string ToString()
     {
         var parts = new List<string>();
@@ -128,12 +116,8 @@ public readonly record struct HotkeyGesture(HotkeyModifiers Modifiers, int Virtu
     /// <summary>
     /// Maps a modifier name to its flag.
     /// </summary>
-    /// <param name="name">
-    /// The name to map.
-    /// </param>
-    /// <returns>
-    /// The flag, or <see cref="HotkeyModifiers.None"/> if the name is not a modifier.
-    /// </returns>
+    /// <param name="name">The name to map.</param>
+    /// <returns>The flag, or <see cref="HotkeyModifiers.None"/> if the name is not a modifier.</returns>
     private static HotkeyModifiers ParseModifier(string name)
     {
         return name.ToUpperInvariant() switch
@@ -149,12 +133,8 @@ public readonly record struct HotkeyGesture(HotkeyModifiers Modifiers, int Virtu
     /// <summary>
     /// Maps a key name (a letter, a digit or F1-F24) to its virtual-key code.
     /// </summary>
-    /// <param name="name">
-    /// The name to map.
-    /// </param>
-    /// <returns>
-    /// The virtual-key code, or 0 if the name is not a supported key.
-    /// </returns>
+    /// <param name="name">The name to map.</param>
+    /// <returns>The virtual-key code, or 0 if the name is not a supported key.</returns>
     private static int ParseKey(string name)
     {
         var upper = name.ToUpperInvariant();
@@ -182,12 +162,8 @@ public readonly record struct HotkeyGesture(HotkeyModifiers Modifiers, int Virtu
     /// <summary>
     /// Maps a virtual-key code to its name.
     /// </summary>
-    /// <param name="virtualKey">
-    /// The virtual-key code.
-    /// </param>
-    /// <returns>
-    /// The name, or <see langword="null"/> if the key is not supported.
-    /// </returns>
+    /// <param name="virtualKey">The virtual-key code.</param>
+    /// <returns>The name, or <see langword="null"/> if the key is not supported.</returns>
     private static string? KeyName(int virtualKey)
     {
         return virtualKey switch

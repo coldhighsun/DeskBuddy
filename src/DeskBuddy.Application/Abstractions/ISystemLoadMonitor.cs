@@ -10,8 +10,6 @@ public interface ISystemLoadMonitor
     /// <summary>
     /// Takes a reading of the current system load. CPU utilization covers the interval since the previous call.
     /// </summary>
-    /// <returns>
-    /// The current load; all zeros if it cannot be determined.
-    /// </returns>
+    /// <returns>The current load; all zeros if it cannot be determined.</returns>
     SystemLoadSnapshot GetSnapshot();
 }

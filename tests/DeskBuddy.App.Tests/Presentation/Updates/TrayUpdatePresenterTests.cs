@@ -79,9 +79,7 @@ public sealed class TrayUpdatePresenterTests : IDisposable
     /// <summary>
     /// Finds the newer release on the stub, which is the only way to get hold of an update to talk about.
     /// </summary>
-    /// <returns>
-    /// The update.
-    /// </returns>
+    /// <returns>The update.</returns>
     private async Task<AvailableUpdate> FindUpdateAsync()
     {
         _handler.Respond(HttpStatusCode.OK, ReleaseJson("v0.2.0", "DeskBuddy-Setup-0.2.0.exe", digest: InstallerDigest));

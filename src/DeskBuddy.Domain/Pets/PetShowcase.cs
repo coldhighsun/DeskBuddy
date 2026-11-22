@@ -26,9 +26,7 @@ public static class PetShowcase
     /// Picks the showcase states a pet draws itself. States the pet only borrows from another state are left out, so the
     /// preview shows what the pet really has.
     /// </summary>
-    /// <param name="pet">
-    /// The pet.
-    /// </param>
+    /// <param name="pet">The pet.</param>
     /// <returns>
     /// The states, in showcase order; always starts with <see cref="PetState.Idle"/>, which every pet defines.
     /// </returns>
@@ -42,12 +40,8 @@ public static class PetShowcase
     /// <summary>
     /// Puts states in a random order, for a preview that does not play them the same way every time.
     /// </summary>
-    /// <param name="states">
-    /// The states to put in order; each comes out exactly once.
-    /// </param>
-    /// <param name="random">
-    /// The source of randomness.
-    /// </param>
+    /// <param name="states">The states to put in order; each comes out exactly once.</param>
+    /// <param name="random">The source of randomness.</param>
     /// <param name="first">
     /// A state that has to come first (if it is among <paramref name="states"/>), or <see langword="null"/> for none.
     /// </param>
@@ -55,9 +49,7 @@ public static class PetShowcase
     /// A state that must not come first (normally the one that was shown last, so it is not shown twice in a row), or
     /// <see langword="null"/> for none. Ignored when there is nothing else to put first.
     /// </param>
-    /// <returns>
-    /// The states in the new order.
-    /// </returns>
+    /// <returns>The states in the new order.</returns>
     public static IReadOnlyList<PetState> RandomOrder(IReadOnlyList<PetState> states, Random random, PetState? first = null, PetState? notFirst = null)
     {
         ArgumentNullException.ThrowIfNull(states);

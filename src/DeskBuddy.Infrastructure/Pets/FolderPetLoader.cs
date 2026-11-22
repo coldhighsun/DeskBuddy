@@ -9,9 +9,7 @@ namespace DeskBuddy.Infrastructure.Pets;
 /// <summary>
 /// Loads a pet from a folder containing a <c>manifest.json</c> and the atlas image that holds all its frames.
 /// </summary>
-/// <param name="logger">
-/// Logger used to report skipped or invalid manifest entries.
-/// </param>
+/// <param name="logger">Logger used to report skipped or invalid manifest entries.</param>
 public sealed class FolderPetLoader(ILogger<FolderPetLoader> logger) : IPetLoader
 {
     /// <summary>
@@ -125,21 +123,13 @@ public sealed class FolderPetLoader(ILogger<FolderPetLoader> logger) : IPetLoade
     /// Reads the atlas section of the manifest and checks the atlas image: it must be there, be a PNG, and have room for
     /// the columns of cells the manifest declares.
     /// </summary>
-    /// <param name="petDirectory">
-    /// Pet directory used to resolve the image.
-    /// </param>
-    /// <param name="dto">
-    /// The atlas section of the manifest.
-    /// </param>
+    /// <param name="petDirectory">Pet directory used to resolve the image.</param>
+    /// <param name="dto">The atlas section of the manifest.</param>
     /// <param name="frameSize">
     /// The frame size from the manifest as <c>[width, height]</c>, which the cell must have the proportions of.
     /// </param>
-    /// <param name="manifestPath">
-    /// Path of the manifest, used in error messages.
-    /// </param>
-    /// <returns>
-    /// The atlas.
-    /// </returns>
+    /// <param name="manifestPath">Path of the manifest, used in error messages.</param>
+    /// <returns>The atlas.</returns>
     private static Atlas ReadAtlas(string petDirectory, AtlasDto? dto, int[] frameSize, string manifestPath)
     {
         if (dto is not { Image: { Length: > 0 } image, Cell: { Length: 2 } cell } || cell[0] <= 0 || cell[1] <= 0)
@@ -186,12 +176,8 @@ public sealed class FolderPetLoader(ILogger<FolderPetLoader> logger) : IPetLoade
     /// <summary>
     /// Reads the size of a PNG image from its header, without decoding it.
     /// </summary>
-    /// <param name="path">
-    /// The PNG file.
-    /// </param>
-    /// <returns>
-    /// The width and the height in pixels.
-    /// </returns>
+    /// <param name="path">The PNG file.</param>
+    /// <returns>The width and the height in pixels.</returns>
     private static (int Width, int Height) ReadPngSize(string path)
     {
         // The signature (8 bytes), then the IHDR chunk: its length and name (8 bytes), then the width and the height.
@@ -221,18 +207,10 @@ public sealed class FolderPetLoader(ILogger<FolderPetLoader> logger) : IPetLoade
     /// <summary>
     /// Validates a manifest animation entry and works out where its frames are in the atlas.
     /// </summary>
-    /// <param name="atlas">
-    /// The atlas the frames are cells of.
-    /// </param>
-    /// <param name="stateName">
-    /// Name of the state, used in error messages.
-    /// </param>
-    /// <param name="animation">
-    /// The animation entry from the manifest.
-    /// </param>
-    /// <returns>
-    /// The resolved animation.
-    /// </returns>
+    /// <param name="atlas">The atlas the frames are cells of.</param>
+    /// <param name="stateName">Name of the state, used in error messages.</param>
+    /// <param name="animation">The animation entry from the manifest.</param>
+    /// <returns>The resolved animation.</returns>
     private static PetAnimation BuildAnimation(Atlas atlas, string stateName, AnimationDto? animation)
     {
         if (animation is not { Frames.Length: > 0 })
@@ -266,18 +244,10 @@ public sealed class FolderPetLoader(ILogger<FolderPetLoader> logger) : IPetLoade
     /// Reads the points where the pet holds on to its umbrella or parachute, given in the units of the frame size, and
     /// checks them: one or two points, each two numbers on the frame.
     /// </summary>
-    /// <param name="grips">
-    /// The points from the manifest.
-    /// </param>
-    /// <param name="frameSize">
-    /// The frame size from the manifest as <c>[width, height]</c>.
-    /// </param>
-    /// <param name="stateName">
-    /// Name of the state, used in error messages.
-    /// </param>
-    /// <returns>
-    /// The points as fractions of the frame.
-    /// </returns>
+    /// <param name="grips">The points from the manifest.</param>
+    /// <param name="frameSize">The frame size from the manifest as <c>[width, height]</c>.</param>
+    /// <param name="stateName">Name of the state, used in error messages.</param>
+    /// <returns>The points as fractions of the frame.</returns>
     private static List<FramePoint> ReadGrips(double[]?[] grips, int[] frameSize, string stateName)
     {
         if (grips.Length is < 1 or > Pet.MaxGlideGrips)
@@ -309,21 +279,11 @@ public sealed class FolderPetLoader(ILogger<FolderPetLoader> logger) : IPetLoade
     /// <summary>
     /// The atlas of a pet: one image that holds all its frames in a grid of equal cells.
     /// </summary>
-    /// <param name="Path">
-    /// The full path of the image.
-    /// </param>
-    /// <param name="CellWidth">
-    /// The width of a cell in pixels.
-    /// </param>
-    /// <param name="CellHeight">
-    /// The height of a cell in pixels.
-    /// </param>
-    /// <param name="Columns">
-    /// The number of cells in a row.
-    /// </param>
-    /// <param name="Rows">
-    /// The number of rows of cells that fit in the image.
-    /// </param>
+    /// <param name="Path">The full path of the image.</param>
+    /// <param name="CellWidth">The width of a cell in pixels.</param>
+    /// <param name="CellHeight">The height of a cell in pixels.</param>
+    /// <param name="Columns">The number of cells in a row.</param>
+    /// <param name="Rows">The number of rows of cells that fit in the image.</param>
     private sealed record Atlas(string Path, int CellWidth, int CellHeight, int Columns, int Rows);
 
     /// <summary>

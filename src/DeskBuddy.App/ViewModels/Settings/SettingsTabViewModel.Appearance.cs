@@ -59,12 +59,8 @@ public sealed partial class SettingsTabViewModel
     /// <summary>
     /// Gets the name of a language as the list of languages shows it.
     /// </summary>
-    /// <param name="language">
-    /// The language.
-    /// </param>
-    /// <returns>
-    /// The name, in the interface language now in use.
-    /// </returns>
+    /// <param name="language">The language.</param>
+    /// <returns>The name, in the interface language now in use.</returns>
     private static string LanguageLabel(AppLanguage language)
     {
         return language switch
@@ -79,12 +75,8 @@ public sealed partial class SettingsTabViewModel
     /// <summary>
     /// Gets the name of a theme as the list of themes shows it.
     /// </summary>
-    /// <param name="theme">
-    /// The theme.
-    /// </param>
-    /// <returns>
-    /// The name, in the interface language now in use.
-    /// </returns>
+    /// <param name="theme">The theme.</param>
+    /// <returns>The name, in the interface language now in use.</returns>
     private static string ThemeLabel(AppTheme theme)
     {
         return theme switch
@@ -98,9 +90,7 @@ public sealed partial class SettingsTabViewModel
     /// <summary>
     /// Applies the chosen theme; it takes effect at once.
     /// </summary>
-    /// <param name="value">
-    /// The theme.
-    /// </param>
+    /// <param name="value">The theme.</param>
     partial void OnSelectedThemeChanged(AppTheme value)
     {
         if (!_refreshing)
@@ -112,9 +102,7 @@ public sealed partial class SettingsTabViewModel
     /// <summary>
     /// Applies the chosen pet size.
     /// </summary>
-    /// <param name="value">
-    /// The size.
-    /// </param>
+    /// <param name="value">The size.</param>
     partial void OnSelectedSizeChanged(PetSize value)
     {
         UpdateSizeChoices(_editor.Draft.PetName);
@@ -127,9 +115,7 @@ public sealed partial class SettingsTabViewModel
     /// <summary>
     /// Chooses a size, which is applied at once; what the size buttons of the tab do when they are pressed.
     /// </summary>
-    /// <param name="size">
-    /// The size.
-    /// </param>
+    /// <param name="size">The size.</param>
     [RelayCommand]
     private void ChooseSize(PetSize size)
     {
@@ -139,9 +125,7 @@ public sealed partial class SettingsTabViewModel
     /// <summary>
     /// Draws the sizes again, for the size chosen and the pet in use, if what they show has changed.
     /// </summary>
-    /// <param name="petName">
-    /// The folder name of the pet in use.
-    /// </param>
+    /// <param name="petName">The folder name of the pet in use.</param>
     private void UpdateSizeChoices(string petName)
     {
         var key = (petName, SelectedSize, PetsVersion: _pets?.Version ?? 0);
@@ -157,9 +141,7 @@ public sealed partial class SettingsTabViewModel
     /// <summary>
     /// Records the chosen language in the draft; it is applied when the settings are saved.
     /// </summary>
-    /// <param name="value">
-    /// The language.
-    /// </param>
+    /// <param name="value">The language.</param>
     partial void OnSelectedLanguageChanged(AppLanguage value)
     {
         if (!_refreshing)
@@ -171,12 +153,8 @@ public sealed partial class SettingsTabViewModel
     /// <summary>
     /// Draws the sizes again when the pets that can be chosen changed, as the pet in use may have just become known.
     /// </summary>
-    /// <param name="sender">
-    /// The event source.
-    /// </param>
-    /// <param name="e">
-    /// Event data.
-    /// </param>
+    /// <param name="sender">The event source.</param>
+    /// <param name="e">Event data.</param>
     private void OnPetsChanged(object? sender, EventArgs e)
     {
         // Only the pictures of the sizes depend on the pets; the rest of the tab may hold entries not applied yet.

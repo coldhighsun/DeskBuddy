@@ -11,9 +11,7 @@ internal static class PetLoadFailure
     /// <summary>
     /// Asks whether an exception means that a pet cannot be loaded or shown.
     /// </summary>
-    /// <param name="exception">
-    /// The exception.
-    /// </param>
+    /// <param name="exception">The exception.</param>
     /// <returns>
     /// <see langword="true"/> if the pet is at fault, so the caller can leave it out or keep the old one.
     /// </returns>

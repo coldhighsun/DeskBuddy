@@ -5,12 +5,8 @@ namespace DeskBuddy.Domain.Chatter;
 /// with some jitter), never the same one twice in a row, and only while the policy is enabled and the user is free to
 /// be spoken to.
 /// </summary>
-/// <param name="timeProvider">
-/// The time source.
-/// </param>
-/// <param name="random">
-/// The random source for the wait between remarks and for choosing one.
-/// </param>
+/// <param name="timeProvider">The time source.</param>
+/// <param name="random">The random source for the wait between remarks and for choosing one.</param>
 public sealed class ChatterPolicy(TimeProvider timeProvider, Random random)
 {
     /// <summary>

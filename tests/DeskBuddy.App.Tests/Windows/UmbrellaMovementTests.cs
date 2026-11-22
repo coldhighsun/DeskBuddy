@@ -14,12 +14,8 @@ public sealed class UmbrellaMovementTests
     /// <summary>
     /// Creates a window that has a handle but is never shown.
     /// </summary>
-    /// <param name="size">
-    /// Its width and height in device-independent pixels.
-    /// </param>
-    /// <returns>
-    /// The window.
-    /// </returns>
+    /// <param name="size">Its width and height in device-independent pixels.</param>
+    /// <returns>The window.</returns>
     private static Window CreateWindow(double size)
     {
         var window = new Window { Width = size, Height = size, ShowInTaskbar = false };

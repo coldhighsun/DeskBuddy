@@ -5,9 +5,7 @@ namespace DeskBuddy.App.Diagnostics;
 /// threshold, the thread is stalled. It knows nothing about threads or dispatchers, so the rules can be tested with a
 /// clock; <see cref="UiStallMonitor"/> does the posting. The watchdog thread and the UI thread both call it.
 /// </summary>
-/// <param name="threshold">
-/// How long a probe may go unanswered before the UI thread counts as stalled.
-/// </param>
+/// <param name="threshold">How long a probe may go unanswered before the UI thread counts as stalled.</param>
 public sealed class StallTracker(TimeSpan threshold)
 {
     /// <summary>
@@ -28,9 +26,7 @@ public sealed class StallTracker(TimeSpan threshold)
     /// <summary>
     /// Registers that a probe is about to be posted.
     /// </summary>
-    /// <param name="now">
-    /// The time.
-    /// </param>
+    /// <param name="now">The time.</param>
     /// <returns>
     /// <see langword="true"/> if the probe is to be posted; <see langword="false"/> if the previous one is still
     /// unanswered, in which case no second one piles up behind it.
@@ -52,9 +48,7 @@ public sealed class StallTracker(TimeSpan threshold)
     /// <summary>
     /// Asks whether the outstanding probe has gone unanswered for too long.
     /// </summary>
-    /// <param name="now">
-    /// The time.
-    /// </param>
+    /// <param name="now">The time.</param>
     /// <returns>
     /// How long the probe has been waiting, the first time that is longer than the threshold; <see langword="null"/>
     /// otherwise, including for a stall that was reported already, so one stall is reported once.
@@ -76,9 +70,7 @@ public sealed class StallTracker(TimeSpan threshold)
     /// <summary>
     /// Registers that the UI thread answered the outstanding probe.
     /// </summary>
-    /// <param name="now">
-    /// The time.
-    /// </param>
+    /// <param name="now">The time.</param>
     /// <returns>
     /// How long the probe was waiting if a stall was reported for it, so that the end of that stall can be reported;
     /// <see langword="null"/> if the thread answered in time.

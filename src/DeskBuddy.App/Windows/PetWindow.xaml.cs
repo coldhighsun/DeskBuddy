@@ -183,30 +183,14 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     /// <summary>
     /// Initializes a new instance of the <see cref="PetWindow"/> class.
     /// </summary>
-    /// <param name="pet">
-    /// The pet that determines the window size and animations.
-    /// </param>
-    /// <param name="frames">
-    /// Decoded frames for the pet.
-    /// </param>
-    /// <param name="brain">
-    /// The brain that decides what the pet does.
-    /// </param>
-    /// <param name="options">
-    /// Behavior tuning.
-    /// </param>
-    /// <param name="openPanel">
-    /// Opens the panel window; called on double-click and from the context menu.
-    /// </param>
-    /// <param name="movement">
-    /// Decides where the pet walks: along the taskbar line.
-    /// </param>
-    /// <param name="switches">
-    /// Which scenarios the user has switched on.
-    /// </param>
-    /// <param name="size">
-    /// How large the pet is shown at first.
-    /// </param>
+    /// <param name="pet">The pet that determines the window size and animations.</param>
+    /// <param name="frames">Decoded frames for the pet.</param>
+    /// <param name="brain">The brain that decides what the pet does.</param>
+    /// <param name="options">Behavior tuning.</param>
+    /// <param name="openPanel">Opens the panel window; called on double-click and from the context menu.</param>
+    /// <param name="movement">Decides where the pet walks: along the taskbar line.</param>
+    /// <param name="switches">Which scenarios the user has switched on.</param>
+    /// <param name="size">How large the pet is shown at first.</param>
     public PetWindow(
         Pet pet,
         PetFrameCache frames,
@@ -305,12 +289,8 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     /// Replaces the pet while the window is showing. A new pet is a new pet: whatever the old one was doing is over,
     /// and the new one starts on the ground at a random spot of a monitor picked at random.
     /// </summary>
-    /// <param name="pet">
-    /// The new pet.
-    /// </param>
-    /// <param name="frames">
-    /// Decoded frames of the new pet.
-    /// </param>
+    /// <param name="pet">The new pet.</param>
+    /// <param name="frames">Decoded frames of the new pet.</param>
     public void SetPet(Pet pet, PetFrameCache frames)
     {
         ArgumentNullException.ThrowIfNull(pet);
@@ -355,9 +335,7 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     /// <summary>
     /// Shows the pet at another size, keeping its bottom edge in place.
     /// </summary>
-    /// <param name="size">
-    /// The new size.
-    /// </param>
+    /// <param name="size">The new size.</param>
     public void SetSize(PetSize size)
     {
         if (size == _size)
@@ -386,12 +364,8 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     /// Configures the native window once its handle exists: transparent composition target, tool-window style,
     /// no DWM border, and the hit-test hook that makes transparent pixels click-through.
     /// </summary>
-    /// <param name="sender">
-    /// The event source.
-    /// </param>
-    /// <param name="e">
-    /// Event data.
-    /// </param>
+    /// <param name="sender">The event source.</param>
+    /// <param name="e">Event data.</param>
     private void OnSourceInitialized(object? sender, EventArgs e)
     {
         var source = HwndSource.FromHwnd(new WindowInteropHelper(this).Handle)!;
@@ -406,24 +380,12 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     /// Window procedure hook: answers <c>WM_NCHITTEST</c> so mouse events over transparent pixels reach the window
     /// underneath, while events over the pet itself are handled here.
     /// </summary>
-    /// <param name="hwnd">
-    /// Window handle.
-    /// </param>
-    /// <param name="msg">
-    /// Window message.
-    /// </param>
-    /// <param name="wParam">
-    /// Message <c>wParam</c>.
-    /// </param>
-    /// <param name="lParam">
-    /// Message <c>lParam</c>.
-    /// </param>
-    /// <param name="handled">
-    /// Set to <see langword="true"/> when the message was processed.
-    /// </param>
-    /// <returns>
-    /// The hit-test result for <c>WM_NCHITTEST</c>; otherwise zero.
-    /// </returns>
+    /// <param name="hwnd">Window handle.</param>
+    /// <param name="msg">Window message.</param>
+    /// <param name="wParam">Message <c>wParam</c>.</param>
+    /// <param name="lParam">Message <c>lParam</c>.</param>
+    /// <param name="handled">Set to <see langword="true"/> when the message was processed.</param>
+    /// <returns>The hit-test result for <c>WM_NCHITTEST</c>; otherwise zero.</returns>
     private nint WndProc(nint hwnd, int msg, nint wParam, nint lParam, ref bool handled)
     {
         if (WindowStyleHelper.IsScreenLayoutChange(msg, wParam))
@@ -480,9 +442,7 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     /// <summary>
     /// Says in a line what the pet window is doing, for the log of UI stalls. Call it on the UI thread.
     /// </summary>
-    /// <returns>
-    /// The state shown, what the brain wants, and which timers and movements are running.
-    /// </returns>
+    /// <returns>The state shown, what the brain wants, and which timers and movements are running.</returns>
     internal string Describe()
     {
         return string.Create(
@@ -495,12 +455,8 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     /// <summary>
     /// Tells <see cref="TickTimed"/> how long a tick took.
     /// </summary>
-    /// <param name="tick">
-    /// Which timer ticked.
-    /// </param>
-    /// <param name="startedAt">
-    /// The <see cref="Stopwatch.GetTimestamp"/> from the start of the tick.
-    /// </param>
+    /// <param name="tick">Which timer ticked.</param>
+    /// <param name="startedAt">The <see cref="Stopwatch.GetTimestamp"/> from the start of the tick.</param>
     private void ReportTick(string tick, long startedAt)
     {
         TickTimed?.Invoke(tick, Stopwatch.GetElapsedTime(startedAt));

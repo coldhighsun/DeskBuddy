@@ -54,18 +54,10 @@ public sealed class CrashGuard
     /// <summary>
     /// Initializes a new instance of the <see cref="CrashGuard"/> class.
     /// </summary>
-    /// <param name="logger">
-    /// Where the errors are logged.
-    /// </param>
-    /// <param name="time">
-    /// The clock.
-    /// </param>
-    /// <param name="notifyUser">
-    /// Tells the user that something went wrong.
-    /// </param>
-    /// <param name="flushLogs">
-    /// Writes pending log entries to disk.
-    /// </param>
+    /// <param name="logger">Where the errors are logged.</param>
+    /// <param name="time">The clock.</param>
+    /// <param name="notifyUser">Tells the user that something went wrong.</param>
+    /// <param name="flushLogs">Writes pending log entries to disk.</param>
     public CrashGuard(ILogger logger, TimeProvider time, Action notifyUser, Action flushLogs)
     {
         _logger = logger;
@@ -77,9 +69,7 @@ public sealed class CrashGuard
     /// <summary>
     /// Handles an error that escaped on the UI thread.
     /// </summary>
-    /// <param name="exception">
-    /// The error.
-    /// </param>
+    /// <param name="exception">The error.</param>
     /// <returns>
     /// <see langword="true"/> if the application should carry on; <see langword="false"/> if it should be allowed to
     /// terminate because errors keep coming.
@@ -126,9 +116,7 @@ public sealed class CrashGuard
     /// <summary>
     /// Handles the error of a task nobody awaited.
     /// </summary>
-    /// <param name="exception">
-    /// The error.
-    /// </param>
+    /// <param name="exception">The error.</param>
     public void HandleUnobservedTask(Exception exception)
     {
         _logger.LogWarning(exception, "A task failed and nobody observed it.");

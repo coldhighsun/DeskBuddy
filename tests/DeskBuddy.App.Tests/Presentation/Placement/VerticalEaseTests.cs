@@ -9,12 +9,8 @@ public class VerticalEaseTests
     /// A target lower down on the screen is a drop, one higher up a rise, and one within the tolerance no change at all,
     /// so that the rounding of positions to device pixels is not taken for a different taskbar line.
     /// </summary>
-    /// <param name="target">
-    /// The height to go to.
-    /// </param>
-    /// <param name="expected">
-    /// The expected kind of change.
-    /// </param>
+    /// <param name="target">The height to go to.</param>
+    /// <param name="expected">The expected kind of change.</param>
     [Theory]
     [InlineData(100, VerticalChange.None)]
     [InlineData(100.4, VerticalChange.None)]
@@ -36,12 +32,8 @@ public class VerticalEaseTests
     /// <summary>
     /// A target within reach is reached at once.
     /// </summary>
-    /// <param name="current">
-    /// The height now.
-    /// </param>
-    /// <param name="target">
-    /// The height to go to.
-    /// </param>
+    /// <param name="current">The height now.</param>
+    /// <param name="target">The height to go to.</param>
     [Theory]
     [InlineData(100, 110)]
     [InlineData(110, 100)]
@@ -59,9 +51,7 @@ public class VerticalEaseTests
     /// A step that is not positive means no easing: the target is given at once, instead of the height standing still or
     /// moving away from it.
     /// </summary>
-    /// <param name="maxStep">
-    /// The largest step.
-    /// </param>
+    /// <param name="maxStep">The largest step.</param>
     [Theory]
     [InlineData(0)]
     [InlineData(-10)]
@@ -77,12 +67,8 @@ public class VerticalEaseTests
     /// <summary>
     /// A target out of reach is approached by exactly the largest step, down or up.
     /// </summary>
-    /// <param name="target">
-    /// The height to go to.
-    /// </param>
-    /// <param name="expected">
-    /// The expected height after the step.
-    /// </param>
+    /// <param name="target">The height to go to.</param>
+    /// <param name="expected">The expected height after the step.</param>
     [Theory]
     [InlineData(500, 110)]
     [InlineData(-300, 90)]

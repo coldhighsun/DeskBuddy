@@ -108,15 +108,9 @@ public class PetPlacementTests
     /// Left and Top for a spot are worked out with the scaling of the window, not that of the spot's monitor, because the
     /// window turns them into device pixels with its own.
     /// </summary>
-    /// <param name="windowScale">
-    /// The scaling of the window.
-    /// </param>
-    /// <param name="expectedLeft">
-    /// The expected left edge in device-independent pixels.
-    /// </param>
-    /// <param name="expectedTop">
-    /// The expected top edge in device-independent pixels.
-    /// </param>
+    /// <param name="windowScale">The scaling of the window.</param>
+    /// <param name="expectedLeft">The expected left edge in device-independent pixels.</param>
+    /// <param name="expectedTop">The expected top edge in device-independent pixels.</param>
     [Theory]
     [InlineData(1, 300, 200)]
     [InlineData(1.5, 200, 400.0 / 3)]

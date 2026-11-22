@@ -131,12 +131,8 @@ public sealed class RegistryAutoStartService : IAutoStartService
     /// <summary>
     /// Wraps a path in quotes so a path with spaces is read as one program name.
     /// </summary>
-    /// <param name="path">
-    /// The path to wrap.
-    /// </param>
-    /// <returns>
-    /// The quoted path.
-    /// </returns>
+    /// <param name="path">The path to wrap.</param>
+    /// <returns>The quoted path.</returns>
     private static string Quote(string path)
     {
         return $"\"{path}\"";

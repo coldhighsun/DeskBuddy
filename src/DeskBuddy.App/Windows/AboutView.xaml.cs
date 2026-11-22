@@ -54,12 +54,8 @@ public partial class AboutView
     /// <summary>
     /// Starts listening for a change of the interface language, and writes the texts in the language now in use.
     /// </summary>
-    /// <param name="sender">
-    /// The view.
-    /// </param>
-    /// <param name="e">
-    /// Event data.
-    /// </param>
+    /// <param name="sender">The view.</param>
+    /// <param name="e">Event data.</param>
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         LocalizedStrings.Instance.LanguageChanged -= OnLanguageChanged;
@@ -71,12 +67,8 @@ public partial class AboutView
     /// <summary>
     /// Stops listening for a change of the interface language.
     /// </summary>
-    /// <param name="sender">
-    /// The view.
-    /// </param>
-    /// <param name="e">
-    /// Event data.
-    /// </param>
+    /// <param name="sender">The view.</param>
+    /// <param name="e">Event data.</param>
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
         LocalizedStrings.Instance.LanguageChanged -= OnLanguageChanged;
@@ -93,12 +85,8 @@ public partial class AboutView
     /// <summary>
     /// Writes the texts the view sets itself in the new interface language.
     /// </summary>
-    /// <param name="sender">
-    /// The event source.
-    /// </param>
-    /// <param name="e">
-    /// Event data.
-    /// </param>
+    /// <param name="sender">The event source.</param>
+    /// <param name="e">Event data.</param>
     private void OnLanguageChanged(object? sender, EventArgs e)
     {
         ShowVersion();
@@ -112,9 +100,7 @@ public partial class AboutView
     /// <param name="updates">
     /// Looks for updates; <see langword="null"/> leaves out the button that checks for them.
     /// </param>
-    /// <param name="logger">
-    /// Reports what went wrong; <see langword="null"/> reports nothing.
-    /// </param>
+    /// <param name="logger">Reports what went wrong; <see langword="null"/> reports nothing.</param>
     internal void Attach(UpdateController? updates, ILogger? logger = null)
     {
         _updates = updates;
@@ -147,12 +133,8 @@ public partial class AboutView
     /// <summary>
     /// Updates the status text when the update controller changed.
     /// </summary>
-    /// <param name="sender">
-    /// The update controller.
-    /// </param>
-    /// <param name="e">
-    /// Event data.
-    /// </param>
+    /// <param name="sender">The update controller.</param>
+    /// <param name="e">Event data.</param>
     private void OnUpdatesChanged(object? sender, EventArgs e)
     {
         ShowUpdateStatus();
@@ -161,12 +143,8 @@ public partial class AboutView
     /// <summary>
     /// Looks for a newer version, and asks whether to install it if there is one.
     /// </summary>
-    /// <param name="sender">
-    /// The button.
-    /// </param>
-    /// <param name="e">
-    /// Event data.
-    /// </param>
+    /// <param name="sender">The button.</param>
+    /// <param name="e">Event data.</param>
     private async void OnCheckUpdatesClick(object sender, RoutedEventArgs e)
     {
         if (_updates is null)
@@ -187,9 +165,7 @@ public partial class AboutView
     /// <summary>
     /// Loads the largest picture of the application icon, so that it stays sharp on high-DPI screens.
     /// </summary>
-    /// <returns>
-    /// The largest frame of the icon, frozen.
-    /// </returns>
+    /// <returns>The largest frame of the icon, frozen.</returns>
     private static BitmapSource LoadLargestIconFrame()
     {
         var decoder = new IconBitmapDecoder(
@@ -204,12 +180,8 @@ public partial class AboutView
     /// <summary>
     /// Opens the address of the clicked link in the default browser.
     /// </summary>
-    /// <param name="sender">
-    /// The link.
-    /// </param>
-    /// <param name="e">
-    /// Navigation event data.
-    /// </param>
+    /// <param name="sender">The link.</param>
+    /// <param name="e">Navigation event data.</param>
     private void OnProjectLinkRequestNavigate(object sender, RequestNavigateEventArgs e)
     {
         e.Handled = true;

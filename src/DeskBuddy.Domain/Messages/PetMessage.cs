@@ -42,21 +42,11 @@ public enum MessageAction
 /// <summary>
 /// A short notice the pet shows in a speech bubble. Carries data, not text: wording lives in the UI layer.
 /// </summary>
-/// <param name="Kind">
-/// What the message is about.
-/// </param>
-/// <param name="Actions">
-/// The actions offered to the user, in display order.
-/// </param>
-/// <param name="Duration">
-/// A duration the text refers to, for example how long the user has been working.
-/// </param>
-/// <param name="Count">
-/// A count the text refers to, for example which remark to show.
-/// </param>
-/// <param name="Lifetime">
-/// How long the message stays up; <see langword="null"/> for the queue's default.
-/// </param>
+/// <param name="Kind">What the message is about.</param>
+/// <param name="Actions">The actions offered to the user, in display order.</param>
+/// <param name="Duration">A duration the text refers to, for example how long the user has been working.</param>
+/// <param name="Count">A count the text refers to, for example which remark to show.</param>
+/// <param name="Lifetime">How long the message stays up; <see langword="null"/> for the queue's default.</param>
 public sealed record PetMessage(
     PetMessageKind Kind,
     IReadOnlyList<MessageAction> Actions,

@@ -88,9 +88,7 @@ public sealed class PetPreviewFrames : IDisposable
     /// <summary>
     /// Initializes a new instance of the <see cref="PetPreviewFrames"/> class that decodes image files in its own way.
     /// </summary>
-    /// <param name="load">
-    /// Decodes an image file.
-    /// </param>
+    /// <param name="load">Decodes an image file.</param>
     internal PetPreviewFrames(Func<string, BitmapSource> load)
     {
         ArgumentNullException.ThrowIfNull(load);
@@ -105,9 +103,7 @@ public sealed class PetPreviewFrames : IDisposable
     /// The name of the picture: a file path, with the area of the file if the picture is only a part of it (see
     /// <see cref="FrameId"/>).
     /// </param>
-    /// <returns>
-    /// The frozen picture, or <see langword="null"/> if the file cannot be read as an image.
-    /// </returns>
+    /// <returns>The frozen picture, or <see langword="null"/> if the file cannot be read as an image.</returns>
     public ImageSource? Get(string path)
     {
         lock (_gate)
@@ -129,9 +125,7 @@ public sealed class PetPreviewFrames : IDisposable
     /// WPF dispatcher alive for every pool thread it decodes on. A picture that cannot be read is left as a gap, as
     /// <see cref="Get"/> does; one that failed before is tried again.
     /// </summary>
-    /// <param name="paths">
-    /// The names of the pictures.
-    /// </param>
+    /// <param name="paths">The names of the pictures.</param>
     /// <returns>
     /// A task that completes when the pictures are ready; it completes at once if they all are already.
     /// </returns>
@@ -227,12 +221,8 @@ public sealed class PetPreviewFrames : IDisposable
     /// <see cref="PetLoadFailure.Is"/> counts as a pet that cannot be used, and the one WPF raises for an image it cannot
     /// make sense of.
     /// </summary>
-    /// <param name="exception">
-    /// The exception.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> if the file is at fault.
-    /// </returns>
+    /// <param name="exception">The exception.</param>
+    /// <returns><see langword="true"/> if the file is at fault.</returns>
     internal static bool IsUnreadable(Exception exception)
     {
         return PetLoadFailure.Is(exception) || exception is InvalidOperationException;
@@ -290,12 +280,8 @@ public sealed class PetPreviewFrames : IDisposable
     /// <summary>
     /// Decodes an image file ahead of cutting its pictures out, noting it as unreadable if it cannot be.
     /// </summary>
-    /// <param name="file">
-    /// The path of the file.
-    /// </param>
-    /// <returns>
-    /// The image, or <see langword="null"/> if it cannot be read.
-    /// </returns>
+    /// <param name="file">The path of the file.</param>
+    /// <returns>The image, or <see langword="null"/> if it cannot be read.</returns>
     private BitmapSource? HoldFile(string file)
     {
         try
@@ -322,12 +308,8 @@ public sealed class PetPreviewFrames : IDisposable
     /// <summary>
     /// Cuts a picture out of its file and remembers it.
     /// </summary>
-    /// <param name="path">
-    /// The name of the picture.
-    /// </param>
-    /// <returns>
-    /// The picture, or <see langword="null"/> if it cannot be read.
-    /// </returns>
+    /// <param name="path">The name of the picture.</param>
+    /// <returns>The picture, or <see langword="null"/> if it cannot be read.</returns>
     private BitmapSource? Cut(string path)
     {
         var (file, _) = FrameId.Parse(path);
@@ -362,15 +344,9 @@ public sealed class PetPreviewFrames : IDisposable
     /// another thread has cut the picture out meanwhile, that one is kept and returned, and a failure never replaces a
     /// picture, though a picture replaces a failure.
     /// </summary>
-    /// <param name="path">
-    /// The name of the picture.
-    /// </param>
-    /// <param name="picture">
-    /// The picture, or <see langword="null"/> if it could not be read.
-    /// </param>
-    /// <returns>
-    /// The picture that is kept for the name, or <see langword="null"/> if there is none.
-    /// </returns>
+    /// <param name="path">The name of the picture.</param>
+    /// <param name="picture">The picture, or <see langword="null"/> if it could not be read.</param>
+    /// <returns>The picture that is kept for the name, or <see langword="null"/> if there is none.</returns>
     internal BitmapSource? Remember(string path, BitmapSource? picture)
     {
         lock (_gate)
@@ -388,12 +364,8 @@ public sealed class PetPreviewFrames : IDisposable
     /// <summary>
     /// Gets a decoded image file, decoding it if it has not been decoded yet or was collected since.
     /// </summary>
-    /// <param name="file">
-    /// The path of the file.
-    /// </param>
-    /// <returns>
-    /// The image.
-    /// </returns>
+    /// <param name="file">The path of the file.</param>
+    /// <returns>The image.</returns>
     private BitmapSource LoadFile(string file)
     {
         if (TryGetLive(file) is { } alive)
@@ -423,12 +395,8 @@ public sealed class PetPreviewFrames : IDisposable
     /// <summary>
     /// Gets a decoded image file if it has been decoded and not collected since.
     /// </summary>
-    /// <param name="file">
-    /// The path of the file.
-    /// </param>
-    /// <returns>
-    /// The image, or <see langword="null"/> if there is none.
-    /// </returns>
+    /// <param name="file">The path of the file.</param>
+    /// <returns>The image, or <see langword="null"/> if there is none.</returns>
     private BitmapSource? TryGetLive(string file)
     {
         lock (_gate)

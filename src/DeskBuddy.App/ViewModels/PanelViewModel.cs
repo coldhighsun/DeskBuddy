@@ -3,12 +3,8 @@ namespace DeskBuddy.App.ViewModels;
 /// <summary>
 /// Groups the view models of the panel window's tabs.
 /// </summary>
-/// <param name="Settings">
-/// The settings tab.
-/// </param>
-/// <param name="Pets">
-/// The pets tab.
-/// </param>
+/// <param name="Settings">The settings tab.</param>
+/// <param name="Pets">The pets tab.</param>
 public sealed record PanelViewModel(
     SettingsTabViewModel Settings,
     PetsTabViewModel Pets);

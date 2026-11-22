@@ -11,9 +11,7 @@ public static class GazeTracker
     /// <param name="deltaX">
     /// How far the pointer is to the right of the pet centre (negative: to the left), in any unit.
     /// </param>
-    /// <param name="deltaY">
-    /// How far the pointer is below the pet centre (negative: above), in the same unit.
-    /// </param>
+    /// <param name="deltaY">How far the pointer is below the pet centre (negative: above), in the same unit.</param>
     /// <param name="deadZone">
     /// The distance, in the same unit, within which the pointer counts as right in front of the pet.
     /// </param>
@@ -38,12 +36,8 @@ public static class GazeTracker
     /// <summary>
     /// Turns a direction around left to right, for a sprite that is drawn mirrored.
     /// </summary>
-    /// <param name="direction">
-    /// The direction on the screen.
-    /// </param>
-    /// <returns>
-    /// The direction to look for in the unmirrored drawing.
-    /// </returns>
+    /// <param name="direction">The direction on the screen.</param>
+    /// <returns>The direction to look for in the unmirrored drawing.</returns>
     public static GazeDirection Mirror(GazeDirection direction)
     {
         return direction switch

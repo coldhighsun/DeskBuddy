@@ -177,9 +177,7 @@ public sealed record PetSettings
     /// <c>.exe</c> and de-duplicated ignoring case; see <see cref="ProcessListRules.Enforce"/> for what
     /// is done about names a list must not hold.
     /// </summary>
-    /// <returns>
-    /// The normalized settings.
-    /// </returns>
+    /// <returns>The normalized settings.</returns>
     public PetSettings Normalize()
     {
         var defaults = Default;
@@ -208,12 +206,8 @@ public sealed record PetSettings
     /// <summary>
     /// Cleans up a list of scenario names.
     /// </summary>
-    /// <param name="names">
-    /// The names as stored, possibly <see langword="null"/>.
-    /// </param>
-    /// <returns>
-    /// The distinct names of known scenarios in their canonical spelling; unknown ones are dropped.
-    /// </returns>
+    /// <param name="names">The names as stored, possibly <see langword="null"/>.</param>
+    /// <returns>The distinct names of known scenarios in their canonical spelling; unknown ones are dropped.</returns>
     private static string[] NormalizeScenarioNames(IReadOnlyList<string>? names)
     {
         if (names is null)
@@ -235,12 +229,8 @@ public sealed record PetSettings
     /// Cleans up a pet name. The name is used as a folder name under the pets folder, so one that is empty or could
     /// point anywhere else (a path, <c>..</c>, characters not allowed in a file name) is replaced by the default pet.
     /// </summary>
-    /// <param name="name">
-    /// The name as stored.
-    /// </param>
-    /// <returns>
-    /// The trimmed name, or <see cref="DefaultPetName"/> if it is not a plain folder name.
-    /// </returns>
+    /// <param name="name">The name as stored.</param>
+    /// <returns>The trimmed name, or <see cref="DefaultPetName"/> if it is not a plain folder name.</returns>
     private static string NormalizePetName(string? name)
     {
         var trimmed = name?.Trim();
@@ -258,18 +248,10 @@ public sealed record PetSettings
     /// <summary>
     /// Limits a duration to a range.
     /// </summary>
-    /// <param name="value">
-    /// The duration.
-    /// </param>
-    /// <param name="min">
-    /// The lower bound.
-    /// </param>
-    /// <param name="max">
-    /// The upper bound.
-    /// </param>
-    /// <returns>
-    /// The duration, moved to the nearest bound if it was outside.
-    /// </returns>
+    /// <param name="value">The duration.</param>
+    /// <param name="min">The lower bound.</param>
+    /// <param name="max">The upper bound.</param>
+    /// <returns>The duration, moved to the nearest bound if it was outside.</returns>
     private static TimeSpan Clamp(TimeSpan value, TimeSpan min, TimeSpan max)
     {
         return value < min ? min : value > max ? max : value;
@@ -278,12 +260,8 @@ public sealed record PetSettings
     /// <summary>
     /// Cleans up a list of process names.
     /// </summary>
-    /// <param name="names">
-    /// The names as entered, possibly <see langword="null"/>.
-    /// </param>
-    /// <returns>
-    /// The distinct, non-blank names without surrounding spaces or <c>.exe</c>.
-    /// </returns>
+    /// <param name="names">The names as entered, possibly <see langword="null"/>.</param>
+    /// <returns>The distinct, non-blank names without surrounding spaces or <c>.exe</c>.</returns>
     internal static string[] NormalizeProcessNames(IReadOnlyList<string>? names)
     {
         if (names is null)

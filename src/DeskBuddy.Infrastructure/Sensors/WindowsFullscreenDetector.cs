@@ -10,9 +10,7 @@ namespace DeskBuddy.Infrastructure.Sensors;
 /// the user's settings can name processes that count as full screen whenever they are in front (meeting tools that
 /// do not report themselves) and turn on a check for any foreground window that covers a whole monitor.
 /// </summary>
-/// <param name="settings">
-/// The settings that hold the process list and the monitor-cover option.
-/// </param>
+/// <param name="settings">The settings that hold the process list and the monitor-cover option.</param>
 /// <param name="foregroundApp">
 /// Tells which process is in front; shared with the other sensors so its cache spares a lookup on every update.
 /// </param>
@@ -89,9 +87,7 @@ public sealed unsafe partial class WindowsFullscreenDetector(SettingsService set
     /// <param name="foregroundCoversMonitor">
     /// Whether the foreground window covers a whole monitor (only meaningful when the option is on).
     /// </param>
-    /// <param name="settings">
-    /// The current settings.
-    /// </param>
+    /// <param name="settings">The current settings.</param>
     /// <returns>
     /// <see cref="DoNotDisturbLevel.Fullscreen"/> for a full-screen or presenting application, a blacklisted process
     /// in front, or (if enabled) a window covering a monitor; <see cref="DoNotDisturbLevel.Quiet"/> for the remaining
@@ -129,15 +125,9 @@ public sealed unsafe partial class WindowsFullscreenDetector(SettingsService set
     /// does not: on a monitor without a taskbar (or with one that hides itself) it fills the screen, but the user is
     /// just working in it.
     /// </summary>
-    /// <param name="window">
-    /// The visible bounds of the window, in device pixels.
-    /// </param>
-    /// <param name="monitor">
-    /// The bounds of its monitor, in device pixels.
-    /// </param>
-    /// <param name="maximizedWithCaption">
-    /// Whether the window is maximized and has a title bar.
-    /// </param>
+    /// <param name="window">The visible bounds of the window, in device pixels.</param>
+    /// <param name="monitor">The bounds of its monitor, in device pixels.</param>
+    /// <param name="maximizedWithCaption">Whether the window is maximized and has a title bar.</param>
     /// <returns>
     /// <see langword="true"/> if the window is at least as large as its monitor and is not an ordinary maximized
     /// window.
@@ -162,9 +152,7 @@ public sealed unsafe partial class WindowsFullscreenDetector(SettingsService set
     /// Determines whether a window covers the whole of the monitor it is on. The desktop and the taskbar are not
     /// counted.
     /// </summary>
-    /// <param name="window">
-    /// The window handle.
-    /// </param>
+    /// <param name="window">The window handle.</param>
     /// <returns>
     /// <see langword="true"/> if the window counts as covering its monitor; see <see cref="IsCoveringMonitor"/>.
     /// </returns>
@@ -256,45 +244,27 @@ public sealed unsafe partial class WindowsFullscreenDetector(SettingsService set
     /// <summary>
     /// Queries the current notification state of the user's session.
     /// </summary>
-    /// <param name="state">
-    /// Receives the <c>QUERY_USER_NOTIFICATION_STATE</c> value.
-    /// </param>
-    /// <returns>
-    /// An HRESULT; zero on success.
-    /// </returns>
+    /// <param name="state">Receives the <c>QUERY_USER_NOTIFICATION_STATE</c> value.</param>
+    /// <returns>An HRESULT; zero on success.</returns>
     [LibraryImport("shell32.dll")]
     private static partial int SHQueryUserNotificationState(out int state);
 
     /// <summary>
     /// Reads an attribute of a window from the desktop window manager.
     /// </summary>
-    /// <param name="window">
-    /// The window handle.
-    /// </param>
-    /// <param name="attribute">
-    /// The <c>DWMWINDOWATTRIBUTE</c> to read.
-    /// </param>
-    /// <param name="value">
-    /// Receives the value.
-    /// </param>
-    /// <param name="size">
-    /// Size of <paramref name="value"/> in bytes.
-    /// </param>
-    /// <returns>
-    /// An HRESULT; zero on success.
-    /// </returns>
+    /// <param name="window">The window handle.</param>
+    /// <param name="attribute">The <c>DWMWINDOWATTRIBUTE</c> to read.</param>
+    /// <param name="value">Receives the value.</param>
+    /// <param name="size">Size of <paramref name="value"/> in bytes.</param>
+    /// <returns>An HRESULT; zero on success.</returns>
     [LibraryImport("dwmapi.dll")]
     private static partial int DwmGetWindowAttribute(nint window, int attribute, void* value, int size);
 
     /// <summary>
     /// Tells whether a window is maximized.
     /// </summary>
-    /// <param name="window">
-    /// The window handle.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> if it is maximized.
-    /// </returns>
+    /// <param name="window">The window handle.</param>
+    /// <returns><see langword="true"/> if it is maximized.</returns>
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool IsZoomed(nint window);
@@ -302,48 +272,28 @@ public sealed unsafe partial class WindowsFullscreenDetector(SettingsService set
     /// <summary>
     /// Reads a 32-bit value of a window, such as its style.
     /// </summary>
-    /// <param name="window">
-    /// The window handle.
-    /// </param>
-    /// <param name="index">
-    /// Which value to read, for example <see cref="GwlStyle"/>.
-    /// </param>
-    /// <returns>
-    /// The value, or zero on failure.
-    /// </returns>
+    /// <param name="window">The window handle.</param>
+    /// <param name="index">Which value to read, for example <see cref="GwlStyle"/>.</param>
+    /// <returns>The value, or zero on failure.</returns>
     [LibraryImport("user32.dll", EntryPoint = "GetWindowLongW")]
     private static partial int GetWindowLong(nint window, int index);
 
     /// <summary>
     /// Gets the class name of a window.
     /// </summary>
-    /// <param name="window">
-    /// The window handle.
-    /// </param>
-    /// <param name="className">
-    /// Receives the name.
-    /// </param>
-    /// <param name="maxCount">
-    /// Capacity of <paramref name="className"/>.
-    /// </param>
-    /// <returns>
-    /// The number of characters copied, or zero on failure.
-    /// </returns>
+    /// <param name="window">The window handle.</param>
+    /// <param name="className">Receives the name.</param>
+    /// <param name="maxCount">Capacity of <paramref name="className"/>.</param>
+    /// <returns>The number of characters copied, or zero on failure.</returns>
     [LibraryImport("user32.dll", EntryPoint = "GetClassNameW")]
     private static partial int GetClassName(nint window, char* className, int maxCount);
 
     /// <summary>
     /// Gets the bounds of a window in screen device pixels.
     /// </summary>
-    /// <param name="window">
-    /// The window handle.
-    /// </param>
-    /// <param name="rect">
-    /// Receives the bounds.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> on success.
-    /// </returns>
+    /// <param name="window">The window handle.</param>
+    /// <param name="rect">Receives the bounds.</param>
+    /// <returns><see langword="true"/> on success.</returns>
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool GetWindowRect(nint window, out NativeRect rect);
@@ -351,30 +301,18 @@ public sealed unsafe partial class WindowsFullscreenDetector(SettingsService set
     /// <summary>
     /// Gets the monitor that contains or is nearest to a window.
     /// </summary>
-    /// <param name="window">
-    /// The window handle.
-    /// </param>
-    /// <param name="flags">
-    /// Fallback behavior when the window is on no monitor; zero returns no monitor.
-    /// </param>
-    /// <returns>
-    /// The monitor handle, or zero.
-    /// </returns>
+    /// <param name="window">The window handle.</param>
+    /// <param name="flags">Fallback behavior when the window is on no monitor; zero returns no monitor.</param>
+    /// <returns>The monitor handle, or zero.</returns>
     [LibraryImport("user32.dll")]
     private static partial nint MonitorFromWindow(nint window, uint flags);
 
     /// <summary>
     /// Retrieves information about a monitor.
     /// </summary>
-    /// <param name="monitor">
-    /// Monitor handle.
-    /// </param>
-    /// <param name="info">
-    /// Receives the information; <see cref="MonitorInfo.Size"/> must be set by the caller.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> on success.
-    /// </returns>
+    /// <param name="monitor">Monitor handle.</param>
+    /// <param name="info">Receives the information; <see cref="MonitorInfo.Size"/> must be set by the caller.</param>
+    /// <returns><see langword="true"/> on success.</returns>
     [LibraryImport("user32.dll", EntryPoint = "GetMonitorInfoW")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool GetMonitorInfo(nint monitor, ref MonitorInfo info);

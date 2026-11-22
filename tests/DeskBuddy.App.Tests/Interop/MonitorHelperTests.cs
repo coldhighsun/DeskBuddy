@@ -98,12 +98,8 @@ public class MonitorHelperTests
     /// <summary>
     /// Reads a system metric.
     /// </summary>
-    /// <param name="index">
-    /// The metric to read.
-    /// </param>
-    /// <returns>
-    /// The value of the metric.
-    /// </returns>
+    /// <param name="index">The metric to read.</param>
+    /// <returns>The value of the metric.</returns>
     [DllImport("user32.dll")]
     private static extern int GetSystemMetrics(int index);
 }

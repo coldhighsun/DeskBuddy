@@ -108,12 +108,8 @@ public sealed class UpdateDialogTests : IDisposable
     /// <summary>
     /// Finds a newer release on the stub, which is the only way to get hold of an update to offer.
     /// </summary>
-    /// <param name="assetName">
-    /// The file name of the one asset of the release.
-    /// </param>
-    /// <returns>
-    /// The controller that found it and the update.
-    /// </returns>
+    /// <param name="assetName">The file name of the one asset of the release.</param>
+    /// <returns>The controller that found it and the update.</returns>
     private async Task<(UpdateController Controller, AvailableUpdate Update)> FindUpdateAsync(string assetName)
     {
         _handler.Respond(HttpStatusCode.OK, ReleaseJson("v0.2.0", assetName, digest: InstallerDigest));
@@ -132,15 +128,9 @@ public sealed class UpdateDialogTests : IDisposable
     /// <summary>
     /// Reads the text of a named text block of the dialog.
     /// </summary>
-    /// <param name="dialog">
-    /// The dialog.
-    /// </param>
-    /// <param name="name">
-    /// The name of the text block in the XAML.
-    /// </param>
-    /// <returns>
-    /// Its text.
-    /// </returns>
+    /// <param name="dialog">The dialog.</param>
+    /// <param name="name">The name of the text block in the XAML.</param>
+    /// <returns>Its text.</returns>
     private static string Text(Window dialog, string name)
     {
         return ((System.Windows.Controls.TextBlock)dialog.FindName(name)).Text;
@@ -149,15 +139,9 @@ public sealed class UpdateDialogTests : IDisposable
     /// <summary>
     /// Reads the visibility of a named element of the dialog.
     /// </summary>
-    /// <param name="dialog">
-    /// The dialog.
-    /// </param>
-    /// <param name="name">
-    /// The name of the element in the XAML.
-    /// </param>
-    /// <returns>
-    /// Its visibility.
-    /// </returns>
+    /// <param name="dialog">The dialog.</param>
+    /// <param name="name">The name of the element in the XAML.</param>
+    /// <returns>Its visibility.</returns>
     private static Visibility Visibility(Window dialog, string name)
     {
         return ((UIElement)dialog.FindName(name)).Visibility;

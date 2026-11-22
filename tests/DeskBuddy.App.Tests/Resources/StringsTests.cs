@@ -118,9 +118,7 @@ public class StringsTests : IDisposable
     /// <summary>
     /// Every scenario has a short name and an explanation in both interface languages, and the name is the shorter one.
     /// </summary>
-    /// <param name="culture">
-    /// The interface language.
-    /// </param>
+    /// <param name="culture">The interface language.</param>
     [Theory]
     [InlineData("en")]
     [InlineData("zh-CN")]

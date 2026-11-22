@@ -54,24 +54,12 @@ public sealed class PetSwitcher : IDisposable
     /// <summary>
     /// Initializes a new instance of the <see cref="PetSwitcher"/> class and starts following the settings.
     /// </summary>
-    /// <param name="settings">
-    /// The settings that name the pet.
-    /// </param>
-    /// <param name="loader">
-    /// Loads a pet from its folder.
-    /// </param>
-    /// <param name="catalog">
-    /// Tells which folder each pet is loaded from.
-    /// </param>
-    /// <param name="currentName">
-    /// The name of the pet on screen at the start.
-    /// </param>
-    /// <param name="apply">
-    /// Puts a loaded pet on screen; may throw if its images cannot be decoded.
-    /// </param>
-    /// <param name="logger">
-    /// Logger used to report a pet that could not be switched to.
-    /// </param>
+    /// <param name="settings">The settings that name the pet.</param>
+    /// <param name="loader">Loads a pet from its folder.</param>
+    /// <param name="catalog">Tells which folder each pet is loaded from.</param>
+    /// <param name="currentName">The name of the pet on screen at the start.</param>
+    /// <param name="apply">Puts a loaded pet on screen; may throw if its images cannot be decoded.</param>
+    /// <param name="logger">Logger used to report a pet that could not be switched to.</param>
     /// <param name="prepare">
     /// Does the slow part of getting a pet ready before it is put on screen, off the caller's thread if it can; may throw
     /// like <paramref name="apply"/> if the images cannot be decoded. <see langword="null"/> if there is nothing to prepare.
@@ -118,12 +106,8 @@ public sealed class PetSwitcher : IDisposable
     /// Switches to a pet if it is not the one on screen. A failure is reported through <see cref="SwitchFailed"/> and
     /// the setting is put back to the pet on screen.
     /// </summary>
-    /// <param name="name">
-    /// The pet's folder name.
-    /// </param>
-    /// <returns>
-    /// A task that completes when the switch has been made or has failed.
-    /// </returns>
+    /// <param name="name">The pet's folder name.</param>
+    /// <returns>A task that completes when the switch has been made or has failed.</returns>
     public async Task SwitchAsync(string name)
     {
         if (string.Equals(name, _requestedName, StringComparison.Ordinal))
@@ -173,12 +157,8 @@ public sealed class PetSwitcher : IDisposable
     /// <summary>
     /// Follows a change of the pet name in the settings.
     /// </summary>
-    /// <param name="sender">
-    /// The event source.
-    /// </param>
-    /// <param name="settings">
-    /// The new settings.
-    /// </param>
+    /// <param name="sender">The event source.</param>
+    /// <param name="settings">The new settings.</param>
     private async void OnSettingsChanged(object? sender, PetSettings settings)
     {
         await SwitchAsync(settings.PetName);
@@ -187,9 +167,7 @@ public sealed class PetSwitcher : IDisposable
     /// <summary>
     /// Puts the pet name in the settings back to the pet on screen.
     /// </summary>
-    /// <returns>
-    /// A task that completes when the setting has been restored.
-    /// </returns>
+    /// <returns>A task that completes when the setting has been restored.</returns>
     private async Task RestoreSettingAsync()
     {
         try

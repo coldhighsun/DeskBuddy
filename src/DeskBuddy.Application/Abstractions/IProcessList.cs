@@ -8,8 +8,6 @@ public interface IProcessList
     /// <summary>
     /// Gets the names of all running processes.
     /// </summary>
-    /// <returns>
-    /// The process names without <c>.exe</c>, compared ignoring case.
-    /// </returns>
+    /// <returns>The process names without <c>.exe</c>, compared ignoring case.</returns>
     IReadOnlySet<string> GetNames();
 }

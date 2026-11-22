@@ -79,15 +79,9 @@ public sealed partial class PetCardViewModel : ObservableObject
     /// <summary>
     /// Initializes a new instance of the <see cref="PetCardViewModel"/> class for a pet that was loaded.
     /// </summary>
-    /// <param name="folderName">
-    /// The name of the pet's folder, which is what the settings store.
-    /// </param>
-    /// <param name="pet">
-    /// The loaded pet.
-    /// </param>
-    /// <param name="frames">
-    /// Supplies the picture in a file.
-    /// </param>
+    /// <param name="folderName">The name of the pet's folder, which is what the settings store.</param>
+    /// <param name="pet">The loaded pet.</param>
+    /// <param name="frames">Supplies the picture in a file.</param>
     /// <param name="random">
     /// The source of randomness for the order the states are shown in, or <see langword="null"/> to use the shared one.
     /// </param>
@@ -132,12 +126,8 @@ public sealed partial class PetCardViewModel : ObservableObject
     /// <summary>
     /// Initializes a new instance of the <see cref="PetCardViewModel"/> class for a pet that could not be loaded.
     /// </summary>
-    /// <param name="folderName">
-    /// The name of the pet's folder.
-    /// </param>
-    /// <param name="loadError">
-    /// Why the pet could not be loaded.
-    /// </param>
+    /// <param name="folderName">The name of the pet's folder.</param>
+    /// <param name="loadError">Why the pet could not be loaded.</param>
     public PetCardViewModel(string folderName, string loadError)
     {
         ArgumentException.ThrowIfNullOrEmpty(folderName);
@@ -205,9 +195,7 @@ public sealed partial class PetCardViewModel : ObservableObject
     /// <summary>
     /// Moves the preview on: plays the animation, and after <see cref="StateDuration"/> goes to the next state.
     /// </summary>
-    /// <param name="delta">
-    /// The time since the previous call.
-    /// </param>
+    /// <param name="delta">The time since the previous call.</param>
     public void Tick(TimeSpan delta)
     {
         if (_player is null || delta <= TimeSpan.Zero)
@@ -256,15 +244,9 @@ public sealed partial class PetCardViewModel : ObservableObject
     /// <summary>
     /// Writes a group of states as text such as <c>Climbing 4/4</c>.
     /// </summary>
-    /// <param name="format">
-    /// The text with the name of the group and the placeholders for the counts.
-    /// </param>
-    /// <param name="coverage">
-    /// How many states of the group the pet defines.
-    /// </param>
-    /// <returns>
-    /// The text.
-    /// </returns>
+    /// <param name="format">The text with the name of the group and the placeholders for the counts.</param>
+    /// <param name="coverage">How many states of the group the pet defines.</param>
+    /// <returns>The text.</returns>
     private static string Format(string format, StateCoverage coverage)
     {
         return string.Format(CultureInfo.CurrentCulture, format, coverage.Supported, coverage.Total);
@@ -301,10 +283,6 @@ public sealed partial class PetCardViewModel : ObservableObject
 /// <summary>
 /// One ability of a pet shown as a small label, dimmed when the pet does not have it.
 /// </summary>
-/// <param name="Text">
-/// The label.
-/// </param>
-/// <param name="IsSupported">
-/// Whether the pet has the ability.
-/// </param>
+/// <param name="Text">The label.</param>
+/// <param name="IsSupported">Whether the pet has the ability.</param>
 public sealed record PetTag(string Text, bool IsSupported);

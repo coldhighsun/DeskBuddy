@@ -8,12 +8,8 @@ public class PetStateExtensionsTests
     /// <summary>
     /// Walking and hopping count as walking; nothing else does.
     /// </summary>
-    /// <param name="state">
-    /// The state.
-    /// </param>
-    /// <param name="expected">
-    /// Whether it counts as walking.
-    /// </param>
+    /// <param name="state">The state.</param>
+    /// <param name="expected">Whether it counts as walking.</param>
     [Theory]
     [InlineData(PetState.Walk, true)]
     [InlineData(PetState.Hop, true)]
@@ -31,12 +27,8 @@ public class PetStateExtensionsTests
     /// <summary>
     /// Only the long-lived states in which the pet could stand frozen for hours allow a stroll.
     /// </summary>
-    /// <param name="state">
-    /// The state.
-    /// </param>
-    /// <param name="expected">
-    /// Whether the pet may stroll out of it.
-    /// </param>
+    /// <param name="state">The state.</param>
+    /// <param name="expected">Whether the pet may stroll out of it.</param>
     [Theory]
     [InlineData(PetState.Coding, true)]
     [InlineData(PetState.Building, true)]
@@ -61,12 +53,8 @@ public class PetStateExtensionsTests
     /// <summary>
     /// Falling, with or without the umbrella open, counts as falling; nothing else does.
     /// </summary>
-    /// <param name="state">
-    /// The state.
-    /// </param>
-    /// <param name="expected">
-    /// Whether it counts as falling.
-    /// </param>
+    /// <param name="state">The state.</param>
+    /// <param name="expected">Whether it counts as falling.</param>
     [Theory]
     [InlineData(PetState.Fall, true)]
     [InlineData(PetState.Glide, true)]
@@ -85,12 +73,8 @@ public class PetStateExtensionsTests
     /// <summary>
     /// Only climbing a side and hanging from the top count as crawling.
     /// </summary>
-    /// <param name="state">
-    /// The state.
-    /// </param>
-    /// <param name="expected">
-    /// Whether it counts as crawling.
-    /// </param>
+    /// <param name="state">The state.</param>
+    /// <param name="expected">Whether it counts as crawling.</param>
     [Theory]
     [InlineData(PetState.Climb, true)]
     [InlineData(PetState.ClimbDown, true)]
@@ -111,12 +95,8 @@ public class PetStateExtensionsTests
     /// <summary>
     /// A crawl that gives way to a plain state, an alert or sleep lets go and falls.
     /// </summary>
-    /// <param name="previous">
-    /// The crawling state.
-    /// </param>
-    /// <param name="next">
-    /// The state it changes to.
-    /// </param>
+    /// <param name="previous">The crawling state.</param>
+    /// <param name="next">The state it changes to.</param>
     [Theory]
     [InlineData(PetState.Climb, PetState.Idle)]
     [InlineData(PetState.Ceiling, PetState.Idle)]
@@ -135,12 +115,8 @@ public class PetStateExtensionsTests
     /// <summary>
     /// Going on crawling, being picked up, and a fall already begun are no reason to start a fall.
     /// </summary>
-    /// <param name="previous">
-    /// The state the pet was in.
-    /// </param>
-    /// <param name="next">
-    /// The state it changes to.
-    /// </param>
+    /// <param name="previous">The state the pet was in.</param>
+    /// <param name="next">The state it changes to.</param>
     [Theory]
     [InlineData(PetState.Climb, PetState.Ceiling)]
     [InlineData(PetState.Ceiling, PetState.ClimbDown)]

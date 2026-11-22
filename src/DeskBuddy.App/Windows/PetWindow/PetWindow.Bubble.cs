@@ -29,12 +29,8 @@ public partial class PetWindow
     /// Shows, updates or hides the speech bubble to match the brain's current message. The bubble stays hidden while
     /// the pet itself is hidden.
     /// </summary>
-    /// <param name="sender">
-    /// The event source.
-    /// </param>
-    /// <param name="e">
-    /// Event data.
-    /// </param>
+    /// <param name="sender">The event source.</param>
+    /// <param name="e">Event data.</param>
     private void OnMessageChanged(object? sender, EventArgs e)
     {
         var message = _brain.CurrentMessage;
@@ -61,12 +57,8 @@ public partial class PetWindow
     /// <summary>
     /// Carries out the action the user chose in the speech bubble.
     /// </summary>
-    /// <param name="sender">
-    /// The event source.
-    /// </param>
-    /// <param name="action">
-    /// The chosen action.
-    /// </param>
+    /// <param name="sender">The event source.</param>
+    /// <param name="action">The chosen action.</param>
     private void OnBubbleActionInvoked(object? sender, MessageAction action)
     {
         _brain.Invoke(action);
@@ -87,9 +79,7 @@ public partial class PetWindow
     /// <summary>
     /// Puts the speech bubble next to the sprite being shown: above it, or below it when there is no room above.
     /// </summary>
-    /// <param name="bubble">
-    /// The bubble to place.
-    /// </param>
+    /// <param name="bubble">The bubble to place.</param>
     private void PositionBubble(BubbleWindow bubble)
     {
         var mask = _frames.GetMask(_player.CurrentFrameId);

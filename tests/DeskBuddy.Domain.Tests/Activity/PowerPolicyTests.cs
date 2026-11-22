@@ -28,15 +28,9 @@ public class PowerPolicyTests
     /// <summary>
     /// Builds a status of a computer with a battery.
     /// </summary>
-    /// <param name="percent">
-    /// The charge.
-    /// </param>
-    /// <param name="pluggedIn">
-    /// Whether the computer is on mains power.
-    /// </param>
-    /// <returns>
-    /// The status.
-    /// </returns>
+    /// <param name="percent">The charge.</param>
+    /// <param name="pluggedIn">Whether the computer is on mains power.</param>
+    /// <returns>The status.</returns>
     private static PowerStatus Battery(int percent, bool pluggedIn = false)
     {
         return new PowerStatus(true, percent, pluggedIn);

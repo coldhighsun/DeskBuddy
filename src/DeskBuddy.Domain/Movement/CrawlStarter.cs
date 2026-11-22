@@ -16,9 +16,7 @@ namespace DeskBuddy.Domain.Movement;
 /// The direction to go first along the top edge: <c>-1</c> for left, <c>1</c> for right; only meant for a start on the
 /// top edge.
 /// </param>
-/// <param name="Y">
-/// The vertical position of the window's top-left corner to start from.
-/// </param>
+/// <param name="Y">The vertical position of the window's top-left corner to start from.</param>
 public readonly record struct CrawlStart(CrawlPhase Phase, bool OnRightEdge, bool ClimbingUp, int Direction, double Y);
 
 /// <summary>
@@ -30,24 +28,14 @@ public static class CrawlStarter
     /// <summary>
     /// Decides whether a pet that has just taken a walking step starts to climb the side of the screen it walked into.
     /// </summary>
-    /// <param name="position">
-    /// Where the walking step put the pet.
-    /// </param>
-    /// <param name="bounds">
-    /// The range the pet may take.
-    /// </param>
-    /// <param name="chance">
-    /// The chance, from 0 to 1, that a pet at the end of its line starts to climb.
-    /// </param>
-    /// <param name="random">
-    /// The source of chance.
-    /// </param>
+    /// <param name="position">Where the walking step put the pet.</param>
+    /// <param name="bounds">The range the pet may take.</param>
+    /// <param name="chance">The chance, from 0 to 1, that a pet at the end of its line starts to climb.</param>
+    /// <param name="random">The source of chance.</param>
     /// <param name="edges">
     /// Tells which edges are real edges of the screen. Only asked once the chance has come out in favor of climbing.
     /// </param>
-    /// <returns>
-    /// How the pet starts to climb, or <see langword="null"/> if it does not.
-    /// </returns>
+    /// <returns>How the pet starts to climb, or <see langword="null"/> if it does not.</returns>
     public static CrawlStart? AtWalkEnd(
         Point2 position,
         MovementBounds bounds,
@@ -76,24 +64,12 @@ public static class CrawlStarter
     /// <summary>
     /// Decides whether a pet that was dropped at the top or at a side of the screen crawls along that edge.
     /// </summary>
-    /// <param name="position">
-    /// The top-left corner of the pet window where it was dropped.
-    /// </param>
-    /// <param name="size">
-    /// The size of the pet window.
-    /// </param>
-    /// <param name="bounds">
-    /// The range the pet may take.
-    /// </param>
-    /// <param name="snapDistance">
-    /// How close to an edge the pet must be dropped.
-    /// </param>
-    /// <param name="random">
-    /// The source of chance.
-    /// </param>
-    /// <param name="edges">
-    /// Tells which edges are real edges of the screen.
-    /// </param>
+    /// <param name="position">The top-left corner of the pet window where it was dropped.</param>
+    /// <param name="size">The size of the pet window.</param>
+    /// <param name="bounds">The range the pet may take.</param>
+    /// <param name="snapDistance">How close to an edge the pet must be dropped.</param>
+    /// <param name="random">The source of chance.</param>
+    /// <param name="edges">Tells which edges are real edges of the screen.</param>
     /// <returns>
     /// How the pet starts to crawl, or <see langword="null"/> if it is not close to an edge. Dropped on the ground a pet
     /// can only climb up; higher up it goes either way. On the top edge the first direction is chosen by chance.

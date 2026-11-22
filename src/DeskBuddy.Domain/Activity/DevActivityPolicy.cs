@@ -5,12 +5,8 @@ namespace DeskBuddy.Domain.Activity;
 /// mouse. Once that holds it keeps holding for a grace period after the conditions lapse, so a quick look at a browser
 /// or a short pause to think does not flip the answer back and forth.
 /// </summary>
-/// <param name="options">
-/// The timings: how recent input must be and how long the grace period lasts.
-/// </param>
-/// <param name="timeProvider">
-/// The time source.
-/// </param>
+/// <param name="options">The timings: how recent input must be and how long the grace period lasts.</param>
+/// <param name="timeProvider">The time source.</param>
 public sealed class DevActivityPolicy(PetBehaviorOptions options, TimeProvider timeProvider)
 {
     /// <summary>
@@ -56,9 +52,7 @@ public sealed class DevActivityPolicy(PetBehaviorOptions options, TimeProvider t
     /// <param name="foregroundProcess">
     /// The name of the process owning the foreground window without <c>.exe</c>, or <see langword="null"/> if unknown.
     /// </param>
-    /// <param name="userIdle">
-    /// How long the user has had no keyboard or mouse input.
-    /// </param>
+    /// <param name="userIdle">How long the user has had no keyboard or mouse input.</param>
     /// <returns>
     /// <see langword="true"/> while a development tool has been in front with recent input, and for the grace period
     /// after that stops being so.

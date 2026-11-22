@@ -121,12 +121,8 @@ public class PetCapabilitiesTests
     /// <summary>
     /// Creates a pet with an Idle animation and the given further states.
     /// </summary>
-    /// <param name="states">
-    /// The states to define besides Idle.
-    /// </param>
-    /// <returns>
-    /// The pet.
-    /// </returns>
+    /// <param name="states">The states to define besides Idle.</param>
+    /// <returns>The pet.</returns>
     private static Pet CreatePet(params PetState[] states)
     {
         var animations = new Dictionary<PetState, PetAnimation> { [PetState.Idle] = new(2, ["idle.png"]) };

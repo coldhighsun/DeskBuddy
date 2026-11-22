@@ -66,9 +66,7 @@ public class ShippedPetsTests
     /// A shipped pet is only its manifest, the atlas that holds all its frames and the icon for the tray; the frames are
     /// all in the atlas, and they are not single files next to it.
     /// </summary>
-    /// <param name="name">
-    /// The pet's folder name.
-    /// </param>
+    /// <param name="name">The pet's folder name.</param>
     [Theory]
     [InlineData("robot")]
     [InlineData("cat")]
@@ -96,9 +94,7 @@ public class ShippedPetsTests
     /// <summary>
     /// Every shipped pet names itself in English and in Chinese, so the panel shows its name in the language in use.
     /// </summary>
-    /// <param name="name">
-    /// The pet's folder name.
-    /// </param>
+    /// <param name="name">The pet's folder name.</param>
     [Theory]
     [InlineData("robot")]
     [InlineData("cat")]

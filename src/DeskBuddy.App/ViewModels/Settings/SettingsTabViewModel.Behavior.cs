@@ -88,9 +88,7 @@ public sealed partial class SettingsTabViewModel
     /// <summary>
     /// Applies the choice to let the pet say something unprompted now and then.
     /// </summary>
-    /// <param name="value">
-    /// Whether the pet may chat.
-    /// </param>
+    /// <param name="value">Whether the pet may chat.</param>
     partial void OnChatterEnabledChanged(bool value)
     {
         if (!_refreshing)
@@ -102,9 +100,7 @@ public sealed partial class SettingsTabViewModel
     /// <summary>
     /// Applies the choice to let the pet take short walks while it is busy.
     /// </summary>
-    /// <param name="value">
-    /// Whether the pet may stroll.
-    /// </param>
+    /// <param name="value">Whether the pet may stroll.</param>
     partial void OnStrollWhileBusyChanged(bool value)
     {
         if (!_refreshing)
@@ -116,9 +112,7 @@ public sealed partial class SettingsTabViewModel
     /// <summary>
     /// Applies a typed sedentary reminder interval.
     /// </summary>
-    /// <param name="value">
-    /// The text entered.
-    /// </param>
+    /// <param name="value">The text entered.</param>
     partial void OnSedentaryTextChanged(string value)
     {
         CommitMinutes(
@@ -133,9 +127,7 @@ public sealed partial class SettingsTabViewModel
     /// <summary>
     /// Applies a typed time before the pet falls asleep.
     /// </summary>
-    /// <param name="value">
-    /// The text entered.
-    /// </param>
+    /// <param name="value">The text entered.</param>
     partial void OnSleepTextChanged(string value)
     {
         CommitMinutes(
@@ -150,9 +142,7 @@ public sealed partial class SettingsTabViewModel
     /// <summary>
     /// Applies the choice to let the pet act out situations by itself.
     /// </summary>
-    /// <param name="value">
-    /// Whether scenarios are on.
-    /// </param>
+    /// <param name="value">Whether scenarios are on.</param>
     partial void OnScenariosEnabledChanged(bool value)
     {
         if (!_refreshing)
@@ -169,9 +159,7 @@ public sealed partial class SettingsTabViewModel
     /// <summary>
     /// Applies the chosen hour at which the working day ends.
     /// </summary>
-    /// <param name="value">
-    /// The hour, 0 to 23.
-    /// </param>
+    /// <param name="value">The hour, 0 to 23.</param>
     partial void OnClockOutHourChanged(int value)
     {
         ApplyClockOutTime();
@@ -180,9 +168,7 @@ public sealed partial class SettingsTabViewModel
     /// <summary>
     /// Applies the chosen minute at which the working day ends.
     /// </summary>
-    /// <param name="value">
-    /// The minute, 0 to 59.
-    /// </param>
+    /// <param name="value">The minute, 0 to 59.</param>
     partial void OnClockOutMinuteChanged(int value)
     {
         ApplyClockOutTime();
@@ -205,12 +191,8 @@ public sealed partial class SettingsTabViewModel
     /// <summary>
     /// Applies the switch of a single scenario.
     /// </summary>
-    /// <param name="state">
-    /// The scenario.
-    /// </param>
-    /// <param name="enabled">
-    /// Whether it is on.
-    /// </param>
+    /// <param name="state">The scenario.</param>
+    /// <param name="enabled">Whether it is on.</param>
     private void OnScenarioToggled(PetState state, bool enabled)
     {
         if (_refreshing)
@@ -232,24 +214,12 @@ public sealed partial class SettingsTabViewModel
     /// <summary>
     /// Validates a number of minutes and applies it, or says what is expected.
     /// </summary>
-    /// <param name="key">
-    /// Names the entry in the draft.
-    /// </param>
-    /// <param name="text">
-    /// The text entered.
-    /// </param>
-    /// <param name="label">
-    /// The name of the entry, for the message.
-    /// </param>
-    /// <param name="min">
-    /// The smallest allowed number of minutes.
-    /// </param>
-    /// <param name="max">
-    /// The largest allowed number of minutes.
-    /// </param>
-    /// <param name="apply">
-    /// Puts the duration into the settings.
-    /// </param>
+    /// <param name="key">Names the entry in the draft.</param>
+    /// <param name="text">The text entered.</param>
+    /// <param name="label">The name of the entry, for the message.</param>
+    /// <param name="min">The smallest allowed number of minutes.</param>
+    /// <param name="max">The largest allowed number of minutes.</param>
+    /// <param name="apply">Puts the duration into the settings.</param>
     private void CommitMinutes(
         string key,
         string text,
@@ -281,15 +251,9 @@ public sealed partial class SettingsTabViewModel
     /// <summary>
     /// Tells whether a text typed for a number of minutes already means a duration.
     /// </summary>
-    /// <param name="text">
-    /// The text typed.
-    /// </param>
-    /// <param name="duration">
-    /// The duration to compare with.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> if the text is a number of minutes equal to the duration.
-    /// </returns>
+    /// <param name="text">The text typed.</param>
+    /// <param name="duration">The duration to compare with.</param>
+    /// <returns><see langword="true"/> if the text is a number of minutes equal to the duration.</returns>
     private static bool MeansMinutes(string text, TimeSpan duration)
     {
         return int.TryParse(text.Trim(), NumberStyles.None, CultureInfo.InvariantCulture, out var minutes)
@@ -308,12 +272,8 @@ public sealed partial class SettingsTabViewModel
     /// <summary>
     /// Works out the minutes to choose from for the end of the working day.
     /// </summary>
-    /// <param name="current">
-    /// The minute in use.
-    /// </param>
-    /// <returns>
-    /// Every ten minutes of the hour, with the current minute added if it is not one of them.
-    /// </returns>
+    /// <param name="current">The minute in use.</param>
+    /// <returns>Every ten minutes of the hour, with the current minute added if it is not one of them.</returns>
     private static IReadOnlyList<int> ClockOutMinuteChoices(int current)
     {
         return [.. Enumerable.Range(0, 6).Select(step => step * 10).Append(current).Distinct().Order()];
@@ -322,12 +282,8 @@ public sealed partial class SettingsTabViewModel
     /// <summary>
     /// Formats a duration as whole minutes, rounding up so a short duration never shows as zero.
     /// </summary>
-    /// <param name="duration">
-    /// The duration.
-    /// </param>
-    /// <returns>
-    /// The number of minutes.
-    /// </returns>
+    /// <param name="duration">The duration.</param>
+    /// <returns>The number of minutes.</returns>
     private static string Minutes(TimeSpan duration)
     {
         return ((int)Math.Ceiling(duration.TotalMinutes)).ToString(CultureInfo.InvariantCulture);

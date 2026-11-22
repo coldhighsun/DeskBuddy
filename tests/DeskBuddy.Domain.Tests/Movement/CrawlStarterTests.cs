@@ -105,12 +105,8 @@ public class CrawlStarterTests
     /// <summary>
     /// A pet dropped at the top edge crawls along it, wherever sideways, and the chance picks the first direction.
     /// </summary>
-    /// <param name="roll">
-    /// The value the chance gives for the direction.
-    /// </param>
-    /// <param name="expectedDirection">
-    /// The expected first direction.
-    /// </param>
+    /// <param name="roll">The value the chance gives for the direction.</param>
+    /// <param name="expectedDirection">The expected first direction.</param>
     [Theory]
     [InlineData(0, -1)]
     [InlineData(1, 1)]
@@ -165,12 +161,8 @@ public class CrawlStarterTests
     /// <summary>
     /// A pet dropped high up at a side goes up or down as the chance decides.
     /// </summary>
-    /// <param name="roll">
-    /// The value the chance gives for the direction.
-    /// </param>
-    /// <param name="expectedUp">
-    /// Whether the pet is expected to climb up.
-    /// </param>
+    /// <param name="roll">The value the chance gives for the direction.</param>
+    /// <param name="expectedUp">Whether the pet is expected to climb up.</param>
     [Theory]
     [InlineData(0, true)]
     [InlineData(1, false)]
@@ -247,12 +239,8 @@ public class CrawlStarterTests
     /// <summary>
     /// A random source that always gives the same values.
     /// </summary>
-    /// <param name="chance">
-    /// The value of <see cref="NextDouble"/>.
-    /// </param>
-    /// <param name="next">
-    /// The value of <see cref="Next(int)"/>.
-    /// </param>
+    /// <param name="chance">The value of <see cref="NextDouble"/>.</param>
+    /// <param name="next">The value of <see cref="Next(int)"/>.</param>
     private sealed class FixedRandom(double chance, int next) : Random
     {
         /// <inheritdoc />

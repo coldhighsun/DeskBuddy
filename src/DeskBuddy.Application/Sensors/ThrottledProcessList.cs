@@ -4,15 +4,9 @@ namespace DeskBuddy.Application.Sensors;
 /// Lists the running processes at most once per interval and hands out the last list in between, as walking all the
 /// processes of the machine every second is more work than a desktop pet should cause.
 /// </summary>
-/// <param name="inner">
-/// The list that does the real query.
-/// </param>
-/// <param name="timeProvider">
-/// The time source.
-/// </param>
-/// <param name="interval">
-/// The shortest time between two real queries.
-/// </param>
+/// <param name="inner">The list that does the real query.</param>
+/// <param name="timeProvider">The time source.</param>
+/// <param name="interval">The shortest time between two real queries.</param>
 public sealed class ThrottledProcessList(IProcessList inner, TimeProvider timeProvider, TimeSpan interval) : IProcessList
 {
     /// <summary>

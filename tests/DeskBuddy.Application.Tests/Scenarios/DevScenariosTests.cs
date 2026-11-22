@@ -68,21 +68,11 @@ public class DevScenariosTests
     /// <summary>
     /// Evaluates once with the given situation, then lets the given time pass.
     /// </summary>
-    /// <param name="foreground">
-    /// The foreground process name.
-    /// </param>
-    /// <param name="processes">
-    /// The running process names.
-    /// </param>
-    /// <param name="cpu">
-    /// The processor load.
-    /// </param>
-    /// <param name="seconds">
-    /// How long to let pass afterwards.
-    /// </param>
-    /// <returns>
-    /// What was found.
-    /// </returns>
+    /// <param name="foreground">The foreground process name.</param>
+    /// <param name="processes">The running process names.</param>
+    /// <param name="cpu">The processor load.</param>
+    /// <param name="seconds">How long to let pass afterwards.</param>
+    /// <returns>What was found.</returns>
     private DevScenarioResult Step(string? foreground, string[] processes, double cpu = Quiet, int seconds = 1)
     {
         _foreground.ProcessName = foreground;
@@ -95,21 +85,11 @@ public class DevScenariosTests
     /// <summary>
     /// Repeats <see cref="Step"/> once a second.
     /// </summary>
-    /// <param name="seconds">
-    /// How long to run.
-    /// </param>
-    /// <param name="foreground">
-    /// The foreground process name.
-    /// </param>
-    /// <param name="processes">
-    /// The running process names.
-    /// </param>
-    /// <param name="cpu">
-    /// The processor load.
-    /// </param>
-    /// <returns>
-    /// What was found each time.
-    /// </returns>
+    /// <param name="seconds">How long to run.</param>
+    /// <param name="foreground">The foreground process name.</param>
+    /// <param name="processes">The running process names.</param>
+    /// <param name="cpu">The processor load.</param>
+    /// <returns>What was found each time.</returns>
     private List<DevScenarioResult> Run(int seconds, string? foreground, string[] processes, double cpu = Quiet)
     {
         return [.. Enumerable.Range(0, seconds).Select(_ => Step(foreground, processes, cpu))];

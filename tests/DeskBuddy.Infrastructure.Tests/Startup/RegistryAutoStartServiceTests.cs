@@ -53,12 +53,8 @@ public sealed class RegistryAutoStartServiceTests : IDisposable
     /// <summary>
     /// Creates a service for a program that works on the throwaway keys.
     /// </summary>
-    /// <param name="program">
-    /// The program to start at sign-in.
-    /// </param>
-    /// <returns>
-    /// The service.
-    /// </returns>
+    /// <param name="program">The program to start at sign-in.</param>
+    /// <returns>The service.</returns>
     private RegistryAutoStartService Create(string program)
     {
         return new RegistryAutoStartService(program, RunKey, ApprovedKey);
@@ -67,9 +63,7 @@ public sealed class RegistryAutoStartServiceTests : IDisposable
     /// <summary>
     /// Writes the Task Manager flag for the application.
     /// </summary>
-    /// <param name="firstByte">
-    /// The first byte of the flag: even for enabled, odd for disabled.
-    /// </param>
+    /// <param name="firstByte">The first byte of the flag: even for enabled, odd for disabled.</param>
     private void WriteApprovedFlag(byte firstByte)
     {
         using var key = Registry.CurrentUser.CreateSubKey(ApprovedKey, writable: true);
@@ -81,9 +75,7 @@ public sealed class RegistryAutoStartServiceTests : IDisposable
     /// <summary>
     /// Reads the command stored for the application in the throwaway <c>Run</c> key.
     /// </summary>
-    /// <returns>
-    /// The stored command, or <see langword="null"/> if there is none.
-    /// </returns>
+    /// <returns>The stored command, or <see langword="null"/> if there is none.</returns>
     private string? ReadRunValue()
     {
         using var key = Registry.CurrentUser.OpenSubKey(RunKey);

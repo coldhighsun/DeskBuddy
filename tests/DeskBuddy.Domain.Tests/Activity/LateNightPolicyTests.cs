@@ -32,9 +32,7 @@ public class LateNightPolicyTests
     /// <summary>
     /// Sets the time of day.
     /// </summary>
-    /// <param name="hour">
-    /// The hour, 0 to 23.
-    /// </param>
+    /// <param name="hour">The hour, 0 to 23.</param>
     private void SetHour(int hour)
     {
         _clock.SetUtcNow(new DateTimeOffset(2026, 10, 11, hour, 30, 0, TimeSpan.Zero));
@@ -43,9 +41,7 @@ public class LateNightPolicyTests
     /// <summary>
     /// A long session late at night counts, before midnight as well as after.
     /// </summary>
-    /// <param name="hour">
-    /// The hour of the night.
-    /// </param>
+    /// <param name="hour">The hour of the night.</param>
     [Theory]
     [InlineData(23)]
     [InlineData(0)]
@@ -66,9 +62,7 @@ public class LateNightPolicyTests
     /// <summary>
     /// A long session in the daytime or evening does not count.
     /// </summary>
-    /// <param name="hour">
-    /// The hour of the day.
-    /// </param>
+    /// <param name="hour">The hour of the day.</param>
     [Theory]
     [InlineData(5)]
     [InlineData(12)]

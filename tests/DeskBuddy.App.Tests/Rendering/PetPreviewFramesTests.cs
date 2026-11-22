@@ -379,12 +379,8 @@ public class PetPreviewFramesTests
     /// The failures of reading a file that make a pet unusable (including a file that may not be read) leave a gap in a
     /// preview, and so does the one WPF raises for an image it cannot make sense of; a bug does not.
     /// </summary>
-    /// <param name="exceptionType">
-    /// The type of the exception.
-    /// </param>
-    /// <param name="isUnreadable">
-    /// Whether it counts as a file that cannot be read.
-    /// </param>
+    /// <param name="exceptionType">The type of the exception.</param>
+    /// <param name="isUnreadable">Whether it counts as a file that cannot be read.</param>
     [Theory]
     [InlineData(typeof(IOException), true)]
     [InlineData(typeof(UnauthorizedAccessException), true)]
@@ -658,15 +654,9 @@ public class PetPreviewFramesTests
     /// <summary>
     /// Writes an atlas of cells of 2x2 pixels in a grid, every pixel opaque.
     /// </summary>
-    /// <param name="path">
-    /// Where to write it.
-    /// </param>
-    /// <param name="columns">
-    /// The number of cells in a row.
-    /// </param>
-    /// <param name="rows">
-    /// The number of rows of cells.
-    /// </param>
+    /// <param name="path">Where to write it.</param>
+    /// <param name="columns">The number of cells in a row.</param>
+    /// <param name="rows">The number of rows of cells.</param>
     private static void WriteGrid(string path, int columns, int rows)
     {
         var width = columns * 2;
@@ -683,9 +673,7 @@ public class PetPreviewFramesTests
     /// <summary>
     /// Writes an atlas of two cells of 2x2 pixels side by side: the left one red, the right one blue.
     /// </summary>
-    /// <param name="path">
-    /// Where to write it.
-    /// </param>
+    /// <param name="path">Where to write it.</param>
     private static void WriteAtlas(string path)
     {
         var pixels = new byte[4 * 2 * 4];
@@ -710,12 +698,8 @@ public class PetPreviewFramesTests
     /// <summary>
     /// Reads the color of the first pixel of a picture.
     /// </summary>
-    /// <param name="picture">
-    /// The picture.
-    /// </param>
-    /// <returns>
-    /// The blue, green and red values.
-    /// </returns>
+    /// <param name="picture">The picture.</param>
+    /// <returns>The blue, green and red values.</returns>
     private static (byte Blue, byte Green, byte Red) FirstPixel(ImageSource picture)
     {
         var converted = new FormatConvertedBitmap((BitmapSource)picture, PixelFormats.Bgra32, null, 0);

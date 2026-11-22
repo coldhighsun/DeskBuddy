@@ -3,9 +3,7 @@ namespace DeskBuddy.Domain.Movement;
 /// <summary>
 /// Where a pet that clings to the edge of the screen ends up.
 /// </summary>
-/// <param name="Position">
-/// The top-left corner of the pet window.
-/// </param>
+/// <param name="Position">The top-left corner of the pet window.</param>
 /// <param name="Facing">
 /// <c>1</c> if the pet clings to the left edge and keeps its drawing, <c>-1</c> for the right edge, where the drawing
 /// is mirrored.
@@ -20,26 +18,18 @@ public static class EdgeSnap
     /// <summary>
     /// Finds the edge a dropped pet clings to.
     /// </summary>
-    /// <param name="position">
-    /// The top-left corner of the pet window where it was dropped.
-    /// </param>
-    /// <param name="size">
-    /// The size of the pet window.
-    /// </param>
+    /// <param name="position">The top-left corner of the pet window where it was dropped.</param>
+    /// <param name="size">The size of the pet window.</param>
     /// <param name="area">
     /// The work area: the range its top-left corner may take, with the largest values already reduced by the window
     /// size (see <see cref="MovementBounds"/>).
     /// </param>
-    /// <param name="snapDistance">
-    /// How close to an edge the pet must be dropped.
-    /// </param>
+    /// <param name="snapDistance">How close to an edge the pet must be dropped.</param>
     /// <param name="allowLeft">
     /// Whether the left edge of the area is an edge of the screen; <see langword="false"/> if another monitor lies
     /// beside it.
     /// </param>
-    /// <param name="allowRight">
-    /// Whether the right edge of the area is an edge of the screen.
-    /// </param>
+    /// <param name="allowRight">Whether the right edge of the area is an edge of the screen.</param>
     /// <returns>
     /// Where the pet hangs and which way it faces, or <see langword="null"/> if it is not close to the left or right
     /// edge. The vertical position stays where it was, within the area; if the area is lower than the window the top

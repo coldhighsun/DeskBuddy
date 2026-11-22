@@ -25,9 +25,7 @@ public partial class PetWindow
     /// from the left and right edges. The spot is worked out with the scaling of that monitor, so it is right once the
     /// window is there.
     /// </summary>
-    /// <returns>
-    /// The spot, in device pixels, with the scaling of the monitor it is on.
-    /// </returns>
+    /// <returns>The spot, in device pixels, with the scaling of the monitor it is on.</returns>
     private PetSpot PickRandomSpot()
     {
         var monitors = MonitorHelper.GetAllMonitors();
@@ -42,9 +40,7 @@ public partial class PetWindow
     /// <summary>
     /// Describes where the pet is and where it may go, for the movement strategy.
     /// </summary>
-    /// <returns>
-    /// The context, using the cached work area.
-    /// </returns>
+    /// <returns>The context, using the cached work area.</returns>
     private MovementContext CreateMovementContext()
     {
         // The top edge and the taskbar line of monitors side by side need not be at the same height. A pet that lies over
@@ -91,9 +87,7 @@ public partial class PetWindow
     /// Gets the real bounds of the pet window in device pixels: those read earlier in the movement tick that is running,
     /// otherwise read now.
     /// </summary>
-    /// <returns>
-    /// The bounds of the window.
-    /// </returns>
+    /// <returns>The bounds of the window.</returns>
     private PixelRect WindowPixels()
     {
         return _tickBounds ?? MonitorHelper.GetWindowBoundsPixels(this);
@@ -144,9 +138,7 @@ public partial class PetWindow
     /// edge of the screen, and must not carry the pet over the seam between two monitors. Asked by the brain when a hop
     /// is about to start.
     /// </summary>
-    /// <returns>
-    /// <see langword="true"/> if the hop fits before the edge and does not cross a seam.
-    /// </returns>
+    /// <returns><see langword="true"/> if the hop fits before the edge and does not cross a seam.</returns>
     private bool CanHopHere()
     {
         if (_brain.HopDuration is not { } hopDuration)
@@ -186,12 +178,8 @@ public partial class PetWindow
     /// <summary>
     /// Moves the pet one step along the taskbar line.
     /// </summary>
-    /// <param name="sender">
-    /// The event source.
-    /// </param>
-    /// <param name="e">
-    /// Event data.
-    /// </param>
+    /// <param name="sender">The event source.</param>
+    /// <param name="e">Event data.</param>
     private void OnMoveTick(object? sender, EventArgs e)
     {
         // The window bounds are read once and shared by everything in the tick, until the window is moved.

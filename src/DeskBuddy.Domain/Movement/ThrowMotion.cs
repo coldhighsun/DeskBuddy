@@ -4,12 +4,8 @@ namespace DeskBuddy.Domain.Movement;
 /// The sideways part of the flight of a thrown pet: the air slows it down, and it bounces back, slower, off the left and
 /// right ends of the range it may take. The fall itself is <see cref="FreeFall"/>.
 /// </summary>
-/// <param name="X">
-/// The left of the pet window.
-/// </param>
-/// <param name="Velocity">
-/// The sideways speed in device-independent pixels per second, positive to the right.
-/// </param>
+/// <param name="X">The left of the pet window.</param>
+/// <param name="Velocity">The sideways speed in device-independent pixels per second, positive to the right.</param>
 public readonly record struct ThrowState(double X, double Velocity);
 
 /// <summary>
@@ -25,24 +21,12 @@ public static class ThrowMotion
     /// <summary>
     /// Advances the sideways flight by one time step.
     /// </summary>
-    /// <param name="state">
-    /// The state before the step.
-    /// </param>
-    /// <param name="minX">
-    /// The leftmost the pet window may go.
-    /// </param>
-    /// <param name="maxX">
-    /// The rightmost the pet window may go.
-    /// </param>
-    /// <param name="elapsed">
-    /// The time since the previous step.
-    /// </param>
-    /// <param name="options">
-    /// The throw tuning.
-    /// </param>
-    /// <returns>
-    /// The state after the step; never outside <paramref name="minX"/>..<paramref name="maxX"/>.
-    /// </returns>
+    /// <param name="state">The state before the step.</param>
+    /// <param name="minX">The leftmost the pet window may go.</param>
+    /// <param name="maxX">The rightmost the pet window may go.</param>
+    /// <param name="elapsed">The time since the previous step.</param>
+    /// <param name="options">The throw tuning.</param>
+    /// <returns>The state after the step; never outside <paramref name="minX"/>..<paramref name="maxX"/>.</returns>
     public static ThrowState Step(ThrowState state, double minX, double maxX, TimeSpan elapsed, PetBehaviorOptions options)
     {
         ArgumentNullException.ThrowIfNull(options);

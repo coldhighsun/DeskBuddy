@@ -273,12 +273,8 @@ public class PetSwitcherTests
     /// <summary>
     /// Waits, briefly, for something that happens after a hand-off to another continuation.
     /// </summary>
-    /// <param name="condition">
-    /// The condition to wait for.
-    /// </param>
-    /// <returns>
-    /// A task that completes when the condition holds, or after a timeout.
-    /// </returns>
+    /// <param name="condition">The condition to wait for.</param>
+    /// <returns>A task that completes when the condition holds, or after a timeout.</returns>
     private static async Task EventuallyAsync(Func<bool> condition)
     {
         for (var i = 0; i < 200 && !condition(); i++)

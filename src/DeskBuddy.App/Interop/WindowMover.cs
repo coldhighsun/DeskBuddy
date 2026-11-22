@@ -45,30 +45,14 @@ public static partial class WindowMover
     /// <summary>
     /// Works out the device-pixel position a window has to be moved to, and whether that is different from where it is.
     /// </summary>
-    /// <param name="currentLeft">
-    /// The current left edge, in device-independent pixels.
-    /// </param>
-    /// <param name="currentTop">
-    /// The current top edge, in device-independent pixels.
-    /// </param>
-    /// <param name="targetLeft">
-    /// The wanted left edge, in device-independent pixels.
-    /// </param>
-    /// <param name="targetTop">
-    /// The wanted top edge, in device-independent pixels.
-    /// </param>
-    /// <param name="scaleX">
-    /// Device pixels per device-independent pixel, horizontally.
-    /// </param>
-    /// <param name="scaleY">
-    /// Device pixels per device-independent pixel, vertically.
-    /// </param>
-    /// <param name="x">
-    /// The wanted left edge in device pixels.
-    /// </param>
-    /// <param name="y">
-    /// The wanted top edge in device pixels.
-    /// </param>
+    /// <param name="currentLeft">The current left edge, in device-independent pixels.</param>
+    /// <param name="currentTop">The current top edge, in device-independent pixels.</param>
+    /// <param name="targetLeft">The wanted left edge, in device-independent pixels.</param>
+    /// <param name="targetTop">The wanted top edge, in device-independent pixels.</param>
+    /// <param name="scaleX">Device pixels per device-independent pixel, horizontally.</param>
+    /// <param name="scaleY">Device pixels per device-independent pixel, vertically.</param>
+    /// <param name="x">The wanted left edge in device pixels.</param>
+    /// <param name="y">The wanted top edge in device pixels.</param>
     /// <returns>
     /// <see langword="true"/> if the target is a different device pixel than the current position; a move smaller than
     /// a pixel is not worth a call to the window manager.
@@ -94,15 +78,9 @@ public static partial class WindowMover
     /// <summary>
     /// Moves a window to a position, in a single call and only if that changes its device pixel.
     /// </summary>
-    /// <param name="window">
-    /// The window to move; it must already have a handle.
-    /// </param>
-    /// <param name="left">
-    /// The wanted left edge, in device-independent pixels.
-    /// </param>
-    /// <param name="top">
-    /// The wanted top edge, in device-independent pixels.
-    /// </param>
+    /// <param name="window">The window to move; it must already have a handle.</param>
+    /// <param name="left">The wanted left edge, in device-independent pixels.</param>
+    /// <param name="top">The wanted top edge, in device-independent pixels.</param>
     public static void MoveTo(Window window, double left, double top)
     {
         // Compared with where the window really is: Window.Left and Window.Top are in the scaling the window had when it
@@ -131,15 +109,9 @@ public static partial class WindowMover
     /// where Windows suggests, which can be a long way from where it was moved to (a pet seems to leap ahead). The move
     /// is done again, now that the scaling has settled.
     /// </summary>
-    /// <param name="window">
-    /// The window to move; it must already have a handle.
-    /// </param>
-    /// <param name="x">
-    /// The wanted left edge in device pixels.
-    /// </param>
-    /// <param name="y">
-    /// The wanted top edge in device pixels.
-    /// </param>
+    /// <param name="window">The window to move; it must already have a handle.</param>
+    /// <param name="x">The wanted left edge in device pixels.</param>
+    /// <param name="y">The wanted top edge in device pixels.</param>
     public static void MoveToPixelsSettled(Window window, int x, int y)
     {
         var before = VisualTreeHelper.GetDpi(window);
@@ -156,15 +128,9 @@ public static partial class WindowMover
     /// Moves a window to a position given in device pixels of the virtual screen. Unlike <see cref="Window.Left"/> this
     /// is exact on any monitor, whatever its scaling, and does not depend on which monitor the window thinks it is on.
     /// </summary>
-    /// <param name="window">
-    /// The window to move; it must already have a handle.
-    /// </param>
-    /// <param name="x">
-    /// The wanted left edge in device pixels.
-    /// </param>
-    /// <param name="y">
-    /// The wanted top edge in device pixels.
-    /// </param>
+    /// <param name="window">The window to move; it must already have a handle.</param>
+    /// <param name="x">The wanted left edge in device pixels.</param>
+    /// <param name="y">The wanted top edge in device pixels.</param>
     public static void MoveToPixels(Window window, int x, int y)
     {
         var handle = new WindowInteropHelper(window).EnsureHandle();
@@ -182,12 +148,8 @@ public static partial class WindowMover
     /// Puts a window just behind another one in the z-order, without moving, sizing or activating it, so what the other
     /// window draws covers it where they overlap.
     /// </summary>
-    /// <param name="window">
-    /// The window to put behind.
-    /// </param>
-    /// <param name="front">
-    /// The window it goes behind.
-    /// </param>
+    /// <param name="window">The window to put behind.</param>
+    /// <param name="front">The window it goes behind.</param>
     public static void PlaceBehind(Window window, Window front)
     {
         var handle = new WindowInteropHelper(window).EnsureHandle();
@@ -199,24 +161,12 @@ public static partial class WindowMover
     /// Moves two windows to positions given in device pixels in a single batch, so the window manager applies both
     /// together and they are drawn in the same frame.
     /// </summary>
-    /// <param name="first">
-    /// The first window to move.
-    /// </param>
-    /// <param name="firstX">
-    /// The first window's wanted left edge in device pixels.
-    /// </param>
-    /// <param name="firstY">
-    /// The first window's wanted top edge in device pixels.
-    /// </param>
-    /// <param name="second">
-    /// The second window to move.
-    /// </param>
-    /// <param name="secondX">
-    /// The second window's wanted left edge in device pixels.
-    /// </param>
-    /// <param name="secondY">
-    /// The second window's wanted top edge in device pixels.
-    /// </param>
+    /// <param name="first">The first window to move.</param>
+    /// <param name="firstX">The first window's wanted left edge in device pixels.</param>
+    /// <param name="firstY">The first window's wanted top edge in device pixels.</param>
+    /// <param name="second">The second window to move.</param>
+    /// <param name="secondX">The second window's wanted left edge in device pixels.</param>
+    /// <param name="secondY">The second window's wanted top edge in device pixels.</param>
     public static void MoveTogetherToPixels(Window first, int firstX, int firstY, Window second, int secondX, int secondY)
     {
         const uint flags = SwpNoSize | SwpNoZOrder | SwpNoRedraw | SwpNoActivate | SwpNoOwnerZOrder;
@@ -247,57 +197,31 @@ public static partial class WindowMover
     /// <summary>
     /// Starts a batch of window moves.
     /// </summary>
-    /// <param name="windowCount">
-    /// How many windows the batch is sized for.
-    /// </param>
-    /// <returns>
-    /// The batch handle, or zero on failure.
-    /// </returns>
+    /// <param name="windowCount">How many windows the batch is sized for.</param>
+    /// <returns>The batch handle, or zero on failure.</returns>
     [LibraryImport("user32.dll", SetLastError = true)]
     private static partial nint BeginDeferWindowPos(int windowCount);
 
     /// <summary>
     /// Adds one window move to a batch.
     /// </summary>
-    /// <param name="batch">
-    /// The batch handle.
-    /// </param>
-    /// <param name="hwnd">
-    /// Window handle.
-    /// </param>
-    /// <param name="insertAfter">
-    /// Z-order neighbour; unused with <c>SWP_NOZORDER</c>.
-    /// </param>
-    /// <param name="x">
-    /// New left edge in device pixels.
-    /// </param>
-    /// <param name="y">
-    /// New top edge in device pixels.
-    /// </param>
-    /// <param name="width">
-    /// New width; unused with <c>SWP_NOSIZE</c>.
-    /// </param>
-    /// <param name="height">
-    /// New height; unused with <c>SWP_NOSIZE</c>.
-    /// </param>
-    /// <param name="flags">
-    /// <c>SWP_*</c> flags.
-    /// </param>
-    /// <returns>
-    /// The handle of the batch to use from now on, or zero on failure.
-    /// </returns>
+    /// <param name="batch">The batch handle.</param>
+    /// <param name="hwnd">Window handle.</param>
+    /// <param name="insertAfter">Z-order neighbour; unused with <c>SWP_NOZORDER</c>.</param>
+    /// <param name="x">New left edge in device pixels.</param>
+    /// <param name="y">New top edge in device pixels.</param>
+    /// <param name="width">New width; unused with <c>SWP_NOSIZE</c>.</param>
+    /// <param name="height">New height; unused with <c>SWP_NOSIZE</c>.</param>
+    /// <param name="flags"><c>SWP_*</c> flags.</param>
+    /// <returns>The handle of the batch to use from now on, or zero on failure.</returns>
     [LibraryImport("user32.dll", SetLastError = true)]
     private static partial nint DeferWindowPos(nint batch, nint hwnd, nint insertAfter, int x, int y, int width, int height, uint flags);
 
     /// <summary>
     /// Applies a batch of window moves.
     /// </summary>
-    /// <param name="batch">
-    /// The batch handle.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> on success.
-    /// </returns>
+    /// <param name="batch">The batch handle.</param>
+    /// <returns><see langword="true"/> on success.</returns>
     [LibraryImport("user32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool EndDeferWindowPos(nint batch);
@@ -305,30 +229,14 @@ public static partial class WindowMover
     /// <summary>
     /// Changes the position of a window.
     /// </summary>
-    /// <param name="hwnd">
-    /// Window handle.
-    /// </param>
-    /// <param name="insertAfter">
-    /// Z-order neighbour; unused with <c>SWP_NOZORDER</c>.
-    /// </param>
-    /// <param name="x">
-    /// New left edge in device pixels.
-    /// </param>
-    /// <param name="y">
-    /// New top edge in device pixels.
-    /// </param>
-    /// <param name="width">
-    /// New width; unused with <c>SWP_NOSIZE</c>.
-    /// </param>
-    /// <param name="height">
-    /// New height; unused with <c>SWP_NOSIZE</c>.
-    /// </param>
-    /// <param name="flags">
-    /// <c>SWP_*</c> flags.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> on success.
-    /// </returns>
+    /// <param name="hwnd">Window handle.</param>
+    /// <param name="insertAfter">Z-order neighbour; unused with <c>SWP_NOZORDER</c>.</param>
+    /// <param name="x">New left edge in device pixels.</param>
+    /// <param name="y">New top edge in device pixels.</param>
+    /// <param name="width">New width; unused with <c>SWP_NOSIZE</c>.</param>
+    /// <param name="height">New height; unused with <c>SWP_NOSIZE</c>.</param>
+    /// <param name="flags"><c>SWP_*</c> flags.</param>
+    /// <returns><see langword="true"/> on success.</returns>
     [LibraryImport("user32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool SetWindowPos(nint hwnd, nint insertAfter, int x, int y, int width, int height, uint flags);

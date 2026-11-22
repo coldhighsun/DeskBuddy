@@ -7,9 +7,7 @@ namespace DeskBuddy.Application.Settings;
 /// serialized, and a failed save is reported to the caller rather than swallowed. If the saved settings could not be
 /// read at startup, defaults are used and changes are refused so the unreadable file is never overwritten.
 /// </summary>
-/// <param name="store">
-/// Where the settings are saved.
-/// </param>
+/// <param name="store">Where the settings are saved.</param>
 public sealed class SettingsService(ISettingsStore store)
 {
     /// <summary>
@@ -49,12 +47,8 @@ public sealed class SettingsService(ISettingsStore store)
     /// Loads the saved settings. A storage problem is recorded in <see cref="LoadFailure"/> instead of thrown, so the
     /// application can still start.
     /// </summary>
-    /// <param name="cancellationToken">
-    /// Token used to cancel the operation.
-    /// </param>
-    /// <returns>
-    /// A task that completes when loading has finished.
-    /// </returns>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when loading has finished.</returns>
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
         await _gate.WaitAsync(cancellationToken);
@@ -72,15 +66,9 @@ public sealed class SettingsService(ISettingsStore store)
     /// Changes the settings and saves. The result of the change is normalized, so out-of-range values are corrected
     /// rather than rejected.
     /// </summary>
-    /// <param name="change">
-    /// Produces the new settings from the current ones.
-    /// </param>
-    /// <param name="cancellationToken">
-    /// Token used to cancel the operation.
-    /// </param>
-    /// <returns>
-    /// The settings now in effect.
-    /// </returns>
+    /// <param name="change">Produces the new settings from the current ones.</param>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>The settings now in effect.</returns>
     /// <exception cref="InvalidOperationException">
     /// Thrown when loading failed at startup, so changes are refused.
     /// </exception>
@@ -158,12 +146,8 @@ public sealed class SettingsService(ISettingsStore store)
     /// Loads the saved settings into <see cref="Current"/>. Must be called while holding <see cref="_gate"/>. A
     /// storage problem is recorded in <see cref="LoadFailure"/> instead of thrown.
     /// </summary>
-    /// <param name="cancellationToken">
-    /// Token used to cancel the operation.
-    /// </param>
-    /// <returns>
-    /// A task that completes when loading has finished.
-    /// </returns>
+    /// <param name="cancellationToken">Token used to cancel the operation.</param>
+    /// <returns>A task that completes when loading has finished.</returns>
     private async Task LoadAsync(CancellationToken cancellationToken)
     {
         try

@@ -9,9 +9,7 @@ public static class PetStateExtensions
     /// Tells whether the pet crawls along the edges of the screen in this state: climbing up or down a side, or hanging
     /// from the top.
     /// </summary>
-    /// <param name="state">
-    /// The state.
-    /// </param>
+    /// <param name="state">The state.</param>
     /// <returns>
     /// <see langword="true"/> for <see cref="PetState.Climb"/>, <see cref="PetState.ClimbDown"/> and
     /// <see cref="PetState.Ceiling"/>.
@@ -24,12 +22,8 @@ public static class PetStateExtensions
     /// <summary>
     /// Tells whether the pet walks along in this state: plain walking, or hopping while it walks.
     /// </summary>
-    /// <param name="state">
-    /// The state.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> for <see cref="PetState.Walk"/> and <see cref="PetState.Hop"/>.
-    /// </returns>
+    /// <param name="state">The state.</param>
+    /// <returns><see langword="true"/> for <see cref="PetState.Walk"/> and <see cref="PetState.Hop"/>.</returns>
     public static bool IsWalking(this PetState state)
     {
         return state is PetState.Walk or PetState.Hop;
@@ -40,9 +34,7 @@ public static class PetStateExtensions
     /// walk and come back to it. A state that goes on for hours looks frozen otherwise; a weak pet (tired, low battery)
     /// is better left where it is, and moments are over soon enough.
     /// </summary>
-    /// <param name="state">
-    /// The state.
-    /// </param>
+    /// <param name="state">The state.</param>
     /// <returns>
     /// <see langword="true"/> for <see cref="PetState.Coding"/>, <see cref="PetState.Building"/>,
     /// <see cref="PetState.Reading"/>, <see cref="PetState.NightCoding"/>, <see cref="PetState.Meeting"/> and
@@ -57,12 +49,8 @@ public static class PetStateExtensions
     /// <summary>
     /// Tells whether the pet falls in this state: before its umbrella or parachute opens, or floating down with it.
     /// </summary>
-    /// <param name="state">
-    /// The state.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> for <see cref="PetState.Fall"/> and <see cref="PetState.Glide"/>.
-    /// </returns>
+    /// <param name="state">The state.</param>
+    /// <returns><see langword="true"/> for <see cref="PetState.Fall"/> and <see cref="PetState.Glide"/>.</returns>
     public static bool IsFalling(this PetState state)
     {
         return state is PetState.Fall or PetState.Glide;
@@ -73,12 +61,8 @@ public static class PetStateExtensions
     /// falls, if it is high enough above the ground. Being picked up (<see cref="PetState.Drag"/>) is not letting go, the
     /// drop decides; and a fall that has begun needs no second one.
     /// </summary>
-    /// <param name="previous">
-    /// The state the pet was in.
-    /// </param>
-    /// <param name="next">
-    /// The state it changes to.
-    /// </param>
+    /// <param name="previous">The state the pet was in.</param>
+    /// <param name="next">The state it changes to.</param>
     /// <returns>
     /// <see langword="true"/> if the pet crawled and now is in another state than crawling, dragging or falling.
     /// </returns>

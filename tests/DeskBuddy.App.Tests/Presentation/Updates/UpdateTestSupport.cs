@@ -23,18 +23,10 @@ internal static class UpdateTestSupport
     /// <summary>
     /// Builds the JSON GitHub answers with for the latest release.
     /// </summary>
-    /// <param name="tag">
-    /// The tag of the release.
-    /// </param>
-    /// <param name="assetName">
-    /// The file name of the one asset.
-    /// </param>
-    /// <param name="digest">
-    /// The digest GitHub reports for the asset, or <see langword="null"/> for none.
-    /// </param>
-    /// <returns>
-    /// The JSON text.
-    /// </returns>
+    /// <param name="tag">The tag of the release.</param>
+    /// <param name="assetName">The file name of the one asset.</param>
+    /// <param name="digest">The digest GitHub reports for the asset, or <see langword="null"/> for none.</param>
+    /// <returns>The JSON text.</returns>
     public static string ReleaseJson(string tag, string assetName, string? digest = null)
     {
         return $$"""
@@ -92,12 +84,8 @@ internal static class UpdateTestSupport
         /// <summary>
         /// Sets the answer given from now on.
         /// </summary>
-        /// <param name="status">
-        /// The status of the answer.
-        /// </param>
-        /// <param name="body">
-        /// The JSON body of the answer.
-        /// </param>
+        /// <param name="status">The status of the answer.</param>
+        /// <param name="body">The JSON body of the answer.</param>
         public void Respond(HttpStatusCode status, string body)
         {
             _status = status;

@@ -63,12 +63,8 @@ public partial class BubbleWindow : Window
     /// <summary>
     /// Lets the bubble pop up each time it is shown.
     /// </summary>
-    /// <param name="sender">
-    /// The event source.
-    /// </param>
-    /// <param name="e">
-    /// Event data.
-    /// </param>
+    /// <param name="sender">The event source.</param>
+    /// <param name="e">Event data.</param>
     private void OnIsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
     {
         if (e.NewValue is true)
@@ -85,9 +81,7 @@ public partial class BubbleWindow : Window
     /// <summary>
     /// Replaces the bubble's text and buttons.
     /// </summary>
-    /// <param name="content">
-    /// What to show.
-    /// </param>
+    /// <param name="content">What to show.</param>
     public void SetContent(BubbleContent content)
     {
         ArgumentNullException.ThrowIfNull(content);
@@ -121,9 +115,7 @@ public partial class BubbleWindow : Window
     /// when the message has changed. The bubble keeps itself next to the sprite when its size changes later, for example
     /// with another font or scaling.
     /// </summary>
-    /// <param name="pet">
-    /// The pet window to anchor to.
-    /// </param>
+    /// <param name="pet">The pet window to anchor to.</param>
     /// <param name="spriteTop">
     /// Where the sprite starts inside the pet window, as a fraction of the window height.
     /// </param>
@@ -153,18 +145,14 @@ public partial class BubbleWindow : Window
     /// <summary>
     /// Moves the bubble so that a bubble of the given size sits next to the pet's sprite, and points the tail at the pet.
     /// </summary>
-    /// <param name="pet">
-    /// The pet window to anchor to.
-    /// </param>
+    /// <param name="pet">The pet window to anchor to.</param>
     /// <param name="spriteTop">
     /// Where the sprite starts inside the pet window, as a fraction of the window height.
     /// </param>
     /// <param name="spriteBottom">
     /// Where the sprite ends inside the pet window, as a fraction of the window height.
     /// </param>
-    /// <param name="size">
-    /// The bubble's size in the device-independent pixels of the pet's monitor.
-    /// </param>
+    /// <param name="size">The bubble's size in the device-independent pixels of the pet's monitor.</param>
     private void Place(Window pet, double spriteTop, double spriteBottom, Size size)
     {
         var gap = (int)Math.Round(SpriteGap * VisualTreeHelper.GetDpi(pet).DpiScaleX, MidpointRounding.AwayFromZero);
@@ -215,12 +203,8 @@ public partial class BubbleWindow : Window
     /// scaling, say) would otherwise leave it hanging over the pet. It also moves the window straight after the resize
     /// that <see cref="SetContent"/> causes, within the same layout pass.
     /// </summary>
-    /// <param name="sender">
-    /// The event source.
-    /// </param>
-    /// <param name="e">
-    /// Event data.
-    /// </param>
+    /// <param name="sender">The event source.</param>
+    /// <param name="e">Event data.</param>
     private void OnSizeChanged(object sender, SizeChangedEventArgs e)
     {
         if (_anchorPet is null || !IsVisible)
@@ -236,12 +220,8 @@ public partial class BubbleWindow : Window
     /// <summary>
     /// Configures the native window once its handle exists, the same way as the pet window.
     /// </summary>
-    /// <param name="sender">
-    /// The event source.
-    /// </param>
-    /// <param name="e">
-    /// Event data.
-    /// </param>
+    /// <param name="sender">The event source.</param>
+    /// <param name="e">Event data.</param>
     private void OnSourceInitialized(object? sender, EventArgs e)
     {
         var source = HwndSource.FromHwnd(new WindowInteropHelper(this).Handle)!;

@@ -20,9 +20,7 @@ public static class AboutInfo
     /// <summary>
     /// Reads the version of the running application, as MinVer set it from the git tag.
     /// </summary>
-    /// <returns>
-    /// The version text, such as <c>1.2.3</c>.
-    /// </returns>
+    /// <returns>The version text, such as <c>1.2.3</c>.</returns>
     public static string CurrentVersion()
     {
         var assembly = typeof(AboutInfo).Assembly;
@@ -37,9 +35,7 @@ public static class AboutInfo
     /// <param name="informationalVersion">
     /// The informational version, or <see langword="null"/> if there is none.
     /// </param>
-    /// <returns>
-    /// The version without build metadata, or a question mark if there is no version.
-    /// </returns>
+    /// <returns>The version without build metadata, or a question mark if there is no version.</returns>
     public static string FormatVersion(string? informationalVersion)
     {
         if (string.IsNullOrWhiteSpace(informationalVersion))

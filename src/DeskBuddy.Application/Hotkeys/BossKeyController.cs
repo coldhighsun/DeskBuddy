@@ -25,15 +25,9 @@ public sealed class BossKeyController : IDisposable
     /// <summary>
     /// Initializes a new instance of the <see cref="BossKeyController"/> class and registers the current shortcut.
     /// </summary>
-    /// <param name="settings">
-    /// The settings that name the shortcut.
-    /// </param>
-    /// <param name="hotkeys">
-    /// Registers the shortcut with the system.
-    /// </param>
-    /// <param name="brain">
-    /// The brain whose visibility the shortcut toggles.
-    /// </param>
+    /// <param name="settings">The settings that name the shortcut.</param>
+    /// <param name="hotkeys">Registers the shortcut with the system.</param>
+    /// <param name="brain">The brain whose visibility the shortcut toggles.</param>
     public BossKeyController(SettingsService settings, IGlobalHotkeyService hotkeys, PetBrain brain)
     {
         ArgumentNullException.ThrowIfNull(settings);
@@ -74,12 +68,8 @@ public sealed class BossKeyController : IDisposable
     /// <summary>
     /// Hides or shows the pet.
     /// </summary>
-    /// <param name="sender">
-    /// The event source.
-    /// </param>
-    /// <param name="e">
-    /// Event data.
-    /// </param>
+    /// <param name="sender">The event source.</param>
+    /// <param name="e">Event data.</param>
     private void OnPressed(object? sender, EventArgs e)
     {
         _brain.ToggleManuallyHidden();
@@ -88,12 +78,8 @@ public sealed class BossKeyController : IDisposable
     /// <summary>
     /// Re-registers the shortcut when the settings name a different one.
     /// </summary>
-    /// <param name="sender">
-    /// The event source.
-    /// </param>
-    /// <param name="settings">
-    /// The new settings.
-    /// </param>
+    /// <param name="sender">The event source.</param>
+    /// <param name="settings">The new settings.</param>
     private void OnSettingsChanged(object? sender, PetSettings settings)
     {
         Apply(settings.BossKey);
@@ -102,9 +88,7 @@ public sealed class BossKeyController : IDisposable
     /// <summary>
     /// Registers a shortcut unless it is the one already registered, and records the outcome.
     /// </summary>
-    /// <param name="gesture">
-    /// The shortcut the settings name, or <see langword="null"/> if there should be none.
-    /// </param>
+    /// <param name="gesture">The shortcut the settings name, or <see langword="null"/> if there should be none.</param>
     private void Apply(HotkeyGesture? gesture)
     {
         if (gesture is not { } wanted)

@@ -14,9 +14,7 @@ public sealed class Loc : MarkupExtension
     /// <summary>
     /// Initializes a new instance of the <see cref="Loc"/> class.
     /// </summary>
-    /// <param name="key">
-    /// The name of the text in <c>Strings.resx</c>.
-    /// </param>
+    /// <param name="key">The name of the text in <c>Strings.resx</c>.</param>
     public Loc(string key)
     {
         Key = key;

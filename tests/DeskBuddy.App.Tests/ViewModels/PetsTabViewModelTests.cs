@@ -558,9 +558,7 @@ public class PetsTabViewModelTests
     /// <summary>
     /// Makes a small frozen picture.
     /// </summary>
-    /// <returns>
-    /// The picture.
-    /// </returns>
+    /// <returns>The picture.</returns>
     private static System.Windows.Media.Imaging.BitmapSource MakePicture()
     {
         var picture = System.Windows.Media.Imaging.BitmapSource.Create(1, 1, 96, 96, System.Windows.Media.PixelFormats.Bgra32, null, new byte[4], 4);
@@ -640,12 +638,8 @@ public class PetsTabViewModelTests
     /// <summary>
     /// Creates the view model over fakes.
     /// </summary>
-    /// <param name="pets">
-    /// The pet names the catalog lists; all of them load except one named <c>broken</c>.
-    /// </param>
-    /// <returns>
-    /// A task that completes when the view model is ready.
-    /// </returns>
+    /// <param name="pets">The pet names the catalog lists; all of them load except one named <c>broken</c>.</param>
+    /// <returns>A task that completes when the view model is ready.</returns>
     private async Task CreateAsync(params string[] pets)
     {
         _settings = new SettingsService(_store);
@@ -680,12 +674,8 @@ public class PetsTabViewModelTests
     /// <summary>
     /// Waits, briefly, for something that happens after a hand-off to another continuation.
     /// </summary>
-    /// <param name="condition">
-    /// The condition to wait for.
-    /// </param>
-    /// <returns>
-    /// A task that completes when the condition holds, or after a timeout.
-    /// </returns>
+    /// <param name="condition">The condition to wait for.</param>
+    /// <returns>A task that completes when the condition holds, or after a timeout.</returns>
     private static async Task EventuallyAsync(Func<bool> condition)
     {
         for (var i = 0; i < 200 && !condition(); i++)

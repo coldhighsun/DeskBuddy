@@ -36,15 +36,9 @@ public partial class PetWindow
     /// <summary>
     /// Lets a pet that has just walked into the left or right end of the screen start to climb it, by chance.
     /// </summary>
-    /// <param name="position">
-    /// Where the walk step put the pet.
-    /// </param>
-    /// <param name="bounds">
-    /// The range the pet may take.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> if the pet now climbs; the state then needs showing.
-    /// </returns>
+    /// <param name="position">Where the walk step put the pet.</param>
+    /// <param name="bounds">The range the pet may take.</param>
+    /// <returns><see langword="true"/> if the pet now climbs; the state then needs showing.</returns>
     private bool TryStartCrawlAtEnd(Point2 position, MovementBounds bounds)
     {
         if (!CanCrawl || _dragging)
@@ -70,9 +64,7 @@ public partial class PetWindow
     /// <summary>
     /// Starts to crawl along an edge of the screen.
     /// </summary>
-    /// <param name="start">
-    /// Where and how the pet starts.
-    /// </param>
+    /// <param name="start">Where and how the pet starts.</param>
     private void StartCrawl(CrawlStart start)
     {
         LandFromHop();
@@ -102,9 +94,7 @@ public partial class PetWindow
     /// <summary>
     /// Moves the crawling pet one step, and ends the crawl when it reaches the ground or lets go.
     /// </summary>
-    /// <param name="delta">
-    /// The time since the previous step.
-    /// </param>
+    /// <param name="delta">The time since the previous step.</param>
     private void OnCrawlTick(TimeSpan delta)
     {
         if (!IsCrawling)
@@ -166,9 +156,7 @@ public partial class PetWindow
     /// <summary>
     /// Lets a pet that was dropped at the top or at a side of the work area crawl along that edge, if it may.
     /// </summary>
-    /// <returns>
-    /// <see langword="true"/> if the pet now crawls along an edge.
-    /// </returns>
+    /// <returns><see langword="true"/> if the pet now crawls along an edge.</returns>
     private bool TryCrawlOnEdge()
     {
         if (!CanCrawl)

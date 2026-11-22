@@ -18,12 +18,8 @@ public sealed class ScenarioSwitches
     /// <summary>
     /// Tells whether a scenario may be acted out.
     /// </summary>
-    /// <param name="scenario">
-    /// The scenario, identified by the state it shows.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> if scenarios are on and this one has not been switched off.
-    /// </returns>
+    /// <param name="scenario">The scenario, identified by the state it shows.</param>
+    /// <returns><see langword="true"/> if scenarios are on and this one has not been switched off.</returns>
     public bool Allows(PetState scenario)
     {
         return IsEnabled && !Disabled.Contains(scenario.ToString(), StringComparer.OrdinalIgnoreCase);

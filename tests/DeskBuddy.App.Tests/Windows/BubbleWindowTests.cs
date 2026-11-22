@@ -37,9 +37,7 @@ public sealed class BubbleWindowTests
     /// <summary>
     /// Creates a pet stand-in window that has a handle, is never shown and sits in the middle of the screen.
     /// </summary>
-    /// <returns>
-    /// The window.
-    /// </returns>
+    /// <returns>The window.</returns>
     private static Window CreatePet()
     {
         var pet = new Window { Width = 128, Height = 128, ShowInTaskbar = false };
@@ -87,15 +85,9 @@ public sealed class BubbleWindowTests
     /// <summary>
     /// Shows the bubble above the pet with a message, and lets its layout settle.
     /// </summary>
-    /// <param name="pet">
-    /// The pet stand-in.
-    /// </param>
-    /// <param name="bubble">
-    /// The bubble.
-    /// </param>
-    /// <param name="text">
-    /// The message.
-    /// </param>
+    /// <param name="pet">The pet stand-in.</param>
+    /// <param name="bubble">The bubble.</param>
+    /// <param name="text">The message.</param>
     private static void ShowMessage(Window pet, BubbleWindow bubble, string text)
     {
         bubble.SetContent(new BubbleContent(text, []));
@@ -112,15 +104,9 @@ public sealed class BubbleWindowTests
     /// Checks that the bubble ends at or above the sprite, and that it got there without being pushed down against the
     /// top of the work area, which would make the check meaningless.
     /// </summary>
-    /// <param name="pet">
-    /// The pet stand-in.
-    /// </param>
-    /// <param name="bubble">
-    /// The bubble.
-    /// </param>
-    /// <param name="spriteTopPixel">
-    /// The pixel row where the sprite starts.
-    /// </param>
+    /// <param name="pet">The pet stand-in.</param>
+    /// <param name="bubble">The bubble.</param>
+    /// <param name="spriteTopPixel">The pixel row where the sprite starts.</param>
     private static void AssertEndsAboveSprite(Window pet, BubbleWindow bubble, int spriteTopPixel)
     {
         var bubbleBounds = MonitorHelper.GetWindowBoundsPixels(bubble);
@@ -132,9 +118,7 @@ public sealed class BubbleWindowTests
     /// The bubble ends just above the sprite whether its text is on one line or wraps to several, after it has been laid
     /// out.
     /// </summary>
-    /// <param name="text">
-    /// The message to show.
-    /// </param>
+    /// <param name="text">The message to show.</param>
     [Theory]
     [InlineData(ShortText)]
     [InlineData(LongText)]

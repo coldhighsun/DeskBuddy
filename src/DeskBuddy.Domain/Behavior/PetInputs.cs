@@ -3,15 +3,11 @@ namespace DeskBuddy.Domain.Behavior;
 /// <summary>
 /// Everything the behavior state machine needs to know about the outside world at one moment.
 /// </summary>
-/// <param name="UserIdle">
-/// How long the user has had no keyboard or mouse input.
-/// </param>
+/// <param name="UserIdle">How long the user has had no keyboard or mouse input.</param>
 /// <param name="IsSystemStrained">
 /// Whether the system is under sustained heavy load (see <see cref="SystemLoad.LoadReactionPolicy"/>).
 /// </param>
-/// <param name="HasAlert">
-/// Whether a message is on screen and the pet should draw attention to it.
-/// </param>
+/// <param name="HasAlert">Whether a message is on screen and the pet should draw attention to it.</param>
 /// <param name="Ambient">
 /// A state the pet should hold for as long as it is set, because of something going on around it (a build running, a
 /// meeting in front), or <see langword="null"/> for none. It ranks above Tired and Coding.

@@ -56,9 +56,7 @@ public class InstalledPetsTests
     /// <summary>
     /// Makes a small frozen picture.
     /// </summary>
-    /// <returns>
-    /// The picture.
-    /// </returns>
+    /// <returns>The picture.</returns>
     private static System.Windows.Media.Imaging.BitmapSource MakePicture()
     {
         var picture = System.Windows.Media.Imaging.BitmapSource.Create(1, 1, 96, 96, System.Windows.Media.PixelFormats.Bgra32, null, new byte[4], 4);

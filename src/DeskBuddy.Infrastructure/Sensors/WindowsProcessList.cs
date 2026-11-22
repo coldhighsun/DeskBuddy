@@ -102,30 +102,18 @@ public sealed unsafe partial class WindowsProcessList : IProcessList
     /// <summary>
     /// Takes a snapshot of the system's processes.
     /// </summary>
-    /// <param name="flags">
-    /// What to include; <see cref="SnapProcess"/>.
-    /// </param>
-    /// <param name="processId">
-    /// Ignored for a snapshot of processes.
-    /// </param>
-    /// <returns>
-    /// The snapshot handle, or an invalid handle on failure.
-    /// </returns>
+    /// <param name="flags">What to include; <see cref="SnapProcess"/>.</param>
+    /// <param name="processId">Ignored for a snapshot of processes.</param>
+    /// <returns>The snapshot handle, or an invalid handle on failure.</returns>
     [LibraryImport("kernel32.dll", SetLastError = true)]
     private static partial nint CreateToolhelp32Snapshot(uint flags, uint processId);
 
     /// <summary>
     /// Reads the first process of a snapshot.
     /// </summary>
-    /// <param name="snapshot">
-    /// The snapshot handle.
-    /// </param>
-    /// <param name="entry">
-    /// Receives the process; its size must be set.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> if there was a process.
-    /// </returns>
+    /// <param name="snapshot">The snapshot handle.</param>
+    /// <param name="entry">Receives the process; its size must be set.</param>
+    /// <returns><see langword="true"/> if there was a process.</returns>
     [LibraryImport("kernel32.dll", EntryPoint = "Process32FirstW")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool Process32First(nint snapshot, ref ProcessEntry entry);
@@ -133,15 +121,9 @@ public sealed unsafe partial class WindowsProcessList : IProcessList
     /// <summary>
     /// Reads the next process of a snapshot.
     /// </summary>
-    /// <param name="snapshot">
-    /// The snapshot handle.
-    /// </param>
-    /// <param name="entry">
-    /// Receives the process.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> if there was another process.
-    /// </returns>
+    /// <param name="snapshot">The snapshot handle.</param>
+    /// <param name="entry">Receives the process.</param>
+    /// <returns><see langword="true"/> if there was another process.</returns>
     [LibraryImport("kernel32.dll", EntryPoint = "Process32NextW")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool Process32Next(nint snapshot, ref ProcessEntry entry);
@@ -149,12 +131,8 @@ public sealed unsafe partial class WindowsProcessList : IProcessList
     /// <summary>
     /// Closes a handle.
     /// </summary>
-    /// <param name="handle">
-    /// The handle to close.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> on success.
-    /// </returns>
+    /// <param name="handle">The handle to close.</param>
+    /// <returns><see langword="true"/> on success.</returns>
     [LibraryImport("kernel32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool CloseHandle(nint handle);

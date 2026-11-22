@@ -7,9 +7,7 @@ namespace DeskBuddy.Application.Scenarios;
 /// <summary>
 /// What <see cref="DevScenarios.Evaluate"/> found for one moment.
 /// </summary>
-/// <param name="IsDeveloping">
-/// Whether the user is working in a development tool.
-/// </param>
+/// <param name="IsDeveloping">Whether the user is working in a development tool.</param>
 /// <param name="Ambient">
 /// The state the pet should hold for as long as it applies (a build, reading up on something, a late night), or
 /// <see langword="null"/>.
@@ -17,9 +15,7 @@ namespace DeskBuddy.Application.Scenarios;
 /// <param name="Moment">
 /// A one-off state the pet should act out right now, with how long, or <see langword="null"/>.
 /// </param>
-/// <param name="Remark">
-/// The state whose short remark should be said right now, or <see langword="null"/>.
-/// </param>
+/// <param name="Remark">The state whose short remark should be said right now, or <see langword="null"/>.</param>
 public readonly record struct DevScenarioResult(
     bool IsDeveloping,
     PetState? Ambient,
@@ -31,30 +27,14 @@ public readonly record struct DevScenarioResult(
 /// running or finishing, git talking to a remote, a long night, a look things up in the browser. It reads the front
 /// application and the process list, but only names.
 /// </summary>
-/// <param name="foregroundApp">
-/// Tells which application is in front.
-/// </param>
-/// <param name="processes">
-/// Tells which processes are running.
-/// </param>
-/// <param name="devActivity">
-/// Decides whether the user is developing, and for how long.
-/// </param>
-/// <param name="build">
-/// Recognizes builds.
-/// </param>
-/// <param name="git">
-/// Notices git talking to a remote.
-/// </param>
-/// <param name="lateNight">
-/// Decides whether it is a late-night session.
-/// </param>
-/// <param name="switches">
-/// Which scenarios the user has switched on.
-/// </param>
-/// <param name="options">
-/// The timings.
-/// </param>
+/// <param name="foregroundApp">Tells which application is in front.</param>
+/// <param name="processes">Tells which processes are running.</param>
+/// <param name="devActivity">Decides whether the user is developing, and for how long.</param>
+/// <param name="build">Recognizes builds.</param>
+/// <param name="git">Notices git talking to a remote.</param>
+/// <param name="lateNight">Decides whether it is a late-night session.</param>
+/// <param name="switches">Which scenarios the user has switched on.</param>
+/// <param name="options">The timings.</param>
 public sealed class DevScenarios(
     IForegroundAppDetector foregroundApp,
     IProcessList processes,
@@ -84,15 +64,9 @@ public sealed class DevScenarios(
     /// <summary>
     /// Reads the sensors and works out what the pet should do about them.
     /// </summary>
-    /// <param name="userIdle">
-    /// How long the user has had no keyboard or mouse input.
-    /// </param>
-    /// <param name="load">
-    /// The latest load reading.
-    /// </param>
-    /// <returns>
-    /// What the pet should do.
-    /// </returns>
+    /// <param name="userIdle">How long the user has had no keyboard or mouse input.</param>
+    /// <param name="load">The latest load reading.</param>
+    /// <returns>What the pet should do.</returns>
     public DevScenarioResult Evaluate(TimeSpan userIdle, SystemLoadSnapshot load)
     {
         var foreground = foregroundApp.GetForegroundProcessName();

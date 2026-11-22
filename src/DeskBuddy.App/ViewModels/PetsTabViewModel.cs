@@ -86,21 +86,11 @@ public sealed partial class PetsTabViewModel : ObservableObject
     /// <summary>
     /// Initializes a new instance of the <see cref="PetsTabViewModel"/> class.
     /// </summary>
-    /// <param name="settings">
-    /// The settings, which store the pet in use.
-    /// </param>
-    /// <param name="catalog">
-    /// Lists the installed pets.
-    /// </param>
-    /// <param name="loader">
-    /// Loads a pet to show what it is like.
-    /// </param>
-    /// <param name="petSwitcher">
-    /// Switches the pet, which reports when that fails.
-    /// </param>
-    /// <param name="frames">
-    /// Supplies the pictures of the previews.
-    /// </param>
+    /// <param name="settings">The settings, which store the pet in use.</param>
+    /// <param name="catalog">Lists the installed pets.</param>
+    /// <param name="loader">Loads a pet to show what it is like.</param>
+    /// <param name="petSwitcher">Switches the pet, which reports when that fails.</param>
+    /// <param name="frames">Supplies the pictures of the previews.</param>
     /// <param name="preload">
     /// Cuts the pictures of the previews out ahead of time on another thread, or <see langword="null"/> to leave that to
     /// <paramref name="frames"/>.
@@ -139,12 +129,8 @@ public sealed partial class PetsTabViewModel : ObservableObject
     /// Makes the cards again after the interface language changed, as they hold the names and the text of the pets in the
     /// language they were made in. The pet being previewed stays picked.
     /// </summary>
-    /// <param name="sender">
-    /// The event source.
-    /// </param>
-    /// <param name="e">
-    /// Event data.
-    /// </param>
+    /// <param name="sender">The event source.</param>
+    /// <param name="e">Event data.</param>
     private async void OnLanguageChanged(object? sender, EventArgs e)
     {
         if (!_isLoaded)
@@ -183,9 +169,7 @@ public sealed partial class PetsTabViewModel : ObservableObject
     /// Looks for pets again: new ones appear, removed ones go, and a pet that could not be loaded gets another try.
     /// Pets that were loaded fine, with their pictures, are kept. Call when the tab is shown.
     /// </summary>
-    /// <returns>
-    /// A task that completes when the list is up to date.
-    /// </returns>
+    /// <returns>A task that completes when the list is up to date.</returns>
     public async Task RefreshAsync()
     {
         await _refreshGate.WaitAsync();
@@ -223,12 +207,8 @@ public sealed partial class PetsTabViewModel : ObservableObject
     /// it is meant to be started without anything waiting for it, and the panel looks at the pets again when it is opened,
     /// and shows what is wrong then.
     /// </summary>
-    /// <param name="logger">
-    /// Reports the failure.
-    /// </param>
-    /// <returns>
-    /// A task that completes when the pets have been looked at; it does not fail.
-    /// </returns>
+    /// <param name="logger">Reports the failure.</param>
+    /// <returns>A task that completes when the pets have been looked at; it does not fail.</returns>
     public async Task RefreshQuietlyAsync(ILogger logger)
     {
         ArgumentNullException.ThrowIfNull(logger);
@@ -246,9 +226,7 @@ public sealed partial class PetsTabViewModel : ObservableObject
     /// <summary>
     /// Moves the preview of the picked pet on; the other pets stand still.
     /// </summary>
-    /// <param name="delta">
-    /// The time since the previous call.
-    /// </param>
+    /// <param name="delta">The time since the previous call.</param>
     public void Tick(TimeSpan delta)
     {
         SelectedCard?.Tick(delta);
@@ -258,9 +236,7 @@ public sealed partial class PetsTabViewModel : ObservableObject
     /// Picks a pet to preview. The pet that was picked before goes back to standing still. This does not switch the
     /// pet; see <see cref="UseCommand"/>.
     /// </summary>
-    /// <param name="card">
-    /// The pet the user clicked; a pet that could not be loaded is ignored.
-    /// </param>
+    /// <param name="card">The pet the user clicked; a pet that could not be loaded is ignored.</param>
     public void SelectCard(PetCardViewModel? card)
     {
         if (card is { IsAvailable: false } || ReferenceEquals(card, SelectedCard))
@@ -305,12 +281,8 @@ public sealed partial class PetsTabViewModel : ObservableObject
     /// <summary>
     /// Switches to a pet.
     /// </summary>
-    /// <param name="card">
-    /// The pet whose use button the user pressed.
-    /// </param>
-    /// <returns>
-    /// A task that completes when the choice has been saved.
-    /// </returns>
+    /// <param name="card">The pet whose use button the user pressed.</param>
+    /// <returns>A task that completes when the choice has been saved.</returns>
     [RelayCommand]
     private async Task UseAsync(PetCardViewModel? card)
     {
@@ -338,15 +310,9 @@ public sealed partial class PetsTabViewModel : ObservableObject
     /// Chooses which pet to preview after the list was refreshed: the one that was being previewed if it is still there,
     /// otherwise the pet in use, otherwise the first pet that could be loaded.
     /// </summary>
-    /// <param name="cards">
-    /// The cards after the refresh.
-    /// </param>
-    /// <param name="previousName">
-    /// The folder name of the pet that was being previewed, if any.
-    /// </param>
-    /// <returns>
-    /// The card to preview, or <see langword="null"/> if no pet could be loaded.
-    /// </returns>
+    /// <param name="cards">The cards after the refresh.</param>
+    /// <param name="previousName">The folder name of the pet that was being previewed, if any.</param>
+    /// <returns>The card to preview, or <see langword="null"/> if no pet could be loaded.</returns>
     private static PetCardViewModel? PickSelection(IReadOnlyList<PetCardViewModel> cards, string? previousName)
     {
         var available = cards.Where(card => card.IsAvailable).ToList();
@@ -358,12 +324,8 @@ public sealed partial class PetsTabViewModel : ObservableObject
     /// <summary>
     /// Loads a pet for its card; a pet that cannot be loaded gets a card that says why.
     /// </summary>
-    /// <param name="name">
-    /// The name of the pet's folder.
-    /// </param>
-    /// <returns>
-    /// The card.
-    /// </returns>
+    /// <param name="name">The name of the pet's folder.</param>
+    /// <returns>The card.</returns>
     private async Task<PetCardViewModel> LoadCardAsync(string name)
     {
         try
@@ -385,9 +347,7 @@ public sealed partial class PetsTabViewModel : ObservableObject
     /// <summary>
     /// Marks the pet in use.
     /// </summary>
-    /// <param name="petName">
-    /// The folder name of the pet in use.
-    /// </param>
+    /// <param name="petName">The folder name of the pet in use.</param>
     private void MarkCurrent(string petName)
     {
         foreach (var card in _known.Values)
@@ -399,12 +359,8 @@ public sealed partial class PetsTabViewModel : ObservableObject
     /// <summary>
     /// Shows which pet is in use after the settings changed, also when a pet that could not be loaded was put back.
     /// </summary>
-    /// <param name="sender">
-    /// The event source.
-    /// </param>
-    /// <param name="settings">
-    /// The new settings.
-    /// </param>
+    /// <param name="sender">The event source.</param>
+    /// <param name="settings">The new settings.</param>
     private void OnSettingsChanged(object? sender, PetSettings settings)
     {
         MarkCurrent(settings.PetName);
@@ -413,12 +369,8 @@ public sealed partial class PetsTabViewModel : ObservableObject
     /// <summary>
     /// Shows why a pet could not be switched to.
     /// </summary>
-    /// <param name="sender">
-    /// The event source.
-    /// </param>
-    /// <param name="reason">
-    /// Why the switch failed.
-    /// </param>
+    /// <param name="sender">The event source.</param>
+    /// <param name="reason">Why the switch failed.</param>
     private void OnPetSwitchFailed(object? sender, string reason)
     {
         PetError = string.Format(CultureInfo.CurrentCulture, Strings.PetSwitchFailed, reason);

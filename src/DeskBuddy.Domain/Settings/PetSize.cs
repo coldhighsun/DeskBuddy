@@ -35,12 +35,8 @@ public static class PetSizeExtensions
     /// <summary>
     /// Gets the factor by which a size scales the frame size declared by a pet.
     /// </summary>
-    /// <param name="size">
-    /// The size.
-    /// </param>
-    /// <returns>
-    /// 0.75, 1 or 1.5.
-    /// </returns>
+    /// <param name="size">The size.</param>
+    /// <returns>0.75, 1 or 1.5.</returns>
     public static double ToScale(this PetSize size)
     {
         return size switch
@@ -54,15 +50,9 @@ public static class PetSizeExtensions
     /// <summary>
     /// Scales one edge of a pet frame.
     /// </summary>
-    /// <param name="size">
-    /// The size.
-    /// </param>
-    /// <param name="frameEdge">
-    /// The edge length declared by the pet.
-    /// </param>
-    /// <returns>
-    /// The scaled edge length, rounded and at least 1.
-    /// </returns>
+    /// <param name="size">The size.</param>
+    /// <param name="frameEdge">The edge length declared by the pet.</param>
+    /// <returns>The scaled edge length, rounded and at least 1.</returns>
     public static double Scale(this PetSize size, int frameEdge)
     {
         return Math.Max(1, Math.Round(frameEdge * size.ToScale()));

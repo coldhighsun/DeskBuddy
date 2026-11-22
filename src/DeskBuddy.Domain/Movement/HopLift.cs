@@ -20,12 +20,8 @@ public sealed class HopLift
     /// <summary>
     /// Works out where the pet walks, given where its window is.
     /// </summary>
-    /// <param name="actual">
-    /// The position of the window, raised by the hop if there is one.
-    /// </param>
-    /// <returns>
-    /// The same position on the line the pet walks along.
-    /// </returns>
+    /// <param name="actual">The position of the window, raised by the hop if there is one.</param>
+    /// <returns>The same position on the line the pet walks along.</returns>
     public Point2 ToWalkingLine(Point2 actual)
     {
         return actual with { Y = actual.Y + Offset };
@@ -34,27 +30,17 @@ public sealed class HopLift
     /// <summary>
     /// Raises a walking position by the hop at the given moment, and remembers how far.
     /// </summary>
-    /// <param name="walkingLine">
-    /// The position the walk step worked out, on the line the pet walks along.
-    /// </param>
+    /// <param name="walkingLine">The position the walk step worked out, on the line the pet walks along.</param>
     /// <param name="hopElapsed">
     /// The time since the hop began, or <see langword="null"/> if the pet is not hopping, which puts it back on the line.
     /// </param>
-    /// <param name="duration">
-    /// How long the hop lasts.
-    /// </param>
-    /// <param name="petHeight">
-    /// The height of the pet window.
-    /// </param>
-    /// <param name="heightRatio">
-    /// How high the top of the hop is, as a fraction of <paramref name="petHeight"/>.
-    /// </param>
+    /// <param name="duration">How long the hop lasts.</param>
+    /// <param name="petHeight">The height of the pet window.</param>
+    /// <param name="heightRatio">How high the top of the hop is, as a fraction of <paramref name="petHeight"/>.</param>
     /// <param name="minY">
     /// The highest the window may go, so that a hop never lifts the pet off the top of the screen.
     /// </param>
-    /// <returns>
-    /// The position the window is to be moved to.
-    /// </returns>
+    /// <returns>The position the window is to be moved to.</returns>
     public Point2 Lift(Point2 walkingLine, TimeSpan? hopElapsed, TimeSpan duration, double petHeight, double heightRatio, double minY)
     {
         var lift = hopElapsed is { } elapsed ? HopArc.Offset(elapsed, duration, petHeight, heightRatio) : 0;

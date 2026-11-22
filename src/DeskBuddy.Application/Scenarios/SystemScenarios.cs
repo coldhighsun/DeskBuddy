@@ -12,12 +12,8 @@ namespace DeskBuddy.Application.Scenarios;
 /// <param name="Moment">
 /// A one-off state the pet should act out right now, with how long, or <see langword="null"/>.
 /// </param>
-/// <param name="Remark">
-/// The state whose short remark should be said right now, or <see langword="null"/>.
-/// </param>
-/// <param name="RemarkVariant">
-/// Which wording of the remark to use, for states that have several.
-/// </param>
+/// <param name="Remark">The state whose short remark should be said right now, or <see langword="null"/>.</param>
+/// <param name="RemarkVariant">Which wording of the remark to use, for states that have several.</param>
 public readonly record struct SystemScenarioResult(
     PetState? Ambient,
     (PetState State, TimeSpan Duration)? Moment,
@@ -29,30 +25,14 @@ public readonly record struct SystemScenarioResult(
 /// user coming back after a long time, the battery running low or the cable being plugged in, and the clock: mealtimes,
 /// the end of the working day, the full hour and festivals.
 /// </summary>
-/// <param name="foregroundApp">
-/// Tells which application is in front.
-/// </param>
-/// <param name="power">
-/// Tells how the computer is powered.
-/// </param>
-/// <param name="meeting">
-/// Decides whether a meeting application is in front.
-/// </param>
-/// <param name="chat">
-/// Decides whether a chat application is in front.
-/// </param>
-/// <param name="welcome">
-/// Notices the user coming back.
-/// </param>
-/// <param name="powerPolicy">
-/// Watches the battery and the cable.
-/// </param>
-/// <param name="clock">
-/// Knows the times of day and dates the pet reacts to.
-/// </param>
-/// <param name="switches">
-/// Which scenarios the user has switched on.
-/// </param>
+/// <param name="foregroundApp">Tells which application is in front.</param>
+/// <param name="power">Tells how the computer is powered.</param>
+/// <param name="meeting">Decides whether a meeting application is in front.</param>
+/// <param name="chat">Decides whether a chat application is in front.</param>
+/// <param name="welcome">Notices the user coming back.</param>
+/// <param name="powerPolicy">Watches the battery and the cable.</param>
+/// <param name="clock">Knows the times of day and dates the pet reacts to.</param>
+/// <param name="switches">Which scenarios the user has switched on.</param>
 public sealed class SystemScenarios(
     IForegroundAppDetector foregroundApp,
     IPowerStatusProvider power,
@@ -107,15 +87,11 @@ public sealed class SystemScenarios(
     /// <summary>
     /// Reads the sensors and works out what the pet should do about them.
     /// </summary>
-    /// <param name="userIdle">
-    /// How long the user has had no keyboard or mouse input.
-    /// </param>
+    /// <param name="userIdle">How long the user has had no keyboard or mouse input.</param>
     /// <param name="canDisturb">
     /// Whether the pet may draw attention to itself now: it is on screen and nothing full-screen or quiet is in front.
     /// </param>
-    /// <returns>
-    /// What the pet should do.
-    /// </returns>
+    /// <returns>What the pet should do.</returns>
     public SystemScenarioResult Evaluate(TimeSpan userIdle, bool canDisturb = true)
     {
         var active = new List<PetState>(2);
@@ -199,12 +175,8 @@ public sealed class SystemScenarios(
     /// <summary>
     /// Tells how long a time-based state is acted out.
     /// </summary>
-    /// <param name="state">
-    /// The state.
-    /// </param>
-    /// <returns>
-    /// The duration.
-    /// </returns>
+    /// <param name="state">The state.</param>
+    /// <returns>The duration.</returns>
     private static TimeSpan DurationOf(PetState state)
     {
         return state switch

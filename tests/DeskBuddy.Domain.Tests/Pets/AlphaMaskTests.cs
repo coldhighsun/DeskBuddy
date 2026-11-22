@@ -8,9 +8,7 @@ public class AlphaMaskTests
     /// <summary>
     /// Creates a 2x2 mask where only the top-left pixel is opaque.
     /// </summary>
-    /// <returns>
-    /// The test mask.
-    /// </returns>
+    /// <returns>The test mask.</returns>
     private static AlphaMask CreateMask()
     {
         return new AlphaMask(2, 2, [255, 0, 0, 0]);

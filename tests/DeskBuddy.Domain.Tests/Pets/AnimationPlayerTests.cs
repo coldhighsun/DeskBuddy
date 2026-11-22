@@ -153,9 +153,7 @@ public class AnimationPlayerTests
     /// <summary>
     /// Creates a pet with a 2-frame Idle at 2 fps (500 ms per frame) and a 1-frame Sleep.
     /// </summary>
-    /// <returns>
-    /// The test pet.
-    /// </returns>
+    /// <returns>The test pet.</returns>
     private static Pet CreatePet()
     {
         return new Pet("test", 128, 128, new Dictionary<PetState, PetAnimation>

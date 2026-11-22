@@ -88,9 +88,7 @@ public sealed partial class SettingsTabViewModel
     /// <summary>
     /// Applies the full-screen auto-hide choice.
     /// </summary>
-    /// <param name="value">
-    /// Whether the pet hides for full-screen applications.
-    /// </param>
+    /// <param name="value">Whether the pet hides for full-screen applications.</param>
     partial void OnAutoHideWhenFullscreenChanged(bool value)
     {
         if (!_refreshing)
@@ -102,9 +100,7 @@ public sealed partial class SettingsTabViewModel
     /// <summary>
     /// Applies the monitor-cover detection choice.
     /// </summary>
-    /// <param name="value">
-    /// Whether a window covering a monitor counts as full screen.
-    /// </param>
+    /// <param name="value">Whether a window covering a monitor counts as full screen.</param>
     partial void OnDetectCoveredMonitorChanged(bool value)
     {
         if (!_refreshing)
@@ -116,9 +112,7 @@ public sealed partial class SettingsTabViewModel
     /// <summary>
     /// Applies the edited list of full-screen programs.
     /// </summary>
-    /// <param name="value">
-    /// The text entered, one process name per line.
-    /// </param>
+    /// <param name="value">The text entered, one process name per line.</param>
     partial void OnBlacklistTextChanged(string value)
     {
         if (!_refreshing)
@@ -130,9 +124,7 @@ public sealed partial class SettingsTabViewModel
     /// <summary>
     /// Applies the edited list of meeting applications.
     /// </summary>
-    /// <param name="value">
-    /// The text entered, one process name per line.
-    /// </param>
+    /// <param name="value">The text entered, one process name per line.</param>
     partial void OnMeetingProcessesTextChanged(string value)
     {
         if (!_refreshing)
@@ -144,9 +136,7 @@ public sealed partial class SettingsTabViewModel
     /// <summary>
     /// Applies the edited list of chat applications.
     /// </summary>
-    /// <param name="value">
-    /// The text entered, one process name per line.
-    /// </param>
+    /// <param name="value">The text entered, one process name per line.</param>
     partial void OnChatProcessesTextChanged(string value)
     {
         if (!_refreshing)
@@ -165,9 +155,7 @@ public sealed partial class SettingsTabViewModel
     /// <summary>
     /// Applies the edited list of development tools.
     /// </summary>
-    /// <param name="value">
-    /// The text entered, one process name per line.
-    /// </param>
+    /// <param name="value">The text entered, one process name per line.</param>
     partial void OnDevProcessesTextChanged(string value)
     {
         if (!_refreshing)
@@ -180,12 +168,8 @@ public sealed partial class SettingsTabViewModel
     /// Applies an edited process list, unless a name is in another list; then it is not applied and the reason is shown
     /// until the text is fixed.
     /// </summary>
-    /// <param name="kind">
-    /// The list.
-    /// </param>
-    /// <param name="text">
-    /// The text entered, one process name per line.
-    /// </param>
+    /// <param name="kind">The list.</param>
+    /// <param name="text">The text entered, one process name per line.</param>
     private void ApplyProcessList(ProcessListKind kind, string text)
     {
         var names = ProcessListRules.Clean(text.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries));
@@ -209,12 +193,8 @@ public sealed partial class SettingsTabViewModel
     /// <summary>
     /// Names a process list in the draft.
     /// </summary>
-    /// <param name="kind">
-    /// The list.
-    /// </param>
-    /// <returns>
-    /// The key of the list's entry.
-    /// </returns>
+    /// <param name="kind">The list.</param>
+    /// <returns>The key of the list's entry.</returns>
     private static string ProcessListEditKey(ProcessListKind kind)
     {
         return $"List.{kind}";
@@ -224,9 +204,7 @@ public sealed partial class SettingsTabViewModel
     /// Checks the lists held back by an error again after another list changed, as the change may have removed the
     /// clash.
     /// </summary>
-    /// <param name="changed">
-    /// The list that was just applied.
-    /// </param>
+    /// <param name="changed">The list that was just applied.</param>
     private void RecheckProcessLists(ProcessListKind changed)
     {
         foreach (var kind in ProcessListRules.All.Where(kind => kind != changed && _processLists[kind].GetError().Length > 0).ToList())
@@ -247,12 +225,8 @@ public sealed partial class SettingsTabViewModel
     /// <summary>
     /// Tells what was taken out of the process lists at load.
     /// </summary>
-    /// <param name="removed">
-    /// The names taken out.
-    /// </param>
-    /// <returns>
-    /// A heading and one line for each name; empty if nothing was taken out.
-    /// </returns>
+    /// <param name="removed">The names taken out.</param>
+    /// <returns>A heading and one line for each name; empty if nothing was taken out.</returns>
     private static string DescribeRemoved(IReadOnlyList<RemovedProcessName> removed)
     {
         if (removed.Count == 0)
@@ -269,12 +243,8 @@ public sealed partial class SettingsTabViewModel
     /// <summary>
     /// Explains why a process list cannot be used.
     /// </summary>
-    /// <param name="check">
-    /// The failed check.
-    /// </param>
-    /// <returns>
-    /// The explanation.
-    /// </returns>
+    /// <param name="check">The failed check.</param>
+    /// <returns>The explanation.</returns>
     private static string Describe(ProcessListCheck check)
     {
         return check.Problem == ProcessListProblem.ContainsSpace
@@ -286,12 +256,8 @@ public sealed partial class SettingsTabViewModel
     /// Shows a process list from the settings, unless the text typed for it is held back by an error: that text is
     /// still being fixed and must not be replaced by the list in use.
     /// </summary>
-    /// <param name="kind">
-    /// The list.
-    /// </param>
-    /// <param name="settings">
-    /// The settings to show.
-    /// </param>
+    /// <param name="kind">The list.</param>
+    /// <param name="settings">The settings to show.</param>
     /// <param name="keepTypedText">
     /// Whether the text is left alone when it already lists the same process names, so it is not rewritten while the
     /// user is typing.
@@ -310,17 +276,9 @@ public sealed partial class SettingsTabViewModel
     /// <summary>
     /// Reaches the text and the explanation of one process list.
     /// </summary>
-    /// <param name="GetText">
-    /// Reads the text typed.
-    /// </param>
-    /// <param name="SetText">
-    /// Shows a text.
-    /// </param>
-    /// <param name="GetError">
-    /// Reads the explanation shown.
-    /// </param>
-    /// <param name="SetError">
-    /// Shows an explanation.
-    /// </param>
+    /// <param name="GetText">Reads the text typed.</param>
+    /// <param name="SetText">Shows a text.</param>
+    /// <param name="GetError">Reads the explanation shown.</param>
+    /// <param name="SetError">Shows an explanation.</param>
     private sealed record ProcessListBox(Func<string> GetText, Action<string> SetText, Func<string> GetError, Action<string> SetError);
 }

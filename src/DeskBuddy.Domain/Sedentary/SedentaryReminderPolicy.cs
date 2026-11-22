@@ -30,12 +30,8 @@ public sealed class SedentaryReminderPolicy
     /// <summary>
     /// Initializes a new instance of the <see cref="SedentaryReminderPolicy"/> class.
     /// </summary>
-    /// <param name="options">
-    /// The timings.
-    /// </param>
-    /// <param name="timeProvider">
-    /// The time source.
-    /// </param>
+    /// <param name="options">The timings.</param>
+    /// <param name="timeProvider">The time source.</param>
     public SedentaryReminderPolicy(SedentaryOptions options, TimeProvider timeProvider)
     {
         ArgumentNullException.ThrowIfNull(options);
@@ -54,9 +50,7 @@ public sealed class SedentaryReminderPolicy
     /// <summary>
     /// Feeds the latest user presence into the policy.
     /// </summary>
-    /// <param name="userIdle">
-    /// How long the user has had no keyboard or mouse input.
-    /// </param>
+    /// <param name="userIdle">How long the user has had no keyboard or mouse input.</param>
     /// <returns>
     /// <see langword="true"/> if a reminder is due now. It returns <see langword="true"/> once per reminder, not on
     /// every call.

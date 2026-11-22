@@ -39,12 +39,8 @@ public class SedentaryReminderPolicyTests
     /// <summary>
     /// Simulates an active user for the given time, polling once per minute, and reports whether a reminder fired.
     /// </summary>
-    /// <param name="duration">
-    /// How long the user keeps working.
-    /// </param>
-    /// <returns>
-    /// The number of reminders that fired during the period.
-    /// </returns>
+    /// <param name="duration">How long the user keeps working.</param>
+    /// <returns>The number of reminders that fired during the period.</returns>
     private int Work(TimeSpan duration)
     {
         var reminders = 0;

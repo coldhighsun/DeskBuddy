@@ -4,18 +4,12 @@ namespace DeskBuddy.Domain.Movement;
 /// The motion of a pet that was dropped from a height: it speeds up under gravity, and once it is fast enough its
 /// umbrella or parachute opens and slows it to a gentle sink.
 /// </summary>
-/// <param name="Y">
-/// The top of the pet window.
-/// </param>
+/// <param name="Y">The top of the pet window.</param>
 /// <param name="Velocity">
 /// The downward speed in device-independent pixels per second; negative while a pet thrown upwards is still rising.
 /// </param>
-/// <param name="Opened">
-/// Whether the umbrella or parachute is open.
-/// </param>
-/// <param name="Landed">
-/// Whether the pet has reached the ground.
-/// </param>
+/// <param name="Opened">Whether the umbrella or parachute is open.</param>
+/// <param name="Landed">Whether the pet has reached the ground.</param>
 public readonly record struct FallState(double Y, double Velocity, bool Opened, bool Landed);
 
 /// <summary>
@@ -26,15 +20,9 @@ public static class FreeFall
     /// <summary>
     /// Decides whether a dropped pet falls instead of settling at once.
     /// </summary>
-    /// <param name="dropY">
-    /// The top of the pet window where it was dropped.
-    /// </param>
-    /// <param name="landingY">
-    /// The top of the pet window where it would settle.
-    /// </param>
-    /// <param name="minHeight">
-    /// The smallest height difference that counts as a fall.
-    /// </param>
+    /// <param name="dropY">The top of the pet window where it was dropped.</param>
+    /// <param name="landingY">The top of the pet window where it would settle.</param>
+    /// <param name="minHeight">The smallest height difference that counts as a fall.</param>
     /// <returns>
     /// <see langword="true"/> if the pet is at least <paramref name="minHeight"/> above where it would settle.
     /// </returns>
@@ -46,18 +34,10 @@ public static class FreeFall
     /// <summary>
     /// Advances a fall by one time step.
     /// </summary>
-    /// <param name="state">
-    /// The state before the step.
-    /// </param>
-    /// <param name="landingY">
-    /// The top of the pet window where it lands.
-    /// </param>
-    /// <param name="elapsed">
-    /// The time since the previous step.
-    /// </param>
-    /// <param name="options">
-    /// The fall tuning.
-    /// </param>
+    /// <param name="state">The state before the step.</param>
+    /// <param name="landingY">The top of the pet window where it lands.</param>
+    /// <param name="elapsed">The time since the previous step.</param>
+    /// <param name="options">The fall tuning.</param>
     /// <param name="ceilingY">
     /// The highest the top of the pet window may go; a pet thrown upwards stops rising there and falls back.
     /// </param>

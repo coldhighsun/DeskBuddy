@@ -10,12 +10,8 @@ public sealed class WindowStyleHelperTests
     /// <summary>
     /// A change of monitors, resolution, scaling or work area is a change of the screen layout.
     /// </summary>
-    /// <param name="msg">
-    /// The window message.
-    /// </param>
-    /// <param name="wParam">
-    /// Its <c>wParam</c>.
-    /// </param>
+    /// <param name="msg">The window message.</param>
+    /// <param name="wParam">Its <c>wParam</c>.</param>
     [Theory]
     [InlineData(WindowStyleHelper.WmDisplayChange, 0)]
     [InlineData(WindowStyleHelper.WmDpiChanged, 0)]
@@ -32,12 +28,8 @@ public sealed class WindowStyleHelperTests
     /// <summary>
     /// Other messages, and other system settings changing, are not.
     /// </summary>
-    /// <param name="msg">
-    /// The window message.
-    /// </param>
-    /// <param name="wParam">
-    /// Its <c>wParam</c>.
-    /// </param>
+    /// <param name="msg">The window message.</param>
+    /// <param name="wParam">Its <c>wParam</c>.</param>
     [Theory]
     [InlineData(WindowStyleHelper.WmSettingChange, 0)]
     [InlineData(WindowStyleHelper.WmSettingChange, 0x0057)]

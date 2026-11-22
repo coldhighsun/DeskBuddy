@@ -9,9 +9,7 @@ namespace DeskBuddy.App.Windows;
 /// falls, and puts it right again when the pet is moved some other way. Holds everything that coordinates the two
 /// windows, so the pet window does not have to.
 /// </summary>
-/// <param name="pet">
-/// The pet window the canopy belongs to.
-/// </param>
+/// <param name="pet">The pet window the canopy belongs to.</param>
 public sealed class UmbrellaFollower(Window pet)
 {
     /// <summary>
@@ -44,9 +42,7 @@ public sealed class UmbrellaFollower(Window pet)
     /// <param name="grips">
     /// Where the pet holds on to the canopy, as its frames are drawn (see <see cref="Pet.GlideGrips"/>).
     /// </param>
-    /// <param name="mirrored">
-    /// Whether the window shows the pet's frames mirrored left to right.
-    /// </param>
+    /// <param name="mirrored">Whether the window shows the pet's frames mirrored left to right.</param>
     public void Open(IReadOnlyList<FramePoint> grips, bool mirrored)
     {
         _canopy ??= new UmbrellaWindow();
@@ -74,12 +70,8 @@ public sealed class UmbrellaFollower(Window pet)
     /// Moves the pet to a new place and, if the canopy is open, the canopy over it to its new place together, so the
     /// canopy does not trail behind the pet.
     /// </summary>
-    /// <param name="left">
-    /// The pet's new left edge, in device-independent pixels.
-    /// </param>
-    /// <param name="top">
-    /// The pet's new top edge, in device-independent pixels.
-    /// </param>
+    /// <param name="left">The pet's new left edge, in device-independent pixels.</param>
+    /// <param name="top">The pet's new top edge, in device-independent pixels.</param>
     public void MovePet(double left, double top)
     {
         var dpi = VisualTreeHelper.GetDpi(pet);

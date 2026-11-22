@@ -62,9 +62,7 @@ public sealed class FolderPetCatalog : IPetCatalog
     /// <summary>
     /// Lists the pets in one folder.
     /// </summary>
-    /// <param name="root">
-    /// The folder.
-    /// </param>
+    /// <param name="root">The folder.</param>
     /// <returns>
     /// The names of its subfolders that hold a manifest; empty if the folder does not exist or cannot be read.
     /// </returns>

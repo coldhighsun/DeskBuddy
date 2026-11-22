@@ -55,12 +55,8 @@ public class LoadReactionPolicyTests
     /// <summary>
     /// Feeds the same reading once per second for the given number of seconds.
     /// </summary>
-    /// <param name="snapshot">
-    /// The reading to feed.
-    /// </param>
-    /// <param name="seconds">
-    /// How many one-second steps to run.
-    /// </param>
+    /// <param name="snapshot">The reading to feed.</param>
+    /// <param name="seconds">How many one-second steps to run.</param>
     private void Feed(SystemLoadSnapshot snapshot, int seconds)
     {
         for (var i = 0; i < seconds; i++)

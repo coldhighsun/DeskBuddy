@@ -96,12 +96,8 @@ public class HopArcTests
     /// <summary>
     /// A hop is over exactly when its whole duration has passed, and not before.
     /// </summary>
-    /// <param name="milliseconds">
-    /// The time since the hop began.
-    /// </param>
-    /// <param name="expected">
-    /// Whether the hop is over.
-    /// </param>
+    /// <param name="milliseconds">The time since the hop began.</param>
+    /// <param name="expected">Whether the hop is over.</param>
     [Theory]
     [InlineData(0, false)]
     [InlineData(599, false)]

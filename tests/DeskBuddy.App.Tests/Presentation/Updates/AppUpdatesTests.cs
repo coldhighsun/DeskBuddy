@@ -431,12 +431,8 @@ public sealed class AppUpdatesTests : IDisposable
     /// <summary>
     /// Makes the switch for automatic checks and counts how often it is asked.
     /// </summary>
-    /// <param name="enabled">
-    /// What the switch answers.
-    /// </param>
-    /// <returns>
-    /// The switch.
-    /// </returns>
+    /// <param name="enabled">What the switch answers.</param>
+    /// <returns>The switch.</returns>
     private Func<bool> CountRounds(bool enabled)
     {
         return () =>
@@ -449,16 +445,12 @@ public sealed class AppUpdatesTests : IDisposable
     /// <summary>
     /// Runs the background loop until it has made the given number of rounds, moving the clock past the waits.
     /// </summary>
-    /// <param name="controller">
-    /// The controller whose loop runs.
-    /// </param>
+    /// <param name="controller">The controller whose loop runs.</param>
     /// <param name="rounds">
     /// How many times the loop has asked whether to check. The check of an earlier round is done by the time a later
     /// round asks.
     /// </param>
-    /// <returns>
-    /// A task that completes when the loop has been stopped.
-    /// </returns>
+    /// <returns>A task that completes when the loop has been stopped.</returns>
     private async Task RunRoundsAsync(UpdateController controller, int rounds)
     {
         using var stop = new CancellationTokenSource();
@@ -478,15 +470,11 @@ public sealed class AppUpdatesTests : IDisposable
     /// <summary>
     /// Creates the controller under test.
     /// </summary>
-    /// <param name="currentVersion">
-    /// The running version.
-    /// </param>
+    /// <param name="currentVersion">The running version.</param>
     /// <param name="isAutoCheckEnabled">
     /// Says whether the user wants automatic checks; <see langword="null"/> means yes.
     /// </param>
-    /// <returns>
-    /// The controller.
-    /// </returns>
+    /// <returns>The controller.</returns>
     private UpdateController CreateController(string currentVersion, Func<bool>? isAutoCheckEnabled = null)
     {
         var client = new HttpClient(_handler, disposeHandler: false);

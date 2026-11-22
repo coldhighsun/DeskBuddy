@@ -61,18 +61,10 @@ public class BuildActivityPolicyTests
     /// <summary>
     /// Lets time pass while feeding the same reading once a second.
     /// </summary>
-    /// <param name="seconds">
-    /// How long to run.
-    /// </param>
-    /// <param name="toolRunning">
-    /// Whether a build tool is running.
-    /// </param>
-    /// <param name="cpu">
-    /// The processor load.
-    /// </param>
-    /// <returns>
-    /// Every change that was reported.
-    /// </returns>
+    /// <param name="seconds">How long to run.</param>
+    /// <param name="toolRunning">Whether a build tool is running.</param>
+    /// <param name="cpu">The processor load.</param>
+    /// <returns>Every change that was reported.</returns>
     private List<BuildChange> Run(int seconds, bool toolRunning, double cpu)
     {
         var changes = new List<BuildChange>();

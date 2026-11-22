@@ -8,21 +8,13 @@ namespace DeskBuddy.App.Presentation;
 /// <summary>
 /// One installed pet, as the tray menu and the panel show it.
 /// </summary>
-/// <param name="FolderName">
-/// The name of the pet's folder, which is what the settings store.
-/// </param>
-/// <param name="DisplayName">
-/// The name the pet gives itself in its manifest.
-/// </param>
+/// <param name="FolderName">The name of the pet's folder, which is what the settings store.</param>
+/// <param name="DisplayName">The name the pet gives itself in its manifest.</param>
 /// <param name="Picture">
 /// The picture the menu shows for the pet, or <see langword="null"/> if it has none or it cannot be decoded.
 /// </param>
-/// <param name="FrameWidth">
-/// The width of the pet's pictures, as the pet declares it.
-/// </param>
-/// <param name="FrameHeight">
-/// The height of the pet's pictures, as the pet declares it.
-/// </param>
+/// <param name="FrameWidth">The width of the pet's pictures, as the pet declares it.</param>
+/// <param name="FrameHeight">The height of the pet's pictures, as the pet declares it.</param>
 /// <param name="IconPicture">
 /// The picture the pet brings for the notification-area icon (<c>icon.png</c> in its folder, its head), or
 /// <see langword="null"/> if it has none or it cannot be decoded.
@@ -80,15 +72,9 @@ public sealed class InstalledPets
     /// <summary>
     /// Initializes a new instance of the <see cref="InstalledPets"/> class.
     /// </summary>
-    /// <param name="catalog">
-    /// Lists the installed pets.
-    /// </param>
-    /// <param name="loader">
-    /// Loads a pet from its folder.
-    /// </param>
-    /// <param name="frames">
-    /// Supplies the picture in a file.
-    /// </param>
+    /// <param name="catalog">Lists the installed pets.</param>
+    /// <param name="loader">Loads a pet from its folder.</param>
+    /// <param name="frames">Supplies the picture in a file.</param>
     /// <param name="preload">
     /// Cuts the pictures out ahead of time on another thread, or <see langword="null"/> to leave that to
     /// <paramref name="frames"/>.
@@ -189,9 +175,7 @@ public sealed class InstalledPets
     /// so that something that needs only that pet (the tray icon at start-up needs the pet in use) does not wait for the
     /// whole list.
     /// </summary>
-    /// <param name="name">
-    /// The pet's folder name.
-    /// </param>
+    /// <param name="name">The pet's folder name.</param>
     /// <returns>
     /// The entry, or <see langword="null"/> if the pet cannot be loaded; the panel shows such a pet with the reason.
     /// </returns>

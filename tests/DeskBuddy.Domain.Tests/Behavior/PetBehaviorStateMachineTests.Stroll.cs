@@ -8,12 +8,8 @@ public partial class PetBehaviorStateMachineTests
     /// <summary>
     /// Puts the machine into a state with the given inputs and lets it stay there until it is time for a stroll.
     /// </summary>
-    /// <param name="inputs">
-    /// The inputs that hold the pet in its state.
-    /// </param>
-    /// <returns>
-    /// The state after the stroll began.
-    /// </returns>
+    /// <param name="inputs">The inputs that hold the pet in its state.</param>
+    /// <returns>The state after the stroll began.</returns>
     private PetState StartStroll(PetInputs inputs)
     {
         _machine.Update(inputs);
@@ -130,9 +126,7 @@ public partial class PetBehaviorStateMachineTests
     /// <summary>
     /// Long-lived ambient states take a stroll as well and come back to the same state.
     /// </summary>
-    /// <param name="ambient">
-    /// The ambient state that holds the pet.
-    /// </param>
+    /// <param name="ambient">The ambient state that holds the pet.</param>
     [Theory]
     [InlineData(PetState.Meeting)]
     [InlineData(PetState.Chatting)]
@@ -393,15 +387,9 @@ public partial class PetBehaviorStateMachineTests
     /// <summary>
     /// Makes a machine, coding, that has just set off on a stroll and is to hop after a fixed time.
     /// </summary>
-    /// <param name="hopAfter">
-    /// How long into the walk the pet hops.
-    /// </param>
-    /// <param name="hopDuration">
-    /// How long the hop lasts.
-    /// </param>
-    /// <returns>
-    /// The machine, in the first moment of the stroll.
-    /// </returns>
+    /// <param name="hopAfter">How long into the walk the pet hops.</param>
+    /// <param name="hopDuration">How long the hop lasts.</param>
+    /// <returns>The machine, in the first moment of the stroll.</returns>
     private PetBehaviorStateMachine CreateStrollingHopper(TimeSpan hopAfter, TimeSpan hopDuration)
     {
         var options = CreateOptions();

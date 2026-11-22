@@ -30,12 +30,8 @@ public sealed class LoadReactionPolicy
     /// <summary>
     /// Initializes a new instance of the <see cref="LoadReactionPolicy"/> class.
     /// </summary>
-    /// <param name="options">
-    /// The thresholds and durations.
-    /// </param>
-    /// <param name="timeProvider">
-    /// The time source.
-    /// </param>
+    /// <param name="options">The thresholds and durations.</param>
+    /// <param name="timeProvider">The time source.</param>
     public LoadReactionPolicy(SystemLoadOptions options, TimeProvider timeProvider)
     {
         ArgumentNullException.ThrowIfNull(options);
@@ -53,12 +49,8 @@ public sealed class LoadReactionPolicy
     /// <summary>
     /// Feeds a new reading into the policy.
     /// </summary>
-    /// <param name="snapshot">
-    /// The latest load reading.
-    /// </param>
-    /// <returns>
-    /// <see cref="IsStrained"/> after taking the reading into account.
-    /// </returns>
+    /// <param name="snapshot">The latest load reading.</param>
+    /// <returns><see cref="IsStrained"/> after taking the reading into account.</returns>
     public bool Update(SystemLoadSnapshot snapshot)
     {
         var now = _timeProvider.GetUtcNow();

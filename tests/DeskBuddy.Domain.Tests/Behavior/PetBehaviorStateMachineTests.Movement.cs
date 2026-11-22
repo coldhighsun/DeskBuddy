@@ -190,9 +190,7 @@ public partial class PetBehaviorStateMachineTests
     /// <summary>
     /// A pet crawling along the edges of the screen keeps at it, however long it takes.
     /// </summary>
-    /// <param name="state">
-    /// The crawling state.
-    /// </param>
+    /// <param name="state">The crawling state.</param>
     [Theory]
     [InlineData(PetState.Climb)]
     [InlineData(PetState.ClimbDown)]
@@ -306,9 +304,7 @@ public partial class PetBehaviorStateMachineTests
     /// <summary>
     /// A reset puts the pet back to standing, whatever it was doing.
     /// </summary>
-    /// <param name="state">
-    /// The state the pet was in.
-    /// </param>
+    /// <param name="state">The state the pet was in.</param>
     [Theory]
     [InlineData(PetState.Climb)]
     [InlineData(PetState.Ceiling)]

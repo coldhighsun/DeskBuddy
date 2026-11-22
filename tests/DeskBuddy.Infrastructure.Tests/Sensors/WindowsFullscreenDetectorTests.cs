@@ -13,9 +13,7 @@ public class WindowsFullscreenDetectorTests
     /// <summary>
     /// States that mean the user must not be disturbed.
     /// </summary>
-    /// <param name="state">
-    /// A <c>QUERY_USER_NOTIFICATION_STATE</c> value.
-    /// </param>
+    /// <param name="state">A <c>QUERY_USER_NOTIFICATION_STATE</c> value.</param>
     [Theory]
     [InlineData(1)]
     [InlineData(2)]
@@ -34,9 +32,7 @@ public class WindowsFullscreenDetectorTests
     /// <summary>
     /// States where notices are fine, plus values the shell never reports.
     /// </summary>
-    /// <param name="state">
-    /// A <c>QUERY_USER_NOTIFICATION_STATE</c> value or an out-of-range value.
-    /// </param>
+    /// <param name="state">A <c>QUERY_USER_NOTIFICATION_STATE</c> value or an out-of-range value.</param>
     [Theory]
     [InlineData(5)]
     [InlineData(7)]
@@ -96,12 +92,8 @@ public class WindowsFullscreenDetectorTests
     /// <summary>
     /// Builds a detector over the default settings.
     /// </summary>
-    /// <param name="settings">
-    /// The settings to run with.
-    /// </param>
-    /// <returns>
-    /// The detector.
-    /// </returns>
+    /// <param name="settings">The settings to run with.</param>
+    /// <returns>The detector.</returns>
     private static WindowsFullscreenDetector CreateDetector(PetSettings settings)
     {
         var service = new SettingsService(new FixedStore(settings));
@@ -112,9 +104,7 @@ public class WindowsFullscreenDetectorTests
     /// <summary>
     /// The shell states that mean a full-screen or presenting application are Fullscreen.
     /// </summary>
-    /// <param name="state">
-    /// A <c>QUERY_USER_NOTIFICATION_STATE</c> value.
-    /// </param>
+    /// <param name="state">A <c>QUERY_USER_NOTIFICATION_STATE</c> value.</param>
     [Theory]
     [InlineData(2)]
     [InlineData(3)]
@@ -131,9 +121,7 @@ public class WindowsFullscreenDetectorTests
     /// <summary>
     /// Locked screen and Focus Assist hold messages back without hiding the pet.
     /// </summary>
-    /// <param name="state">
-    /// A <c>QUERY_USER_NOTIFICATION_STATE</c> value.
-    /// </param>
+    /// <param name="state">A <c>QUERY_USER_NOTIFICATION_STATE</c> value.</param>
     [Theory]
     [InlineData(1)]
     [InlineData(6)]
@@ -194,12 +182,8 @@ public class WindowsFullscreenDetectorTests
     /// <summary>
     /// A window covering a monitor counts only when the option is on.
     /// </summary>
-    /// <param name="detectCovered">
-    /// Whether the option is on.
-    /// </param>
-    /// <param name="expected">
-    /// The expected level.
-    /// </param>
+    /// <param name="detectCovered">Whether the option is on.</param>
+    /// <param name="expected">The expected level.</param>
     [Theory]
     [InlineData(true, DoNotDisturbLevel.Fullscreen)]
     [InlineData(false, DoNotDisturbLevel.None)]
@@ -238,9 +222,7 @@ public class WindowsFullscreenDetectorTests
     /// <summary>
     /// Settings storage that returns fixed settings.
     /// </summary>
-    /// <param name="settings">
-    /// The settings to return.
-    /// </param>
+    /// <param name="settings">The settings to return.</param>
     private sealed class FixedStore(PetSettings settings) : ISettingsStore
     {
         /// <inheritdoc />

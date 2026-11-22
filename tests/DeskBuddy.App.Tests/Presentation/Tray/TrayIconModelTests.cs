@@ -109,9 +109,7 @@ public class TrayIconModelTests
     /// <summary>
     /// Makes a picture to tell the pictures apart by reference.
     /// </summary>
-    /// <returns>
-    /// The picture.
-    /// </returns>
+    /// <returns>The picture.</returns>
     private static BitmapSource Picture()
     {
         var picture = BitmapSource.Create(1, 1, 96, 96, PixelFormats.Bgra32, null, new byte[4], 4);

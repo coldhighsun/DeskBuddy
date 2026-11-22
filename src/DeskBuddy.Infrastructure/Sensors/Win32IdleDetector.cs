@@ -16,15 +16,9 @@ public sealed partial class Win32IdleDetector : IIdleDetector
     /// Computes the idle time from two 32-bit millisecond tick counts, tolerating the counter wrapping around
     /// (roughly every 49.7 days).
     /// </summary>
-    /// <param name="nowTicks">
-    /// Current tick count in milliseconds.
-    /// </param>
-    /// <param name="lastInputTicks">
-    /// Tick count of the last user input in milliseconds.
-    /// </param>
-    /// <returns>
-    /// The elapsed time between the two tick counts.
-    /// </returns>
+    /// <param name="nowTicks">Current tick count in milliseconds.</param>
+    /// <param name="lastInputTicks">Tick count of the last user input in milliseconds.</param>
+    /// <returns>The elapsed time between the two tick counts.</returns>
     public static TimeSpan ComputeIdle(uint nowTicks, uint lastInputTicks)
     {
         return TimeSpan.FromMilliseconds(unchecked(nowTicks - lastInputTicks));
@@ -36,9 +30,7 @@ public sealed partial class Win32IdleDetector : IIdleDetector
     /// <param name="info">
     /// Receives the last-input information; <see cref="LastInputInfo.Size"/> must be set by the caller.
     /// </param>
-    /// <returns>
-    /// <see langword="true"/> on success.
-    /// </returns>
+    /// <returns><see langword="true"/> on success.</returns>
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool GetLastInputInfo(ref LastInputInfo info);

@@ -101,9 +101,7 @@ public sealed class SingleInstanceGuardTests
     /// <summary>
     /// Makes a mutex name no other test or process uses.
     /// </summary>
-    /// <returns>
-    /// A session-local mutex name.
-    /// </returns>
+    /// <returns>A session-local mutex name.</returns>
     private static string UniqueName()
     {
         return $@"Local\DeskBuddy.Tests.{Guid.NewGuid():N}";

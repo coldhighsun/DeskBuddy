@@ -310,9 +310,7 @@ public sealed class UpdateDialogModelTests : IDisposable
     /// <summary>
     /// A missing address, or one that is not a secure web address, is replaced by the latest release page of the project.
     /// </summary>
-    /// <param name="releaseUrl">
-    /// The address the release gave.
-    /// </param>
+    /// <param name="releaseUrl">The address the release gave.</param>
     [Theory]
     [InlineData(null)]
     [InlineData("")]

@@ -8,9 +8,7 @@ public static class LanguageResolver
     /// <summary>
     /// Picks the interface culture for a language setting.
     /// </summary>
-    /// <param name="language">
-    /// The chosen language.
-    /// </param>
+    /// <param name="language">The chosen language.</param>
     /// <param name="system">
     /// The language of the operating system, used when the choice is <see cref="AppLanguage.Auto"/>.
     /// </param>

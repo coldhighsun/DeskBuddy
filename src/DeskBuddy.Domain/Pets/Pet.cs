@@ -26,15 +26,9 @@ public sealed class Pet
     /// <summary>
     /// Initializes a new instance of the <see cref="Pet"/> class.
     /// </summary>
-    /// <param name="name">
-    /// Display name of the pet.
-    /// </param>
-    /// <param name="frameWidth">
-    /// Frame width in device-independent pixels.
-    /// </param>
-    /// <param name="frameHeight">
-    /// Frame height in device-independent pixels.
-    /// </param>
+    /// <param name="name">Display name of the pet.</param>
+    /// <param name="frameWidth">Frame width in device-independent pixels.</param>
+    /// <param name="frameHeight">Frame height in device-independent pixels.</param>
     /// <param name="animations">
     /// Animations keyed by state. Must contain <see cref="PetState.Idle"/>, which is the fallback for missing states.
     /// </param>
@@ -123,12 +117,8 @@ public sealed class Pet
     /// Gets the name of the pet to show in a language: the one the manifest gives for the culture, else for its parent
     /// cultures (<c>zh-CN</c>, then <c>zh-Hans</c>, then <c>zh</c>), else <see cref="Name"/>.
     /// </summary>
-    /// <param name="culture">
-    /// The language to show the name in.
-    /// </param>
-    /// <returns>
-    /// The name.
-    /// </returns>
+    /// <param name="culture">The language to show the name in.</param>
+    /// <returns>The name.</returns>
     public string GetDisplayName(CultureInfo culture)
     {
         ArgumentNullException.ThrowIfNull(culture);
@@ -179,9 +169,7 @@ public sealed class Pet
     /// Gets the animation for a state. When the pet does not define it, the closest state it does define is used (see
     /// <see cref="PetStateFallback"/>), and in the end Idle.
     /// </summary>
-    /// <param name="state">
-    /// The requested state.
-    /// </param>
+    /// <param name="state">The requested state.</param>
     /// <param name="gaze">
     /// Where the pet looks; only matters for <see cref="PetState.Idle"/>, and only if the pet has a variant for it.
     /// </param>

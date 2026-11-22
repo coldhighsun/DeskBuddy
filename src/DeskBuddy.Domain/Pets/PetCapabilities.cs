@@ -3,12 +3,8 @@ namespace DeskBuddy.Domain.Pets;
 /// <summary>
 /// How many of the states in a group a pet draws itself, as opposed to borrowing another state's pictures.
 /// </summary>
-/// <param name="Supported">
-/// The number of states in the group the pet defines pictures for.
-/// </param>
-/// <param name="Total">
-/// The number of states in the group.
-/// </param>
+/// <param name="Supported">The number of states in the group the pet defines pictures for.</param>
+/// <param name="Total">The number of states in the group.</param>
 public readonly record struct StateCoverage(int Supported, int Total)
 {
     /// <summary>
@@ -21,25 +17,15 @@ public readonly record struct StateCoverage(int Supported, int Total)
 /// What a pet can do, worked out from the states it defines, so pets can be compared without knowing anything about a
 /// particular pet.
 /// </summary>
-/// <param name="NativeStateCount">
-/// The number of states the pet defines pictures for.
-/// </param>
+/// <param name="NativeStateCount">The number of states the pet defines pictures for.</param>
 /// <param name="TotalStateCount">
 /// The number of states there are, not counting the opt-in ones (such as hopping) the pet does not define: a pet is not
 /// less complete for lacking something it never does.
 /// </param>
-/// <param name="CanLookAround">
-/// Whether the pet's eyes follow the mouse pointer.
-/// </param>
-/// <param name="Edges">
-/// Climbing the sides of the screen and hanging from its top.
-/// </param>
-/// <param name="Development">
-/// Keeping the user company while they develop.
-/// </param>
-/// <param name="Scenarios">
-/// Acting out everyday situations such as a meeting, a meal or a low battery.
-/// </param>
+/// <param name="CanLookAround">Whether the pet's eyes follow the mouse pointer.</param>
+/// <param name="Edges">Climbing the sides of the screen and hanging from its top.</param>
+/// <param name="Development">Keeping the user company while they develop.</param>
+/// <param name="Scenarios">Acting out everyday situations such as a meeting, a meal or a low battery.</param>
 public sealed record PetCapabilities(
     int NativeStateCount,
     int TotalStateCount,
@@ -91,12 +77,8 @@ public sealed record PetCapabilities(
     /// <summary>
     /// Works out what a pet can do.
     /// </summary>
-    /// <param name="pet">
-    /// The pet.
-    /// </param>
-    /// <returns>
-    /// The capabilities of the pet.
-    /// </returns>
+    /// <param name="pet">The pet.</param>
+    /// <returns>The capabilities of the pet.</returns>
     public static PetCapabilities Of(Pet pet)
     {
         ArgumentNullException.ThrowIfNull(pet);
@@ -113,15 +95,9 @@ public sealed record PetCapabilities(
     /// <summary>
     /// Counts the states of a group that a pet defines.
     /// </summary>
-    /// <param name="pet">
-    /// The pet.
-    /// </param>
-    /// <param name="states">
-    /// The states of the group.
-    /// </param>
-    /// <returns>
-    /// The coverage of the group.
-    /// </returns>
+    /// <param name="pet">The pet.</param>
+    /// <param name="states">The states of the group.</param>
+    /// <returns>The coverage of the group.</returns>
     private static StateCoverage Coverage(Pet pet, PetState[] states)
     {
         return new StateCoverage(states.Count(pet.Animations.ContainsKey), states.Length);

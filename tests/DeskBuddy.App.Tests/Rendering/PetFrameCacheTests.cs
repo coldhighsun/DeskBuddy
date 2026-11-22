@@ -169,9 +169,7 @@ public class PetFrameCacheTests
     /// <summary>
     /// Writes a small picture file.
     /// </summary>
-    /// <param name="path">
-    /// Where to write it.
-    /// </param>
+    /// <param name="path">Where to write it.</param>
     private static void WritePicture(string path)
     {
         var pixels = new byte[2 * 2 * 4];
@@ -186,9 +184,7 @@ public class PetFrameCacheTests
     /// <summary>
     /// Writes an atlas of two cells of 2x2 pixels side by side: the left one red, the right one blue.
     /// </summary>
-    /// <param name="path">
-    /// Where to write it.
-    /// </param>
+    /// <param name="path">Where to write it.</param>
     private static void WriteAtlas(string path)
     {
         var pixels = new byte[4 * 2 * 4];
@@ -213,12 +209,8 @@ public class PetFrameCacheTests
     /// <summary>
     /// Reads the color of the first pixel of a picture.
     /// </summary>
-    /// <param name="picture">
-    /// The picture.
-    /// </param>
-    /// <returns>
-    /// The blue, green and red values.
-    /// </returns>
+    /// <param name="picture">The picture.</param>
+    /// <returns>The blue, green and red values.</returns>
     private static (byte Blue, byte Green, byte Red) FirstPixel(ImageSource picture)
     {
         var converted = new FormatConvertedBitmap((BitmapSource)picture, PixelFormats.Bgra32, null, 0);

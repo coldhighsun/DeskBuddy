@@ -26,9 +26,7 @@ public sealed class SettingsEditor : IDisposable
     /// <summary>
     /// Creates an editor with nothing edited yet.
     /// </summary>
-    /// <param name="settings">
-    /// The saved settings to edit.
-    /// </param>
+    /// <param name="settings">The saved settings to edit.</param>
     public SettingsEditor(SettingsService settings)
     {
         ArgumentNullException.ThrowIfNull(settings);
@@ -78,12 +76,8 @@ public sealed class SettingsEditor : IDisposable
     /// Sets how one field differs from the saved settings. A later call with the same key replaces the earlier change,
     /// so typing into a box does not pile up edits.
     /// </summary>
-    /// <param name="key">
-    /// Names the field.
-    /// </param>
-    /// <param name="change">
-    /// Produces the settings with the field changed.
-    /// </param>
+    /// <param name="key">Names the field.</param>
+    /// <param name="change">Produces the settings with the field changed.</param>
     public void Set(string key, Func<PetSettings, PetSettings> change)
     {
         ArgumentException.ThrowIfNullOrEmpty(key);
@@ -105,9 +99,7 @@ public sealed class SettingsEditor : IDisposable
     /// <summary>
     /// Takes back the edit of one field, so it follows the saved settings again.
     /// </summary>
-    /// <param name="key">
-    /// Names the field.
-    /// </param>
+    /// <param name="key">Names the field.</param>
     public void Clear(string key)
     {
         if (_edits.RemoveAll(edit => edit.Key == key) > 0)
@@ -119,12 +111,8 @@ public sealed class SettingsEditor : IDisposable
     /// <summary>
     /// Records that a field holds a value that cannot be saved, or, with <see langword="null"/>, that it is fine again.
     /// </summary>
-    /// <param name="key">
-    /// Names the field.
-    /// </param>
-    /// <param name="message">
-    /// What is wrong, or <see langword="null"/> or empty when nothing is.
-    /// </param>
+    /// <param name="key">Names the field.</param>
+    /// <param name="message">What is wrong, or <see langword="null"/> or empty when nothing is.</param>
     public void SetError(string key, string? message)
     {
         var changed = string.IsNullOrEmpty(message)
@@ -144,12 +132,8 @@ public sealed class SettingsEditor : IDisposable
     /// <summary>
     /// Gets what is wrong with a field.
     /// </summary>
-    /// <param name="key">
-    /// Names the field.
-    /// </param>
-    /// <returns>
-    /// The explanation, or an empty string if the field is fine.
-    /// </returns>
+    /// <param name="key">Names the field.</param>
+    /// <returns>The explanation, or an empty string if the field is fine.</returns>
     public string ErrorFor(string key)
     {
         return _errors.GetValueOrDefault(key, string.Empty);
@@ -215,15 +199,9 @@ public sealed class SettingsEditor : IDisposable
     /// <summary>
     /// Lays edits over some settings.
     /// </summary>
-    /// <param name="settings">
-    /// The settings to start from.
-    /// </param>
-    /// <param name="edits">
-    /// The edits to apply, in order.
-    /// </param>
-    /// <returns>
-    /// The settings with every edit applied.
-    /// </returns>
+    /// <param name="settings">The settings to start from.</param>
+    /// <param name="edits">The edits to apply, in order.</param>
+    /// <returns>The settings with every edit applied.</returns>
     private static PetSettings Apply(PetSettings settings, IEnumerable<Edit> edits)
     {
         return edits.Aggregate(settings, (current, edit) => edit.Change(current));
@@ -242,12 +220,8 @@ public sealed class SettingsEditor : IDisposable
     /// <summary>
     /// Follows the saved settings when they change, keeping the edits.
     /// </summary>
-    /// <param name="sender">
-    /// The event source.
-    /// </param>
-    /// <param name="settings">
-    /// The new saved settings.
-    /// </param>
+    /// <param name="sender">The event source.</param>
+    /// <param name="settings">The new saved settings.</param>
     private void OnSettingsChanged(object? sender, PetSettings settings)
     {
         Rebuild();
@@ -264,11 +238,7 @@ public sealed class SettingsEditor : IDisposable
     /// <summary>
     /// One edited field.
     /// </summary>
-    /// <param name="Key">
-    /// Names the field.
-    /// </param>
-    /// <param name="Change">
-    /// Produces the settings with the field changed.
-    /// </param>
+    /// <param name="Key">Names the field.</param>
+    /// <param name="Change">Produces the settings with the field changed.</param>
     private sealed record Edit(string Key, Func<PetSettings, PetSettings> Change);
 }

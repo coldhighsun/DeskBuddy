@@ -74,12 +74,8 @@ public sealed partial class WindowsPowerStatusProvider : IPowerStatusProvider
     /// <summary>
     /// Gets the power status of the system.
     /// </summary>
-    /// <param name="status">
-    /// Receives the status.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> on success.
-    /// </returns>
+    /// <param name="status">Receives the status.</param>
+    /// <returns><see langword="true"/> on success.</returns>
     [LibraryImport("kernel32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool GetSystemPowerStatus(out SystemPowerStatus status);

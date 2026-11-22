@@ -9,12 +9,8 @@ public static class PetStateFallback
     /// <summary>
     /// Gets the state to try instead of the given one.
     /// </summary>
-    /// <param name="state">
-    /// The state a pet lacks.
-    /// </param>
-    /// <returns>
-    /// The next state to try, or <see langword="null"/> if there is none (the pet then shows Idle).
-    /// </returns>
+    /// <param name="state">The state a pet lacks.</param>
+    /// <returns>The next state to try, or <see langword="null"/> if there is none (the pet then shows Idle).</returns>
     public static PetState? Of(PetState state)
     {
         return state switch

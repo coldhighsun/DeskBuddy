@@ -15,12 +15,8 @@ internal static class FrameImages
     /// <summary>
     /// Decodes an image file into a frozen bitmap, fully loaded so the file handle is released.
     /// </summary>
-    /// <param name="path">
-    /// Image file path.
-    /// </param>
-    /// <returns>
-    /// The frozen bitmap.
-    /// </returns>
+    /// <param name="path">Image file path.</param>
+    /// <returns>The frozen bitmap.</returns>
     public static BitmapSource Load(string path)
     {
         var bitmap = new BitmapImage();
@@ -35,15 +31,11 @@ internal static class FrameImages
     /// <summary>
     /// Gets the picture a name stands for: the whole image file, or the area of it that the name gives.
     /// </summary>
-    /// <param name="id">
-    /// The name of the picture (see <see cref="FrameId"/>).
-    /// </param>
+    /// <param name="id">The name of the picture (see <see cref="FrameId"/>).</param>
     /// <param name="load">
     /// Supplies the decoded image file; it lets the caller decide how long a decoded atlas is kept.
     /// </param>
-    /// <returns>
-    /// The frozen picture.
-    /// </returns>
+    /// <returns>The frozen picture.</returns>
     /// <exception cref="InvalidDataException">
     /// The area is not inside the image.
     /// </exception>
@@ -59,15 +51,9 @@ internal static class FrameImages
     /// <summary>
     /// Cuts an area out of an image into a picture of its own.
     /// </summary>
-    /// <param name="image">
-    /// The image, normally the atlas of a pet.
-    /// </param>
-    /// <param name="area">
-    /// The area as x, y, width and height in pixels.
-    /// </param>
-    /// <returns>
-    /// The frozen picture.
-    /// </returns>
+    /// <param name="image">The image, normally the atlas of a pet.</param>
+    /// <param name="area">The area as x, y, width and height in pixels.</param>
+    /// <returns>The frozen picture.</returns>
     /// <exception cref="InvalidDataException">
     /// The area is not inside the image, which means that the file is not the atlas the manifest describes (it may have been
     /// replaced since the pet was loaded); like the other failures to read a pet, it is one that

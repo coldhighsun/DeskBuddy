@@ -33,12 +33,8 @@ public class PetMessageQueueTests
     /// <summary>
     /// Creates a distinguishable message.
     /// </summary>
-    /// <param name="count">
-    /// A number that identifies the message.
-    /// </param>
-    /// <returns>
-    /// A reminder message carrying the number.
-    /// </returns>
+    /// <param name="count">A number that identifies the message.</param>
+    /// <returns>A reminder message carrying the number.</returns>
     private static PetMessage Message(int count)
     {
         return new PetMessage(PetMessageKind.SedentaryReminder, [MessageAction.Dismiss], Count: count);

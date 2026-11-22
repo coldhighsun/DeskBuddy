@@ -33,9 +33,7 @@ internal static partial class MonitorHelper
     /// <summary>
     /// Tells whether another monitor lies right beside the one the window is on, at the height of the window.
     /// </summary>
-    /// <param name="window">
-    /// The window, which must already have a handle.
-    /// </param>
+    /// <param name="window">The window, which must already have a handle.</param>
     /// <param name="left">
     /// <see langword="true"/> to look beside the left edge, <see langword="false"/> for the right edge.
     /// </param>
@@ -60,9 +58,7 @@ internal static partial class MonitorHelper
     /// <summary>
     /// Tells whether another monitor lies right above the one the window is on, at the horizontal position of the window.
     /// </summary>
-    /// <param name="window">
-    /// The window, which must already have a handle.
-    /// </param>
+    /// <param name="window">The window, which must already have a handle.</param>
     /// <returns>
     /// <see langword="true"/> if there is a monitor there, so that the top edge is only a seam between two monitors.
     /// </returns>
@@ -84,9 +80,7 @@ internal static partial class MonitorHelper
     /// <summary>
     /// Gets the work area (screen minus taskbar) and the scaling of every monitor.
     /// </summary>
-    /// <returns>
-    /// One entry per monitor; empty if the monitors cannot be listed completely.
-    /// </returns>
+    /// <returns>One entry per monitor; empty if the monitors cannot be listed completely.</returns>
     public static unsafe IReadOnlyList<MonitorArea> GetAllMonitors()
     {
         var areas = new List<MonitorArea>();
@@ -110,9 +104,7 @@ internal static partial class MonitorHelper
     /// <summary>
     /// Gets how far a window may walk: across the row of monitors that lie side by side, starting from the one it is on.
     /// </summary>
-    /// <param name="window">
-    /// The window, which must already have a handle.
-    /// </param>
+    /// <param name="window">The window, which must already have a handle.</param>
     /// <returns>
     /// The range in device pixels. Falls back to the work area of the monitor the window is on, without seams, if the
     /// monitors cannot be listed.
@@ -139,18 +131,10 @@ internal static partial class MonitorHelper
     /// <summary>
     /// Looks up the monitor a window is on and the window's bounds.
     /// </summary>
-    /// <param name="window">
-    /// The window, which must already have a handle.
-    /// </param>
-    /// <param name="info">
-    /// Receives the information about the monitor.
-    /// </param>
-    /// <param name="bounds">
-    /// Receives the bounds of the window in device pixels.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> if both could be read.
-    /// </returns>
+    /// <param name="window">The window, which must already have a handle.</param>
+    /// <param name="info">Receives the information about the monitor.</param>
+    /// <param name="bounds">Receives the bounds of the window in device pixels.</param>
+    /// <returns><see langword="true"/> if both could be read.</returns>
     private static bool TryGetPlacement(Window window, out MonitorInfo info, out NativeRect bounds)
     {
         var handle = new WindowInteropHelper(window).Handle;
@@ -164,21 +148,11 @@ internal static partial class MonitorHelper
     /// Called by <c>EnumDisplayMonitors</c> for every monitor: adds its work area and scaling to the list the caller passed
     /// in.
     /// </summary>
-    /// <param name="monitor">
-    /// The monitor handle.
-    /// </param>
-    /// <param name="deviceContext">
-    /// Unused.
-    /// </param>
-    /// <param name="bounds">
-    /// Unused.
-    /// </param>
-    /// <param name="data">
-    /// The handle of the <see cref="List{T}"/> of <see cref="MonitorArea"/> to add to.
-    /// </param>
-    /// <returns>
-    /// Nonzero to carry on with the next monitor.
-    /// </returns>
+    /// <param name="monitor">The monitor handle.</param>
+    /// <param name="deviceContext">Unused.</param>
+    /// <param name="bounds">Unused.</param>
+    /// <param name="data">The handle of the <see cref="List{T}"/> of <see cref="MonitorArea"/> to add to.</param>
+    /// <returns>Nonzero to carry on with the next monitor.</returns>
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvStdcall)])]
     private static unsafe int CollectWorkArea(nint monitor, nint deviceContext, NativeRect* bounds, nint data)
     {
@@ -223,12 +197,8 @@ internal static partial class MonitorHelper
     /// <summary>
     /// Gets the bounds of a window in device pixels of the virtual screen.
     /// </summary>
-    /// <param name="window">
-    /// The window, which must already have a handle.
-    /// </param>
-    /// <returns>
-    /// The bounds, or an empty rectangle if they cannot be read.
-    /// </returns>
+    /// <param name="window">The window, which must already have a handle.</param>
+    /// <returns>The bounds, or an empty rectangle if they cannot be read.</returns>
     public static PixelRect GetWindowBoundsPixels(Window window)
     {
         var handle = new WindowInteropHelper(window).Handle;
@@ -238,12 +208,8 @@ internal static partial class MonitorHelper
     /// <summary>
     /// Gets the work area (screen minus taskbar) of the monitor a window is on, in device pixels of the virtual screen.
     /// </summary>
-    /// <param name="window">
-    /// The window, which must already have a handle.
-    /// </param>
-    /// <returns>
-    /// The work area, or the primary monitor's if the monitor cannot be queried.
-    /// </returns>
+    /// <param name="window">The window, which must already have a handle.</param>
+    /// <returns>The work area, or the primary monitor's if the monitor cannot be queried.</returns>
     public static PixelRect GetWorkAreaPixels(Window window)
     {
         var handle = new WindowInteropHelper(window).Handle;
@@ -334,45 +300,27 @@ internal static partial class MonitorHelper
     /// <summary>
     /// Gets the monitor that contains or is nearest to a window.
     /// </summary>
-    /// <param name="hwnd">
-    /// Window handle.
-    /// </param>
-    /// <param name="flags">
-    /// Fallback behavior when the window is on no monitor.
-    /// </param>
-    /// <returns>
-    /// The monitor handle.
-    /// </returns>
+    /// <param name="hwnd">Window handle.</param>
+    /// <param name="flags">Fallback behavior when the window is on no monitor.</param>
+    /// <returns>The monitor handle.</returns>
     [LibraryImport("user32.dll")]
     private static partial nint MonitorFromWindow(nint hwnd, uint flags);
 
     /// <summary>
     /// Gets the monitor that contains a point.
     /// </summary>
-    /// <param name="point">
-    /// The point in screen device pixels.
-    /// </param>
-    /// <param name="flags">
-    /// Fallback behavior when the point is on no monitor.
-    /// </param>
-    /// <returns>
-    /// The monitor handle, or zero if there is none.
-    /// </returns>
+    /// <param name="point">The point in screen device pixels.</param>
+    /// <param name="flags">Fallback behavior when the point is on no monitor.</param>
+    /// <returns>The monitor handle, or zero if there is none.</returns>
     [LibraryImport("user32.dll")]
     private static partial nint MonitorFromPoint(NativePoint point, uint flags);
 
     /// <summary>
     /// Retrieves information about a monitor.
     /// </summary>
-    /// <param name="monitor">
-    /// Monitor handle.
-    /// </param>
-    /// <param name="info">
-    /// Receives the information; <see cref="MonitorInfo.Size"/> must be set by the caller.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> on success.
-    /// </returns>
+    /// <param name="monitor">Monitor handle.</param>
+    /// <param name="info">Receives the information; <see cref="MonitorInfo.Size"/> must be set by the caller.</param>
+    /// <returns><see langword="true"/> on success.</returns>
     [LibraryImport("user32.dll", EntryPoint = "GetMonitorInfoW")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool GetMonitorInfo(nint monitor, ref MonitorInfo info);
@@ -380,15 +328,9 @@ internal static partial class MonitorHelper
     /// <summary>
     /// Retrieves the bounds of a window in screen device pixels.
     /// </summary>
-    /// <param name="hwnd">
-    /// Window handle.
-    /// </param>
-    /// <param name="rect">
-    /// Receives the bounds.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> on success.
-    /// </returns>
+    /// <param name="hwnd">Window handle.</param>
+    /// <param name="rect">Receives the bounds.</param>
+    /// <returns><see langword="true"/> on success.</returns>
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool GetWindowRect(nint hwnd, out NativeRect rect);
@@ -396,12 +338,8 @@ internal static partial class MonitorHelper
     /// <summary>
     /// Retrieves the cursor position in screen device pixels.
     /// </summary>
-    /// <param name="point">
-    /// Receives the position.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> on success.
-    /// </returns>
+    /// <param name="point">Receives the position.</param>
+    /// <returns><see langword="true"/> on success.</returns>
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool GetCursorPos(out NativePoint point);
@@ -409,42 +347,22 @@ internal static partial class MonitorHelper
     /// <summary>
     /// Gets the resolution of a monitor.
     /// </summary>
-    /// <param name="monitor">
-    /// The monitor handle.
-    /// </param>
-    /// <param name="type">
-    /// The kind of resolution to get.
-    /// </param>
-    /// <param name="dpiX">
-    /// Receives the horizontal resolution in dots per inch.
-    /// </param>
-    /// <param name="dpiY">
-    /// Receives the vertical resolution in dots per inch.
-    /// </param>
-    /// <returns>
-    /// Zero (<c>S_OK</c>) on success.
-    /// </returns>
+    /// <param name="monitor">The monitor handle.</param>
+    /// <param name="type">The kind of resolution to get.</param>
+    /// <param name="dpiX">Receives the horizontal resolution in dots per inch.</param>
+    /// <param name="dpiY">Receives the vertical resolution in dots per inch.</param>
+    /// <returns>Zero (<c>S_OK</c>) on success.</returns>
     [LibraryImport("shcore.dll")]
     private static partial int GetDpiForMonitor(nint monitor, int type, out uint dpiX, out uint dpiY);
 
     /// <summary>
     /// Calls a function for every monitor.
     /// </summary>
-    /// <param name="deviceContext">
-    /// Zero, for all monitors of the virtual screen.
-    /// </param>
-    /// <param name="clip">
-    /// Zero, for no clipping.
-    /// </param>
-    /// <param name="callback">
-    /// The function to call for every monitor.
-    /// </param>
-    /// <param name="data">
-    /// A value handed to the function on every call.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> on success.
-    /// </returns>
+    /// <param name="deviceContext">Zero, for all monitors of the virtual screen.</param>
+    /// <param name="clip">Zero, for no clipping.</param>
+    /// <param name="callback">The function to call for every monitor.</param>
+    /// <param name="data">A value handed to the function on every call.</param>
+    /// <returns><see langword="true"/> on success.</returns>
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static unsafe partial bool EnumDisplayMonitors(

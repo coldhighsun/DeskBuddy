@@ -20,9 +20,7 @@ public sealed class AnimationPlayer
     /// <summary>
     /// Initializes a new instance of the <see cref="AnimationPlayer"/> class playing <see cref="PetState.Idle"/>.
     /// </summary>
-    /// <param name="pet">
-    /// The pet to play animations from.
-    /// </param>
+    /// <param name="pet">The pet to play animations from.</param>
     public AnimationPlayer(Pet pet)
     {
         ArgumentNullException.ThrowIfNull(pet);
@@ -54,15 +52,9 @@ public sealed class AnimationPlayer
     /// <summary>
     /// Switches to the animation of a state. Playback restarts only if the resolved animation actually changes.
     /// </summary>
-    /// <param name="state">
-    /// The state to show.
-    /// </param>
-    /// <param name="gaze">
-    /// Where the pet looks while idle.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> if the displayed frame changed; otherwise <see langword="false"/>.
-    /// </returns>
+    /// <param name="state">The state to show.</param>
+    /// <param name="gaze">Where the pet looks while idle.</param>
+    /// <returns><see langword="true"/> if the displayed frame changed; otherwise <see langword="false"/>.</returns>
     public bool SetState(PetState state, GazeDirection gaze = GazeDirection.None)
     {
         State = state;
@@ -82,12 +74,8 @@ public sealed class AnimationPlayer
     /// <summary>
     /// Advances playback by the given elapsed time, looping at the end of the animation.
     /// </summary>
-    /// <param name="delta">
-    /// Time elapsed since the previous call. Negative values are ignored.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> if the displayed frame changed; otherwise <see langword="false"/>.
-    /// </returns>
+    /// <param name="delta">Time elapsed since the previous call. Negative values are ignored.</param>
+    /// <returns><see langword="true"/> if the displayed frame changed; otherwise <see langword="false"/>.</returns>
     public bool Advance(TimeSpan delta)
     {
         if (delta <= TimeSpan.Zero || Animation.FrameIds.Count <= 1)

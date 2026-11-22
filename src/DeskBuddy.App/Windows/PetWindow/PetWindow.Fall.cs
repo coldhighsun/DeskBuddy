@@ -46,9 +46,7 @@ public partial class PetWindow
     /// The speed the pet was thrown with, in device-independent pixels per second, or zero for a plain drop. A pet
     /// thrown upwards flies even from close to the ground.
     /// </param>
-    /// <returns>
-    /// <see langword="true"/> if the pet now falls; the timer then moves it until it lands.
-    /// </returns>
+    /// <returns><see langword="true"/> if the pet now falls; the timer then moves it until it lands.</returns>
     private bool TryStartFall(bool refreshWorkArea = true, (double X, double Y) throwVelocity = default)
     {
         if (refreshWorkArea)
@@ -82,9 +80,7 @@ public partial class PetWindow
     /// Moves the falling pet one step, opens the umbrella or parachute once it is fast enough, and folds it away when
     /// the pet lands.
     /// </summary>
-    /// <param name="elapsed">
-    /// The time since the previous step.
-    /// </param>
+    /// <param name="elapsed">The time since the previous step.</param>
     private void OnFallTick(TimeSpan elapsed)
     {
         if (_fall is not { } current)

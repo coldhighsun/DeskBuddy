@@ -98,24 +98,12 @@ internal sealed partial class Win32HotkeyService : IGlobalHotkeyService
     /// <summary>
     /// Raises <see cref="Pressed"/> for <c>WM_HOTKEY</c> messages.
     /// </summary>
-    /// <param name="hwnd">
-    /// Window handle.
-    /// </param>
-    /// <param name="msg">
-    /// Window message.
-    /// </param>
-    /// <param name="wParam">
-    /// Message <c>wParam</c>; the hotkey identifier for <c>WM_HOTKEY</c>.
-    /// </param>
-    /// <param name="lParam">
-    /// Message <c>lParam</c>.
-    /// </param>
-    /// <param name="handled">
-    /// Set to <see langword="true"/> when the message was processed.
-    /// </param>
-    /// <returns>
-    /// Always zero.
-    /// </returns>
+    /// <param name="hwnd">Window handle.</param>
+    /// <param name="msg">Window message.</param>
+    /// <param name="wParam">Message <c>wParam</c>; the hotkey identifier for <c>WM_HOTKEY</c>.</param>
+    /// <param name="lParam">Message <c>lParam</c>.</param>
+    /// <param name="handled">Set to <see langword="true"/> when the message was processed.</param>
+    /// <returns>Always zero.</returns>
     private nint WndProc(nint hwnd, int msg, nint wParam, nint lParam, ref bool handled)
     {
         if (msg == WmHotKey && _activeIndex >= 0 && wParam == HotkeyIds[_activeIndex])
@@ -130,21 +118,11 @@ internal sealed partial class Win32HotkeyService : IGlobalHotkeyService
     /// <summary>
     /// Registers a system-wide hotkey for a window.
     /// </summary>
-    /// <param name="window">
-    /// The window that receives <c>WM_HOTKEY</c>.
-    /// </param>
-    /// <param name="id">
-    /// Identifier of the hotkey.
-    /// </param>
-    /// <param name="modifiers">
-    /// Modifier keys (<c>MOD_*</c>).
-    /// </param>
-    /// <param name="virtualKey">
-    /// Virtual-key code.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> on success; false if another program already uses the combination.
-    /// </returns>
+    /// <param name="window">The window that receives <c>WM_HOTKEY</c>.</param>
+    /// <param name="id">Identifier of the hotkey.</param>
+    /// <param name="modifiers">Modifier keys (<c>MOD_*</c>).</param>
+    /// <param name="virtualKey">Virtual-key code.</param>
+    /// <returns><see langword="true"/> on success; false if another program already uses the combination.</returns>
     [LibraryImport("user32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool RegisterHotKey(nint window, int id, uint modifiers, uint virtualKey);
@@ -152,15 +130,9 @@ internal sealed partial class Win32HotkeyService : IGlobalHotkeyService
     /// <summary>
     /// Releases a hotkey registered with <see cref="RegisterHotKey"/>.
     /// </summary>
-    /// <param name="window">
-    /// The window the hotkey was registered for.
-    /// </param>
-    /// <param name="id">
-    /// Identifier of the hotkey.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> on success.
-    /// </returns>
+    /// <param name="window">The window the hotkey was registered for.</param>
+    /// <param name="id">Identifier of the hotkey.</param>
+    /// <returns><see langword="true"/> on success.</returns>
     [LibraryImport("user32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool UnregisterHotKey(nint window, int id);

@@ -20,12 +20,8 @@ public class ThemeServiceTests
     /// <summary>
     /// The theme from the settings is shown at once: the colors of its palette are merged into the application resources.
     /// </summary>
-    /// <param name="theme">
-    /// The theme in the settings.
-    /// </param>
-    /// <param name="primary">
-    /// The accent color the palette is expected to have.
-    /// </param>
+    /// <param name="theme">The theme in the settings.</param>
+    /// <param name="primary">The accent color the palette is expected to have.</param>
     [Theory]
     [InlineData(AppTheme.Dark, "#FF4F8DF7")]
     [InlineData(AppTheme.Light, "#FF2B6CF0")]
@@ -293,12 +289,8 @@ public class ThemeServiceTests
     /// <summary>
     /// Reads the accent color out of the application resources.
     /// </summary>
-    /// <param name="resources">
-    /// The application resources.
-    /// </param>
-    /// <returns>
-    /// The color.
-    /// </returns>
+    /// <param name="resources">The application resources.</param>
+    /// <returns>The color.</returns>
     private static Color Primary(ResourceDictionary resources)
     {
         return ((SolidColorBrush)resources["AppPrimary"]).Color;
@@ -307,12 +299,8 @@ public class ThemeServiceTests
     /// <summary>
     /// Lists the keys a color file defines.
     /// </summary>
-    /// <param name="file">
-    /// The file name, such as <c>Colors.Dark.xaml</c>.
-    /// </param>
-    /// <returns>
-    /// The keys.
-    /// </returns>
+    /// <param name="file">The file name, such as <c>Colors.Dark.xaml</c>.</param>
+    /// <returns>The keys.</returns>
     private static List<string> Keys(string file)
     {
         var dictionary = new ResourceDictionary { Source = new Uri($"{ThemesPrefix}{file}") };
@@ -337,21 +325,15 @@ public class ThemeServiceTests
         /// <summary>
         /// Initializes a new instance of the <see cref="Fixture"/> class.
         /// </summary>
-        /// <param name="theme">
-        /// The theme in the settings.
-        /// </param>
-        /// <param name="highContrast">
-        /// Whether the fake system is in a high-contrast theme.
-        /// </param>
+        /// <param name="theme">The theme in the settings.</param>
+        /// <param name="highContrast">Whether the fake system is in a high-contrast theme.</param>
         /// <param name="logger">
         /// The logger given to the service; <see langword="null"/> for one that discards everything.
         /// </param>
         /// <param name="systemLightTheme">
         /// What the fake system says about the light theme; <see langword="null"/> when it cannot say.
         /// </param>
-        /// <param name="highContrastAnswers">
-        /// Whether the fake system can answer the high-contrast question.
-        /// </param>
+        /// <param name="highContrastAnswers">Whether the fake system can answer the high-contrast question.</param>
         public Fixture(
             AppTheme theme,
             bool highContrast = false,
@@ -410,9 +392,7 @@ public class ThemeServiceTests
         /// <summary>
         /// Changes the theme in the settings and lets the service handle it.
         /// </summary>
-        /// <param name="theme">
-        /// The new theme.
-        /// </param>
+        /// <param name="theme">The new theme.</param>
         public void ChangeTheme(AppTheme theme)
         {
             Change(settings => settings with { Theme = theme });
@@ -421,12 +401,8 @@ public class ThemeServiceTests
         /// <summary>
         /// Changes the settings and lets the service handle it.
         /// </summary>
-        /// <param name="change">
-        /// The change.
-        /// </param>
-        /// <param name="pump">
-        /// Whether to run the work queued on the dispatcher afterwards.
-        /// </param>
+        /// <param name="change">The change.</param>
+        /// <param name="pump">Whether to run the work queued on the dispatcher afterwards.</param>
         public void Change(Func<PetSettings, PetSettings> change, bool pump = true)
         {
             _settings.UpdateAsync(change).GetAwaiter().GetResult();

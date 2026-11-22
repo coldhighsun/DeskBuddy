@@ -10,8 +10,6 @@ public interface IPowerStatusProvider
     /// <summary>
     /// Gets the current power status.
     /// </summary>
-    /// <returns>
-    /// Whether there is a battery, how full it is and whether the computer is plugged in.
-    /// </returns>
+    /// <returns>Whether there is a battery, how full it is and whether the computer is plugged in.</returns>
     PowerStatus GetStatus();
 }

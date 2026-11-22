@@ -3,9 +3,7 @@ namespace DeskBuddy.Domain.Activity;
 /// <summary>
 /// Notices the user coming back after a long absence: no keyboard or mouse input for a long time, then input again.
 /// </summary>
-/// <param name="options">
-/// How long an absence must be to be worth a welcome.
-/// </param>
+/// <param name="options">How long an absence must be to be worth a welcome.</param>
 public sealed class WelcomeBackPolicy(PetBehaviorOptions options)
 {
     /// <summary>
@@ -25,12 +23,8 @@ public sealed class WelcomeBackPolicy(PetBehaviorOptions options)
     /// <summary>
     /// Takes in the latest reading.
     /// </summary>
-    /// <param name="userIdle">
-    /// How long the user has had no keyboard or mouse input.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> once, when the user is back after being away for the configured time.
-    /// </returns>
+    /// <param name="userIdle">How long the user has had no keyboard or mouse input.</param>
+    /// <returns><see langword="true"/> once, when the user is back after being away for the configured time.</returns>
     public bool Update(TimeSpan userIdle)
     {
         if (userIdle >= options.WelcomeAwayAfter)

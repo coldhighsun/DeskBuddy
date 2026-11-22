@@ -65,15 +65,9 @@ public sealed class UiStallMonitor : IDisposable
     /// <summary>
     /// Initializes a new instance of the <see cref="UiStallMonitor"/> class.
     /// </summary>
-    /// <param name="dispatcher">
-    /// The dispatcher of the UI thread to watch.
-    /// </param>
-    /// <param name="logger">
-    /// Where the stalls are logged.
-    /// </param>
-    /// <param name="time">
-    /// The clock.
-    /// </param>
+    /// <param name="dispatcher">The dispatcher of the UI thread to watch.</param>
+    /// <param name="logger">Where the stalls are logged.</param>
+    /// <param name="time">The clock.</param>
     /// <param name="describe">
     /// Describes what the application is doing, for the log; it is called on the UI thread.
     /// </param>

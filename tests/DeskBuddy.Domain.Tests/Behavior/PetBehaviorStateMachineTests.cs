@@ -77,9 +77,7 @@ public partial class PetBehaviorStateMachineTests
     /// <summary>
     /// Makes the options every test machine starts from, with fixed timings so that behavior is deterministic.
     /// </summary>
-    /// <returns>
-    /// The options.
-    /// </returns>
+    /// <returns>The options.</returns>
     private static PetBehaviorOptions CreateOptions()
     {
         return new PetBehaviorOptions
@@ -98,15 +96,9 @@ public partial class PetBehaviorStateMachineTests
     /// <summary>
     /// Makes a machine that is walking and is to hop after a fixed time.
     /// </summary>
-    /// <param name="hopAfter">
-    /// How long into the walk the pet hops.
-    /// </param>
-    /// <param name="hopDuration">
-    /// How long the hop lasts.
-    /// </param>
-    /// <returns>
-    /// The machine, in the first moment of a walk.
-    /// </returns>
+    /// <param name="hopAfter">How long into the walk the pet hops.</param>
+    /// <param name="hopDuration">How long the hop lasts.</param>
+    /// <returns>The machine, in the first moment of a walk.</returns>
     private PetBehaviorStateMachine CreateHoppingMachine(TimeSpan hopAfter, TimeSpan hopDuration)
     {
         var options = CreateOptions();

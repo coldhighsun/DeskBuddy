@@ -154,12 +154,8 @@ public partial class PetBrainTests
     /// Ticks the brain once a minute for the given number of minutes and returns the message on screen right after
     /// the tick that first showed one, or <see langword="null"/> if none appeared.
     /// </summary>
-    /// <param name="minutes">
-    /// How many minutes to run.
-    /// </param>
-    /// <returns>
-    /// The first message that appeared, if any.
-    /// </returns>
+    /// <param name="minutes">How many minutes to run.</param>
+    /// <returns>The first message that appeared, if any.</returns>
     private PetMessage? RunMinutesUntilMessage(int minutes)
     {
         for (var minute = 0; minute < minutes; minute++)
@@ -179,12 +175,8 @@ public partial class PetBrainTests
     /// <summary>
     /// Advances the clock in one-second steps, ticking the brain after each step.
     /// </summary>
-    /// <param name="duration">
-    /// How long to run.
-    /// </param>
-    /// <returns>
-    /// The state after the last tick.
-    /// </returns>
+    /// <param name="duration">How long to run.</param>
+    /// <returns>The state after the last tick.</returns>
     private PetState RunFor(TimeSpan duration)
     {
         var state = _brain.State;
@@ -283,18 +275,10 @@ public partial class PetBrainTests
     /// <summary>
     /// Runs the brain once a minute, dismissing reminders on the way, until a casual remark appears or the time is up.
     /// </summary>
-    /// <param name="minutes">
-    /// How many minutes to run at most.
-    /// </param>
-    /// <param name="chatterEnabled">
-    /// Whether the chatter policy is switched on.
-    /// </param>
-    /// <param name="idle">
-    /// How long the user has been away from keyboard and mouse during the run.
-    /// </param>
-    /// <returns>
-    /// The first casual remark that appeared, if any.
-    /// </returns>
+    /// <param name="minutes">How many minutes to run at most.</param>
+    /// <param name="chatterEnabled">Whether the chatter policy is switched on.</param>
+    /// <param name="idle">How long the user has been away from keyboard and mouse during the run.</param>
+    /// <returns>The first casual remark that appeared, if any.</returns>
     private PetMessage? RunUntilChatter(int minutes, bool chatterEnabled = true, TimeSpan idle = default)
     {
         _chatter.IsEnabled = chatterEnabled;

@@ -26,9 +26,7 @@ public sealed class CrashGuardTests
     /// <summary>
     /// Creates a guard wired to the counters.
     /// </summary>
-    /// <returns>
-    /// The guard.
-    /// </returns>
+    /// <returns>The guard.</returns>
     private CrashGuard CreateGuard()
     {
         return new CrashGuard(NullLogger.Instance, _time, () => _notices++, () => _flushes++);

@@ -29,21 +29,11 @@ public static class LoggerSetup
     /// current one reaches the size limit. Writing happens on a background thread so callers never block on disk I/O;
     /// disposing the logger drains the queue. A failure to write is swallowed by Serilog, so logging cannot crash the pet.
     /// </summary>
-    /// <param name="directory">
-    /// The directory to write to; it is created when missing.
-    /// </param>
-    /// <param name="minimumLevel">
-    /// The lowest level that is written.
-    /// </param>
-    /// <param name="fileSizeLimitBytes">
-    /// The largest size of one file.
-    /// </param>
-    /// <param name="retainedFileCount">
-    /// How many files are kept.
-    /// </param>
-    /// <returns>
-    /// The logger; dispose it to flush and close the file.
-    /// </returns>
+    /// <param name="directory">The directory to write to; it is created when missing.</param>
+    /// <param name="minimumLevel">The lowest level that is written.</param>
+    /// <param name="fileSizeLimitBytes">The largest size of one file.</param>
+    /// <param name="retainedFileCount">How many files are kept.</param>
+    /// <returns>The logger; dispose it to flush and close the file.</returns>
     public static Serilog.Core.Logger Create(
         string directory,
         LogLevel minimumLevel,
@@ -67,12 +57,8 @@ public static class LoggerSetup
     /// <summary>
     /// Maps a Microsoft logging level to the Serilog one.
     /// </summary>
-    /// <param name="level">
-    /// The Microsoft level.
-    /// </param>
-    /// <returns>
-    /// The Serilog level.
-    /// </returns>
+    /// <param name="level">The Microsoft level.</param>
+    /// <returns>The Serilog level.</returns>
     private static LogEventLevel ToSerilogLevel(LogLevel level)
     {
         return level switch

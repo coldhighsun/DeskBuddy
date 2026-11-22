@@ -40,19 +40,13 @@ public enum CrawlOutcome
 /// <summary>
 /// The result of one crawl step.
 /// </summary>
-/// <param name="Position">
-/// The new position of the window's top-left corner.
-/// </param>
-/// <param name="Phase">
-/// Whether the pet is now on a side of the screen or on its top edge.
-/// </param>
+/// <param name="Position">The new position of the window's top-left corner.</param>
+/// <param name="Phase">Whether the pet is now on a side of the screen or on its top edge.</param>
 /// <param name="Facing">
 /// Which way the sprite faces: <c>1</c> for the picture as drawn, <c>-1</c> for the mirrored one. On a side this is
 /// <c>1</c> at the left edge and <c>-1</c> at the right edge; on the top edge it is the direction of travel.
 /// </param>
-/// <param name="Outcome">
-/// Whether the crawl goes on.
-/// </param>
+/// <param name="Outcome">Whether the crawl goes on.</param>
 public readonly record struct CrawlStep(Point2 Position, CrawlPhase Phase, int Facing, CrawlOutcome Outcome);
 
 /// <summary>
@@ -60,12 +54,8 @@ public readonly record struct CrawlStep(Point2 Position, CrawlPhase Phase, int F
 /// goes all the way, to the top or to the ground. On the top edge it now and then turns around, and eventually either
 /// lets go or crawls to a corner and climbs down. All chances come from <see cref="PetBehaviorOptions"/>.
 /// </summary>
-/// <param name="options">
-/// The tuning values.
-/// </param>
-/// <param name="random">
-/// The source of chance.
-/// </param>
+/// <param name="options">The tuning values.</param>
+/// <param name="random">The source of chance.</param>
 public sealed class EdgeCrawl(PetBehaviorOptions options, Random random)
 {
     /// <summary>
@@ -120,15 +110,9 @@ public sealed class EdgeCrawl(PetBehaviorOptions options, Random random)
     /// <summary>
     /// Starts a crawl on the left or right side of the screen.
     /// </summary>
-    /// <param name="onRightEdge">
-    /// Whether the pet clings to the right edge rather than the left one.
-    /// </param>
-    /// <param name="climbingUp">
-    /// Whether the pet starts by climbing up rather than down.
-    /// </param>
-    /// <returns>
-    /// Which way the sprite faces: <c>1</c> at the left edge, <c>-1</c> at the right edge.
-    /// </returns>
+    /// <param name="onRightEdge">Whether the pet clings to the right edge rather than the left one.</param>
+    /// <param name="climbingUp">Whether the pet starts by climbing up rather than down.</param>
+    /// <returns>Which way the sprite faces: <c>1</c> at the left edge, <c>-1</c> at the right edge.</returns>
     public int StartOnWall(bool onRightEdge, bool climbingUp)
     {
         Phase = CrawlPhase.Wall;
@@ -141,12 +125,8 @@ public sealed class EdgeCrawl(PetBehaviorOptions options, Random random)
     /// <summary>
     /// Starts a crawl along the top edge.
     /// </summary>
-    /// <param name="direction">
-    /// The direction to go first: <c>-1</c> for left, <c>1</c> for right.
-    /// </param>
-    /// <returns>
-    /// Which way the sprite faces.
-    /// </returns>
+    /// <param name="direction">The direction to go first: <c>-1</c> for left, <c>1</c> for right.</param>
+    /// <returns>Which way the sprite faces.</returns>
     public int StartOnCeiling(int direction)
     {
         Phase = CrawlPhase.Ceiling;
@@ -161,16 +141,12 @@ public sealed class EdgeCrawl(PetBehaviorOptions options, Random random)
     /// <summary>
     /// Moves the pet one step.
     /// </summary>
-    /// <param name="position">
-    /// The window's top-left corner now.
-    /// </param>
+    /// <param name="position">The window's top-left corner now.</param>
     /// <param name="bounds">
     /// The range the window's top-left corner may take; the top edge is <see cref="MovementBounds.MinY"/> and the
     /// ground is <see cref="MovementBounds.MaxY"/>.
     /// </param>
-    /// <param name="delta">
-    /// Time elapsed since the previous step.
-    /// </param>
+    /// <param name="delta">Time elapsed since the previous step.</param>
     /// <param name="holdCourse">
     /// Whether the pet has to keep going the way it goes, for instance because it lies across the seam between two
     /// monitors: on the top edge it then neither turns around, nor lets go, nor sets out for a corner, and the time for
@@ -182,9 +158,7 @@ public sealed class EdgeCrawl(PetBehaviorOptions options, Random random)
     /// instead of climbing down there, and lets go if both ends are seams. <see langword="null"/> takes every end for an
     /// edge of the screen.
     /// </param>
-    /// <returns>
-    /// The new position, phase and facing, and whether the crawl goes on.
-    /// </returns>
+    /// <returns>The new position, phase and facing, and whether the crawl goes on.</returns>
     public CrawlStep Step(
         Point2 position,
         MovementBounds bounds,
@@ -205,18 +179,10 @@ public sealed class EdgeCrawl(PetBehaviorOptions options, Random random)
     /// <summary>
     /// Moves the pet up or down a side of the screen, all the way to the top or to the ground.
     /// </summary>
-    /// <param name="position">
-    /// The window's top-left corner now.
-    /// </param>
-    /// <param name="bounds">
-    /// The range the window's top-left corner may take.
-    /// </param>
-    /// <param name="delta">
-    /// Time elapsed since the previous step.
-    /// </param>
-    /// <returns>
-    /// The step.
-    /// </returns>
+    /// <param name="position">The window's top-left corner now.</param>
+    /// <param name="bounds">The range the window's top-left corner may take.</param>
+    /// <param name="delta">Time elapsed since the previous step.</param>
+    /// <returns>The step.</returns>
     private CrawlStep StepOnWall(Point2 position, MovementBounds bounds, TimeSpan delta)
     {
         var x = _onRightEdge ? Math.Max(bounds.MinX, bounds.MaxX) : bounds.MinX;
@@ -243,15 +209,9 @@ public sealed class EdgeCrawl(PetBehaviorOptions options, Random random)
     /// <summary>
     /// Moves the pet along the top edge of the screen.
     /// </summary>
-    /// <param name="position">
-    /// The window's top-left corner now.
-    /// </param>
-    /// <param name="bounds">
-    /// The range the window's top-left corner may take.
-    /// </param>
-    /// <param name="delta">
-    /// Time elapsed since the previous step.
-    /// </param>
+    /// <param name="position">The window's top-left corner now.</param>
+    /// <param name="bounds">The range the window's top-left corner may take.</param>
+    /// <param name="delta">Time elapsed since the previous step.</param>
     /// <param name="holdCourse">
     /// Whether the pet keeps going the way it goes, without turning around, letting go or heading for a corner.
     /// </param>
@@ -259,9 +219,7 @@ public sealed class EdgeCrawl(PetBehaviorOptions options, Random random)
     /// Tells whether an end of the range is only a seam to another monitor, or <see langword="null"/> if all ends are
     /// corners of the screen.
     /// </param>
-    /// <returns>
-    /// The step.
-    /// </returns>
+    /// <returns>The step.</returns>
     private CrawlStep StepOnCeiling(Point2 position, MovementBounds bounds, TimeSpan delta, bool holdCourse, IScreenEdges? edges)
     {
         var minX = bounds.MinX;
@@ -326,9 +284,7 @@ public sealed class EdgeCrawl(PetBehaviorOptions options, Random random)
     /// <summary>
     /// Picks the time until the pet may next turn around on the top edge.
     /// </summary>
-    /// <returns>
-    /// A random time between the configured limits.
-    /// </returns>
+    /// <returns>A random time between the configured limits.</returns>
     private TimeSpan NextTurnInterval()
     {
         return random.NextTimeSpan(options.CeilingTurnIntervalMin, options.CeilingTurnIntervalMax);

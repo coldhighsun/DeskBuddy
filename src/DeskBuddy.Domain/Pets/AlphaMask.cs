@@ -18,15 +18,9 @@ public sealed class AlphaMask
     /// <summary>
     /// Initializes a new instance of the <see cref="AlphaMask"/> class.
     /// </summary>
-    /// <param name="width">
-    /// Mask width in pixels.
-    /// </param>
-    /// <param name="height">
-    /// Mask height in pixels.
-    /// </param>
-    /// <param name="alpha">
-    /// Alpha values in row-major order; length must equal <c>width * height</c>.
-    /// </param>
+    /// <param name="width">Mask width in pixels.</param>
+    /// <param name="height">Mask height in pixels.</param>
+    /// <param name="alpha">Alpha values in row-major order; length must equal <c>width * height</c>.</param>
     public AlphaMask(int width, int height, byte[] alpha)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(width);
@@ -56,21 +50,11 @@ public sealed class AlphaMask
     /// <summary>
     /// Builds a mask from a 32-bit BGRA pixel buffer.
     /// </summary>
-    /// <param name="width">
-    /// Image width in pixels.
-    /// </param>
-    /// <param name="height">
-    /// Image height in pixels.
-    /// </param>
-    /// <param name="pixels">
-    /// BGRA pixel data (4 bytes per pixel).
-    /// </param>
-    /// <param name="stride">
-    /// Number of bytes per image row in <paramref name="pixels"/>.
-    /// </param>
-    /// <returns>
-    /// The alpha mask of the image.
-    /// </returns>
+    /// <param name="width">Image width in pixels.</param>
+    /// <param name="height">Image height in pixels.</param>
+    /// <param name="pixels">BGRA pixel data (4 bytes per pixel).</param>
+    /// <param name="stride">Number of bytes per image row in <paramref name="pixels"/>.</param>
+    /// <returns>The alpha mask of the image.</returns>
     public static AlphaMask FromBgra32(int width, int height, byte[] pixels, int stride)
     {
         var alpha = new byte[width * height];
@@ -88,15 +72,9 @@ public sealed class AlphaMask
     /// <summary>
     /// Determines whether a pixel is opaque enough to count as part of the pet.
     /// </summary>
-    /// <param name="x">
-    /// Pixel column.
-    /// </param>
-    /// <param name="y">
-    /// Pixel row.
-    /// </param>
-    /// <param name="threshold">
-    /// Minimum alpha value that counts as opaque.
-    /// </param>
+    /// <param name="x">Pixel column.</param>
+    /// <param name="y">Pixel row.</param>
+    /// <param name="threshold">Minimum alpha value that counts as opaque.</param>
     /// <returns>
     /// <see langword="true"/> if the pixel is inside the mask and its alpha is at least <paramref name="threshold"/>.
     /// </returns>
@@ -113,9 +91,7 @@ public sealed class AlphaMask
     /// <summary>
     /// Finds where the sprite starts: the first row that holds an opaque pixel.
     /// </summary>
-    /// <param name="threshold">
-    /// Minimum alpha value that counts as opaque.
-    /// </param>
+    /// <param name="threshold">Minimum alpha value that counts as opaque.</param>
     /// <returns>
     /// The top of the sprite as a fraction of the frame height, from 0 (the first row) up to but not including 1; 0 when
     /// the frame has no opaque pixel at all.
@@ -139,9 +115,7 @@ public sealed class AlphaMask
     /// <summary>
     /// Finds where the sprite ends: the bottom of the last row that holds an opaque pixel.
     /// </summary>
-    /// <param name="threshold">
-    /// Minimum alpha value that counts as opaque.
-    /// </param>
+    /// <param name="threshold">Minimum alpha value that counts as opaque.</param>
     /// <returns>
     /// The bottom of the sprite as a fraction of the frame height, above 0 up to 1 (the frame's bottom edge); 1 when
     /// the frame has no opaque pixel at all.
@@ -166,15 +140,9 @@ public sealed class AlphaMask
     /// Determines whether a position given as a fraction of the frame size hits an opaque pixel. Independent of DPI
     /// scaling, because the position is relative to the frame.
     /// </summary>
-    /// <param name="u">
-    /// Horizontal position from 0 (left edge) to 1 (right edge).
-    /// </param>
-    /// <param name="v">
-    /// Vertical position from 0 (top edge) to 1 (bottom edge).
-    /// </param>
-    /// <param name="threshold">
-    /// Minimum alpha value that counts as opaque.
-    /// </param>
+    /// <param name="u">Horizontal position from 0 (left edge) to 1 (right edge).</param>
+    /// <param name="v">Vertical position from 0 (top edge) to 1 (bottom edge).</param>
+    /// <param name="threshold">Minimum alpha value that counts as opaque.</param>
     /// <returns>
     /// <see langword="true"/> if the position maps to an opaque pixel; positions outside the frame return
     /// <see langword="false"/>.

@@ -35,12 +35,8 @@ internal static class WindowCornerHelper
     /// <summary>
     /// Tells whether a Windows build supports corners drawn by DWM.
     /// </summary>
-    /// <param name="osBuild">
-    /// The Windows build number.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> from Windows 11 (build 22000) onwards.
-    /// </returns>
+    /// <param name="osBuild">The Windows build number.</param>
+    /// <returns><see langword="true"/> from Windows 11 (build 22000) onwards.</returns>
     public static bool IsSupported(int osBuild)
     {
         return osBuild >= MinimumBuild;
@@ -49,12 +45,8 @@ internal static class WindowCornerHelper
     /// <summary>
     /// Gets <see cref="UseNativeCornersProperty"/>.
     /// </summary>
-    /// <param name="element">
-    /// The element, normally a window.
-    /// </param>
-    /// <returns>
-    /// Whether the element gets the native rounded corners.
-    /// </returns>
+    /// <param name="element">The element, normally a window.</param>
+    /// <returns>Whether the element gets the native rounded corners.</returns>
     public static bool GetUseNativeCorners(DependencyObject element)
     {
         return (bool)element.GetValue(UseNativeCornersProperty);
@@ -63,12 +55,8 @@ internal static class WindowCornerHelper
     /// <summary>
     /// Sets <see cref="UseNativeCornersProperty"/>.
     /// </summary>
-    /// <param name="element">
-    /// The element, normally a window.
-    /// </param>
-    /// <param name="value">
-    /// Whether the element gets the native rounded corners.
-    /// </param>
+    /// <param name="element">The element, normally a window.</param>
+    /// <param name="value">Whether the element gets the native rounded corners.</param>
     public static void SetUseNativeCorners(DependencyObject element, bool value)
     {
         element.SetValue(UseNativeCornersProperty, value);
@@ -79,12 +67,8 @@ internal static class WindowCornerHelper
     /// by Windows 11 on its own, so the preference is set explicitly; DWM then draws the border and the shadow too.
     /// Windows 10 does not know the attribute, so the window draws a 1 px outline of its own instead.
     /// </summary>
-    /// <param name="window">
-    /// The window to round.
-    /// </param>
-    /// <param name="nativeCornersSupported">
-    /// Whether this Windows version supports the corner attribute.
-    /// </param>
+    /// <param name="window">The window to round.</param>
+    /// <param name="nativeCornersSupported">Whether this Windows version supports the corner attribute.</param>
     private static void Apply(Window window, bool nativeCornersSupported)
     {
         if (!nativeCornersSupported)
@@ -114,12 +98,8 @@ internal static class WindowCornerHelper
     /// <summary>
     /// Takes the corners <see cref="Apply"/> gave a window away again.
     /// </summary>
-    /// <param name="window">
-    /// The window to take the corners from.
-    /// </param>
-    /// <param name="nativeCornersSupported">
-    /// Whether this Windows version supports the corner attribute.
-    /// </param>
+    /// <param name="window">The window to take the corners from.</param>
+    /// <param name="nativeCornersSupported">Whether this Windows version supports the corner attribute.</param>
     private static void Remove(Window window, bool nativeCornersSupported)
     {
         if (!nativeCornersSupported)
@@ -139,12 +119,8 @@ internal static class WindowCornerHelper
     /// <summary>
     /// Gives a window the corners when the property is switched on, and takes them away when it is switched off.
     /// </summary>
-    /// <param name="element">
-    /// The element the property changed on.
-    /// </param>
-    /// <param name="e">
-    /// The change.
-    /// </param>
+    /// <param name="element">The element the property changed on.</param>
+    /// <param name="e">The change.</param>
     private static void OnUseNativeCornersChanged(DependencyObject element, DependencyPropertyChangedEventArgs e)
     {
         if (element is not Window window)

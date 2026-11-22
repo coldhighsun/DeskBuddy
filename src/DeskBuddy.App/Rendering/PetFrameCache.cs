@@ -22,9 +22,7 @@ public sealed class PetFrameCache
     /// <summary>
     /// Initializes a new instance of the <see cref="PetFrameCache"/> class and decodes all frames of the pet.
     /// </summary>
-    /// <param name="pet">
-    /// The pet whose frames are decoded.
-    /// </param>
+    /// <param name="pet">The pet whose frames are decoded.</param>
     public PetFrameCache(Pet pet)
     {
         ArgumentNullException.ThrowIfNull(pet);
@@ -64,9 +62,7 @@ public sealed class PetFrameCache
     /// frozen, which is what lets the thread that asked use them. A thread is made for each pet rather than borrowing a
     /// thread-pool one, which would keep a WPF dispatcher alive for every pool thread it decodes on.
     /// </summary>
-    /// <param name="pet">
-    /// The pet.
-    /// </param>
+    /// <param name="pet">The pet.</param>
     /// <returns>
     /// A task that completes with the cache, or fails with the error that made a picture undecodable.
     /// </returns>
@@ -97,12 +93,8 @@ public sealed class PetFrameCache
     /// <summary>
     /// Gets the decoded frame for a file path.
     /// </summary>
-    /// <param name="path">
-    /// Frame file path as listed in the pet.
-    /// </param>
-    /// <returns>
-    /// The frozen, decoded image.
-    /// </returns>
+    /// <param name="path">Frame file path as listed in the pet.</param>
+    /// <returns>The frozen, decoded image.</returns>
     public ImageSource Get(string path)
     {
         return _frames[path];
@@ -111,12 +103,8 @@ public sealed class PetFrameCache
     /// <summary>
     /// Gets the alpha mask for a frame.
     /// </summary>
-    /// <param name="path">
-    /// Frame file path as listed in the pet.
-    /// </param>
-    /// <returns>
-    /// The mask describing which pixels of the frame are opaque.
-    /// </returns>
+    /// <param name="path">Frame file path as listed in the pet.</param>
+    /// <returns>The mask describing which pixels of the frame are opaque.</returns>
     public AlphaMask GetMask(string path)
     {
         return _masks[path];
@@ -125,12 +113,8 @@ public sealed class PetFrameCache
     /// <summary>
     /// Extracts the alpha channel of a bitmap.
     /// </summary>
-    /// <param name="bitmap">
-    /// The decoded bitmap, in any pixel format.
-    /// </param>
-    /// <returns>
-    /// The alpha mask of the bitmap.
-    /// </returns>
+    /// <param name="bitmap">The decoded bitmap, in any pixel format.</param>
+    /// <returns>The alpha mask of the bitmap.</returns>
     private static AlphaMask BuildMask(BitmapSource bitmap)
     {
         var converted = new FormatConvertedBitmap(bitmap, PixelFormats.Bgra32, null, 0);

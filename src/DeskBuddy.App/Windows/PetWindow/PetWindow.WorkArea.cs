@@ -125,9 +125,7 @@ public partial class PetWindow
     /// Tells whether the pet has moved on to another monitor than the one the cached work area was worked out for, which
     /// changes its taskbar line and scaling, so the work area is to be refreshed at once.
     /// </summary>
-    /// <returns>
-    /// <see langword="true"/> if the centre of the pet is no longer on that monitor.
-    /// </returns>
+    /// <returns><see langword="true"/> if the centre of the pet is no longer on that monitor.</returns>
     private bool HasLeftWorkAreaMonitor()
     {
         if (_seams.Count == 0 || _workAreaMonitor.Width <= 0)
@@ -143,9 +141,7 @@ public partial class PetWindow
     /// <summary>
     /// Tells whether the pet lies across the seam between two monitors, with part of it on each.
     /// </summary>
-    /// <returns>
-    /// <see langword="true"/> if it does; the pet then has to walk on until it is on one monitor.
-    /// </returns>
+    /// <returns><see langword="true"/> if it does; the pet then has to walk on until it is on one monitor.</returns>
     private bool IsOnSeam()
     {
         if (_seams.Count == 0)

@@ -133,9 +133,7 @@ public sealed partial class SettingsTabViewModel
     /// Takes the boss key the user entered into the draft. Whether the system accepts it is only known when the settings
     /// are saved.
     /// </summary>
-    /// <param name="gesture">
-    /// The shortcut the user entered.
-    /// </param>
+    /// <param name="gesture">The shortcut the user entered.</param>
     public void SetBossKey(HotkeyGesture gesture)
     {
         BossKeyError = string.Empty;
@@ -160,9 +158,7 @@ public sealed partial class SettingsTabViewModel
     /// <summary>
     /// Notes that the start-at-sign-in switch was changed; it is applied when the settings are saved.
     /// </summary>
-    /// <param name="value">
-    /// Whether the application should start at sign-in.
-    /// </param>
+    /// <param name="value">Whether the application should start at sign-in.</param>
     partial void OnAutoStartChanged(bool value)
     {
         if (_refreshing)
@@ -177,9 +173,7 @@ public sealed partial class SettingsTabViewModel
     /// <summary>
     /// Applies the choice to look for updates by itself.
     /// </summary>
-    /// <param name="value">
-    /// Whether the application checks automatically.
-    /// </param>
+    /// <param name="value">Whether the application checks automatically.</param>
     partial void OnAutoCheckUpdatesChanged(bool value)
     {
         if (!_refreshing)
@@ -192,9 +186,7 @@ public sealed partial class SettingsTabViewModel
     /// Registers or removes the start at sign-in when the switch differs from what is registered. If the system
     /// refuses, the switch goes back to what is registered and the reason is shown.
     /// </summary>
-    /// <returns>
-    /// <see langword="true"/> if there was nothing to change or the change worked.
-    /// </returns>
+    /// <returns><see langword="true"/> if there was nothing to change or the change worked.</returns>
     private bool SaveAutoStart()
     {
         if (AutoStart == _autoStartSaved)
@@ -228,12 +220,8 @@ public sealed partial class SettingsTabViewModel
     /// Shows the registration problem of the boss key when it appears or goes away on its own, for example when another
     /// program frees the shortcut.
     /// </summary>
-    /// <param name="sender">
-    /// The event source.
-    /// </param>
-    /// <param name="e">
-    /// The event data.
-    /// </param>
+    /// <param name="sender">The event source.</param>
+    /// <param name="e">The event data.</param>
     private void OnBossKeyStatusChanged(object? sender, EventArgs e)
     {
         if (_applyingBossKey)

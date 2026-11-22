@@ -27,12 +27,8 @@ public enum BuildChange
 /// when either condition has lapsed for a grace period, so short pauses inside a build do not end it. It cannot tell
 /// whether the build succeeded.
 /// </summary>
-/// <param name="options">
-/// The thresholds and timings.
-/// </param>
-/// <param name="timeProvider">
-/// The time source.
-/// </param>
+/// <param name="options">The thresholds and timings.</param>
+/// <param name="timeProvider">The time source.</param>
 public sealed class BuildActivityPolicy(PetBehaviorOptions options, TimeProvider timeProvider)
 {
     /// <summary>
@@ -69,15 +65,9 @@ public sealed class BuildActivityPolicy(PetBehaviorOptions options, TimeProvider
     /// <summary>
     /// Takes in the latest readings.
     /// </summary>
-    /// <param name="toolRunning">
-    /// Whether any build tool is running.
-    /// </param>
-    /// <param name="cpuPercent">
-    /// The current processor load, from 0 to 100.
-    /// </param>
-    /// <returns>
-    /// Whether a build was just recognized or just ended.
-    /// </returns>
+    /// <param name="toolRunning">Whether any build tool is running.</param>
+    /// <param name="cpuPercent">The current processor load, from 0 to 100.</param>
+    /// <returns>Whether a build was just recognized or just ended.</returns>
     public BuildChange Update(bool toolRunning, double cpuPercent)
     {
         var now = timeProvider.GetUtcNow();

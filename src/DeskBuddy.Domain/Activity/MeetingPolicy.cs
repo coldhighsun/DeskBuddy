@@ -16,9 +16,7 @@ public sealed class MeetingPolicy
     /// <param name="foregroundProcess">
     /// The name of the process owning the foreground window without <c>.exe</c>, or <see langword="null"/> if unknown.
     /// </param>
-    /// <returns>
-    /// <see langword="true"/> if it is in the list, ignoring case.
-    /// </returns>
+    /// <returns><see langword="true"/> if it is in the list, ignoring case.</returns>
     public bool IsInMeeting(string? foregroundProcess)
     {
         return foregroundProcess is not null && Processes.Contains(foregroundProcess, StringComparer.OrdinalIgnoreCase);

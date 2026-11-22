@@ -54,12 +54,8 @@ public partial class PetWindow
     /// <summary>
     /// Reads the mouse pointer and turns the pet's eyes towards it.
     /// </summary>
-    /// <param name="sender">
-    /// The event source.
-    /// </param>
-    /// <param name="e">
-    /// Event data.
-    /// </param>
+    /// <param name="sender">The event source.</param>
+    /// <param name="e">Event data.</param>
     private void OnPointerTick(object? sender, EventArgs e)
     {
         if (_pressed || !_switches.IsEnabled || !_pet.CanLookAround || _shownState != PetState.Idle)
@@ -78,9 +74,7 @@ public partial class PetWindow
     /// <summary>
     /// Tells where the pet is on the screen, from the window rectangle that is read again only after a move.
     /// </summary>
-    /// <returns>
-    /// The centre and the width of the pet, in device pixels.
-    /// </returns>
+    /// <returns>The centre and the width of the pet, in device pixels.</returns>
     private PetBox GetPetBox()
     {
         var bounds = _pixelBounds ??= MonitorHelper.GetWindowBoundsPixels(this);
@@ -90,9 +84,7 @@ public partial class PetWindow
     /// <summary>
     /// Turns the eyes, if they are not already looking that way.
     /// </summary>
-    /// <param name="gaze">
-    /// The direction on the screen.
-    /// </param>
+    /// <param name="gaze">The direction on the screen.</param>
     private void SetGaze(GazeDirection gaze)
     {
         if (gaze == _gaze)

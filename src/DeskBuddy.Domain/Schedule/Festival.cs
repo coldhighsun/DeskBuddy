@@ -46,12 +46,8 @@ public static class Festivals
     /// <summary>
     /// Tells which festival, if any, a date is.
     /// </summary>
-    /// <param name="date">
-    /// The date, in the local calendar.
-    /// </param>
-    /// <returns>
-    /// The festival, or <see cref="Festival.None"/>.
-    /// </returns>
+    /// <param name="date">The date, in the local calendar.</param>
+    /// <returns>The festival, or <see cref="Festival.None"/>.</returns>
     public static Festival On(DateOnly date)
     {
         return (date.Month, date.Day) switch
@@ -66,9 +62,7 @@ public static class Festivals
     /// <summary>
     /// Tells whether a date is the first day of the first lunar month.
     /// </summary>
-    /// <param name="date">
-    /// The date.
-    /// </param>
+    /// <param name="date">The date.</param>
     /// <returns>
     /// <see langword="true"/> if it is; <see langword="false"/> if it is not, or if the date lies outside what the
     /// lunar calendar can convert.

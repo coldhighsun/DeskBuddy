@@ -13,9 +13,7 @@ public class MeetingPolicyTests
     /// <summary>
     /// A meeting application in front is a meeting, whatever the case of its name.
     /// </summary>
-    /// <param name="name">
-    /// The foreground process name.
-    /// </param>
+    /// <param name="name">The foreground process name.</param>
     [Theory]
     [InlineData("Zoom")]
     [InlineData("ZOOM")]
@@ -32,9 +30,7 @@ public class MeetingPolicyTests
     /// <summary>
     /// Any other application, or none, is not a meeting.
     /// </summary>
-    /// <param name="name">
-    /// The foreground process name.
-    /// </param>
+    /// <param name="name">The foreground process name.</param>
     [Theory]
     [InlineData("Code")]
     [InlineData("")]

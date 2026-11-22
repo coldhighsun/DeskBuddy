@@ -50,12 +50,8 @@ public enum ProcessListProblem
 /// <summary>
 /// The outcome of checking an edited list of process names.
 /// </summary>
-/// <param name="Problem">
-/// What is wrong, or <see cref="ProcessListProblem.None"/>.
-/// </param>
-/// <param name="Name">
-/// The first offending process name; empty if there is no problem.
-/// </param>
+/// <param name="Problem">What is wrong, or <see cref="ProcessListProblem.None"/>.</param>
+/// <param name="Name">The first offending process name; empty if there is no problem.</param>
 /// <param name="OtherList">
 /// For <see cref="ProcessListProblem.InAnotherList"/>, the list that already holds the name.
 /// </param>
@@ -70,29 +66,17 @@ public readonly record struct ProcessListCheck(ProcessListProblem Problem, strin
 /// <summary>
 /// A process name that was taken out of a list when the settings were loaded, because it breaks the rules.
 /// </summary>
-/// <param name="Name">
-/// The process name.
-/// </param>
-/// <param name="List">
-/// The list it was taken out of.
-/// </param>
-/// <param name="Reason">
-/// Why: a space in the name, or being in a list that matters more.
-/// </param>
-/// <param name="KeptIn">
-/// For <see cref="ProcessListProblem.InAnotherList"/>, the list the process stays in.
-/// </param>
+/// <param name="Name">The process name.</param>
+/// <param name="List">The list it was taken out of.</param>
+/// <param name="Reason">Why: a space in the name, or being in a list that matters more.</param>
+/// <param name="KeptIn">For <see cref="ProcessListProblem.InAnotherList"/>, the list the process stays in.</param>
 public readonly record struct RemovedProcessName(string Name, ProcessListKind List, ProcessListProblem Reason, ProcessListKind? KeptIn);
 
 /// <summary>
 /// The settings after the rules were enforced, and what that took out.
 /// </summary>
-/// <param name="Settings">
-/// The settings that follow the rules.
-/// </param>
-/// <param name="Removed">
-/// The process names that were taken out, in the order they were found.
-/// </param>
+/// <param name="Settings">The settings that follow the rules.</param>
+/// <param name="Removed">The process names that were taken out, in the order they were found.</param>
 public readonly record struct ProcessListEnforcement(PetSettings Settings, IReadOnlyList<RemovedProcessName> Removed);
 
 /// <summary>
@@ -121,12 +105,8 @@ public static class ProcessListRules
     /// applications, chat applications, development tools, full-screen programs. The settings screen does not allow
     /// either, but a settings file from an older version or edited by hand may hold them.
     /// </summary>
-    /// <param name="settings">
-    /// The settings, with the lists already cleaned up by <see cref="Clean"/>.
-    /// </param>
-    /// <returns>
-    /// The settings that follow the rules, and the names that were taken out.
-    /// </returns>
+    /// <param name="settings">The settings, with the lists already cleaned up by <see cref="Clean"/>.</param>
+    /// <returns>The settings that follow the rules, and the names that were taken out.</returns>
     public static ProcessListEnforcement Enforce(PetSettings settings)
     {
         ArgumentNullException.ThrowIfNull(settings);
@@ -167,12 +147,8 @@ public static class ProcessListRules
     /// <summary>
     /// Tells whether a process name has a space (or other white space) in it.
     /// </summary>
-    /// <param name="name">
-    /// The process name.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> if it does.
-    /// </returns>
+    /// <param name="name">The process name.</param>
+    /// <returns><see langword="true"/> if it does.</returns>
     private static bool HasSpace(string name)
     {
         return name.Any(char.IsWhiteSpace);
@@ -181,12 +157,8 @@ public static class ProcessListRules
     /// <summary>
     /// Cleans up the lines the user typed: trims them, strips <c>.exe</c>, drops blank lines and repeats.
     /// </summary>
-    /// <param name="lines">
-    /// The names as typed.
-    /// </param>
-    /// <returns>
-    /// The cleaned names.
-    /// </returns>
+    /// <param name="lines">The names as typed.</param>
+    /// <returns>The cleaned names.</returns>
     public static IReadOnlyList<string> Clean(IReadOnlyList<string> lines)
     {
         return PetSettings.NormalizeProcessNames(lines);
@@ -195,15 +167,9 @@ public static class ProcessListRules
     /// <summary>
     /// Gets one of the lists from the settings.
     /// </summary>
-    /// <param name="settings">
-    /// The settings.
-    /// </param>
-    /// <param name="kind">
-    /// The list.
-    /// </param>
-    /// <returns>
-    /// The names in the list.
-    /// </returns>
+    /// <param name="settings">The settings.</param>
+    /// <param name="kind">The list.</param>
+    /// <returns>The names in the list.</returns>
     public static IReadOnlyList<string> Get(PetSettings settings, ProcessListKind kind)
     {
         ArgumentNullException.ThrowIfNull(settings);
@@ -221,18 +187,10 @@ public static class ProcessListRules
     /// <summary>
     /// Returns a copy of the settings with one of the lists replaced.
     /// </summary>
-    /// <param name="settings">
-    /// The settings.
-    /// </param>
-    /// <param name="kind">
-    /// The list to replace.
-    /// </param>
-    /// <param name="names">
-    /// The new names.
-    /// </param>
-    /// <returns>
-    /// The changed settings.
-    /// </returns>
+    /// <param name="settings">The settings.</param>
+    /// <param name="kind">The list to replace.</param>
+    /// <param name="names">The new names.</param>
+    /// <returns>The changed settings.</returns>
     public static PetSettings With(PetSettings settings, ProcessListKind kind, IReadOnlyList<string> names)
     {
         ArgumentNullException.ThrowIfNull(settings);
@@ -250,18 +208,10 @@ public static class ProcessListRules
     /// <summary>
     /// Checks a cleaned list the user wants to use for one of the lists.
     /// </summary>
-    /// <param name="settings">
-    /// The settings holding the other lists.
-    /// </param>
-    /// <param name="kind">
-    /// The list being edited.
-    /// </param>
-    /// <param name="names">
-    /// The cleaned names, see <see cref="Clean"/>.
-    /// </param>
-    /// <returns>
-    /// The first problem found, or a valid result.
-    /// </returns>
+    /// <param name="settings">The settings holding the other lists.</param>
+    /// <param name="kind">The list being edited.</param>
+    /// <param name="names">The cleaned names, see <see cref="Clean"/>.</param>
+    /// <returns>The first problem found, or a valid result.</returns>
     public static ProcessListCheck Check(PetSettings settings, ProcessListKind kind, IReadOnlyList<string> names)
     {
         ArgumentNullException.ThrowIfNull(settings);

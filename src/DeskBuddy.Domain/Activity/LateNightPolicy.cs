@@ -4,12 +4,8 @@ namespace DeskBuddy.Domain.Activity;
 /// Decides whether the user is still developing far into the night: between 23:00 and 05:00 by the local clock, after
 /// a long session.
 /// </summary>
-/// <param name="options">
-/// How long a session must have lasted.
-/// </param>
-/// <param name="timeProvider">
-/// The time source; the local time zone decides what counts as night.
-/// </param>
+/// <param name="options">How long a session must have lasted.</param>
+/// <param name="timeProvider">The time source; the local time zone decides what counts as night.</param>
 public sealed class LateNightPolicy(PetBehaviorOptions options, TimeProvider timeProvider)
 {
     /// <summary>
@@ -25,12 +21,8 @@ public sealed class LateNightPolicy(PetBehaviorOptions options, TimeProvider tim
     /// <summary>
     /// Tells whether it is a late-night session.
     /// </summary>
-    /// <param name="developingFor">
-    /// How long the user has been developing without a real break.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> if it is night and the session has lasted long enough.
-    /// </returns>
+    /// <param name="developingFor">How long the user has been developing without a real break.</param>
+    /// <returns><see langword="true"/> if it is night and the session has lasted long enough.</returns>
     public bool IsLateNightSession(TimeSpan developingFor)
     {
         if (developingFor < options.NightCodingAfter)

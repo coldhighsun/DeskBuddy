@@ -5,21 +5,15 @@ namespace DeskBuddy.Domain.Activity;
 /// <summary>
 /// What a call to <see cref="PowerPolicy.Update"/> found.
 /// </summary>
-/// <param name="IsLow">
-/// Whether the battery is low and the computer is running on it.
-/// </param>
-/// <param name="JustPluggedIn">
-/// Whether the power cable was plugged in since the previous update.
-/// </param>
+/// <param name="IsLow">Whether the battery is low and the computer is running on it.</param>
+/// <param name="JustPluggedIn">Whether the power cable was plugged in since the previous update.</param>
 public readonly record struct PowerChange(bool IsLow, bool JustPluggedIn);
 
 /// <summary>
 /// Watches the power supply: a low battery on battery power, and the cable being plugged in. A battery that has been
 /// low stays low until it has recovered a little, so a charge hovering around the limit does not flicker.
 /// </summary>
-/// <param name="options">
-/// The charge limits.
-/// </param>
+/// <param name="options">The charge limits.</param>
 public sealed class PowerPolicy(PetBehaviorOptions options)
 {
     /// <summary>
@@ -50,9 +44,7 @@ public sealed class PowerPolicy(PetBehaviorOptions options)
     /// <summary>
     /// Takes in the latest reading.
     /// </summary>
-    /// <param name="status">
-    /// How the computer is powered.
-    /// </param>
+    /// <param name="status">How the computer is powered.</param>
     /// <returns>
     /// Whether the battery is low and whether the cable was just plugged in. A computer without a battery, or with an
     /// unknown charge, never reports anything.

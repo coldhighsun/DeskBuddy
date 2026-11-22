@@ -13,9 +13,7 @@ public class DigitsOnlyTests
     /// <summary>
     /// Digits, and nothing at all, are accepted.
     /// </summary>
-    /// <param name="text">
-    /// The text.
-    /// </param>
+    /// <param name="text">The text.</param>
     [Theory]
     [InlineData("45")]
     [InlineData("0")]
@@ -29,9 +27,7 @@ public class DigitsOnlyTests
     /// <summary>
     /// Letters, spaces, signs, separators and non-ASCII digits are refused.
     /// </summary>
-    /// <param name="text">
-    /// The text.
-    /// </param>
+    /// <param name="text">The text.</param>
     [Theory]
     [InlineData("4a")]
     [InlineData("4 5")]
@@ -47,12 +43,8 @@ public class DigitsOnlyTests
     /// <summary>
     /// A typed digit goes through and a typed letter is refused.
     /// </summary>
-    /// <param name="typed">
-    /// The typed text.
-    /// </param>
-    /// <param name="refused">
-    /// Whether it should be refused.
-    /// </param>
+    /// <param name="typed">The typed text.</param>
+    /// <param name="refused">Whether it should be refused.</param>
     [Theory]
     [InlineData("5", false)]
     [InlineData("a", true)]
@@ -130,12 +122,8 @@ public class DigitsOnlyTests
     /// <summary>
     /// Pasted data is accepted only when it is text made of digits.
     /// </summary>
-    /// <param name="text">
-    /// The pasted text.
-    /// </param>
-    /// <param name="accepted">
-    /// Whether it should be accepted.
-    /// </param>
+    /// <param name="text">The pasted text.</param>
+    /// <param name="accepted">Whether it should be accepted.</param>
     [Theory]
     [InlineData("123", true)]
     [InlineData("12a", false)]

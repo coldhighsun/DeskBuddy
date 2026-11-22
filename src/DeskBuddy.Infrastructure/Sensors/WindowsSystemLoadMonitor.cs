@@ -51,27 +51,13 @@ public sealed partial class WindowsSystemLoadMonitor : ISystemLoadMonitor
     /// Computes CPU utilization between two cumulative <c>GetSystemTimes</c> readings. Kernel time already includes
     /// idle time, so busy time is <c>(kernel + user) - idle</c>.
     /// </summary>
-    /// <param name="previousIdle">
-    /// Idle time at the earlier reading.
-    /// </param>
-    /// <param name="previousKernel">
-    /// Kernel time at the earlier reading.
-    /// </param>
-    /// <param name="previousUser">
-    /// User time at the earlier reading.
-    /// </param>
-    /// <param name="idle">
-    /// Idle time at the later reading.
-    /// </param>
-    /// <param name="kernel">
-    /// Kernel time at the later reading.
-    /// </param>
-    /// <param name="user">
-    /// User time at the later reading.
-    /// </param>
-    /// <returns>
-    /// Utilization from 0 to 100; 0 if no time elapsed between the readings.
-    /// </returns>
+    /// <param name="previousIdle">Idle time at the earlier reading.</param>
+    /// <param name="previousKernel">Kernel time at the earlier reading.</param>
+    /// <param name="previousUser">User time at the earlier reading.</param>
+    /// <param name="idle">Idle time at the later reading.</param>
+    /// <param name="kernel">Kernel time at the later reading.</param>
+    /// <param name="user">User time at the later reading.</param>
+    /// <returns>Utilization from 0 to 100; 0 if no time elapsed between the readings.</returns>
     public static double ComputeCpuPercent(
         ulong previousIdle,
         ulong previousKernel,
@@ -93,18 +79,10 @@ public sealed partial class WindowsSystemLoadMonitor : ISystemLoadMonitor
     /// <summary>
     /// Retrieves cumulative system CPU times.
     /// </summary>
-    /// <param name="idle">
-    /// Receives the idle time in 100-nanosecond units.
-    /// </param>
-    /// <param name="kernel">
-    /// Receives the kernel time, including idle time.
-    /// </param>
-    /// <param name="user">
-    /// Receives the user time.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> on success.
-    /// </returns>
+    /// <param name="idle">Receives the idle time in 100-nanosecond units.</param>
+    /// <param name="kernel">Receives the kernel time, including idle time.</param>
+    /// <param name="user">Receives the user time.</param>
+    /// <returns><see langword="true"/> on success.</returns>
     [LibraryImport("kernel32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool GetSystemTimes(out ulong idle, out ulong kernel, out ulong user);
@@ -112,12 +90,8 @@ public sealed partial class WindowsSystemLoadMonitor : ISystemLoadMonitor
     /// <summary>
     /// Retrieves physical memory usage.
     /// </summary>
-    /// <param name="status">
-    /// Receives the status; <see cref="MemoryStatus.Length"/> must be set by the caller.
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> on success.
-    /// </returns>
+    /// <param name="status">Receives the status; <see cref="MemoryStatus.Length"/> must be set by the caller.</param>
+    /// <returns><see langword="true"/> on success.</returns>
     [LibraryImport("kernel32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool GlobalMemoryStatusEx(ref MemoryStatus status);

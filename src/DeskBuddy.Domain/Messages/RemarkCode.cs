@@ -14,15 +14,9 @@ public static class RemarkCode
     /// <summary>
     /// Packs a state and a variant.
     /// </summary>
-    /// <param name="state">
-    /// The state the remark belongs to.
-    /// </param>
-    /// <param name="variant">
-    /// Which wording of it; 0 for the only or the default one.
-    /// </param>
-    /// <returns>
-    /// The code.
-    /// </returns>
+    /// <param name="state">The state the remark belongs to.</param>
+    /// <param name="variant">Which wording of it; 0 for the only or the default one.</param>
+    /// <returns>The code.</returns>
     public static int Encode(PetState state, int variant = 0)
     {
         return (variant * VariantFactor) + (int)state;
@@ -31,12 +25,8 @@ public static class RemarkCode
     /// <summary>
     /// Unpacks a code.
     /// </summary>
-    /// <param name="code">
-    /// The code made by <see cref="Encode"/>.
-    /// </param>
-    /// <returns>
-    /// The state and the variant.
-    /// </returns>
+    /// <param name="code">The code made by <see cref="Encode"/>.</param>
+    /// <returns>The state and the variant.</returns>
     public static (PetState State, int Variant) Decode(int code)
     {
         return ((PetState)(code % VariantFactor), code / VariantFactor);

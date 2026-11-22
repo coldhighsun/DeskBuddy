@@ -10,9 +10,7 @@ public sealed class WindowCornerHelperTests
     /// <summary>
     /// Windows 11 and later draw the rounded corners, the border and the shadow of a borderless window themselves.
     /// </summary>
-    /// <param name="build">
-    /// The Windows build number.
-    /// </param>
+    /// <param name="build">The Windows build number.</param>
     [Theory]
     [InlineData(22000)]
     [InlineData(26100)]
@@ -28,9 +26,7 @@ public sealed class WindowCornerHelperTests
     /// <summary>
     /// Windows 10 cannot, so the window draws an outline of its own.
     /// </summary>
-    /// <param name="build">
-    /// The Windows build number.
-    /// </param>
+    /// <param name="build">The Windows build number.</param>
     [Theory]
     [InlineData(19045)]
     [InlineData(21999)]

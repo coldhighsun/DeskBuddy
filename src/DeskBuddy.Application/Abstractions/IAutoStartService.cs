@@ -18,14 +18,10 @@ public interface IAutoStartService
     /// <summary>
     /// Turns starting at sign-in on or off.
     /// </summary>
-    /// <param name="enabled">
-    /// <see langword="true"/> to start at sign-in.
-    /// </param>
+    /// <param name="enabled"><see langword="true"/> to start at sign-in.</param>
     /// <param name="error">
     /// Why the change could not be made (for example a policy forbids it); <see langword="null"/> on success.
     /// </param>
-    /// <returns>
-    /// <see langword="true"/> if the change was made.
-    /// </returns>
+    /// <returns><see langword="true"/> if the change was made.</returns>
     bool TrySet(bool enabled, out string? error);
 }

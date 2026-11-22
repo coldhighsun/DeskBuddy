@@ -55,12 +55,8 @@ public partial class PetWindow
     /// <summary>
     /// Starts tracking a press on the pet; it becomes a click or a drag depending on how the mouse moves.
     /// </summary>
-    /// <param name="sender">
-    /// The event source.
-    /// </param>
-    /// <param name="e">
-    /// Mouse event data.
-    /// </param>
+    /// <param name="sender">The event source.</param>
+    /// <param name="e">Mouse event data.</param>
     private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         if (e.ClickCount >= 2)
@@ -80,12 +76,8 @@ public partial class PetWindow
     /// <summary>
     /// Turns a press into a drag once the mouse has moved far enough, and moves the pet with the cursor.
     /// </summary>
-    /// <param name="sender">
-    /// The event source.
-    /// </param>
-    /// <param name="e">
-    /// Mouse event data.
-    /// </param>
+    /// <param name="sender">The event source.</param>
+    /// <param name="e">Mouse event data.</param>
     private void OnMouseMove(object sender, MouseEventArgs e)
     {
         if (!_pressed)
@@ -117,12 +109,8 @@ public partial class PetWindow
     /// <summary>
     /// Ends a press: a drop settles the pet on the taskbar line, a short press counts as a click.
     /// </summary>
-    /// <param name="sender">
-    /// The event source.
-    /// </param>
-    /// <param name="e">
-    /// Mouse event data.
-    /// </param>
+    /// <param name="sender">The event source.</param>
+    /// <param name="e">Mouse event data.</param>
     private void OnMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
         if (!_pressed)
@@ -138,12 +126,8 @@ public partial class PetWindow
     /// windows, a system dialog opened or the pet was hidden). A drag ends as if the pet had been dropped where it is;
     /// a press that had not become a drag is forgotten rather than counted as a click.
     /// </summary>
-    /// <param name="sender">
-    /// The event source.
-    /// </param>
-    /// <param name="e">
-    /// Mouse event data.
-    /// </param>
+    /// <param name="sender">The event source.</param>
+    /// <param name="e">Mouse event data.</param>
     private void OnLostMouseCapture(object sender, MouseEventArgs e)
     {
         if (!_pressed)

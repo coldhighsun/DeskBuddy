@@ -25,9 +25,7 @@ public sealed class SessionLockTests
     /// <summary>
     /// Other changes of the session leave the pet as it is.
     /// </summary>
-    /// <param name="reason">
-    /// The change.
-    /// </param>
+    /// <param name="reason">The change.</param>
     [Theory]
     [InlineData(SessionSwitchReason.ConsoleConnect)]
     [InlineData(SessionSwitchReason.RemoteDisconnect)]

@@ -5,18 +5,10 @@ namespace DeskBuddy.App.ViewModels;
 /// <summary>
 /// One switch in the settings: whether the pet acts out a scenario.
 /// </summary>
-/// <param name="state">
-/// The scenario, identified by the state the pet shows for it.
-/// </param>
-/// <param name="label">
-/// The short name shown next to the switch.
-/// </param>
-/// <param name="description">
-/// The explanation of the scenario, shown as a tooltip.
-/// </param>
-/// <param name="onChanged">
-/// Called when the user flips the switch.
-/// </param>
+/// <param name="state">The scenario, identified by the state the pet shows for it.</param>
+/// <param name="label">The short name shown next to the switch.</param>
+/// <param name="description">The explanation of the scenario, shown as a tooltip.</param>
+/// <param name="onChanged">Called when the user flips the switch.</param>
 public sealed partial class ScenarioToggleViewModel(PetState state, string label, string description, Action<PetState, bool> onChanged)
     : ObservableObject
 {
@@ -51,9 +43,7 @@ public sealed partial class ScenarioToggleViewModel(PetState state, string label
     /// <summary>
     /// Shows a value from the settings without reporting it as the user's change.
     /// </summary>
-    /// <param name="isEnabled">
-    /// Whether the scenario is on.
-    /// </param>
+    /// <param name="isEnabled">Whether the scenario is on.</param>
     public void Show(bool isEnabled)
     {
         _silent = true;
@@ -70,9 +60,7 @@ public sealed partial class ScenarioToggleViewModel(PetState state, string label
     /// <summary>
     /// Reports the user's change.
     /// </summary>
-    /// <param name="value">
-    /// The new value.
-    /// </param>
+    /// <param name="value">The new value.</param>
     partial void OnIsEnabledChanged(bool value)
     {
         if (!_silent)

@@ -30,12 +30,8 @@ public class EdgeCrawlTests
     /// <summary>
     /// Creates a crawl whose chances come out as the given values, one after the other; the last value repeats.
     /// </summary>
-    /// <param name="chances">
-    /// The values, each from 0 to 1.
-    /// </param>
-    /// <returns>
-    /// The crawl.
-    /// </returns>
+    /// <param name="chances">The values, each from 0 to 1.</param>
+    /// <returns>The crawl.</returns>
     private EdgeCrawl CreateCrawl(params double[] chances)
     {
         return new EdgeCrawl(_options, new ScriptedRandom(chances));
@@ -44,12 +40,8 @@ public class EdgeCrawlTests
     /// <summary>
     /// The sprite faces the picture as drawn at the left edge and mirrored at the right edge.
     /// </summary>
-    /// <param name="onRightEdge">
-    /// Whether the pet is on the right edge.
-    /// </param>
-    /// <param name="expected">
-    /// The expected facing.
-    /// </param>
+    /// <param name="onRightEdge">Whether the pet is on the right edge.</param>
+    /// <param name="expected">The expected facing.</param>
     [Theory]
     [InlineData(false, 1)]
     [InlineData(true, -1)]
@@ -69,12 +61,8 @@ public class EdgeCrawlTests
     /// <summary>
     /// The crawl says which state the pet is in: climbing up or down the side it started on.
     /// </summary>
-    /// <param name="climbingUp">
-    /// Whether the pet starts by climbing up.
-    /// </param>
-    /// <param name="expected">
-    /// The state that goes with it.
-    /// </param>
+    /// <param name="climbingUp">Whether the pet starts by climbing up.</param>
+    /// <param name="expected">The state that goes with it.</param>
     [Theory]
     [InlineData(true, PetState.Climb)]
     [InlineData(false, PetState.ClimbDown)]
@@ -311,9 +299,7 @@ public class EdgeCrawlTests
     /// <summary>
     /// On the top edge the pet moves along it at the climbing speed, facing the way it goes.
     /// </summary>
-    /// <param name="direction">
-    /// The direction to go first.
-    /// </param>
+    /// <param name="direction">The direction to go first.</param>
     [Theory]
     [InlineData(1)]
     [InlineData(-1)]
@@ -480,12 +466,8 @@ public class EdgeCrawlTests
     /// <summary>
     /// A fake that says whether the left and right ends are seams to other monitors.
     /// </summary>
-    /// <param name="left">
-    /// Whether another monitor lies beside the left end.
-    /// </param>
-    /// <param name="right">
-    /// Whether another monitor lies beside the right end.
-    /// </param>
+    /// <param name="left">Whether another monitor lies beside the left end.</param>
+    /// <param name="right">Whether another monitor lies beside the right end.</param>
     private sealed class FakeEdges(bool left, bool right) : IScreenEdges
     {
         /// <inheritdoc />
@@ -504,9 +486,7 @@ public class EdgeCrawlTests
     /// <summary>
     /// A random source that gives the values it is told to, one after the other, and repeats the last.
     /// </summary>
-    /// <param name="values">
-    /// The values to give.
-    /// </param>
+    /// <param name="values">The values to give.</param>
     private sealed class ScriptedRandom(double[] values) : Random
     {
         /// <summary>
