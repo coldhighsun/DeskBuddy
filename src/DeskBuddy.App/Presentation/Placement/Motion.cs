@@ -99,7 +99,7 @@ internal static class Motion
     /// the element drawn as an animated one, which costs its text the sharp ClearType rendering for as long as it is shown.
     /// </summary>
     /// <param name="element">The element whose entrance has finished.</param>
-    private static void Settle(UIElement element)
+    public static void Settle(UIElement element)
     {
         element.BeginAnimation(UIElement.OpacityProperty, null);
         element.Opacity = 1;

@@ -715,6 +715,36 @@ internal static class Strings
     public static string ThemeDark => Get();
 
     /// <summary>
+    /// Gets the label of the setting that picks the animation played when another pet is switched to.
+    /// </summary>
+    public static string SettingsSwitchEffect => Get();
+
+    /// <summary>
+    /// Gets the name of the choice that picks a different switch animation at random every time.
+    /// </summary>
+    public static string SwitchEffectRandom => Get();
+
+    /// <summary>
+    /// Gets the name of the flying saucer switch animation.
+    /// </summary>
+    public static string SwitchEffectUfo => Get();
+
+    /// <summary>
+    /// Gets the name of the claw machine switch animation.
+    /// </summary>
+    public static string SwitchEffectClaw => Get();
+
+    /// <summary>
+    /// Gets the name of the magic smoke switch animation.
+    /// </summary>
+    public static string SwitchEffectSmoke => Get();
+
+    /// <summary>
+    /// Gets the name of the teleport beam switch animation.
+    /// </summary>
+    public static string SwitchEffectBeam => Get();
+
+    /// <summary>
     /// Gets the short explanation of what the pet is doing in a state, shown when the mouse rests on it.
     /// </summary>
     /// <param name="state">The state the pet is in.</param>

@@ -59,6 +59,11 @@ public partial class PetWindow
     /// <param name="e">Mouse event data.</param>
     private void OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
+        if (_transitioning)
+        {
+            return;
+        }
+
         if (e.ClickCount >= 2)
         {
             _openPanel(null);

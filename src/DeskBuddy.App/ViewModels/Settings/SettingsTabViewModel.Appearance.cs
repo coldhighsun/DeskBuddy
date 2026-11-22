@@ -29,6 +29,12 @@ public sealed partial class SettingsTabViewModel
     private AppTheme _selectedTheme;
 
     /// <summary>
+    /// Gets or sets the animation played when another pet is switched to.
+    /// </summary>
+    [ObservableProperty]
+    private PetSwitchEffect _selectedSwitchEffect;
+
+    /// <summary>
     /// Gets or sets how large the pet is shown.
     /// </summary>
     [ObservableProperty]
@@ -55,6 +61,43 @@ public sealed partial class SettingsTabViewModel
     [
         .. Enum.GetValues<AppTheme>().Select(theme => new ThemeOption(theme, ThemeLabel(theme))),
     ];
+
+    /// <summary>
+    /// Gets the switch animations to choose from.
+    /// </summary>
+    public IReadOnlyList<PetSwitchEffectOption> SwitchEffects { get; } =
+    [
+        .. Enum.GetValues<PetSwitchEffect>().Select(effect => new PetSwitchEffectOption(effect, SwitchEffectLabel(effect))),
+    ];
+
+    /// <summary>
+    /// Gets the name of a switch animation as the list of animations shows it.
+    /// </summary>
+    /// <param name="effect">The animation.</param>
+    /// <returns>The name, in the interface language now in use.</returns>
+    private static string SwitchEffectLabel(PetSwitchEffect effect)
+    {
+        return effect switch
+        {
+            PetSwitchEffect.Ufo => Strings.SwitchEffectUfo,
+            PetSwitchEffect.Claw => Strings.SwitchEffectClaw,
+            PetSwitchEffect.Smoke => Strings.SwitchEffectSmoke,
+            PetSwitchEffect.Beam => Strings.SwitchEffectBeam,
+            _ => Strings.SwitchEffectRandom,
+        };
+    }
+
+    /// <summary>
+    /// Records the chosen switch animation in the draft; it is applied when the settings are saved.
+    /// </summary>
+    /// <param name="value">The animation.</param>
+    partial void OnSelectedSwitchEffectChanged(PetSwitchEffect value)
+    {
+        if (!_refreshing)
+        {
+            _editor.Set(nameof(PetSettings.SwitchEffect), settings => settings with { SwitchEffect = value });
+        }
+    }
 
     /// <summary>
     /// Gets the name of a language as the list of languages shows it.

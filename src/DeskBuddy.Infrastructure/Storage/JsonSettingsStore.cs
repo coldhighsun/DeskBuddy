@@ -173,6 +173,12 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
         public string? Theme { get; init; }
 
         /// <summary>
+        /// Gets the animation played when another pet is switched to, as text so that an unknown name does not spoil the
+        /// whole file.
+        /// </summary>
+        public string? SwitchEffect { get; init; }
+
+        /// <summary>
         /// Gets how large the pet is shown, as text so that an unknown name does not spoil the whole file.
         /// </summary>
         public string? Size { get; init; }
@@ -219,6 +225,7 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
                 ClockOutTime = settings.ClockOutTime,
                 Language = settings.Language.ToString(),
                 Theme = settings.Theme.ToString(),
+                SwitchEffect = settings.SwitchEffect.ToString(),
                 Size = settings.Size.ToString(),
                 ChatterEnabled = settings.ChatterEnabled,
                 StrollWhileBusy = settings.StrollWhileBusy,
@@ -256,6 +263,10 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
                 Theme = Enum.TryParse<AppTheme>(Theme, ignoreCase: true, out var theme) && Enum.IsDefined(theme)
                     ? theme
                     : defaults.Theme,
+                SwitchEffect = Enum.TryParse<PetSwitchEffect>(SwitchEffect, ignoreCase: true, out var switchEffect)
+                    && Enum.IsDefined(switchEffect)
+                    ? switchEffect
+                    : defaults.SwitchEffect,
                 Size = Enum.TryParse<PetSize>(Size, ignoreCase: true, out var size) && Enum.IsDefined(size)
                     ? size
                     : defaults.Size,

@@ -73,6 +73,26 @@ internal static partial class WindowStyleHelper
     public const int HtTransparent = -1;
 
     /// <summary>
+    /// A window procedure hook that lets every mouse click pass through the window.
+    /// </summary>
+    /// <param name="hwnd">The window handle.</param>
+    /// <param name="msg">The message.</param>
+    /// <param name="wParam">The first message parameter.</param>
+    /// <param name="lParam">The second message parameter.</param>
+    /// <param name="handled">Set when the message was dealt with.</param>
+    /// <returns><c>HTTRANSPARENT</c> for hit tests, otherwise zero.</returns>
+    public static nint ClickThroughHook(nint hwnd, int msg, nint wParam, nint lParam, ref bool handled)
+    {
+        if (msg == WmNcHitTest)
+        {
+            handled = true;
+            return HtTransparent;
+        }
+
+        return 0;
+    }
+
+    /// <summary>
     /// DWM attribute selecting the Windows 11 corner style.
     /// </summary>
     private const int DwmwaWindowCornerPreference = 33;

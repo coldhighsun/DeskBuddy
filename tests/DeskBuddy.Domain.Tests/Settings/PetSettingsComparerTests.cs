@@ -98,6 +98,7 @@ public class PetSettingsComparerTests
             [nameof(PetSettings.DisabledScenarios)] = baseline with { DisabledScenarios = [] },
             [nameof(PetSettings.Language)] = baseline with { Language = AppLanguage.En },
             [nameof(PetSettings.Theme)] = baseline with { Theme = AppTheme.Dark },
+            [nameof(PetSettings.SwitchEffect)] = baseline with { SwitchEffect = PetSwitchEffect.Ufo },
             [nameof(PetSettings.Size)] = baseline with { Size = PetSize.Large },
             [nameof(PetSettings.ChatterEnabled)] = baseline with { ChatterEnabled = !baseline.ChatterEnabled },
             [nameof(PetSettings.StrollWhileBusy)] = baseline with { StrollWhileBusy = !baseline.StrollWhileBusy },

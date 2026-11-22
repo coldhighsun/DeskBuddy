@@ -168,6 +168,12 @@ public partial class PetWindow
         }
         else if (IsVisible)
         {
+            // Nobody sees the animation of a pet switch now; the pet is put back, and the switch goes on without it.
+            if (_transitioning)
+            {
+                AbandonTransition();
+            }
+
             _animationTimer.Stop();
             _moveTimer.Stop();
             _pointerTimer.Stop();
@@ -226,6 +232,11 @@ public partial class PetWindow
     /// <param name="e">Event data.</param>
     private void OnBrainTick(object? sender, EventArgs e)
     {
+        if (_transitioning)
+        {
+            return;
+        }
+
         var startedAt = Stopwatch.GetTimestamp();
         RefreshState();
         UpdatePointerTimer();

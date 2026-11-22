@@ -98,6 +98,72 @@ public class PetSwitcherTests
     }
 
     /// <summary>
+    /// The pet on screen leaves after the new pet has been loaded and before it is put on screen.
+    /// </summary>
+    [Fact]
+    public async Task SwitchAsync_WithLeave_LeavesBetweenLoadAndApply()
+    {
+        // Arrange
+        var events = new List<string>();
+        using var switcher = CreateSwitcher(
+            pet => events.Add($"apply {pet.Name}"),
+            () =>
+            {
+                events.Add("leave");
+                return Task.CompletedTask;
+            },
+            pet =>
+            {
+                events.Add($"prepare {pet.Name}");
+                return Task.CompletedTask;
+            });
+
+        // Act
+        await switcher.SwitchAsync("cat");
+
+        // Assert
+        events.Should().Equal("prepare cat", "leave", "apply cat");
+    }
+
+    /// <summary>
+    /// The pet on screen does not leave when the new pet cannot be loaded, so it is never left without a pet.
+    /// </summary>
+    [Fact]
+    public async Task SwitchAsync_WithLeave_LoadFails_DoesNotLeave()
+    {
+        // Arrange
+        var left = false;
+        using var switcher = CreateSwitcher(_ => { }, () =>
+        {
+            left = true;
+            return Task.CompletedTask;
+        });
+
+        // Act
+        await switcher.SwitchAsync("broken");
+
+        // Assert
+        left.Should().BeFalse();
+    }
+
+    /// <summary>
+    /// A leaving animation that fails does not stop the new pet from being put on screen.
+    /// </summary>
+    [Fact]
+    public async Task SwitchAsync_LeaveFails_StillSwitches()
+    {
+        // Arrange
+        using var switcher = CreateSwitcher(pet => _applied.Add(pet.Name), () => throw new InvalidOperationException("no window"));
+
+        // Act
+        await switcher.SwitchAsync("cat");
+
+        // Assert
+        _applied.Should().Equal("cat");
+        _failures.Should().BeEmpty();
+    }
+
+    /// <summary>
     /// After a failure the previous pet can still be switched away from and back to normally.
     /// </summary>
     [Fact]
@@ -268,6 +334,29 @@ public class PetSwitcherTests
         // Assert
         _loader.Requested.Should().BeEmpty();
         _applied.Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// Creates a second switcher on the same settings, with the leave and prepare steps given. It follows the settings only
+    /// until it is disposed, and the tests that use it call <c>SwitchAsync</c> directly.
+    /// </summary>
+    /// <param name="apply">Puts the pet on screen.</param>
+    /// <param name="leave">Lets the pet on screen leave.</param>
+    /// <param name="prepare">Prepares a pet before it is put on screen.</param>
+    /// <returns>The switcher.</returns>
+    private PetSwitcher CreateSwitcher(Action<Pet> apply, Func<Task> leave, Func<Pet, Task>? prepare = null)
+    {
+        var switcher = new PetSwitcher(
+            _settings,
+            _loader,
+            new FakePetCatalog(),
+            PetSettings.DefaultPetName,
+            apply,
+            NullLogger<PetSwitcher>.Instance,
+            prepare,
+            leave);
+        switcher.SwitchFailed += (_, reason) => _failures.Add(reason);
+        return switcher;
     }
 
     /// <summary>

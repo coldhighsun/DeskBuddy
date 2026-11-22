@@ -275,6 +275,32 @@ public class PetSettingsTests
     }
 
     /// <summary>
+    /// The animation for switching pets is a random one until the user picks one.
+    /// </summary>
+    [Fact]
+    public void Default_SwitchEffect_IsRandom()
+    {
+        // Assert
+        PetSettings.Default.SwitchEffect.Should().Be(PetSwitchEffect.Random);
+    }
+
+    /// <summary>
+    /// A switch animation that does not exist falls back to a random one.
+    /// </summary>
+    [Fact]
+    public void Normalize_UnknownSwitchEffect_FallsBackToRandom()
+    {
+        // Arrange
+        var settings = PetSettings.Default with { SwitchEffect = (PetSwitchEffect)42 };
+
+        // Act
+        var normalized = settings.Normalize();
+
+        // Assert
+        normalized.SwitchEffect.Should().Be(PetSwitchEffect.Random);
+    }
+
+    /// <summary>
     /// A theme that does not exist falls back to following the system.
     /// </summary>
     [Fact]

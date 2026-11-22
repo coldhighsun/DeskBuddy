@@ -90,6 +90,7 @@ public sealed class JsonSettingsStoreTests : IDisposable
             ClockOutTime = new TimeSpan(17, 30, 0),
             Language = AppLanguage.En,
             Theme = AppTheme.Dark,
+            SwitchEffect = PetSwitchEffect.Claw,
             Size = PetSize.Large,
             StrollWhileBusy = false,
             AutoCheckUpdates = false,
@@ -326,6 +327,29 @@ public sealed class JsonSettingsStoreTests : IDisposable
 
         // Assert
         settings.Theme.Should().Be(AppTheme.Auto);
+        settings.ChatterEnabled.Should().BeFalse();
+    }
+
+    /// <summary>
+    /// A switch animation that is not known, as a name or as a number, falls back to a random one without spoiling the rest
+    /// of the file; so does a file that does not have the setting.
+    /// </summary>
+    /// <param name="stored">The stored part of the file, empty for a file without the setting.</param>
+    [Theory]
+    [InlineData(",\"switchEffect\":\"Tornado\"")]
+    [InlineData(",\"switchEffect\":\"42\"")]
+    [InlineData(",\"switchEffect\":\"None\"")]
+    [InlineData("")]
+    public async Task LoadAsync_UnknownSwitchEffect_FallsBackToRandom(string stored)
+    {
+        // Arrange
+        await WriteRawAsync("{\"version\":1,\"chatterEnabled\":false" + stored + "}");
+
+        // Act
+        var settings = await _store.LoadAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        settings.SwitchEffect.Should().Be(PetSwitchEffect.Random);
         settings.ChatterEnabled.Should().BeFalse();
     }
 

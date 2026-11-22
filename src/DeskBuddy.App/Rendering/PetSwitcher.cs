@@ -42,6 +42,11 @@ public sealed class PetSwitcher : IDisposable
     private readonly Func<Pet, Task>? _prepare;
 
     /// <summary>
+    /// Plays the leaving animation of the pet on screen; <see langword="null"/> if it is replaced at once.
+    /// </summary>
+    private readonly Func<Task>? _leave;
+
+    /// <summary>
     /// The name of the pet on screen.
     /// </summary>
     private string _currentName;
@@ -64,6 +69,10 @@ public sealed class PetSwitcher : IDisposable
     /// Does the slow part of getting a pet ready before it is put on screen, off the caller's thread if it can; may throw
     /// like <paramref name="apply"/> if the images cannot be decoded. <see langword="null"/> if there is nothing to prepare.
     /// </param>
+    /// <param name="leave">
+    /// Lets the pet on screen leave once the new pet is ready, just before <paramref name="apply"/>; <see langword="null"/>
+    /// if the pet is to be replaced at once.
+    /// </param>
     public PetSwitcher(
         SettingsService settings,
         IPetLoader loader,
@@ -71,7 +80,8 @@ public sealed class PetSwitcher : IDisposable
         string currentName,
         Action<Pet> apply,
         ILogger<PetSwitcher> logger,
-        Func<Pet, Task>? prepare = null)
+        Func<Pet, Task>? prepare = null,
+        Func<Task>? leave = null)
     {
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(loader);
@@ -87,6 +97,7 @@ public sealed class PetSwitcher : IDisposable
         _apply = apply;
         _logger = logger;
         _prepare = prepare;
+        _leave = leave;
 
         _settings.Changed += OnSettingsChanged;
     }
@@ -131,6 +142,10 @@ public sealed class PetSwitcher : IDisposable
                 return;
             }
 
+            await LeaveAsync();
+
+            // The pet is loaded and gone from the screen by now, so it is put on screen even if yet another request has come in
+            // meanwhile: that one then takes over from it, and the screen is never left without a pet.
             _apply(pet);
             _logger.LogInformation("Switched from the '{Previous}' pet to '{Pet}'.", _currentName, name);
             _currentName = name;
@@ -151,6 +166,27 @@ public sealed class PetSwitcher : IDisposable
             _requestedName = _currentName;
             await RestoreSettingAsync();
             SwitchFailed?.Invoke(this, failure);
+        }
+    }
+
+    /// <summary>
+    /// Lets the pet on screen leave before the new one replaces it. A failure of the animation does not stop the switch.
+    /// </summary>
+    /// <returns>A task that completes when the pet has left, or at once if there is nothing to play.</returns>
+    private async Task LeaveAsync()
+    {
+        if (_leave is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _leave();
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or OperationCanceledException)
+        {
+            _logger.LogWarning(ex, "The leaving animation of the '{Current}' pet failed.", _currentName);
         }
     }
 

@@ -291,7 +291,8 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
 
     /// <summary>
     /// Replaces the pet while the window is showing. A new pet is a new pet: whatever the old one was doing is over,
-    /// and the new one starts on the ground at a random spot of a monitor picked at random.
+    /// and the new one stands on the ground where the old one was (centered on it, as far as the work area allows) and
+    /// arrives with an animation.
     /// </summary>
     /// <param name="pet">The new pet.</param>
     /// <param name="frames">Decoded frames of the new pet.</param>
@@ -299,6 +300,26 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     {
         ArgumentNullException.ThrowIfNull(pet);
         ArgumentNullException.ThrowIfNull(frames);
+
+        try
+        {
+            ReplacePet(pet, frames);
+        }
+        finally
+        {
+            // Also when the new pet could not be put in place, so that a pet that has left is never left invisible.
+            PlayEnter();
+        }
+    }
+
+    /// <summary>
+    /// Puts the new pet in place of the old one; see <see cref="SetPet"/>.
+    /// </summary>
+    /// <param name="pet">The new pet.</param>
+    /// <param name="frames">Decoded frames of the new pet.</param>
+    private void ReplacePet(Pet pet, PetFrameCache frames)
+    {
+        var centerX = CurrentPosition().X + (Width / 2);
 
         // The new frames and the new player are put in place together, before anything that can pump messages (a hit test
         // reads the player's frame from the frames), so the two never belong to different pets.
@@ -324,10 +345,11 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
         _player.SetState(_shownState, CurrentLook());
         SpriteImage.ToolTip = Strings.StateHint(_shownState);
 
+        // The new pet may be of another size: keep the middle of it where the old pet's was. The bottom edge is kept by
+        // ApplyFrameSize, and settling puts the pet on the ground and inside the work area (also one that was in the air or
+        // on the edge of the screen).
         ApplyFrameSize();
-        PetPlacement.Place(PickRandomSpot(), this);
-
-        // Settle on the monitor the window is on now, whose scaling the window knows once it is shown.
+        Left = centerX - (Width / 2);
         SettleInWorkArea();
 
         ShowFrame();
@@ -402,6 +424,13 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
         if (msg != WindowStyleHelper.WmNcHitTest)
         {
             return 0;
+        }
+
+        if (_transitioning)
+        {
+            // A pet that is leaving or arriving cannot be grabbed; the clicks go to what is under it.
+            handled = true;
+            return WindowStyleHelper.HtTransparent;
         }
 
         var (x, y) = WindowStyleHelper.ScreenLParamToClient(hwnd, lParam);

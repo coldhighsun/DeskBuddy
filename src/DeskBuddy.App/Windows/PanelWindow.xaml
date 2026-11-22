@@ -370,6 +370,19 @@
                                 <ColumnDefinition Width="Auto" SharedSizeGroup="SettingsLabel" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="{res:Loc SettingsSwitchEffect}" VerticalAlignment="Center" Margin="0,0,12,0" />
+                            <ComboBox Grid.Column="1"
+                                      ItemsSource="{Binding SwitchEffects}"
+                                      DisplayMemberPath="Label"
+                                      SelectedValuePath="Value"
+                                      SelectedValue="{Binding SelectedSwitchEffect}"
+                                      AutomationProperties.AutomationId="SwitchEffectBox" />
+                        </Grid>
+                        <Grid Margin="{StaticResource SettingsRowGap}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="SettingsLabel" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="{res:Loc SettingsLanguage}" VerticalAlignment="Center" Margin="0,0,12,0" />
                             <ComboBox Grid.Column="1"
                                       ItemsSource="{Binding Languages}"

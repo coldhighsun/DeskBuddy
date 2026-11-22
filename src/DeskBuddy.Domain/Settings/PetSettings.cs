@@ -133,6 +133,11 @@ public sealed record PetSettings
     public AppTheme Theme { get; init; } = AppTheme.Auto;
 
     /// <summary>
+    /// Gets the animation played when another pet is switched to; random by default.
+    /// </summary>
+    public PetSwitchEffect SwitchEffect { get; init; } = PetSwitchEffect.Random;
+
+    /// <summary>
     /// Gets how large the pet is shown on the screen.
     /// </summary>
     public PetSize Size { get; init; } = PetSize.Medium;
@@ -188,6 +193,7 @@ public sealed record PetSettings
             SedentaryReminderAfter = Clamp(SedentaryReminderAfter, MinSedentaryInterval, MaxSedentaryInterval),
             Language = Enum.IsDefined(Language) ? Language : defaults.Language,
             Theme = Enum.IsDefined(Theme) ? Theme : defaults.Theme,
+            SwitchEffect = Enum.IsDefined(SwitchEffect) ? SwitchEffect : defaults.SwitchEffect,
             Size = Enum.IsDefined(Size) ? Size : defaults.Size,
             BossKey = BossKey is { IsValid: false } ? defaults.BossKey : BossKey,
             BlacklistedProcesses = NormalizeProcessNames(BlacklistedProcesses),
