@@ -68,9 +68,11 @@ public partial class PetWindow
             return;
         }
 
+        var startedAt = Stopwatch.GetTimestamp();
         var cursor = MonitorHelper.GetCursorPositionPixels();
         var box = GetPetBox();
         SetGaze(GazeTracker.Of(cursor.X - box.CenterX, cursor.Y - box.CenterY, box.Size / 2));
+        ReportTick("pointer", startedAt);
     }
 
     /// <summary>

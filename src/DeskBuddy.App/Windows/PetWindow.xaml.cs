@@ -473,6 +473,40 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     }
 
     /// <summary>
+    /// Gets or sets what is told how long each timer tick took (which timer, how long), for the log of slow ticks.
+    /// </summary>
+    internal Action<string, TimeSpan>? TickTimed { get; set; }
+
+    /// <summary>
+    /// Says in a line what the pet window is doing, for the log of UI stalls. Call it on the UI thread.
+    /// </summary>
+    /// <returns>
+    /// The state shown, what the brain wants, and which timers and movements are running.
+    /// </returns>
+    internal string Describe()
+    {
+        return string.Create(
+            System.Globalization.CultureInfo.InvariantCulture,
+            $"shown={_shownState}, brain={_brain.State}, visible={IsVisible}, moveTimer={_moveTimer.IsEnabled}, "
+            + $"pointerTimer={_pointerTimer.IsEnabled}, falling={_fall is not null}, crawling={IsCrawling}, "
+            + $"umbrellaOpen={_umbrella.IsOpen}, bubble={_bubble is { IsVisible: true }}, pressed={_pressed}");
+    }
+
+    /// <summary>
+    /// Tells <see cref="TickTimed"/> how long a tick took.
+    /// </summary>
+    /// <param name="tick">
+    /// Which timer ticked.
+    /// </param>
+    /// <param name="startedAt">
+    /// The <see cref="Stopwatch.GetTimestamp"/> from the start of the tick.
+    /// </param>
+    private void ReportTick(string tick, long startedAt)
+    {
+        TickTimed?.Invoke(tick, Stopwatch.GetElapsedTime(startedAt));
+    }
+
+    /// <summary>
     /// Shows the player's current frame in the sprite image.
     /// </summary>
     private void ShowFrame()

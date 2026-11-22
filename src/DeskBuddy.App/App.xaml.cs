@@ -86,6 +86,11 @@ public partial class App
     private CrashGuard? _crashGuard;
 
     /// <summary>
+    /// Logs when the UI thread stops answering; <see langword="null"/> until the pet window is up.
+    /// </summary>
+    private UiStallMonitor? _stallMonitor;
+
+    /// <summary>
     /// Guard holding the single-instance mutex; <see langword="null"/> until startup.
     /// </summary>
     private SingleInstanceGuard? _instanceGuard;
@@ -428,6 +433,13 @@ public partial class App
                 _host.Services.GetRequiredService<SettingsService>().Current.Size);
             _petWindow.Show();
             var petWindow = _petWindow;
+            petWindow.TickTimed = new SlowTickLog(logger, TimeProvider.System).Report;
+            _stallMonitor = new UiStallMonitor(
+                Dispatcher,
+                logger,
+                TimeProvider.System,
+                () => $"pet window: {petWindow.Describe()}; panel visible: {_panel?.IsVisible == true}");
+            _stallMonitor.Start();
             _host.Services.GetRequiredService<SettingsService>().Changed +=
                 (_, settings) => petWindow.Dispatcher.BeginInvoke(() => petWindow.SetSize(settings.Size));
 
@@ -615,6 +627,7 @@ public partial class App
     protected override void OnExit(ExitEventArgs e)
     {
         _host?.Services.GetRequiredService<ILogger<App>>().LogInformation("Exiting with code {ExitCode}.", e.ApplicationExitCode);
+        _stallMonitor?.Dispose();
         _petSwitcher?.Dispose();
         _themeService?.Dispose();
         _bossKey?.Dispose();

@@ -196,6 +196,7 @@ public partial class PetWindow
     {
         // The window bounds are read once and shared by everything in the tick, until the window is moved.
         _tickBounds = null;
+        var startedAt = Stopwatch.GetTimestamp();
         try
         {
             MoveOnce();
@@ -203,6 +204,7 @@ public partial class PetWindow
         finally
         {
             _tickBounds = null;
+            ReportTick("move", startedAt);
         }
     }
 

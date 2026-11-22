@@ -217,6 +217,7 @@ public partial class PetWindow
     /// </param>
     private void OnAnimationTick(object? sender, EventArgs e)
     {
+        var startedAt = Stopwatch.GetTimestamp();
         var delta = _animationWatch.Elapsed;
         _animationWatch.Restart();
 
@@ -224,6 +225,8 @@ public partial class PetWindow
         {
             ShowFrame();
         }
+
+        ReportTick("animation", startedAt);
     }
 
     /// <summary>
@@ -237,8 +240,10 @@ public partial class PetWindow
     /// </param>
     private void OnBrainTick(object? sender, EventArgs e)
     {
+        var startedAt = Stopwatch.GetTimestamp();
         RefreshState();
         UpdatePointerTimer();
+        ReportTick("brain", startedAt);
     }
 
     /// <summary>
