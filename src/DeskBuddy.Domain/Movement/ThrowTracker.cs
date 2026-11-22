@@ -41,7 +41,7 @@ public sealed class ThrowTracker(PetBehaviorOptions options)
     /// <param name="now">The time of the release, on the clock of <see cref="Add"/>.</param>
     /// <returns>
     /// The horizontal and vertical speed in device-independent pixels per second (positive is right and down), limited
-    /// to <see cref="PetBehaviorOptions.ThrowMaxSpeed"/>; zero if the pointer moved slower than
+    /// to <see cref="PetBehaviorOptions.ThrowMaxSpeed"/> (and upwards to <see cref="PetBehaviorOptions.ThrowMaxUpSpeed"/>); zero if the pointer moved slower than
     /// <see cref="PetBehaviorOptions.ThrowMinSpeed"/> or had come to rest before the release.
     /// </returns>
     public (double X, double Y) GetVelocity(TimeSpan now)
@@ -80,6 +80,9 @@ public sealed class ThrowTracker(PetBehaviorOptions options)
             vx *= scale;
             vy *= scale;
         }
+
+        // Thrown up, the pet climbs against gravity and goes far higher than the same speed would take it sideways.
+        vy = Math.Max(vy, -options.ThrowMaxUpSpeed);
 
         return (vx, vy);
     }

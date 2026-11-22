@@ -194,6 +194,14 @@ public sealed class PetBehaviorOptions
     public double ThrowMaxSpeed { get; set; } = 1500;
 
     /// <summary>
+    /// Gets or sets the fastest a pet can be thrown upwards, in device-independent pixels per second. The vertical speed
+    /// of a throw is limited to this on top of <see cref="ThrowMaxSpeed"/>, because against gravity every pixel per second
+    /// upwards carries it much further than sideways (the height it reaches is the speed squared over twice
+    /// <see cref="FallGravity"/>, about 550 pixels at the default).
+    /// </summary>
+    public double ThrowMaxUpSpeed { get; set; } = 1000;
+
+    /// <summary>
     /// Gets or sets how quickly the air slows down a thrown pet sideways: the fraction of its speed lost per second,
     /// as an exponential rate.
     /// </summary>
