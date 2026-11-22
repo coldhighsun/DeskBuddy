@@ -6,7 +6,7 @@ using System.Windows.Shapes;
 namespace DeskBuddy.App.Windows;
 
 /// <summary>
-/// A column of light that keeps changing color comes down on the pet and a bright line sweeps up through it, taking the pet away as it goes; then the
+/// A column of light whose colors flow up while the old pet is taken away and down while the new one comes, and which comes down on the pet and a bright line sweeps up through it, taking the pet away as it goes; then the
 /// line sweeps down again and the new pet appears behind it.
 /// </summary>
 internal sealed class BeamEffect : IPetSwitchEffect
@@ -32,9 +32,18 @@ internal sealed class BeamEffect : IPetSwitchEffect
     private readonly TranslateTransform _sweep = new();
 
     /// <summary>
-    /// The colors of the column, the glow and the core of the line, each made once for the whole switch: they keep running
-    /// round the rainbow while the beam is gone and comes back, so the beam that shows the new pet is in the colors the old
-    /// one was in, with no jump.
+    /// How much of the rainbow lies along the beam, as a fraction of a full turn.
+    /// </summary>
+    private const double FlowSpan = 0.6;
+
+    /// <summary>
+    /// Whether the colors flow up the beam (while the old pet is taken away) or down (while the new pet comes).
+    /// </summary>
+    private bool _upward = true;
+
+    /// <summary>
+    /// The colors of the column, the glow and the core of the line, made again when the new pet comes so that they flow the
+    /// other way.
     /// </summary>
     private LinearGradientBrush? _columnFill;
 
@@ -54,6 +63,8 @@ internal sealed class BeamEffect : IPetSwitchEffect
         ArgumentNullException.ThrowIfNull(stage);
 
         var layout = stage.Layout;
+        _upward = true;
+        _columnFill = _glowFill = _coreFill = null;
         Build(stage);
         _sweep.Y = 0;
         var clip = new RectangleGeometry(new Rect(0, 0, layout.PetWidth, layout.PetHeight));
@@ -73,8 +84,10 @@ internal sealed class BeamEffect : IPetSwitchEffect
     {
         ArgumentNullException.ThrowIfNull(stage);
 
-        // The new pet may be of another size, so the column and the line are made again for it.
+        // The new pet may be of another size, so the column and the line are made again for it, and their colors now flow down.
         var layout = stage.Layout;
+        _upward = false;
+        _columnFill = _glowFill = _coreFill = null;
         Build(stage);
 
         // What the first part animated is held where it ended; it has to be let go of before it can be set.
@@ -111,7 +124,8 @@ internal sealed class BeamEffect : IPetSwitchEffect
         var columnWidth = 1.5 * layout.PetWidth;
         _column.Width = columnWidth;
         _column.Height = layout.PetBottom + 4;
-        _column.Fill = _columnFill ??= Rainbow(0x70, 0, TimeSpan.FromSeconds(2));
+        _column.Fill = _columnFill ??= Rainbow(0x70, 0, TimeSpan.FromSeconds(2), _upward);
+        _column.OpacityMask = SideFade();
         Canvas.SetLeft(_column, layout.CenterX - (columnWidth / 2));
         Canvas.SetTop(_column, 0);
 
@@ -120,8 +134,8 @@ internal sealed class BeamEffect : IPetSwitchEffect
         _line.Children.Clear();
         _line.Opacity = 1;
         _line.RenderTransform = _sweep;
-        _line.Children.Add(Bar(lineWidth, thickness * 5, -thickness * 2.5, _glowFill ??= Rainbow(0x50, 0.5, TimeSpan.FromSeconds(1))));
-        _line.Children.Add(Bar(lineWidth, thickness, 0, _coreFill ??= Rainbow(0xFF, 0.2, TimeSpan.FromSeconds(1))));
+        _line.Children.Add(Bar(lineWidth, thickness * 5, -thickness * 2.5, _glowFill ??= Rainbow(0x50, 0.5, TimeSpan.FromSeconds(1), _upward)));
+        _line.Children.Add(Bar(lineWidth, thickness, 0, _coreFill ??= Rainbow(0xFF, 0.2, TimeSpan.FromSeconds(1), _upward)));
         Canvas.SetLeft(_line, layout.CenterX - (lineWidth / 2));
         Canvas.SetTop(_line, layout.PetBottom);
 
@@ -139,25 +153,46 @@ internal sealed class BeamEffect : IPetSwitchEffect
     /// <returns>The bar.</returns>
     private static Rectangle Bar(double width, double height, double top, Brush brush)
     {
-        var bar = new Rectangle { Width = width, Height = height, Fill = brush };
+        var bar = new Rectangle { Width = width, Height = height, Fill = brush, OpacityMask = SideFade() };
         Canvas.SetTop(bar, top);
         return bar;
     }
 
     /// <summary>
-    /// Makes a brush that is solid at the middle and clear at the sides, whose color runs round the rainbow.
+    /// Makes a brush whose colors run round the rainbow and flow along the beam, up or down.
     /// </summary>
-    /// <param name="middle">How opaque the middle is.</param>
-    /// <param name="phase">The point of the rainbow the middle starts from.</param>
+    /// <param name="alpha">How opaque it is.</param>
+    /// <param name="phase">The point of the rainbow the top starts from.</param>
     /// <param name="period">How long a full turn of the rainbow takes.</param>
+    /// <param name="upward">Whether the colors flow up the beam, or else down.</param>
     /// <returns>The brush.</returns>
-    private static LinearGradientBrush Rainbow(byte middle, double phase, TimeSpan period)
+    private static LinearGradientBrush Rainbow(byte alpha, double phase, TimeSpan period, bool upward)
     {
-        var soft = (byte)(middle * 3 / 5);
-        return EffectColors.Gradient(
-            new Point(0, 0.5),
-            new Point(1, 0.5),
-            [(0, 0, phase), (0.25, soft, phase + 0.15), (0.5, middle, phase), (0.75, soft, phase + 0.15), (1, 0, phase)],
-            period);
+        // Every stop's phase keeps growing, so a color moves toward the stops whose phase is lower: up when the phase grows going down.
+        var slope = upward ? FlowSpan : -FlowSpan;
+        var stops = new (double, byte, double)[5];
+        for (var i = 0; i < stops.Length; i++)
+        {
+            var offset = i / (double)(stops.Length - 1);
+            stops[i] = (offset, alpha, phase + (slope * offset));
+        }
+
+        return EffectColors.Gradient(new Point(0.5, 0), new Point(0.5, 1), stops, period);
+    }
+
+    /// <summary>
+    /// Makes the mask that softens the beam at its left and right edges.
+    /// </summary>
+    /// <returns>The mask.</returns>
+    private static LinearGradientBrush SideFade()
+    {
+        var mask = new LinearGradientBrush { StartPoint = new Point(0, 0.5), EndPoint = new Point(1, 0.5) };
+        foreach (var (offset, alpha) in new (double, byte)[] { (0, 0), (0.25, 0x99), (0.5, 0xFF), (0.75, 0x99), (1, 0) })
+        {
+            mask.GradientStops.Add(new GradientStop(Color.FromArgb(alpha, 0xFF, 0xFF, 0xFF), offset));
+        }
+
+        mask.Freeze();
+        return mask;
     }
 }

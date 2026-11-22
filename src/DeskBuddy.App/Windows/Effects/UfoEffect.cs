@@ -53,8 +53,12 @@ internal sealed class UfoEffect : IPetSwitchEffect
     private Polygon? _beam;
 
     /// <summary>
-    /// The color of the beam, made once for the whole switch: its colors keep running round the rainbow while the beam is
-    /// gone and comes back, so the beam that brings the new pet is in the colors the old one was in, with no jump.
+    /// Whether the colors of the beam flow up (while the old pet is taken up) or down (while the new pet is brought down).
+    /// </summary>
+    private bool _upward = true;
+
+    /// <summary>
+    /// The color of the beam, made again when the new pet comes so that its colors flow the other way.
     /// </summary>
     private LinearGradientBrush? _beamFill;
 
@@ -92,6 +96,8 @@ internal sealed class UfoEffect : IPetSwitchEffect
         Canvas.SetTop(_saucer, hoverTop + (height / 2) - (DrawingHeight / 2));
         _flight.Y = _hiddenOffset;
 
+        _upward = true;
+        _beamFill = null;
         _beam = BuildBeam(layout);
         stage.Canvas.Children.Insert(0, _beam);
         stage.Canvas.Children.Add(_saucer);
@@ -122,6 +128,9 @@ internal sealed class UfoEffect : IPetSwitchEffect
             stage.Canvas.Children.Remove(_beam);
         }
 
+        // The colors now flow down with the new pet.
+        _upward = false;
+        _beamFill = null;
         _beam = BuildBeam(layout);
         stage.Canvas.Children.Insert(0, _beam);
         stage.ResetClone();
@@ -166,6 +175,7 @@ internal sealed class UfoEffect : IPetSwitchEffect
         var top = 0.22 * SaucerWidthFactor * layout.Unit;
         var bottom = Math.Max(0.75 * layout.PetWidth, top * 1.3);
         var foot = layout.PetBottom + 2;
+        var flow = _upward ? 1 : -1;
         return new Polygon
         {
             Points =
@@ -175,10 +185,11 @@ internal sealed class UfoEffect : IPetSwitchEffect
                 new Point(layout.CenterX + bottom, foot),
                 new Point(layout.CenterX - bottom, foot),
             ],
+            // Each stop's phase keeps growing, so the colors move toward the stops with the lower phase: up when it grows going down.
             Fill = _beamFill ??= EffectColors.Gradient(
                 new Point(0.5, 0),
                 new Point(0.5, 1),
-                [(0, 0xD0, 0), (0.33, 0xA0, 0.25), (0.66, 0x70, 0.5), (1, 0x30, 0.75)],
+                [(0, 0xD0, 0), (0.33, 0xA0, 0.25 * flow), (0.66, 0x70, 0.5 * flow), (1, 0x30, 0.75 * flow)],
                 TimeSpan.FromMilliseconds(1600)),
             Opacity = 0,
         };
