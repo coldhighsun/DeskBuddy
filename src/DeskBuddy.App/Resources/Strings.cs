@@ -665,6 +665,26 @@ internal static class Strings
     public static string SettingsStrollWhileBusy => Get();
 
     /// <summary>
+    /// Gets the label of the setting that changes the pet for another one by itself.
+    /// </summary>
+    public static string SettingsAutoSwitchPet => Get();
+
+    /// <summary>
+    /// Gets the label of the list of intervals between two automatic changes of the pet.
+    /// </summary>
+    public static string SettingsAutoSwitchPetInterval => Get();
+
+    /// <summary>
+    /// Gets the name of an interval in minutes, with <c>{0}</c> for the number.
+    /// </summary>
+    public static string AutoSwitchMinutes => Get();
+
+    /// <summary>
+    /// Gets the name of an interval in hours, with <c>{0}</c> for the number.
+    /// </summary>
+    public static string AutoSwitchHours => Get();
+
+    /// <summary>
     /// Gets the name of the small pet size.
     /// </summary>
     public static string PetSizeSmall => Get();

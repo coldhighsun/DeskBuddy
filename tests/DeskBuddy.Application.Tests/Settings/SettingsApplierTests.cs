@@ -1,4 +1,5 @@
 using DeskBuddy.Domain.Chatter;
+using DeskBuddy.Domain.Pets;
 using DeskBuddy.Domain.Sedentary;
 using DeskBuddy.Domain.Visibility;
 
@@ -55,6 +56,30 @@ public class SettingsApplierTests
     private readonly ChatPolicy _chat = new();
 
     /// <summary>
+    /// The policy for changing the pet by itself being updated.
+    /// </summary>
+    private readonly AutoSwitchPolicy _autoSwitch = new(new FakeTimeProvider());
+
+    /// <summary>
+    /// Changing the pet by itself is off at start, and the choice and the interval reach the policy after a change.
+    /// </summary>
+    [Fact]
+    public async Task Changed_AutoSwitchPet_UpdatesPolicy()
+    {
+        // Arrange
+        _ = new SettingsApplier(_settings, _behavior, _sedentary, _visibility, _chatter, _devActivity, _scenarios, _meeting, _chat, _autoSwitch);
+        var atStart = _autoSwitch.IsEnabled;
+
+        // Act
+        await _settings.UpdateAsync(s => s with { AutoSwitchPet = true, AutoSwitchPetInterval = TimeSpan.FromHours(2) }, TestContext.Current.CancellationToken);
+
+        // Assert
+        atStart.Should().BeFalse();
+        _autoSwitch.IsEnabled.Should().BeTrue();
+        _autoSwitch.Interval.Should().Be(TimeSpan.FromHours(2));
+    }
+
+    /// <summary>
     /// Creating the applier copies the current settings immediately.
     /// </summary>
     [Fact]
@@ -64,7 +89,7 @@ public class SettingsApplierTests
         await _settings.UpdateAsync(s => s with { SedentaryReminderAfter = TimeSpan.FromMinutes(50), SleepAfter = TimeSpan.FromMinutes(9) }, TestContext.Current.CancellationToken);
 
         // Act
-        _ = new SettingsApplier(_settings, _behavior, _sedentary, _visibility, _chatter, _devActivity, _scenarios, _meeting, _chat);
+        _ = new SettingsApplier(_settings, _behavior, _sedentary, _visibility, _chatter, _devActivity, _scenarios, _meeting, _chat, _autoSwitch);
 
         // Assert
         _sedentary.ReminderAfter.Should().Be(TimeSpan.FromMinutes(50));
@@ -78,7 +103,7 @@ public class SettingsApplierTests
     public async Task Changed_StrollWhileBusy_UpdatesBehaviorOption()
     {
         // Arrange
-        _ = new SettingsApplier(_settings, _behavior, _sedentary, _visibility, _chatter, _devActivity, _scenarios, _meeting, _chat);
+        _ = new SettingsApplier(_settings, _behavior, _sedentary, _visibility, _chatter, _devActivity, _scenarios, _meeting, _chat, _autoSwitch);
         var atStart = _behavior.StrollEnabled;
 
         // Act
@@ -96,7 +121,7 @@ public class SettingsApplierTests
     public async Task Changed_NewSettings_UpdateAllOptions()
     {
         // Arrange
-        _ = new SettingsApplier(_settings, _behavior, _sedentary, _visibility, _chatter, _devActivity, _scenarios, _meeting, _chat);
+        _ = new SettingsApplier(_settings, _behavior, _sedentary, _visibility, _chatter, _devActivity, _scenarios, _meeting, _chat, _autoSwitch);
 
         // Act
         await _settings.UpdateAsync(s => s with
@@ -117,7 +142,7 @@ public class SettingsApplierTests
     public async Task Changed_AutoHideSetting_UpdatesVisibility()
     {
         // Arrange
-        _ = new SettingsApplier(_settings, _behavior, _sedentary, _visibility, _chatter, _devActivity, _scenarios, _meeting, _chat);
+        _ = new SettingsApplier(_settings, _behavior, _sedentary, _visibility, _chatter, _devActivity, _scenarios, _meeting, _chat, _autoSwitch);
 
         // Act
         await _settings.UpdateAsync(s => s with { AutoHideWhenFullscreen = false }, TestContext.Current.CancellationToken);
@@ -133,7 +158,7 @@ public class SettingsApplierTests
     public async Task Changed_ChatterEnabled_EnablesChatterOnlyWhileOn()
     {
         // Arrange
-        _ = new SettingsApplier(_settings, _behavior, _sedentary, _visibility, _chatter, _devActivity, _scenarios, _meeting, _chat);
+        _ = new SettingsApplier(_settings, _behavior, _sedentary, _visibility, _chatter, _devActivity, _scenarios, _meeting, _chat, _autoSwitch);
         var initially = _chatter.IsEnabled;
 
         // Act
@@ -154,7 +179,7 @@ public class SettingsApplierTests
     public async Task Changed_ChatProcesses_UpdatesChatPolicy()
     {
         // Arrange
-        _ = new SettingsApplier(_settings, _behavior, _sedentary, _visibility, _chatter, _devActivity, _scenarios, _meeting, _chat);
+        _ = new SettingsApplier(_settings, _behavior, _sedentary, _visibility, _chatter, _devActivity, _scenarios, _meeting, _chat, _autoSwitch);
 
         // Act
         await _settings.UpdateAsync(s => s with { ChatProcesses = ["Signal"] }, TestContext.Current.CancellationToken);
@@ -172,7 +197,7 @@ public class SettingsApplierTests
     {
         // Arrange
         void Override() => _behavior.SleepAfter = TimeSpan.FromSeconds(30);
-        _ = new SettingsApplier(_settings, _behavior, _sedentary, _visibility, _chatter, _devActivity, _scenarios, _meeting, _chat, Override);
+        _ = new SettingsApplier(_settings, _behavior, _sedentary, _visibility, _chatter, _devActivity, _scenarios, _meeting, _chat, _autoSwitch, Override);
 
         // Act
         await _settings.UpdateAsync(s => s with { SleepAfter = TimeSpan.FromMinutes(10), SedentaryReminderAfter = TimeSpan.FromMinutes(40) }, TestContext.Current.CancellationToken);

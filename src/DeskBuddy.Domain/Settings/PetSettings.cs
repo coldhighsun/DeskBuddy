@@ -37,6 +37,12 @@ public sealed record PetSettings
     public static readonly TimeSpan MaxSedentaryInterval = TimeSpan.FromHours(8);
 
     /// <summary>
+    /// The intervals the user can choose between for changing the pet by itself; the first one is the default.
+    /// </summary>
+    public static readonly IReadOnlyList<TimeSpan> AutoSwitchIntervals =
+        [TimeSpan.FromMinutes(30), TimeSpan.FromHours(1), TimeSpan.FromHours(2), TimeSpan.FromHours(3)];
+
+    /// <summary>
     /// The development tools recognized before the user edits the list: common IDEs, editors and terminals.
     /// </summary>
     public static readonly IReadOnlyList<string> DefaultDevProcesses =
@@ -73,6 +79,17 @@ public sealed record PetSettings
     /// Gets the name of the pet folder under <c>pets</c>.
     /// </summary>
     public string PetName { get; init; } = DefaultPetName;
+
+    /// <summary>
+    /// Gets a value indicating whether the pet is changed for another one by itself every
+    /// <see cref="AutoSwitchPetInterval"/>. Off by default.
+    /// </summary>
+    public bool AutoSwitchPet { get; init; }
+
+    /// <summary>
+    /// Gets how long a pet stays before it is changed by itself; one of <see cref="AutoSwitchIntervals"/>.
+    /// </summary>
+    public TimeSpan AutoSwitchPetInterval { get; init; } = AutoSwitchIntervals[0];
 
     /// <summary>
     /// Gets how long the user must be inactive before the pet falls asleep.
@@ -189,6 +206,9 @@ public sealed record PetSettings
         var normalized = this with
         {
             PetName = NormalizePetName(PetName),
+            AutoSwitchPetInterval = AutoSwitchIntervals.Contains(AutoSwitchPetInterval)
+                ? AutoSwitchPetInterval
+                : defaults.AutoSwitchPetInterval,
             SleepAfter = Clamp(SleepAfter, MinSleepAfter, MaxSleepAfter),
             SedentaryReminderAfter = Clamp(SedentaryReminderAfter, MinSedentaryInterval, MaxSedentaryInterval),
             Language = Enum.IsDefined(Language) ? Language : defaults.Language,

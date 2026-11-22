@@ -719,6 +719,41 @@ public class SettingsTabViewModelTests
     }
 
     /// <summary>
+    /// Changing the pet by itself is shown off at start, and the choice and the interval are stored when saved.
+    /// </summary>
+    [Fact]
+    public async Task AutoSwitchPet_Chosen_IsStored()
+    {
+        // Arrange
+        await CreateAsync();
+        var shownAtStart = _viewModel.AutoSwitchPet;
+
+        // Act
+        _viewModel.AutoSwitchPet = true;
+        _viewModel.SelectedAutoSwitchInterval = TimeSpan.FromHours(2);
+        await _viewModel.TrySaveAsync();
+
+        // Assert
+        shownAtStart.Should().BeFalse();
+        _settings.Current.AutoSwitchPet.Should().BeTrue();
+        _settings.Current.AutoSwitchPetInterval.Should().Be(TimeSpan.FromHours(2));
+    }
+
+    /// <summary>
+    /// The list of intervals holds the ones the settings allow, each with a name.
+    /// </summary>
+    [Fact]
+    public async Task AutoSwitchIntervals_List_MatchesAllowedIntervals()
+    {
+        // Arrange
+        await CreateAsync();
+
+        // Assert
+        _viewModel.AutoSwitchIntervals.Select(option => option.Value).Should().Equal(PetSettings.AutoSwitchIntervals);
+        _viewModel.AutoSwitchIntervals.Should().OnlyContain(option => option.Label.Length > 0);
+    }
+
+    /// <summary>
     /// The end of the working day is shown as an hour and a minute, and a chosen hour or minute is applied.
     /// </summary>
     [Fact]

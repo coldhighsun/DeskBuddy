@@ -185,6 +185,10 @@
   <data name="SettingsLanguage" xml:space="preserve"><value>語言 / Language</value></data>
   <data name="SettingsPetSize" xml:space="preserve"><value>寵物大小</value></data>
   <data name="SettingsStrollWhileBusy" xml:space="preserve"><value>寫程式、開會時每隔一會兒起身走幾步</value></data>
+  <data name="SettingsAutoSwitchPet" xml:space="preserve"><value>自動更換寵物</value></data>
+  <data name="SettingsAutoSwitchPetInterval" xml:space="preserve"><value>更換間隔</value></data>
+  <data name="AutoSwitchMinutes" xml:space="preserve"><value>{0} 分鐘</value></data>
+  <data name="AutoSwitchHours" xml:space="preserve"><value>{0} 小時</value></data>
   <data name="SettingsChatter" xml:space="preserve"><value>偶爾主動說一句話</value></data>
   <data name="StateHintClimb" xml:space="preserve"><value>正在爬螢幕邊緣</value></data>
   <data name="StateHintClimbDown" xml:space="preserve"><value>正在沿螢幕邊緣往下爬</value></data>

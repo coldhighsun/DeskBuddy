@@ -117,6 +117,7 @@ internal static class AppServices
             sp.GetRequiredService<ScenarioSwitches>(),
             sp.GetRequiredService<MeetingPolicy>(),
             sp.GetRequiredService<ChatPolicy>(),
+            sp.GetRequiredService<AutoSwitchPolicy>(),
             ApplyConfigurationOverrides));
     }
 
@@ -236,6 +237,7 @@ internal static class AppServices
             sp.GetRequiredService<TimeProvider>()));
         services.AddSingleton<DevScenarios>();
         services.AddSingleton(sp => new ChatterPolicy(sp.GetRequiredService<TimeProvider>(), Random.Shared));
+        services.AddSingleton(sp => new AutoSwitchPolicy(sp.GetRequiredService<TimeProvider>()));
         services.AddSingleton<DockedMovement>();
         services.AddSingleton(sp => new PetVisibility(sp.GetRequiredService<TimeProvider>(), PetRestoreDelay));
         services.AddSingleton(sedentaryOptions);
