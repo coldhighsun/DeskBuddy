@@ -1,14 +1,15 @@
 using DeskBuddy.Domain.Activity;
 using DeskBuddy.Domain.Behavior;
 using DeskBuddy.Domain.Chatter;
+using DeskBuddy.Domain.Pets;
 using DeskBuddy.Domain.Sedentary;
 using DeskBuddy.Domain.Visibility;
 
 namespace DeskBuddy.Application.Settings;
 
 /// <summary>
-/// Copies the user's settings into the shared option objects the behavior, sedentary, visibility, chatter and
-/// development-detection logic read from, at
+/// Copies the user's settings into the shared option objects the behavior, sedentary, visibility, chatter,
+/// automatic pet change and development-detection logic read from, at
 /// startup and after every change. Those classes read their options each time they need a value, so a change takes
 /// effect without a restart; what is already running keeps its schedule and the new value applies from the next one.
 /// </summary>
@@ -55,6 +56,11 @@ public sealed class SettingsApplier
     private readonly ChatPolicy _chat;
 
     /// <summary>
+    /// The policy for changing the pet by itself to update.
+    /// </summary>
+    private readonly AutoSwitchPolicy _autoSwitch;
+
+    /// <summary>
     /// Runs after the settings were copied, to put back values that are forced from outside (such as configuration
     /// overrides used for diagnostics); <see langword="null"/> if there are none.
     /// </summary>
@@ -72,6 +78,7 @@ public sealed class SettingsApplier
     /// <param name="scenarios">The scenario switches to update.</param>
     /// <param name="meeting">The meeting detection to update.</param>
     /// <param name="chat">The chat detection to update.</param>
+    /// <param name="autoSwitch">The policy for changing the pet by itself to update.</param>
     /// <param name="reapplyOverrides">
     /// Runs after each application of the settings; <see langword="null"/> if nothing overrides them.
     /// </param>
@@ -85,6 +92,7 @@ public sealed class SettingsApplier
         ScenarioSwitches scenarios,
         MeetingPolicy meeting,
         ChatPolicy chat,
+        AutoSwitchPolicy autoSwitch,
         Action? reapplyOverrides = null)
     {
         ArgumentNullException.ThrowIfNull(settings);
@@ -96,7 +104,9 @@ public sealed class SettingsApplier
         ArgumentNullException.ThrowIfNull(scenarios);
         ArgumentNullException.ThrowIfNull(meeting);
         ArgumentNullException.ThrowIfNull(chat);
+        ArgumentNullException.ThrowIfNull(autoSwitch);
 
+        _autoSwitch = autoSwitch;
         _behavior = behavior;
         _sedentary = sedentary;
         _visibility = visibility;
@@ -128,6 +138,8 @@ public sealed class SettingsApplier
         _chat.Processes = settings.ChatProcesses;
         _behavior.ClockOutTime = settings.ClockOutTime;
         _behavior.StrollEnabled = settings.StrollWhileBusy;
+        _autoSwitch.IsEnabled = settings.AutoSwitchPet;
+        _autoSwitch.Interval = settings.AutoSwitchPetInterval;
 
         _reapplyOverrides?.Invoke();
     }

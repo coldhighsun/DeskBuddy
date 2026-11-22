@@ -1,5 +1,6 @@
 using System.Windows.Media;
 using DeskBuddy.App.Presentation;
+using DeskBuddy.Domain.Pets;
 
 namespace DeskBuddy.App.Windows;
 
@@ -19,6 +20,14 @@ public partial class PetWindow
     /// <see langword="null"/> when there is none.
     /// </summary>
     private EffectSession? _session;
+
+    /// <summary>
+    /// Gets a value indicating whether the pet may be changed for another one by itself now: it is on screen, no animation
+    /// is under way, the mouse is not on it, and it is in a state a change would not interrupt
+    /// (<see cref="AutoSwitchPolicy.CanSwitchIn"/>).
+    /// </summary>
+    internal bool CanAutoSwitch =>
+        IsVisible && !_transitioning && !_pressed && AutoSwitchPolicy.CanSwitchIn(_shownState);
 
     /// <summary>
     /// Lets the pet on screen leave: it stops where it is and the animation of the user's choice takes it away. The new pet

@@ -132,6 +132,11 @@ public sealed partial class SettingsTabViewModel : ObservableObject
             option.Label = SwitchEffectLabel(option.Value);
         }
 
+        foreach (var option in AutoSwitchIntervals)
+        {
+            option.Label = AutoSwitchIntervalLabel(option.Value);
+        }
+
         foreach (var scenario in Scenarios)
         {
             scenario.Label = Strings.ScenarioName(scenario.State);
@@ -341,6 +346,8 @@ public sealed partial class SettingsTabViewModel : ObservableObject
             SelectedLanguage = settings.Language;
             SelectedTheme = settings.Theme;
             SelectedSwitchEffect = settings.SwitchEffect;
+            AutoSwitchPet = settings.AutoSwitchPet;
+            SelectedAutoSwitchInterval = settings.AutoSwitchPetInterval;
             SelectedSize = settings.Size;
             UpdateSizeChoices(settings.PetName);
             ClockOutHour = settings.ClockOutTime.Hours;

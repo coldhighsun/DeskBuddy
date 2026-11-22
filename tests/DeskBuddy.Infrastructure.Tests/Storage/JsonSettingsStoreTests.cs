@@ -94,6 +94,8 @@ public sealed class JsonSettingsStoreTests : IDisposable
             Size = PetSize.Large,
             StrollWhileBusy = false,
             AutoCheckUpdates = false,
+            AutoSwitchPet = true,
+            AutoSwitchPetInterval = TimeSpan.FromHours(3),
         };
 
         // Act

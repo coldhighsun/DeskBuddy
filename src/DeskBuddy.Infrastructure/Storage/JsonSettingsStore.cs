@@ -202,6 +202,17 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
         public bool? AutoCheckUpdates { get; init; }
 
         /// <summary>
+        /// Gets whether the pet is changed for another one by itself; <see langword="null"/> in files from before the
+        /// option existed.
+        /// </summary>
+        public bool? AutoSwitchPet { get; init; }
+
+        /// <summary>
+        /// Gets how long a pet stays before it is changed by itself.
+        /// </summary>
+        public TimeSpan? AutoSwitchPetInterval { get; init; }
+
+        /// <summary>
         /// Creates the file shape from settings.
         /// </summary>
         /// <param name="settings">The settings to store.</param>
@@ -230,6 +241,8 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
                 ChatterEnabled = settings.ChatterEnabled,
                 StrollWhileBusy = settings.StrollWhileBusy,
                 AutoCheckUpdates = settings.AutoCheckUpdates,
+                AutoSwitchPet = settings.AutoSwitchPet,
+                AutoSwitchPetInterval = settings.AutoSwitchPetInterval,
             };
         }
 
@@ -273,6 +286,8 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
                 ChatterEnabled = ChatterEnabled ?? defaults.ChatterEnabled,
                 StrollWhileBusy = StrollWhileBusy ?? defaults.StrollWhileBusy,
                 AutoCheckUpdates = AutoCheckUpdates ?? defaults.AutoCheckUpdates,
+                AutoSwitchPet = AutoSwitchPet ?? defaults.AutoSwitchPet,
+                AutoSwitchPetInterval = AutoSwitchPetInterval ?? defaults.AutoSwitchPetInterval,
             };
         }
 

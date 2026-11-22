@@ -127,6 +127,11 @@ public partial class App
     private PetSwitcher? _petSwitcher;
 
     /// <summary>
+    /// Changes the pet by itself when the user asked for it; <see langword="null"/> until startup completes.
+    /// </summary>
+    private AutoPetSwitcher? _autoPetSwitcher;
+
+    /// <summary>
     /// Applies the color theme to the application.
     /// </summary>
     private ThemeService? _themeService;
@@ -350,6 +355,14 @@ public partial class App
                 _previewFrames.Get,
                 _previewFrames.PreloadAsync,
                 _host.Services.GetRequiredService<ILogger<InstalledPets>>());
+            _autoPetSwitcher = new AutoPetSwitcher(
+                _host.Services.GetRequiredService<AutoSwitchPolicy>(),
+                _host.Services.GetRequiredService<SettingsService>(),
+                _host.Services.GetRequiredService<IPetCatalog>(),
+                _host.Services.GetRequiredService<IPetLoader>(),
+                () => petWindow.CanAutoSwitch,
+                Random.Shared,
+                _host.Services.GetRequiredService<ILogger<AutoPetSwitcher>>());
             var settingsService = _host.Services.GetRequiredService<SettingsService>();
             var updateLogger = _host.Services.GetRequiredService<ILogger<TrayUpdatePresenter>>();
             var updates = AppUpdates.Create(
@@ -438,6 +451,7 @@ public partial class App
     {
         _host?.Services.GetRequiredService<ILogger<App>>().LogInformation("Exiting with code {ExitCode}.", e.ApplicationExitCode);
         _stallMonitor?.Dispose();
+        _autoPetSwitcher?.Stop();
         _petSwitcher?.Dispose();
         _themeService?.Dispose();
         _bossKey?.Dispose();

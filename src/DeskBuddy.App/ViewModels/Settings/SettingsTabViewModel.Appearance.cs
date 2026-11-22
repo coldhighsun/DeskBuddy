@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -69,6 +70,62 @@ public sealed partial class SettingsTabViewModel
     [
         .. Enum.GetValues<PetSwitchEffect>().Select(effect => new PetSwitchEffectOption(effect, SwitchEffectLabel(effect))),
     ];
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the pet is changed for another one by itself.
+    /// </summary>
+    [ObservableProperty]
+    private bool _autoSwitchPet;
+
+    /// <summary>
+    /// Gets or sets the interval between two automatic changes.
+    /// </summary>
+    [ObservableProperty]
+    private TimeSpan _selectedAutoSwitchInterval = PetSettings.AutoSwitchIntervals[0];
+
+    /// <summary>
+    /// Gets the intervals to choose from, the ones <see cref="PetSettings.AutoSwitchIntervals"/> allows.
+    /// </summary>
+    public IReadOnlyList<AutoSwitchIntervalOption> AutoSwitchIntervals { get; } =
+    [
+        .. PetSettings.AutoSwitchIntervals.Select(interval => new AutoSwitchIntervalOption(interval, AutoSwitchIntervalLabel(interval))),
+    ];
+
+    /// <summary>
+    /// Gets the name of an interval as the list of intervals shows it.
+    /// </summary>
+    /// <param name="interval">The interval.</param>
+    /// <returns>The name, in whole hours if it is one, otherwise in minutes, in the interface language now in use.</returns>
+    private static string AutoSwitchIntervalLabel(TimeSpan interval)
+    {
+        return interval.TotalMinutes % 60 == 0
+            ? string.Format(CultureInfo.CurrentCulture, Strings.AutoSwitchHours, (int)interval.TotalHours)
+            : string.Format(CultureInfo.CurrentCulture, Strings.AutoSwitchMinutes, (int)interval.TotalMinutes);
+    }
+
+    /// <summary>
+    /// Records the choice to change the pet by itself in the draft; it is applied when the settings are saved.
+    /// </summary>
+    /// <param name="value">Whether the pet is changed.</param>
+    partial void OnAutoSwitchPetChanged(bool value)
+    {
+        if (!_refreshing)
+        {
+            _editor.Set(nameof(PetSettings.AutoSwitchPet), settings => settings with { AutoSwitchPet = value });
+        }
+    }
+
+    /// <summary>
+    /// Records the chosen interval in the draft; it is applied when the settings are saved.
+    /// </summary>
+    /// <param name="value">The interval.</param>
+    partial void OnSelectedAutoSwitchIntervalChanged(TimeSpan value)
+    {
+        if (!_refreshing)
+        {
+            _editor.Set(nameof(PetSettings.AutoSwitchPetInterval), settings => settings with { AutoSwitchPetInterval = value });
+        }
+    }
 
     /// <summary>
     /// Gets the name of a switch animation as the list of animations shows it.

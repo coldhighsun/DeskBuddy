@@ -337,6 +337,50 @@ public class PetSettingsTests
     }
 
     /// <summary>
+    /// Changing the pet by itself is off, and every 30 minutes once it is switched on, until the user chooses otherwise.
+    /// </summary>
+    [Fact]
+    public void Default_AutoSwitchPet_IsOffEvery30Minutes()
+    {
+        // Assert
+        PetSettings.Default.AutoSwitchPet.Should().BeFalse();
+        PetSettings.Default.AutoSwitchPetInterval.Should().Be(TimeSpan.FromMinutes(30));
+    }
+
+    /// <summary>
+    /// Each interval the user can choose is kept as it is.
+    /// </summary>
+    [Fact]
+    public void Normalize_AutoSwitchIntervalOnTheList_IsKept()
+    {
+        foreach (var interval in PetSettings.AutoSwitchIntervals)
+        {
+            // Act
+            var normalized = (PetSettings.Default with { AutoSwitchPetInterval = interval }).Normalize();
+
+            // Assert
+            normalized.AutoSwitchPetInterval.Should().Be(interval);
+        }
+    }
+
+    /// <summary>
+    /// An interval that is not on the list (a hand-edited file) goes back to the default.
+    /// </summary>
+    [Theory]
+    [InlineData(0)]
+    [InlineData(7)]
+    [InlineData(45)]
+    [InlineData(100000)]
+    public void Normalize_AutoSwitchIntervalOffTheList_FallsBackToDefault(int minutes)
+    {
+        // Act
+        var normalized = (PetSettings.Default with { AutoSwitchPetInterval = TimeSpan.FromMinutes(minutes) }).Normalize();
+
+        // Assert
+        normalized.AutoSwitchPetInterval.Should().Be(PetSettings.Default.AutoSwitchPetInterval);
+    }
+
+    /// <summary>
     /// A foreground window covering a whole monitor counts as full screen unless the user switches that off.
     /// </summary>
     [Fact]

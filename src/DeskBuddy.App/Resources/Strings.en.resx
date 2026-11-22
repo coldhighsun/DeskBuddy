@@ -192,6 +192,10 @@
   <data name="SettingsLanguage" xml:space="preserve"><value>Language</value></data>
   <data name="SettingsPetSize" xml:space="preserve"><value>Pet size</value></data>
   <data name="SettingsStrollWhileBusy" xml:space="preserve"><value>Get up and walk around every so often while coding or in a meeting</value></data>
+  <data name="SettingsAutoSwitchPet" xml:space="preserve"><value>Change the pet automatically</value></data>
+  <data name="SettingsAutoSwitchPetInterval" xml:space="preserve"><value>Change every</value></data>
+  <data name="AutoSwitchMinutes" xml:space="preserve"><value>{0} minutes</value></data>
+  <data name="AutoSwitchHours" xml:space="preserve"><value>{0} hours</value></data>
   <data name="SettingsChatter" xml:space="preserve"><value>Say something unprompted now and then</value></data>
   <data name="StateHintClimb" xml:space="preserve"><value>Climbing along the screen edge</value></data>
   <data name="StateHintClimbDown" xml:space="preserve"><value>Climbing down the screen edge</value></data>
