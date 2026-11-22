@@ -192,6 +192,10 @@
   <data name="SettingsLanguage" xml:space="preserve"><value>Language</value></data>
   <data name="SettingsPetSize" xml:space="preserve"><value>Pet size</value></data>
   <data name="SettingsStrollWhileBusy" xml:space="preserve"><value>Get up and walk around every so often while coding or in a meeting</value></data>
+  <data name="SettingsInteractionReactions" xml:space="preserve"><value>React and say something when the pet is clicked</value></data>
+  <data name="RemarkHappy1" xml:space="preserve"><value>Hehe~</value></data>
+  <data name="RemarkHappy2" xml:space="preserve"><value>Poke me again and I'll get cross~</value></data>
+  <data name="RemarkHappy3" xml:space="preserve"><value>Stop poking, it tickles!</value></data>
   <data name="SettingsAutoSwitchPet" xml:space="preserve"><value>Change the pet automatically</value></data>
   <data name="SettingsAutoSwitchPetInterval" xml:space="preserve"><value>Change every</value></data>
   <data name="AutoSwitchMinutes" xml:space="preserve"><value>{0} minutes</value></data>

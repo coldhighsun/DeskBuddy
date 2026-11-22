@@ -138,6 +138,7 @@ public sealed class SettingsApplier
         _chat.Processes = settings.ChatProcesses;
         _behavior.ClockOutTime = settings.ClockOutTime;
         _behavior.StrollEnabled = settings.StrollWhileBusy;
+        _behavior.ReactionsEnabled = settings.InteractionReactions;
         _autoSwitch.IsEnabled = settings.AutoSwitchPet;
         _autoSwitch.Interval = settings.AutoSwitchPetInterval;
 

@@ -38,6 +38,12 @@ public sealed partial class SettingsTabViewModel
     private bool _strollWhileBusy;
 
     /// <summary>
+    /// Whether the pet reacts to being clicked with a remark.
+    /// </summary>
+    [ObservableProperty]
+    private bool _interactionReactions;
+
+    /// <summary>
     /// The sedentary reminder interval in minutes, as typed.
     /// </summary>
     [ObservableProperty]
@@ -106,6 +112,18 @@ public sealed partial class SettingsTabViewModel
         if (!_refreshing)
         {
             _editor.Set(nameof(PetSettings.StrollWhileBusy), settings => settings with { StrollWhileBusy = value });
+        }
+    }
+
+    /// <summary>
+    /// Applies the choice to let the pet react to clicks.
+    /// </summary>
+    /// <param name="value">Whether the pet reacts.</param>
+    partial void OnInteractionReactionsChanged(bool value)
+    {
+        if (!_refreshing)
+        {
+            _editor.Set(nameof(PetSettings.InteractionReactions), settings => settings with { InteractionReactions = value });
         }
     }
 

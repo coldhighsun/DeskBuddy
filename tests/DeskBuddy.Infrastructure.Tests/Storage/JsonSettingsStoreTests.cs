@@ -93,6 +93,7 @@ public sealed class JsonSettingsStoreTests : IDisposable
             SwitchEffect = PetSwitchEffect.Claw,
             Size = PetSize.Large,
             StrollWhileBusy = false,
+            InteractionReactions = false,
             AutoCheckUpdates = false,
             AutoSwitchPet = true,
             AutoSwitchPetInterval = TimeSpan.FromHours(3),
@@ -133,6 +134,22 @@ public sealed class JsonSettingsStoreTests : IDisposable
 
         // Assert
         Directory.GetFiles(_directory).Select(Path.GetFileName).Should().Equal(JsonSettingsStore.FileName);
+    }
+
+    /// <summary>
+    /// A file from before clicks were reacted to keeps the reactions on.
+    /// </summary>
+    [Fact]
+    public async Task LoadAsync_FileWithoutInteractionSettings_UsesTheirDefaults()
+    {
+        // Arrange
+        await WriteRawAsync("""{"version":1,"chatterEnabled":false}""");
+
+        // Act
+        var settings = await _store.LoadAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        settings.InteractionReactions.Should().BeTrue();
     }
 
     /// <summary>

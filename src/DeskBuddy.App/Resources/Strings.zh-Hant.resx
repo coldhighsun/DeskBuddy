@@ -185,6 +185,10 @@
   <data name="SettingsLanguage" xml:space="preserve"><value>語言 / Language</value></data>
   <data name="SettingsPetSize" xml:space="preserve"><value>寵物大小</value></data>
   <data name="SettingsStrollWhileBusy" xml:space="preserve"><value>寫程式、開會時每隔一會兒起身走幾步</value></data>
+  <data name="SettingsInteractionReactions" xml:space="preserve"><value>點擊寵物時，牠會有所反應並說句話</value></data>
+  <data name="RemarkHappy1" xml:space="preserve"><value>嘿嘿～</value></data>
+  <data name="RemarkHappy2" xml:space="preserve"><value>再戳我就要生氣囉～</value></data>
+  <data name="RemarkHappy3" xml:space="preserve"><value>別戳啦，好癢！</value></data>
   <data name="SettingsAutoSwitchPet" xml:space="preserve"><value>自動更換寵物</value></data>
   <data name="SettingsAutoSwitchPetInterval" xml:space="preserve"><value>更換間隔</value></data>
   <data name="AutoSwitchMinutes" xml:space="preserve"><value>{0} 分鐘</value></data>

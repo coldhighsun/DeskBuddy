@@ -172,6 +172,11 @@ public sealed record PetSettings
     public bool StrollWhileBusy { get; init; } = true;
 
     /// <summary>
+    /// Gets a value indicating whether the pet reacts to being clicked with a remark. On by default.
+    /// </summary>
+    public bool InteractionReactions { get; init; } = true;
+
+    /// <summary>
     /// Gets a value indicating whether the application looks for a newer release by itself, shortly after it starts and
     /// then once a day. Checking by hand is always possible. On by default.
     /// </summary>

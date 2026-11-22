@@ -191,7 +191,7 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     /// <param name="frames">Decoded frames for the pet.</param>
     /// <param name="brain">The brain that decides what the pet does.</param>
     /// <param name="options">Behavior tuning.</param>
-    /// <param name="openPanel">Opens the panel window; called on double-click and from the context menu.</param>
+    /// <param name="openPanel">Opens the panel window; called when the pet is right-clicked.</param>
     /// <param name="movement">Decides where the pet walks: along the taskbar line.</param>
     /// <param name="switches">Which scenarios the user has switched on.</param>
     /// <param name="size">How large the pet is shown at first.</param>
@@ -206,7 +206,6 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
         PetSize size)
     {
         InitializeComponent();
-
         _umbrella = new UmbrellaFollower(this);
 
         _pet = pet;
@@ -260,6 +259,7 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
         MouseLeftButtonDown += OnMouseLeftButtonDown;
         MouseMove += OnMouseMove;
         MouseLeftButtonUp += OnMouseLeftButtonUp;
+        MouseRightButtonUp += OnMouseRightButtonUp;
         LostMouseCapture += OnLostMouseCapture;
 
         _brain.MessageChanged += OnMessageChanged;

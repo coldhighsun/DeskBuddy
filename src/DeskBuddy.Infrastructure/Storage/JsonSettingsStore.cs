@@ -196,6 +196,12 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
         public bool? StrollWhileBusy { get; init; }
 
         /// <summary>
+        /// Gets whether the pet reacts to clicks; <see langword="null"/> in files from before the option
+        /// existed.
+        /// </summary>
+        public bool? InteractionReactions { get; init; }
+
+        /// <summary>
         /// Gets whether the application looks for updates by itself; <see langword="null"/> in files from before the
         /// option existed.
         /// </summary>
@@ -240,6 +246,7 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
                 Size = settings.Size.ToString(),
                 ChatterEnabled = settings.ChatterEnabled,
                 StrollWhileBusy = settings.StrollWhileBusy,
+                InteractionReactions = settings.InteractionReactions,
                 AutoCheckUpdates = settings.AutoCheckUpdates,
                 AutoSwitchPet = settings.AutoSwitchPet,
                 AutoSwitchPetInterval = settings.AutoSwitchPetInterval,
@@ -285,6 +292,7 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
                     : defaults.Size,
                 ChatterEnabled = ChatterEnabled ?? defaults.ChatterEnabled,
                 StrollWhileBusy = StrollWhileBusy ?? defaults.StrollWhileBusy,
+                InteractionReactions = InteractionReactions ?? defaults.InteractionReactions,
                 AutoCheckUpdates = AutoCheckUpdates ?? defaults.AutoCheckUpdates,
                 AutoSwitchPet = AutoSwitchPet ?? defaults.AutoSwitchPet,
                 AutoSwitchPetInterval = AutoSwitchPetInterval ?? defaults.AutoSwitchPetInterval,

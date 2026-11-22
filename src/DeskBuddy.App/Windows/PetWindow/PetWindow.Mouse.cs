@@ -64,12 +64,6 @@ public partial class PetWindow
             return;
         }
 
-        if (e.ClickCount >= 2)
-        {
-            _openPanel(null);
-            return;
-        }
-
         _pressed = true;
         _dragging = false;
         _pressPixel = MonitorHelper.GetCursorPositionPixels();
@@ -181,9 +175,30 @@ public partial class PetWindow
         }
         else if (clicked)
         {
-            _brain.OnClicked();
+            _brain.OnClicked(remark: _options.ReactionsEnabled);
+            if (_options.ReactionsEnabled)
+            {
+                // Show the remark now, not at the next tick of the brain.
+                TickBrainNow();
+            }
         }
 
         ApplyState(_brain.State);
+    }
+
+    /// <summary>
+    /// Opens the panel when the pet is right-clicked, unless a press is under way or a pet switch is playing.
+    /// </summary>
+    /// <param name="sender">The event source.</param>
+    /// <param name="e">Mouse event data.</param>
+    private void OnMouseRightButtonUp(object sender, MouseButtonEventArgs e)
+    {
+        if (_transitioning || _pressed)
+        {
+            return;
+        }
+
+        _openPanel(null);
+        e.Handled = true;
     }
 }

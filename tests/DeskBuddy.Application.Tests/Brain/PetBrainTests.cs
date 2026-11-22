@@ -1,4 +1,5 @@
 using DeskBuddy.Domain.Chatter;
+using DeskBuddy.Domain.Interaction;
 using DeskBuddy.Domain.Messages;
 using DeskBuddy.Domain.Schedule;
 using DeskBuddy.Domain.Power;
@@ -147,7 +148,8 @@ public partial class PetBrainTests
             _visibility,
             _chatter,
             devScenarios,
-            systemScenarios);
+            systemScenarios,
+            new ClickStreak(_clock));
     }
 
     /// <summary>
