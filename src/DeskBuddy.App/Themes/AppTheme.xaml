@@ -621,7 +621,7 @@
     </Style>
 
     <!-- The columns are: check (only for a checked item), icon (only for an item that has one), text, submenu arrow.
-         PART_Popup and SubmenuBorder are looked up by TrayIconService.AlignSubmenu. -->
+         PART_Popup, SubmenuBorder and SubmenuScroll are looked up by TrayIconService.AlignSubmenu. -->
     <Style TargetType="MenuItem">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{DynamicResource AppForeground}" />
@@ -665,7 +665,11 @@
                                 <Border.Effect>
                                     <DropShadowEffect ShadowDepth="1" BlurRadius="8" Opacity="0.25" />
                                 </Border.Effect>
-                                <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Cycle" />
+                                <!-- No height limit unless TrayIconService.AlignSubmenu is given one (the pet grid). -->
+                                <ScrollViewer x:Name="SubmenuScroll" CanContentScroll="False" VerticalScrollBarVisibility="Auto"
+                                              HorizontalScrollBarVisibility="Disabled" Focusable="False">
+                                    <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Cycle" />
+                                </ScrollViewer>
                             </Border>
                         </Popup>
                     </Grid>

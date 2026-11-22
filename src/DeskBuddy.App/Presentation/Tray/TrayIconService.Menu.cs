@@ -3,6 +3,7 @@ using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
+using DeskBuddy.App.Windows;
 
 namespace DeskBuddy.App;
 
@@ -44,13 +45,20 @@ public sealed partial class TrayIconService
     /// offset is worked out from is left as it is.
     /// </summary>
     /// <param name="item">The item that has the submenu.</param>
-    private static void AlignSubmenu(MenuItem item)
+    /// <param name="maxHeight">Gives the most height the submenu may take before it scrolls, asked each time it loads; <see langword="null"/> for no limit.</param>
+    private static void AlignSubmenu(MenuItem item, Func<double>? maxHeight = null)
     {
         item.Loaded += (_, _) =>
         {
             if (item.Template.FindName("PART_Popup", item) is Popup popup && item.Template.FindName("SubmenuBorder", item) is Border border)
             {
                 popup.VerticalOffset = -(border.Margin.Top + border.BorderThickness.Top + border.Padding.Top);
+            }
+
+            // Asked each time the menu opens, so a change of resolution, scaling or taskbar since it was built is respected.
+            if (maxHeight is not null && item.Template.FindName("SubmenuScroll", item) is ScrollViewer scroll)
+            {
+                scroll.MaxHeight = maxHeight();
             }
         };
     }
@@ -82,16 +90,24 @@ public sealed partial class TrayIconService
     }
 
     /// <summary>
-    /// Builds the submenu that lists the pets with their pictures; the picture of the pet in use has a frame in the
-    /// accent color. The entries have no text, only a tooltip, except for a pet that has no picture to show: it is listed
-    /// by its name, checked if it is the pet in use.
+    /// Builds the submenu that lists the pets as a grid of their pictures, so it grows wider before it grows too tall; the
+    /// picture of the pet in use has a frame in the accent color. The entries have no text, only a tooltip, except for a
+    /// pet that has no picture to show: it is listed by its name on a row of its own, checked if it is the pet in use.
+    /// Below the grid, on rows of their own, are entries that change to a random pet and that open the panel's list of pets.
+    /// The submenu scrolls if the grid is still too tall for the screen.
     /// </summary>
     /// <param name="state">What the menu has to show.</param>
     /// <returns>The submenu item.</returns>
     private MenuItem BuildPetsMenu(TrayMenuState state)
     {
         var menu = new MenuItem { Header = Strings.TraySwitchPet, Icon = Glyph("") };
-        foreach (var choice in TrayMenuModel.PetChoices(_pets.Entries, state.PetName))
+        var choices = TrayMenuModel.PetChoices(_pets.Entries, state.PetName);
+        var gridWidth = TrayMenuModel.GridColumns(choices.Count) * PetGridCellWidth;
+        var wrap = new FrameworkElementFactory(typeof(WrapPanel));
+        wrap.SetValue(FrameworkElement.WidthProperty, gridWidth);
+        menu.ItemsPanel = new ItemsPanelTemplate(wrap);
+
+        foreach (var choice in choices)
         {
             var item = new MenuItem { ToolTip = choice.DisplayName };
             AutomationProperties.SetName(item, choice.DisplayName);
@@ -99,10 +115,13 @@ public sealed partial class TrayIconService
             {
                 item.Header = choice.DisplayName;
                 item.IsChecked = choice.IsCurrent;
+                item.Width = gridWidth;
             }
             else
             {
                 item.Icon = Framed(choice.Picture, PetPictureEdge, PetPictureEdge, choice.IsCurrent);
+                item.Padding = new Thickness(PetGridCellPadding);
+                item.Width = PetGridCellWidth;
             }
 
             item.Click += async (_, _) => await ChangeSettingsAsync(settings => settings with { PetName = choice.FolderName });
@@ -110,8 +129,34 @@ public sealed partial class TrayIconService
         }
 
         menu.IsEnabled = menu.Items.Count > 0;
-        AlignSubmenu(menu);
+        if (menu.IsEnabled)
+        {
+            menu.Items.Add(new Separator { Width = gridWidth });
+
+            var random = new MenuItem { Header = Strings.TraySwitchRandom, Icon = Glyph(""), Width = gridWidth, IsEnabled = TrayMenuModel.HasAnotherPet(_pets.Entries, state.PetName) };
+            random.Click += async (_, _) => await SwitchToRandomPetAsync();
+            menu.Items.Add(random);
+
+            var all = new MenuItem { Header = Strings.TrayAllPets, Icon = Glyph(""), Width = gridWidth };
+            all.Click += (_, _) => _openPanel(PanelTab.Pets);
+            menu.Items.Add(all);
+        }
+
+        AlignSubmenu(menu, static () => SystemParameters.WorkArea.Height * PetGridMaxHeightShare);
         return menu;
+    }
+
+    /// <summary>
+    /// Changes to a pet chosen at random from the installed ones, other than the pet in use; does nothing if there is none.
+    /// It is the end of an <see langword="async"/> event handler, so it does not let any exception go.
+    /// </summary>
+    /// <returns>A task that completes when the change has been made.</returns>
+    private async Task SwitchToRandomPetAsync()
+    {
+        if (TrayMenuModel.PickRandom(_pets.Entries, _settings.Current.PetName, Random.Shared) is { } pick)
+        {
+            await ChangeSettingsAsync(settings => settings with { PetName = pick });
+        }
     }
 
     /// <summary>

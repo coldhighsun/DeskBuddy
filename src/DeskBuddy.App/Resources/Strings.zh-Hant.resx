@@ -23,6 +23,8 @@
 
   <data name="TraySettings" xml:space="preserve"><value>設定</value></data>
   <data name="TraySwitchPet" xml:space="preserve"><value>切換寵物</value></data>
+  <data name="TraySwitchRandom" xml:space="preserve"><value>隨機換一隻</value></data>
+  <data name="TrayAllPets" xml:space="preserve"><value>全部寵物…</value></data>
   <data name="TrayPetSize" xml:space="preserve"><value>寵物大小</value></data>
 
   <data name="MessageSedentary" xml:space="preserve"><value>你已經連續工作 {0} 分鐘了，起來活動一下、喝口水吧～</value></data>
@@ -231,7 +233,7 @@
   <data name="StateHintChime" xml:space="preserve"><value>整點報時</value></data>
   <data name="StateHintFestive" xml:space="preserve"><value>節日快樂</value></data>
   <data name="StateHintFall" xml:space="preserve"><value>從高處落下</value></data>
-  <data name="StateHintGlide" xml:space="preserve"><value>撐開傘，慢慢飄落</value></data>
+  <data name="StateHintGlide" xml:space="preserve"><value>慢慢飄落</value></data>
   <data name="SettingsPrograms" xml:space="preserve"><value>辨識程式</value></data>
   <data name="ProgramsHint" xml:space="preserve"><value>每行一個處理程序名稱，不含空格；同一個處理程序只能放在一個清單裡。</value></data>
   <data name="SettingsActions" xml:space="preserve"><value>動作</value></data>

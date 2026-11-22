@@ -1,0 +1,20 @@
+﻿{
+  "name": "cactus",
+  "names": { "en": "Cactus", "zh": "仙人掌", "zh-Hant": "仙人掌" },
+  "frameSize": [64, 64],
+  "atlas": { "image": "atlas.png", "cell": [256, 256], "columns": 10 },
+  "states": {
+    "Idle":    { "fps": 2, "frames": [0, 1, 0, 2] },
+    "Walk":    { "fps": 6, "frames": [3, 4, 5, 6] },
+    "Sleep":   { "fps": 1, "frames": [7, 8] },
+    "Drag":    { "fps": 6, "frames": [9, 9] },
+    "Tired":   { "fps": 2, "frames": [10, 11] },
+    "Alert":   { "fps": 4, "frames": [12, 13] },
+    "Happy":   { "fps": 5, "frames": [14, 15] },
+    "Idle.Left":  { "fps": 1, "frames": [16] },
+    "Idle.Right": { "fps": 1, "frames": [17] },
+    "Idle.Up":    { "fps": 1, "frames": [18] },
+    "Idle.Down":  { "fps": 1, "frames": [19] }
+  }
+}
+

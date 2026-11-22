@@ -5,7 +5,7 @@
 # DeskBuddy
 
 [![CI](https://github.com/coldhighsun/DeskBuddy/actions/workflows/ci.yml/badge.svg)](https://github.com/coldhighsun/DeskBuddy/actions/workflows/ci.yml)
-[![Unit tests: 1618](https://img.shields.io/badge/unit%20tests-1618-brightgreen)](tests)
+[![Unit tests: 1658](https://img.shields.io/badge/unit%20tests-1658-brightgreen)](tests)
 [![Latest Release](https://img.shields.io/github/v/release/coldhighsun/DeskBuddy)](https://github.com/coldhighsun/DeskBuddy/releases/latest)
 [![Latest Pre-release](https://img.shields.io/github/v/release/coldhighsun/DeskBuddy?include_prereleases&label=pre-release)](https://github.com/coldhighsun/DeskBuddy/releases)
 [![GitHub All Releases](https://img.shields.io/github/downloads/coldhighsun/DeskBuddy/total)](https://github.com/coldhighsun/DeskBuddy/releases)
@@ -60,11 +60,15 @@ for; anything missing falls back to a similar state.
 
 **Pets**
 
-- Seven pets come with the app: robot (the default), cat, dog, rabbit, penguin, ghost and fox, all drawn as smooth vector art at 4x resolution.
+- Twelve pets come with the app: robot (the default), cat, dog, rabbit, penguin, ghost, fox, panda, slime, dragon, cactus and sheep, all drawn as smooth vector art at 4x resolution.
 
-| **robot** | **cat** | **dog** | **rabbit** | **penguin** | **ghost** | **fox** |
-| :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| <img src="docs/pets/robot.png" width="96" alt="robot"> | <img src="docs/pets/cat.png" width="96" alt="cat"> | <img src="docs/pets/dog.png" width="96" alt="dog"> | <img src="docs/pets/rabbit.png" width="96" alt="rabbit"> | <img src="docs/pets/penguin.png" width="96" alt="penguin"> | <img src="docs/pets/ghost.png" width="96" alt="ghost"> | <img src="docs/pets/fox.png" width="96" alt="fox"> |
+| **robot** | **cat** | **dog** | **rabbit** | **penguin** | **ghost** |
+| :---: | :---: | :---: | :---: | :---: | :---: |
+| <img src="docs/pets/robot.png" width="96" alt="robot"> | <img src="docs/pets/cat.png" width="96" alt="cat"> | <img src="docs/pets/dog.png" width="96" alt="dog"> | <img src="docs/pets/rabbit.png" width="96" alt="rabbit"> | <img src="docs/pets/penguin.png" width="96" alt="penguin"> | <img src="docs/pets/ghost.png" width="96" alt="ghost"> |
+
+| **fox** | **panda** | **slime** | **dragon** | **cactus** | **sheep** |
+| :---: | :---: | :---: | :---: | :---: | :---: |
+| <img src="docs/pets/fox.png" width="96" alt="fox"> | <img src="docs/pets/panda.png" width="96" alt="panda"> | <img src="docs/pets/slime.png" width="96" alt="slime"> | <img src="docs/pets/dragon.png" width="96" alt="dragon"> | <img src="docs/pets/cactus.png" width="96" alt="cactus"> | <img src="docs/pets/sheep.png" width="96" alt="sheep"> |
 
 - The first tab of the panel lists every installed pet with a live preview, its picture size and what it can do (follows
   the mouse, climbs screen edges, keeps you company while developing, acts out situations), so you can compare and pick

@@ -1,4 +1,5 @@
 using System.Windows.Media;
+using DeskBuddy.Domain.Pets;
 
 namespace DeskBuddy.App.Presentation;
 
@@ -35,6 +36,60 @@ internal static class TrayMenuModel
                 string.Equals(entry.FolderName, currentPet, StringComparison.Ordinal))),
         ];
     }
+
+    /// <summary>
+    /// Gets how many pets sit side by side in the grid of the submenu that switches the pet, so the grid grows wider before
+    /// it grows too tall: four columns up to sixteen pets, five up to twenty-five, six beyond that.
+    /// </summary>
+    /// <param name="petCount">How many pets there are to show.</param>
+    /// <returns>The number of columns.</returns>
+    public static int GridColumns(int petCount)
+    {
+        return petCount switch
+        {
+            <= MaxPetsInFourColumns => 4,
+            <= MaxPetsInFiveColumns => 5,
+            _ => 6,
+        };
+    }
+
+    /// <summary>
+    /// Tells whether there is a pet other than the one in use to change to, compared the way <see cref="PickRandom"/> does.
+    /// </summary>
+    /// <param name="entries">The pets that can be chosen.</param>
+    /// <param name="currentPet">The folder name of the pet in use.</param>
+    /// <returns><see langword="true"/> if at least one pet is not the pet in use.</returns>
+    public static bool HasAnotherPet(IReadOnlyList<InstalledPet> entries, string currentPet)
+    {
+        ArgumentNullException.ThrowIfNull(entries);
+
+        return entries.Any(entry => !string.Equals(entry.FolderName, currentPet, StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>
+    /// Chooses a pet at random to change to, other than the one in use.
+    /// </summary>
+    /// <param name="entries">The pets that can be chosen.</param>
+    /// <param name="currentPet">The folder name of the pet in use.</param>
+    /// <param name="random">The random source.</param>
+    /// <returns>The folder name of the pet to change to, or <see langword="null"/> if there is no other pet.</returns>
+    public static string? PickRandom(IReadOnlyList<InstalledPet> entries, string currentPet, Random random)
+    {
+        ArgumentNullException.ThrowIfNull(entries);
+        ArgumentNullException.ThrowIfNull(random);
+
+        return AutoSwitchPolicy.PickNext([.. entries.Select(entry => entry.FolderName)], currentPet, random);
+    }
+
+    /// <summary>
+    /// The most pets shown in a grid of four columns.
+    /// </summary>
+    private const int MaxPetsInFourColumns = 16;
+
+    /// <summary>
+    /// The most pets shown in a grid of five columns.
+    /// </summary>
+    private const int MaxPetsInFiveColumns = 25;
 }
 
 /// <summary>

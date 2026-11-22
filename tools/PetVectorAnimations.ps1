@@ -23,8 +23,12 @@
 #   Add-PetLie                          Lying pet without eyes.
 #   Add-PetSide $D $Lift                Side view walking: D (-3 to 3) swings the legs, Lift (about -4 to 4) raises the tail tip.
 #   Add-PetFood $Len                    Food held in the raised right paw (around x 46-62, y 18-30), Len 7, 5, 3 or 0.
+#   $SleepFrames (how many frames the Sleep has, default 2; with more, Add-PetLie can read $script:SleepPhase to breathe)
+#   $GlideFlies (the pet flies down on its own wings: no umbrella or parachute, the Glide is four frames drawn with
+#   $script:Flying true, which Add-PetBack may read to spread the wings, and the manifest says "flies": true with no grips;
+#   a pet may supply Add-PetFly $Phase (0-3, one flap of the wings) to draw the whole flying pose itself)
 # Optional function:
-#   Add-PetHoldOverhead                 Both front limbs raised for the glide, drawn instead of the default overhead arms.
+#   Add-PetHoldOverhead                Both front limbs raised for the glide, drawn instead of the default overhead arms.
 # In the glide Add-PetBody always gets both front limbs as raised, so they are never drawn hanging as well. A real pet cannot
 # reach over its head, so it holds the umbrella or the parachute (drawn by the program) with its paws beside its cheeks: the
 # arms OverL / OverR of $armSpec go straight up from the shoulders, and the paws at their ends are drawn in front of the head.
@@ -185,8 +189,21 @@ if ($HasHop) {
 }
 
 # Sleep and tired: lying down.
-Save-Frame 'sleep_0.png' { Add-PetLying }
-Save-Frame 'sleep_1.png' { Add-PetLying; Add-HdText 'z' 'Sleepy' 44 15; Add-HdText 'Z' 'Sleepy' 51 5 }
+# A pet that sets $SleepFrames (more than two) sleeps through a longer breathing cycle: $script:SleepPhase (0 to the number of
+# frames - 1) is set while each frame is drawn, so Add-PetLie can let a wing, the tail or a bubble follow the breath, and the
+# z grows and fades over the cycle. With the default of two frames the sleep is as it always was.
+$sleepCount = if ($SleepFrames) { [int]$SleepFrames } else { 2 }
+foreach ($f in 0..($sleepCount - 1)) {
+    $script:SleepPhase = $f
+    if ($sleepCount -eq 2) { $smallZ = ($f -eq 1); $bigZ = ($f -eq 1) } else { $smallZ = ($f % 4 -in 1, 2); $bigZ = ($f % 4 -in 2, 3) }
+    $draw = {
+        Add-PetLying
+        if ($smallZ) { Add-HdText 'z' 'Sleepy' 44 15 }
+        if ($bigZ) { Add-HdText 'Z' 'Sleepy' 51 5 }
+    }.GetNewClosure()
+    Save-Frame "sleep_$f.png" $draw
+}
+$script:SleepPhase = 0
 Save-Frame 'tired_0.png' { Add-PetLying -Eyes tired }
 Save-Frame 'tired_1.png' { Add-PetLying -Eyes tired -DropLift 4 }
 
@@ -221,6 +238,18 @@ foreach ($f in 0..3) {
 # Glide: floating down holding the handle of an umbrella or parachute (drawn by the program), legs dangling.
 Save-Frame 'glide_0.png' -Dy -1 { Add-Pet -Eyes surprised -HoldOverhead -Tail 0 }
 Save-Frame 'glide_1.png' -Dy -1 { Add-Pet -Eyes surprised -HoldOverhead -Tail 2 }
+# A pet that flies down on its own wings ($GlideFlies) gets no umbrella or parachute: its Glide is four frames of it flapping,
+# replacing the two above. A pet that supplies Add-PetFly draws the whole flying pose itself; any other flies in its sitting
+# pose with the arms hanging, drawn while $script:Flying is true so Add-PetBack can spread the wings.
+if ($GlideFlies) {
+    $script:Flying = $true
+    $hasFly = [bool](Get-Command Add-PetFly -ErrorAction SilentlyContinue)
+    foreach ($f in 0..3) {
+        $draw = if ($hasFly) { { Add-PetFly $f }.GetNewClosure() } else { { Add-Pet -Eyes open -Tail $f }.GetNewClosure() }
+        Save-Frame "glide_$f.png" -Dy -1 $draw
+    }
+    $script:Flying = $false
+}
 
 # Climb and ClimbDown (the same climb upside down), and Ceiling (the walk upside down). The climb is the walk turned a quarter
 # turn clockwise, so the pet's nose points up and its belly is against the left edge; a pet that hops climbs by hopping.
@@ -256,6 +285,13 @@ if ($null -eq $GlideGrips) {
     $GlideGrips = foreach ($arm in $script:armSpec.OverL, $script:armSpec.OverR) { , @($arm[$arm.Count - 2], ($arm[$arm.Count - 1] - 1)) }
 }
 $glideGripsJson = Format-GlideGrips $GlideGrips -1
+$glideLine = if ($GlideFlies) {
+    '"Glide":   { "fps": 8, "frames": ["glide_0.png", "glide_1.png", "glide_2.png", "glide_3.png"], "flies": true },'
+} else {
+    "`"Glide`":   { `"fps`": 4, `"frames`": [`"glide_0.png`", `"glide_1.png`"], `"grips`": $glideGripsJson },"
+}
+$sleepFramesJson = (0..($sleepCount - 1) | ForEach-Object { "`"sleep_$_.png`"" }) -join ', '
+$sleepFps = if ($sleepCount -gt 2) { 2 } else { 1 }
 $hopLine = if ($HasHop) { "    `"Hop`":     { `"fps`": 8, `"frames`": [`"hop_0.png`", `"hop_1.png`", `"hop_2.png`", `"hop_3.png`", `"hop_4.png`"] },`n" } else { '' }
 $manifest = @"
 {
@@ -265,9 +301,9 @@ $manifest = @"
   "states": {
     "Idle":    { "fps": 2, "frames": ["idle_0.png", "idle_1.png", "idle_2.png", "idle_3.png"] },
     "Walk":    { "fps": $WalkFps, "frames": ["walk_0.png", "walk_1.png", "walk_2.png", "walk_3.png"] },
-    "Sleep":   { "fps": 1, "frames": ["sleep_0.png", "sleep_1.png"] },
+    "Sleep":   { "fps": $sleepFps, "frames": [$sleepFramesJson] },
     "Drag":    { "fps": 6, "frames": ["drag_0.png", "drag_1.png"] },
-    "Glide":   { "fps": 4, "frames": ["glide_0.png", "glide_1.png"], "grips": $glideGripsJson },
+    $glideLine
     "Tired":   { "fps": 2, "frames": ["tired_0.png", "tired_1.png"] },
     "Alert":   { "fps": 4, "frames": ["alert_0.png", "alert_1.png"] },
     "Happy":   { "fps": 5, "frames": ["happy_0.png", "happy_1.png"] },

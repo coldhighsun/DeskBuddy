@@ -1,0 +1,33 @@
+﻿{
+  "name": "panda",
+  "names": { "en": "Panda", "zh": "熊猫", "zh-Hant": "熊貓" },
+  "frameSize": [64, 64],
+  "atlas": { "image": "atlas.png", "cell": [256, 256], "columns": 10 },
+  "states": {
+    "Idle":    { "fps": 2, "frames": [0, 1, 2, 3] },
+    "Walk":    { "fps": 8, "frames": [4, 5, 6, 7] },
+    "Sleep":   { "fps": 1, "frames": [8, 9] },
+    "Drag":    { "fps": 6, "frames": [10, 11] },
+    "Glide":   { "fps": 4, "frames": [12, 13], "grips": [[13, 29], [51, 29]] },
+    "Tired":   { "fps": 2, "frames": [14, 15] },
+    "Alert":   { "fps": 4, "frames": [16, 17] },
+    "Happy":   { "fps": 5, "frames": [18, 19] },
+    "Welcome": { "fps": 4, "frames": [20, 21, 22, 23] },
+    "Meal":    { "fps": 3, "frames": [24, 25, 26, 27] },
+    "Climb":   { "fps": 6, "frames": [28, 29, 30, 31] },
+    "ClimbDown": { "fps": 6, "frames": [32, 33, 34, 35] },
+    "Ceiling": { "fps": 6, "frames": [36, 37, 38, 39] },
+    "Coding":  { "fps": 4, "frames": [40, 41, 42, 41] },
+    "NightCoding": { "fps": 3, "frames": [43, 44, 45, 44] },
+    "Building": { "fps": 4, "frames": [46, 47, 48, 49] },
+    "Focus":   { "fps": 3, "frames": [50, 51] },
+    "Reading": { "fps": 2, "frames": [52, 53, 54, 53] },
+    "Meeting": { "fps": 3, "frames": [55, 56, 57, 58] },
+    "Chatting": { "fps": 3, "frames": [59, 60, 61, 62] },
+    "Idle.Left":  { "fps": 1, "frames": [63] },
+    "Idle.Right": { "fps": 1, "frames": [64] },
+    "Idle.Up":    { "fps": 1, "frames": [65] },
+    "Idle.Down":  { "fps": 1, "frames": [66] }
+  }
+}
+

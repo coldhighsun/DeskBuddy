@@ -56,6 +56,116 @@ public class TrayMenuModelTests
     }
 
     /// <summary>
+    /// The grid has four columns up to sixteen pets, five up to twenty-five and six beyond, and never fewer than four, even
+    /// with no pet at all.
+    /// </summary>
+    /// <param name="count">How many pets there are.</param>
+    /// <param name="columns">The columns expected.</param>
+    [Theory]
+    [InlineData(0, 4)]
+    [InlineData(1, 4)]
+    [InlineData(11, 4)]
+    [InlineData(16, 4)]
+    [InlineData(17, 5)]
+    [InlineData(25, 5)]
+    [InlineData(26, 6)]
+    [InlineData(200, 6)]
+    public void GridColumns_ByNumberOfPets_GrowsWiderBeforeItGrowsTaller(int count, int columns)
+    {
+        // Act
+        var result = TrayMenuModel.GridColumns(count);
+
+        // Assert
+        result.Should().Be(columns);
+    }
+
+    /// <summary>
+    /// A random choice is never the pet in use, whichever way the dice fall.
+    /// </summary>
+    [Fact]
+    public void PickRandom_SeveralPets_NeverPicksThePetInUse()
+    {
+        // Arrange
+        InstalledPet[] pets = [.. Enumerable.Range(0, 8).Select(i => new InstalledPet($"pet{i}", $"Pet {i}", null, 64, 64))];
+        var random = new Random(1234);
+
+        // Act
+        var picks = Enumerable.Range(0, 200).Select(_ => TrayMenuModel.PickRandom(pets, "pet3", random)).ToList();
+
+        // Assert
+        picks.Should().NotContain("pet3").And.NotContainNulls();
+        picks.Distinct().Should().HaveCountGreaterThan(1);
+    }
+
+    /// <summary>
+    /// With no other pet to change to there is nothing to pick.
+    /// </summary>
+    /// <param name="current">The pet in use.</param>
+    [Theory]
+    [InlineData("cat")]
+    [InlineData("CAT")]
+    public void PickRandom_OnlyThePetInUse_ReturnsNull(string current)
+    {
+        // Arrange
+        InstalledPet[] pets = [new("cat", "Cat", null, 64, 64)];
+
+        // Act
+        var result = TrayMenuModel.PickRandom(pets, current, new Random(1));
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    /// <summary>
+    /// There is another pet to change to whenever any pet is not the one in use, even if the pet in use is not listed at all.
+    /// </summary>
+    /// <param name="current">The pet in use.</param>
+    /// <param name="expected">Whether another pet is expected.</param>
+    [Theory]
+    [InlineData("cat", true)]
+    [InlineData("dog", true)]
+    [InlineData("robot", true)]
+    public void HasAnotherPet_PetsOtherThanTheOneInUse_IsTrue(string current, bool expected)
+    {
+        // Act
+        var result = TrayMenuModel.HasAnotherPet(Pets, current);
+
+        // Assert
+        result.Should().Be(expected);
+    }
+
+    /// <summary>
+    /// With only the pet in use listed, or none at all, there is no other pet.
+    /// </summary>
+    [Fact]
+    public void HasAnotherPet_OnlyThePetInUseOrNone_IsFalse()
+    {
+        // Arrange
+        InstalledPet[] only = [new("cat", "Cat", null, 64, 64)];
+
+        // Act
+        var withOne = TrayMenuModel.HasAnotherPet(only, "CAT");
+        var withNone = TrayMenuModel.HasAnotherPet([], "cat");
+
+        // Assert
+        withOne.Should().BeFalse();
+        withNone.Should().BeFalse();
+    }
+
+    /// <summary>
+    /// With no pets at all there is nothing to pick either.
+    /// </summary>
+    [Fact]
+    public void PickRandom_NoPets_ReturnsNull()
+    {
+        // Act
+        var result = TrayMenuModel.PickRandom([], "cat", new Random(1));
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    /// <summary>
     /// The first time the menu is asked about, it has to be built.
     /// </summary>
     [Fact]

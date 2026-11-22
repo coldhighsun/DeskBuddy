@@ -646,6 +646,45 @@ public sealed class FolderPetLoaderTests : IDisposable
     }
 
     /// <summary>
+    /// A pet whose Glide says it flies comes down on its own wings, and the grips it may have written are not read, so even
+    /// ones that would not be valid do not make it fail to load.
+    /// </summary>
+    [Fact]
+    public async Task LoadAsync_GlideThatFlies_FliesDownAndIgnoresTheGrips()
+    {
+        // Arrange
+        WritePet("""{"frameSize":[40,40],%ATLAS%,"states":{"Idle":{"fps":1,"frames":[0]},"Glide":{"fps":2,"frames":[1],"flies":true,"grips":[[99,99],[1,1],[2,2]]}}}""");
+
+        // Act
+        var pet = await _loader.LoadAsync(_directory, TestContext.Current.CancellationToken);
+
+        // Assert
+        pet.FliesDown.Should().BeTrue();
+        pet.GlideGrips.Should().Equal(Pet.DefaultGlideGrip);
+    }
+
+    /// <summary>
+    /// A pet that does not say it flies, says it does not, or has no Glide state at all holds on to a canopy as before.
+    /// </summary>
+    /// <param name="states">The states written in the manifest.</param>
+    [Theory]
+    [InlineData("""{"Idle":{"fps":1,"frames":[0]},"Glide":{"fps":2,"frames":[1]}}""")]
+    [InlineData("""{"Idle":{"fps":1,"frames":[0]},"Glide":{"fps":2,"frames":[1],"flies":false}}""")]
+    [InlineData("""{"Idle":{"fps":1,"frames":[0]}}""")]
+    [InlineData("""{"Idle":{"fps":1,"frames":[0],"flies":true}}""")]
+    public async Task LoadAsync_GlideThatDoesNotFly_HoldsOnToACanopy(string states)
+    {
+        // Arrange
+        WritePet("""{"frameSize":[40,40],%ATLAS%,"states":@@}""".Replace("@@", states));
+
+        // Act
+        var pet = await _loader.LoadAsync(_directory, TestContext.Current.CancellationToken);
+
+        // Assert
+        pet.FliesDown.Should().BeFalse();
+    }
+
+    /// <summary>
     /// Glide grips that are not one or two points [x, y] on the frame are rejected, with the reason in the message.
     /// </summary>
     /// <param name="grips">The grips written in the manifest.</param>

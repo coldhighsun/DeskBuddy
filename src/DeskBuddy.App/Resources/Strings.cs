@@ -128,6 +128,16 @@ internal static class Strings
     public static string TraySwitchPet => Get();
 
     /// <summary>
+    /// Gets the text of the entry of the pet submenu that changes to another pet chosen at random.
+    /// </summary>
+    public static string TraySwitchRandom => Get();
+
+    /// <summary>
+    /// Gets the text of the entry of the pet submenu that opens the panel's list of pets.
+    /// </summary>
+    public static string TrayAllPets => Get();
+
+    /// <summary>
     /// Gets the tray menu text of the submenu that changes the pet size.
     /// </summary>
     public static string TrayPetSize => Get();

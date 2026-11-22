@@ -106,9 +106,13 @@ public partial class PetWindow
 
         if (next.Opened && !current.Opened)
         {
-            _umbrella.Open(_pet.GlideGrips, mirrored: _facing < 0);
+            // A pet that flies down on its own wings gets no canopy; it just slows down and spreads its wings.
+            if (!_pet.FliesDown)
+            {
+                _umbrella.Open(_pet.GlideGrips, mirrored: _facing < 0);
+            }
 
-            // The pet takes hold of the handle as the canopy opens.
+            // The pet takes hold of the handle as the canopy opens (or starts to fly).
             _brain.OnFallOpened();
             ApplyState(_brain.State);
         }

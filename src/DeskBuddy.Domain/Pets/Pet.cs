@@ -44,6 +44,7 @@ public sealed class Pet
     /// Where the pet holds on to the umbrella or parachute in its Glide frames (one or two points), or
     /// <see langword="null"/> if it does not say, in which case it holds on at <see cref="DefaultGlideGrip"/>.
     /// </param>
+    /// <param name="fliesDown">Whether the pet flies down on its own wings, so a fall opens no umbrella or parachute for it.</param>
     /// <exception cref="ArgumentException">
     /// Thrown when <paramref name="animations"/> has no <see cref="PetState.Idle"/> entry, or when
     /// <paramref name="glideGrips"/> does not have one or two points on the frame.
@@ -55,7 +56,8 @@ public sealed class Pet
         IReadOnlyDictionary<PetState, PetAnimation> animations,
         IReadOnlyDictionary<GazeDirection, PetAnimation>? gazeAnimations = null,
         IReadOnlyDictionary<string, string>? localizedNames = null,
-        IReadOnlyList<FramePoint>? glideGrips = null)
+        IReadOnlyList<FramePoint>? glideGrips = null,
+        bool fliesDown = false)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(frameWidth);
@@ -74,6 +76,7 @@ public sealed class Pet
 
         Name = name;
         GlideGrips = glideGrips is null ? [DefaultGlideGrip] : [.. glideGrips];
+        FliesDown = fliesDown;
         FrameWidth = frameWidth;
         FrameHeight = frameHeight;
         _animations = animations;
@@ -112,6 +115,12 @@ public sealed class Pet
     /// is held at the one further right; with one, everything meets there.
     /// </summary>
     public IReadOnlyList<FramePoint> GlideGrips { get; }
+
+    /// <summary>
+    /// Gets a value indicating whether the pet flies down on its own wings, so a fall opens no umbrella or parachute for it
+    /// and its Glide frames show it flying; its <see cref="GlideGrips"/> are then not used.
+    /// </summary>
+    public bool FliesDown { get; }
 
     /// <summary>
     /// Gets the name of the pet to show in a language: the one the manifest gives for the culture, else for its parent

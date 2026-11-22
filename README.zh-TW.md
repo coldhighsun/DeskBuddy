@@ -5,7 +5,7 @@
 # DeskBuddy
 
 [![CI](https://github.com/coldhighsun/DeskBuddy/actions/workflows/ci.yml/badge.svg)](https://github.com/coldhighsun/DeskBuddy/actions/workflows/ci.yml)
-[![Unit tests: 1606](https://img.shields.io/badge/unit%20tests-1606-brightgreen)](tests)
+[![Unit tests: 1658](https://img.shields.io/badge/unit%20tests-1658-brightgreen)](tests)
 [![Latest Release](https://img.shields.io/github/v/release/coldhighsun/DeskBuddy)](https://github.com/coldhighsun/DeskBuddy/releases/latest)
 [![Latest Pre-release](https://img.shields.io/github/v/release/coldhighsun/DeskBuddy?include_prereleases&label=pre-release)](https://github.com/coldhighsun/DeskBuddy/releases)
 [![GitHub All Releases](https://img.shields.io/github/downloads/coldhighsun/DeskBuddy/total)](https://github.com/coldhighsun/DeskBuddy/releases)
@@ -49,11 +49,15 @@
 
 **寵物**
 
-- 內建七隻寵物：robot（預設）、cat、dog、rabbit、penguin、ghost、fox，全部為平滑向量風格（4 倍解析度）。
+- 內建十二隻寵物：robot（預設）、cat、dog、rabbit、penguin、ghost、fox、panda、slime、dragon、cactus、sheep，全部為平滑向量風格（4 倍解析度）。
 
-| **robot** | **cat** | **dog** | **rabbit** | **penguin** | **ghost** | **fox** |
-| :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| <img src="docs/pets/robot.png" width="96" alt="robot"> | <img src="docs/pets/cat.png" width="96" alt="cat"> | <img src="docs/pets/dog.png" width="96" alt="dog"> | <img src="docs/pets/rabbit.png" width="96" alt="rabbit"> | <img src="docs/pets/penguin.png" width="96" alt="penguin"> | <img src="docs/pets/ghost.png" width="96" alt="ghost"> | <img src="docs/pets/fox.png" width="96" alt="fox"> |
+| **robot** | **cat** | **dog** | **rabbit** | **penguin** | **ghost** |
+| :---: | :---: | :---: | :---: | :---: | :---: |
+| <img src="docs/pets/robot.png" width="96" alt="robot"> | <img src="docs/pets/cat.png" width="96" alt="cat"> | <img src="docs/pets/dog.png" width="96" alt="dog"> | <img src="docs/pets/rabbit.png" width="96" alt="rabbit"> | <img src="docs/pets/penguin.png" width="96" alt="penguin"> | <img src="docs/pets/ghost.png" width="96" alt="ghost"> |
+
+| **fox** | **panda** | **slime** | **dragon** | **cactus** | **sheep** |
+| :---: | :---: | :---: | :---: | :---: | :---: |
+| <img src="docs/pets/fox.png" width="96" alt="fox"> | <img src="docs/pets/panda.png" width="96" alt="panda"> | <img src="docs/pets/slime.png" width="96" alt="slime"> | <img src="docs/pets/dragon.png" width="96" alt="dragon"> | <img src="docs/pets/cactus.png" width="96" alt="cactus"> | <img src="docs/pets/sheep.png" width="96" alt="sheep"> |
 
 - 面板的第一個分頁列出所有已安裝的寵物，附有動畫預覽、畫面尺寸和能力標籤（跟隨滑鼠、攀爬螢幕邊緣、開發陪伴、情境動作），
   方便比較後選擇；系統匣選單也可以切換寵物和尺寸。

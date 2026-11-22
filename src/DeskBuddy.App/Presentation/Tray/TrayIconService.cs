@@ -24,6 +24,21 @@ public sealed partial class TrayIconService : IDisposable
     private const double PetPictureEdge = 32;
 
     /// <summary>
+    /// The room around the picture of a pet in the grid of pets, on each side.
+    /// </summary>
+    private const double PetGridCellPadding = 5;
+
+    /// <summary>
+    /// The width of one pet in the grid of pets: the picture, its frame (two units each side) and the room around it.
+    /// </summary>
+    private const double PetGridCellWidth = PetPictureEdge + 4 + (2 * PetGridCellPadding);
+
+    /// <summary>
+    /// The share of the height of the work area the grid of pets may take before the submenu scrolls.
+    /// </summary>
+    private const double PetGridMaxHeightShare = 0.6;
+
+    /// <summary>
     /// The underlying notification-area icon.
     /// </summary>
     private readonly TaskbarIcon _icon;
