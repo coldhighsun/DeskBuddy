@@ -244,6 +244,15 @@ public partial class PetWindow
     }
 
     /// <summary>
+    /// Lets the brain look at the sensors now, outside its timer, because one of them says that something changed.
+    /// Call on the UI thread.
+    /// </summary>
+    public void TickBrainNow()
+    {
+        OnBrainTick(this, EventArgs.Empty);
+    }
+
+    /// <summary>
     /// Writes the tooltip of the pet in the interface language now in use; the tooltip is otherwise set only when the state
     /// changes, which may be long after the language did.
     /// </summary>

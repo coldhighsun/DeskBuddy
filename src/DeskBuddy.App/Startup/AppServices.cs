@@ -1,4 +1,5 @@
 using System.IO;
+using DeskBuddy.App.Diagnostics;
 using DeskBuddy.Domain.Activity;
 using DeskBuddy.Domain.Behavior;
 using DeskBuddy.Domain.Chatter;
@@ -31,14 +32,27 @@ internal static class AppServices
     public const string PetsFolderName = "pets";
 
     /// <summary>
-    /// How long the foreground program is remembered before it is asked for again.
+    /// How long the answer about a full-screen program is reused before it is read again.
     /// </summary>
-    private static readonly TimeSpan ForegroundCacheLifetime = TimeSpan.FromMilliseconds(500);
+    private static readonly TimeSpan FullscreenInterval = TimeSpan.FromSeconds(1);
+
+    /// <summary>
+    /// How long the polled foreground program is remembered before it is asked for again; only used until the hook of the
+    /// foreground window has reported, or if it cannot be installed.
+    /// </summary>
+    private static readonly TimeSpan ForegroundInterval = TimeSpan.FromMilliseconds(500);
 
     /// <summary>
     /// How long the list of running processes is reused before it is read again.
     /// </summary>
     private static readonly TimeSpan ProcessListInterval = TimeSpan.FromSeconds(3);
+
+    /// <summary>
+    /// How long a pushed power status is trusted before it is read again. The system does not announce every percent of
+    /// charge, and reading is one cheap call, so this is short: a battery that drops below the low-battery limit is
+    /// noticed within this time, and the pushes only make the plugging in and out immediate.
+    /// </summary>
+    private static readonly TimeSpan PowerStatusMaxAge = TimeSpan.FromSeconds(15);
 
     /// <summary>
     /// How long the pet stays away after a full-screen program or a session lock ends.
@@ -107,25 +121,83 @@ internal static class AppServices
     }
 
     /// <summary>
-    /// Adds the Windows sensors, some of them cached or throttled.
+    /// Adds the Windows sensors. The ones that ask another program (the shell, the foreground process, the list of
+    /// processes) are read on a thread of the thread pool and answer from their last reading, so that a program that is slow
+    /// to answer cannot freeze the pet; the rest are single cheap system calls and are read where they are asked.
     /// </summary>
     /// <param name="services">The service collection of the host.</param>
     private static void AddSensors(this IServiceCollection services)
     {
+        services.AddSingleton(sp => new SlowSensorLog(sp.GetRequiredService<ILogger<SlowSensorLog>>()));
         services.AddSingleton<IIdleDetector, Win32IdleDetector>();
         services.AddSingleton<ISystemLoadMonitor, WindowsSystemLoadMonitor>();
-        services.AddSingleton<IFullscreenDetector, WindowsFullscreenDetector>();
         services.AddSingleton<WindowsForegroundAppDetector>();
-        services.AddSingleton<IForegroundAppDetector>(sp => new CachedForegroundApp(
-            sp.GetRequiredService<WindowsForegroundAppDetector>(),
-            sp.GetRequiredService<TimeProvider>(),
-            ForegroundCacheLifetime));
+        services.AddSingleton(sp =>
+        {
+            var inner = new WindowsFullscreenDetector(
+                sp.GetRequiredService<SettingsService>(),
+                sp.GetRequiredService<IForegroundAppDetector>());
+            var detector = new BackgroundFullscreenDetector(new BackgroundSensor<DoNotDisturbLevel>(
+                "full-screen check (background)",
+                inner.GetLevel,
+                DoNotDisturbLevel.None,
+                FullscreenInterval,
+                sp.GetRequiredService<TimeProvider>(),
+                sp.GetRequiredService<SlowSensorLog>().Diagnostics));
+
+            // Another window coming to the front may be one that covers the screen, or the end of one: read at once
+            // instead of at the next tick of the brain, so the pet goes away and comes back as soon as the user does.
+            sp.GetRequiredService<PushedForegroundApp>().Changed += (_, _) => detector.Refresh();
+            return detector;
+        });
+        services.AddSingleton<IFullscreenDetector>(sp => sp.GetRequiredService<BackgroundFullscreenDetector>());
+
+        // Windows says when another window comes to the front, so nothing needs to be polled for the program in front; the
+        // polling detector only answers until the first push, and if the hook cannot be installed.
+        services.AddSingleton(sp => new PushedForegroundApp(new BackgroundForegroundApp(
+            new BackgroundSensor<string?>(
+                "foreground program (background)",
+                sp.GetRequiredService<WindowsForegroundAppDetector>().GetForegroundProcessName,
+                null,
+                ForegroundInterval,
+                sp.GetRequiredService<TimeProvider>(),
+                sp.GetRequiredService<SlowSensorLog>().Diagnostics))));
+        services.AddSingleton(sp => new WinEventForegroundHook(
+            sp.GetRequiredService<PushedForegroundApp>().Push,
+            sp.GetRequiredService<ILogger<WinEventForegroundHook>>()));
+        services.AddSingleton<IForegroundAppDetector>(sp =>
+        {
+            // Resolving the hook installs it; the container removes it again when the application ends.
+            _ = sp.GetRequiredService<WinEventForegroundHook>();
+            return sp.GetRequiredService<PushedForegroundApp>();
+        });
         services.AddSingleton<WindowsProcessList>();
-        services.AddSingleton<IProcessList>(sp => new ThrottledProcessList(
-            sp.GetRequiredService<WindowsProcessList>(),
+        services.AddSingleton<IProcessList>(sp => new BackgroundProcessList(
+            new BackgroundSensor<IReadOnlySet<string>>(
+                "process list (background)",
+                sp.GetRequiredService<WindowsProcessList>().GetNames,
+                new HashSet<string>(),
+                ProcessListInterval,
+                sp.GetRequiredService<TimeProvider>(),
+                sp.GetRequiredService<SlowSensorLog>().Diagnostics)));
+
+        // Windows says when the power supply changes; a pushed status is read again after a while all the same, as not
+        // every percent of charge is announced.
+        services.AddSingleton<WindowsPowerStatusProvider>();
+        services.AddSingleton(sp => new PushedPowerStatus(
+            sp.GetRequiredService<WindowsPowerStatusProvider>(),
             sp.GetRequiredService<TimeProvider>(),
-            ProcessListInterval));
-        services.AddSingleton<IPowerStatusProvider, WindowsPowerStatusProvider>();
+            PowerStatusMaxAge));
+        services.AddSingleton(sp => new SystemEventsPowerWatcher(
+            sp.GetRequiredService<WindowsPowerStatusProvider>(),
+            sp.GetRequiredService<PushedPowerStatus>().Push,
+            sp.GetRequiredService<ILogger<SystemEventsPowerWatcher>>()));
+        services.AddSingleton<IPowerStatusProvider>(sp =>
+        {
+            // Resolving the watcher starts it; the container stops it again when the application ends.
+            _ = sp.GetRequiredService<SystemEventsPowerWatcher>();
+            return sp.GetRequiredService<PushedPowerStatus>();
+        });
     }
 
     /// <summary>

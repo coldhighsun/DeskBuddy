@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using DeskBuddy.Domain.Chatter;
 using DeskBuddy.Domain.Behavior;
 using DeskBuddy.Domain.Messages;
@@ -74,6 +75,12 @@ public sealed class PetBrain(
     public event EventHandler? VisibilityChanged;
 
     /// <summary>
+    /// Gets or sets what is told how long each part of <see cref="Tick"/> that reads the system took, by name; the tick
+    /// runs on the UI thread, so a part that is slow is a stall the user can see. Not called from another thread.
+    /// </summary>
+    public Action<string, TimeSpan>? SensorTimed { get; set; }
+
+    /// <summary>
     /// Gets the current state.
     /// </summary>
     public PetState State => stateMachine.State;
@@ -121,8 +128,8 @@ public sealed class PetBrain(
     /// <returns>The state after the update.</returns>
     public PetState Tick()
     {
-        var userIdle = idleDetector.GetIdleTime();
-        var load = loadMonitor.GetSnapshot();
+        var userIdle = Timed("idle time", idleDetector.GetIdleTime);
+        var load = Timed("system load", loadMonitor.GetSnapshot);
         var isStrained = loadPolicy.Update(load);
 
         // A reminder held back while the pet could not speak is replaced by the next one rather than piling up, and
@@ -145,7 +152,7 @@ public sealed class PetBrain(
         // Focus Assist, for as long as the pet is hidden, or while it is falling. Reminders are held back and shown
         // once the pet is back or has landed; casual remarks are dropped, as they would be stale by then.
         var isFalling = stateMachine.State.IsFalling();
-        var level = fullscreenDetector.GetLevel();
+        var level = Timed("full-screen check", fullscreenDetector.GetLevel);
         if (visibility.UpdateFullscreen(level == DoNotDisturbLevel.Fullscreen))
         {
             VisibilityChanged?.Invoke(this, EventArgs.Empty);
@@ -155,10 +162,9 @@ public sealed class PetBrain(
 
         // What the user is doing and what is going on around them: some of it is acted out once, some for as long
         // as it lasts. A one-off from the system (a welcome) wins over one from development work.
-        var dev = devScenarios.Evaluate(userIdle, load);
-        var system = systemScenarios.Evaluate(
-            userIdle,
-            canDisturb: _canSpeak && stateMachine.State is not (PetState.Drag or PetState.Alert or PetState.Sleep));
+        var dev = Timed("development scenarios", () => devScenarios.Evaluate(userIdle, load));
+        var canDisturb = _canSpeak && stateMachine.State is not (PetState.Drag or PetState.Alert or PetState.Sleep);
+        var system = Timed("system scenarios", () => systemScenarios.Evaluate(userIdle, canDisturb));
         if (dev.Moment is { } devMoment)
         {
             stateMachine.OnMoment(devMoment.State, devMoment.Duration);
@@ -205,6 +211,21 @@ public sealed class PetBrain(
             IsDeveloping: dev.IsDeveloping,
             Ambient: ambient);
         return stateMachine.Update(inputs);
+    }
+
+    /// <summary>
+    /// Runs one part of the tick that reads the system and tells <see cref="SensorTimed"/> how long it took.
+    /// </summary>
+    /// <typeparam name="T">What the part returns.</typeparam>
+    /// <param name="name">What the part reads.</param>
+    /// <param name="read">The part.</param>
+    /// <returns>What the part returned.</returns>
+    private T Timed<T>(string name, Func<T> read)
+    {
+        var startedAt = Stopwatch.GetTimestamp();
+        var result = read();
+        SensorTimed?.Invoke(name, Stopwatch.GetElapsedTime(startedAt));
+        return result;
     }
 
     /// <summary>

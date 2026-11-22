@@ -293,6 +293,7 @@ public partial class App
                 pet.Animations.Count);
 
             var brain = _host.Services.GetRequiredService<PetBrain>();
+            brain.SensorTimed = _host.Services.GetRequiredService<SlowSensorLog>().Report;
             _sessionSwitched = (_, args) =>
             {
                 if (SessionLock.IsLocked(args.Reason) is { } locked)
@@ -313,7 +314,12 @@ public partial class App
                 _host.Services.GetRequiredService<SettingsService>().Current.Size);
             _petWindow.Show();
             var petWindow = _petWindow;
-            petWindow.TickTimed = new SlowTickLog(logger, TimeProvider.System).Report;
+            petWindow.TickTimed = new SlowTickLog(logger).Report;
+
+            // A full-screen program that came or went is acted on at once, not at the next tick of the brain. The detector
+            // raises this on a thread of the thread pool, and only when the level really changed.
+            _host.Services.GetRequiredService<BackgroundFullscreenDetector>().Changed +=
+                (_, _) => petWindow.Dispatcher.BeginInvoke(petWindow.TickBrainNow);
             _stallMonitor = new UiStallMonitor(
                 Dispatcher,
                 logger,
