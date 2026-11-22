@@ -16,7 +16,7 @@ public sealed class SlowSensorLog(ILogger logger, TimeSpan? minGap = null)
     /// <summary>
     /// How long a reading may take before it is logged.
     /// </summary>
-    public static readonly TimeSpan Threshold = SlowTickLog.Threshold;
+    public static readonly TimeSpan Threshold = TimeSpan.FromMilliseconds(200);
 
     /// <summary>
     /// Gets the diagnostics a <see cref="BackgroundSensor{T}"/> reports to.

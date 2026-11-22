@@ -45,7 +45,7 @@ internal static class AppServices
     /// <summary>
     /// How long the list of running processes is reused before it is read again.
     /// </summary>
-    private static readonly TimeSpan ProcessListInterval = TimeSpan.FromSeconds(3);
+    private static readonly TimeSpan ProcessListInterval = TimeSpan.FromSeconds(5);
 
     /// <summary>
     /// How long a pushed power status is trusted before it is read again. The system does not announce every percent of
