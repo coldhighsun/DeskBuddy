@@ -43,6 +43,24 @@ public class PetTests
     }
 
     /// <summary>
+    /// A pet comes down under a canopy unless it says it flies down on its own wings.
+    /// </summary>
+    [Fact]
+    public void FliesDown_GivenOrNot_IsFalseUnlessTheyFly()
+    {
+        // Arrange
+        var animations = new Dictionary<PetState, PetAnimation> { [PetState.Idle] = Animation("idle.png") };
+
+        // Act
+        var plain = new Pet("plain", 48, 96, animations);
+        var flying = new Pet("flying", 48, 96, animations, fliesDown: true);
+
+        // Assert
+        plain.FliesDown.Should().BeFalse();
+        flying.FliesDown.Should().BeTrue();
+    }
+
+    /// <summary>
     /// Grips must be one or two points on the frame.
     /// </summary>
     /// <param name="count">How many grips to give.</param>

@@ -23,6 +23,8 @@
 
   <data name="TraySettings" xml:space="preserve"><value>设置</value></data>
   <data name="TraySwitchPet" xml:space="preserve"><value>切换宠物</value></data>
+  <data name="TraySwitchRandom" xml:space="preserve"><value>随机换一只</value></data>
+  <data name="TrayAllPets" xml:space="preserve"><value>全部宠物…</value></data>
   <data name="TrayPetSize" xml:space="preserve"><value>宠物大小</value></data>
 
 
@@ -238,7 +240,7 @@
   <data name="StateHintChime" xml:space="preserve"><value>整点报时</value></data>
   <data name="StateHintFestive" xml:space="preserve"><value>节日快乐</value></data>
   <data name="StateHintFall" xml:space="preserve"><value>从高处落下</value></data>
-  <data name="StateHintGlide" xml:space="preserve"><value>撑开伞，慢慢飘落</value></data>
+  <data name="StateHintGlide" xml:space="preserve"><value>慢慢飘落</value></data>
   <data name="SettingsPrograms" xml:space="preserve"><value>识别程序</value></data>
   <data name="ProgramsHint" xml:space="preserve"><value>每行一个进程名，不含空格；同一个进程只能放在一个列表里。</value></data>
   <data name="SettingsActions" xml:space="preserve"><value>动作</value></data>

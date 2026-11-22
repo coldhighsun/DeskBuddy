@@ -75,6 +75,11 @@ public class ShippedPetsTests
     [InlineData("penguin")]
     [InlineData("ghost")]
     [InlineData("fox")]
+    [InlineData("panda")]
+    [InlineData("slime")]
+    [InlineData("dragon")]
+    [InlineData("cactus")]
+    [InlineData("sheep")]
     public async Task ShippedPet_Folder_HoldsOnlyManifestAtlasAndIcon(string name)
     {
         // Arrange
@@ -103,6 +108,11 @@ public class ShippedPetsTests
     [InlineData("penguin")]
     [InlineData("ghost")]
     [InlineData("fox")]
+    [InlineData("panda")]
+    [InlineData("slime")]
+    [InlineData("dragon")]
+    [InlineData("cactus")]
+    [InlineData("sheep")]
     public async Task ShippedPet_Loads_WithEnglishAndChineseNames(string name)
     {
         // Act
@@ -137,6 +147,26 @@ public class ShippedPetsTests
     }
 
     /// <summary>
+    /// Whatever states a shipped pet defines, every state of the game still resolves to frames, the ones it does not define
+    /// through the fallback rules, so a pet that defines only a few states (or only Idle) is never left with nothing to show.
+    /// </summary>
+    [Fact]
+    public async Task EveryShippedPet_ResolvesEveryStateToFrames()
+    {
+        foreach (var directory in Directory.GetDirectories(ShippedPets))
+        {
+            // Act
+            var pet = await _loader.LoadAsync(directory, TestContext.Current.CancellationToken);
+
+            // Assert
+            foreach (var state in Enum.GetValues<PetState>())
+            {
+                pet.GetAnimation(state).FrameIds.Should().NotBeEmpty(because: $"{pet.Name} must show something for {state}");
+            }
+        }
+    }
+
+    /// <summary>
     /// The pets drawn from the shared template load with every frame file present and cover the everyday, screen-edge and work
     /// states; only the ones that define a hop animation can hop.
     /// </summary>
@@ -147,6 +177,10 @@ public class ShippedPetsTests
     [InlineData("rabbit", true)]
     [InlineData("penguin", false)]
     [InlineData("ghost", false)]
+    [InlineData("panda", false)]
+    [InlineData("slime", false)]
+    [InlineData("dragon", false)]
+    [InlineData("sheep", false)]
     public async Task TemplatePet_Loads_WithEverydayAndScreenEdgeStates(string name, bool canHop)
     {
         // Act
@@ -166,6 +200,26 @@ public class ShippedPetsTests
     }
 
     /// <summary>
+    /// Every shipped pet that flies down on its own wings has a Glide of more than one frame, so it is shown flapping
+    /// instead of hanging still in the air with no umbrella or parachute.
+    /// </summary>
+    [Fact]
+    public async Task EveryShippedFlyingPet_ShowsItselfFlapping()
+    {
+        foreach (var directory in Directory.GetDirectories(ShippedPets))
+        {
+            // Act
+            var pet = await _loader.LoadAsync(directory, TestContext.Current.CancellationToken);
+
+            // Assert
+            if (pet.FliesDown)
+            {
+                pet.Animations[PetState.Glide].FrameIds.Should().HaveCountGreaterThan(1, because: $"{pet.Name} flies down");
+            }
+        }
+    }
+
+    /// <summary>
     /// Every shipped pet that glides says where its own paws, hands, flippers or head hold on to the umbrella or the
     /// parachute, instead of leaving it to the default point meant for pets that predate the grips.
     /// </summary>
@@ -178,7 +232,7 @@ public class ShippedPetsTests
             var pet = await _loader.LoadAsync(directory, TestContext.Current.CancellationToken);
 
             // Assert
-            if (pet.Animations.ContainsKey(PetState.Glide))
+            if (pet.Animations.ContainsKey(PetState.Glide) && !pet.FliesDown)
             {
                 pet.GlideGrips.Should().NotEqual([Pet.DefaultGlideGrip], because: $"{pet.Name} glides");
             }

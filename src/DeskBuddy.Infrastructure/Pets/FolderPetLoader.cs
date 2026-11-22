@@ -78,6 +78,7 @@ public sealed class FolderPetLoader(ILogger<FolderPetLoader> logger) : IPetLoade
         var animations = new Dictionary<PetState, PetAnimation>();
         var gazeAnimations = new Dictionary<GazeDirection, PetAnimation>();
         IReadOnlyList<FramePoint>? glideGrips = null;
+        var fliesDown = false;
         foreach (var (stateName, animation) in manifest.States)
         {
             // "Idle.Left" and the like are the variants of Idle for looking in a direction.
@@ -103,15 +104,20 @@ public sealed class FolderPetLoader(ILogger<FolderPetLoader> logger) : IPetLoade
             }
 
             animations[state] = BuildAnimation(atlas, stateName, animation);
-            if (state == PetState.Glide && animation?.Grips is { } grips)
+            if (state == PetState.Glide)
             {
-                glideGrips = ReadGrips(grips, size, stateName);
+                // A pet that flies down on its own wings has no use for a place to hold an umbrella, so its grips are not read.
+                fliesDown = animation?.Flies == true;
+                if (!fliesDown && animation?.Grips is { } grips)
+                {
+                    glideGrips = ReadGrips(grips, size, stateName);
+                }
             }
         }
 
         try
         {
-            return new Pet(manifest.Name ?? Path.GetFileName(petDirectory), size[0], size[1], animations, gazeAnimations, manifest.Names, glideGrips);
+            return new Pet(manifest.Name ?? Path.GetFileName(petDirectory), size[0], size[1], animations, gazeAnimations, manifest.Names, glideGrips, fliesDown);
         }
         catch (ArgumentException ex)
         {
@@ -358,5 +364,11 @@ public sealed class FolderPetLoader(ILogger<FolderPetLoader> logger) : IPetLoade
         /// frame size; read only for the Glide state.
         /// </summary>
         public double[]?[]? Grips { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the pet flies down on its own wings instead of holding an umbrella or
+        /// parachute; read only for the Glide state, and then <c>grips</c> is ignored.
+        /// </summary>
+        public bool? Flies { get; set; }
     }
 }
