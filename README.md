@@ -31,7 +31,7 @@ A desktop pet for work computers. It lives on your desktop, reacts to what you a
 
 - A small animated pet that walks along the taskbar, sleeps, gets tired and reacts when you drag it. Its eyes follow the
   mouse while it stands around.
-- Drop it from high above the taskbar and it floats down under
+- Fling it with the mouse and it flies off, bouncing off the screen ends. Drop it from high above the taskbar and it floats down under
   an umbrella or a parachute. It also climbs the sides of the
   screen and crawls along the top edge now and then (for pets that have the pictures for it).
 - While it is held in a long-running state (coding, a meeting...) it still takes a short stroll every few seconds
@@ -55,8 +55,7 @@ for; anything missing falls back to a similar state.
 - The clock: a bowl of rice at lunch and dinner time, a glance at the watch when the working day ends (18:00 by default),
   a party hat on New Year's Day, Chinese New Year, Programmers' Day and Christmas, and, if you switch it on, a bell on
   the hour.
-- Each of these pictures carries a small label (BLD, GIT, MTG, LOW...), and resting the mouse on the pet explains in
-  words what it is doing.
+- Resting the mouse on the pet explains in words what it is doing.
 
 **Pets**
 
@@ -69,6 +68,10 @@ for; anything missing falls back to a similar state.
 - The first tab of the panel lists every installed pet with a live preview, its picture size and what it can do (follows
   the mouse, climbs screen edges, keeps you company while developing, acts out situations), so you can compare and pick
   one. The tray menu switches the pet and its size as well.
+- Switching pets plays a short animation: a UFO, a claw, a puff of smoke or a beam of light takes the old pet away and
+  brings the new one in (pick one, or leave it on random, under Appearance; skipped when Windows animations are off).
+- Automatic pet change (off by default): the pet swaps itself for another installed pet every 30 minutes, 1, 2 or 3
+  hours, but only while it is idle or walking.
 
 **The app**
 
