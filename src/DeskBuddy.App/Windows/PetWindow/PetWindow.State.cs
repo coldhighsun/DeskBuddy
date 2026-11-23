@@ -171,6 +171,7 @@ public partial class PetWindow
                 Show();
                 _animationWatch.Restart();
                 _animationTimer.Start();
+                _raiseTimer.Start();
                 UpdatePointerTimer();
                 if (_shownState.IsWalking() || _shownState.IsFalling() || _shownState.IsCrawl())
                 {
@@ -189,6 +190,7 @@ public partial class PetWindow
             _animationTimer.Stop();
             _moveTimer.Stop();
             _pointerTimer.Stop();
+            _raiseTimer.Stop();
 
             // A pet that is hidden mid-air lands at once, so it is not stuck falling while nobody sees it.
             if (_fall is not null)
@@ -237,6 +239,35 @@ public partial class PetWindow
         }
 
         ReportTick("animation", startedAt);
+    }
+
+    /// <summary>
+    /// Lifts the pet, its canopy and its speech bubble to the top of the topmost windows, whatever the pet is doing, so
+    /// another always-on-top window that rose above them (the taskbar, a side bar, a pinned program) does not hide the pet
+    /// for good. Does nothing when no other window is above them, and is left alone while a pet switch plays, as its effect window is placed in front of the pet.
+    /// </summary>
+    /// <param name="sender">The event source.</param>
+    /// <param name="e">Event data.</param>
+    private void OnRaiseTick(object? sender, EventArgs e)
+    {
+        if (!IsVisible || _transitioning)
+        {
+            return;
+        }
+
+        // Nothing to do while the pet is already in front, so two always-on-top programs do not keep taking turns.
+        var ownWindows = new Window?[] { _umbrella.OpenCanopy, _bubble is { IsVisible: true } ? _bubble : null };
+        if (!WindowMover.IsCovered(this, ownWindows))
+        {
+            return;
+        }
+
+        _umbrella.Raise();
+        WindowMover.RaiseToTopmost(this);
+        if (_bubble is { IsVisible: true } bubble)
+        {
+            WindowMover.RaiseToTopmost(bubble);
+        }
     }
 
     /// <summary>
