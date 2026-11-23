@@ -171,7 +171,7 @@ public class BackgroundSensorTests
     /// The thread pool runs the reading when no runner is given, and the answer arrives without the caller waiting.
     /// </summary>
     [Fact]
-    public async Task GetValue_OnThreadPool_ReadsOffTheCallingThread()
+    public void GetValue_OnThreadPool_ReadsOffTheCallingThread()
     {
         // Arrange
         var readerThread = new TaskCompletionSource<int>();
@@ -185,15 +185,25 @@ public class BackgroundSensorTests
             "initial",
             TimeSpan.FromSeconds(2),
             _time);
+        var callingThread = 0;
+        string? first = null;
+        var reader = 0;
 
         // Act
-        var callingThread = Environment.CurrentManagedThreadId;
-        var first = sensor.GetValue();
-        var thread = await readerThread.Task.WaitAsync(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken);
+        // A thread of its own that waits for the reading: a thread pool thread that returned to the pool could pick up the
+        // reading itself, which would make the two ids equal without the caller ever having read.
+        var caller = new Thread(() =>
+        {
+            callingThread = Environment.CurrentManagedThreadId;
+            first = sensor.GetValue();
+            reader = readerThread.Task.WaitAsync(TimeSpan.FromSeconds(10)).GetAwaiter().GetResult();
+        });
+        caller.Start();
+        caller.Join();
 
         // Assert
         first.Should().Be("initial");
-        thread.Should().NotBe(callingThread);
+        reader.Should().NotBe(callingThread);
     }
 
     /// <summary>
