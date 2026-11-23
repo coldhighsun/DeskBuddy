@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
+using DeskBuddy.App.Presentation;
 
 namespace DeskBuddy.App.Interop;
 
@@ -26,6 +27,37 @@ public static partial class WindowMover
     /// <c>SWP_NOZORDER</c>: keep the current position in the z-order.
     /// </summary>
     private const uint SwpNoZOrder = 0x0004;
+
+    /// <summary>
+    /// <c>HWND_TOPMOST</c>: the insert-after value that puts a window at the top of the topmost band.
+    /// </summary>
+    private const nint HwndTopmost = -1;
+
+    /// <summary>
+    /// <c>DWMWA_CLOAKED</c>: the DWM attribute that says a window is hidden by the shell although it is "visible".
+    /// </summary>
+    private const int DwmaCloaked = 14;
+
+    /// <summary>
+    /// Capacity, in characters, of the buffer a window class name is read into; longer names are cut, which is fine as the
+    /// names looked for are short.
+    /// </summary>
+    private const int ClassNameCapacity = 64;
+
+    /// <summary>
+    /// The window class of menus (<c>#32768</c>).
+    /// </summary>
+    private const string MenuClassName = "#32768";
+
+    /// <summary>
+    /// The window class of tooltips.
+    /// </summary>
+    private const string TooltipClassName = "tooltips_class32";
+
+    /// <summary>
+    /// <c>GW_HWNDPREV</c>: the window just above the given one in the z-order.
+    /// </summary>
+    private const uint GwHwndPrev = 3;
 
     /// <summary>
     /// <c>SWP_NOREDRAW</c>: do not repaint; the compositor moves the existing picture.
@@ -160,6 +192,124 @@ public static partial class WindowMover
     }
 
     /// <summary>
+    /// Raises a window to the top of the topmost band without moving, sizing or activating it. Other always-on-top
+    /// windows (the taskbar, a pinned program) can rise above a window that is already topmost, and nothing lifts it
+    /// back by itself.
+    /// </summary>
+    /// <param name="window">The window to raise; it must already have a handle.</param>
+    public static void RaiseToTopmost(Window window)
+    {
+        var handle = new WindowInteropHelper(window).EnsureHandle();
+        var startedAt = Win32Timing.Start();
+        SetWindowPos(handle, HwndTopmost, 0, 0, 0, 0, SwpNoSize | SwpNoMove | SwpNoActivate | SwpNoOwnerZOrder);
+        Win32Timing.Stop("SetWindowPos", startedAt);
+    }
+
+    /// <summary>
+    /// Tells whether a window of another program lies above a window in the z-order and hides part of it. Windows of the
+    /// same program, windows that are not visible (or are cloaked), menus, tooltips and windows that do not overlap the
+    /// given one are not counted, so a transient popup or a hidden helper window never makes the window look covered.
+    /// </summary>
+    /// <param name="window">The window to look at; it must already have a handle.</param>
+    /// <param name="ownWindows">Windows that may lie above it without covering it (nulls are ignored).</param>
+    /// <returns><see langword="true"/> if some other window is above it and overlaps it.</returns>
+    public static bool IsCovered(Window window, IEnumerable<Window?> ownWindows)
+    {
+        return IsCovered(window, ownWindows, Environment.ProcessId);
+    }
+
+    /// <summary>
+    /// Tells whether a window of another program lies above a window in the z-order and hides part of it, taking the id
+    /// of "this program" from the caller (tests use an id no window has, to stand in for another program).
+    /// </summary>
+    /// <param name="window">The window to look at; it must already have a handle.</param>
+    /// <param name="ownWindows">Windows that may lie above it without covering it (nulls are ignored).</param>
+    /// <param name="ownProcessId">The id of the process whose windows never count as covering.</param>
+    /// <returns><see langword="true"/> if some other window is above it and overlaps it.</returns>
+    public static bool IsCovered(Window window, IEnumerable<Window?> ownWindows, int ownProcessId)
+    {
+        ArgumentNullException.ThrowIfNull(ownWindows);
+
+        var handle = new WindowInteropHelper(window).EnsureHandle();
+        if (!GetWindowRect(handle, out var native))
+        {
+            return false;
+        }
+
+        var bounds = native.ToPixelRect();
+
+        var own = new HashSet<nint>();
+        foreach (var ownWindow in ownWindows)
+        {
+            if (ownWindow is not null)
+            {
+                own.Add(new WindowInteropHelper(ownWindow).EnsureHandle());
+            }
+        }
+
+        var current = GetWindow(handle, GwHwndPrev);
+        while (current != 0)
+        {
+            if (!own.Contains(current) && CoversBounds(current, bounds, ownProcessId))
+            {
+                return true;
+            }
+
+            current = GetWindow(current, GwHwndPrev);
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Tells whether a window above another one really hides part of it: it belongs to another program, is visible and not
+    /// cloaked, is not a menu or a tooltip, and overlaps the given bounds.
+    /// </summary>
+    /// <param name="candidate">The window above.</param>
+    /// <param name="bounds">The bounds of the window below, in device pixels.</param>
+    /// <param name="ownProcessId">The id of this process, whose windows never count.</param>
+    /// <returns><see langword="true"/> if the candidate covers part of the bounds.</returns>
+    private static unsafe bool CoversBounds(nint candidate, PixelRect bounds, int ownProcessId)
+    {
+        if (!IsWindowVisible(candidate))
+        {
+            return false;
+        }
+
+        if (DwmGetWindowAttribute(candidate, DwmaCloaked, out int cloaked, sizeof(int)) == 0 && cloaked != 0)
+        {
+            return false;
+        }
+
+        if (GetWindowThreadProcessId(candidate, out var processId) != 0 && processId == (uint)ownProcessId)
+        {
+            return false;
+        }
+
+        var className = stackalloc char[ClassNameCapacity];
+        var length = GetClassName(candidate, className, ClassNameCapacity);
+        var name = new ReadOnlySpan<char>(className, length);
+        if (name.SequenceEqual(MenuClassName) || name.SequenceEqual(TooltipClassName))
+        {
+            return false;
+        }
+
+        return GetWindowRect(candidate, out var other) && Overlaps(bounds, other.ToPixelRect());
+    }
+
+    /// <summary>
+    /// Tells whether two rectangles share some area.
+    /// </summary>
+    /// <param name="first">The first rectangle.</param>
+    /// <param name="second">The second rectangle.</param>
+    /// <returns><see langword="true"/> if they overlap; touching edges do not count.</returns>
+    public static bool Overlaps(PixelRect first, PixelRect second)
+    {
+        return first.Left < second.Right && second.Left < first.Right
+            && first.Top < second.Bottom && second.Top < first.Bottom;
+    }
+
+    /// <summary>
     /// Moves two windows to positions given in device pixels in a single batch, so the window manager applies both
     /// together and they are drawn in the same frame.
     /// </summary>
@@ -242,4 +392,94 @@ public static partial class WindowMover
     [LibraryImport("user32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static partial bool SetWindowPos(nint hwnd, nint insertAfter, int x, int y, int width, int height, uint flags);
+
+    /// <summary>
+    /// Gets a window next to another one in the z-order.
+    /// </summary>
+    /// <param name="hwnd">Window handle.</param>
+    /// <param name="command">Which neighbour to get (<c>GW_*</c>).</param>
+    /// <returns>The neighbour's handle, or zero if there is none.</returns>
+    [LibraryImport("user32.dll")]
+    private static partial nint GetWindow(nint hwnd, uint command);
+
+    /// <summary>
+    /// A window rectangle as Windows fills it in.
+    /// </summary>
+    private struct NativeRect
+    {
+        /// <summary>
+        /// Left edge.
+        /// </summary>
+        public int Left;
+
+        /// <summary>
+        /// Top edge.
+        /// </summary>
+        public int Top;
+
+        /// <summary>
+        /// Right edge.
+        /// </summary>
+        public int Right;
+
+        /// <summary>
+        /// Bottom edge.
+        /// </summary>
+        public int Bottom;
+
+        /// <summary>
+        /// Converts the rectangle to a <see cref="PixelRect"/>.
+        /// </summary>
+        /// <returns>The same edges as a pixel rectangle.</returns>
+        public readonly PixelRect ToPixelRect() => new(Left, Top, Right, Bottom);
+    }
+
+    /// <summary>
+    /// Retrieves the bounds of a window in screen device pixels.
+    /// </summary>
+    /// <param name="hwnd">Window handle.</param>
+    /// <param name="rect">Receives the bounds.</param>
+    /// <returns><see langword="true"/> on success.</returns>
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool GetWindowRect(nint hwnd, out NativeRect rect);
+
+    /// <summary>
+    /// Tells whether a window is visible.
+    /// </summary>
+    /// <param name="hwnd">Window handle.</param>
+    /// <returns><see langword="true"/> if the window has the visible style.</returns>
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static partial bool IsWindowVisible(nint hwnd);
+
+    /// <summary>
+    /// Gets the id of the process that owns a window.
+    /// </summary>
+    /// <param name="hwnd">Window handle.</param>
+    /// <param name="processId">Receives the process id.</param>
+    /// <returns>The id of the thread that created the window, or zero on failure.</returns>
+    [LibraryImport("user32.dll")]
+    private static partial uint GetWindowThreadProcessId(nint hwnd, out uint processId);
+
+    /// <summary>
+    /// Reads the class name of a window.
+    /// </summary>
+    /// <param name="hwnd">Window handle.</param>
+    /// <param name="buffer">Receives the name.</param>
+    /// <param name="capacity">Size of the buffer in characters.</param>
+    /// <returns>The number of characters copied, or zero on failure.</returns>
+    [LibraryImport("user32.dll", EntryPoint = "GetClassNameW")]
+    private static unsafe partial int GetClassName(nint hwnd, char* buffer, int capacity);
+
+    /// <summary>
+    /// Reads a DWM window attribute.
+    /// </summary>
+    /// <param name="hwnd">Window handle.</param>
+    /// <param name="attribute">Attribute identifier.</param>
+    /// <param name="value">Receives the value.</param>
+    /// <param name="size">Size of the value in bytes.</param>
+    /// <returns>An HRESULT; non-zero on failure.</returns>
+    [LibraryImport("dwmapi.dll")]
+    private static partial int DwmGetWindowAttribute(nint hwnd, int attribute, out int value, int size);
 }

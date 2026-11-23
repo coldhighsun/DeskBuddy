@@ -4,6 +4,8 @@
     <TargetFramework>net11.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
     <IsPackable>false</IsPackable>
+    <!-- The tests declare a source-generated P/Invoke (LibraryImport), which needs unsafe code to be allowed. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!-- Window.ThemeMode (the Fluent theme with dark mode) is still experimental in .NET 11. -->
     <NoWarn>$(NoWarn);WPF0001</NoWarn>
   </PropertyGroup>

@@ -48,6 +48,12 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     private static readonly TimeSpan MoveInterval = TimeSpan.FromMilliseconds(50);
 
     /// <summary>
+    /// How often the pet's windows are lifted to the top of the topmost windows. Only a few windows can rise above the
+    /// pet, so a few seconds is soon enough, and a lift that finds the pet on top costs next to nothing.
+    /// </summary>
+    private static readonly TimeSpan RaiseInterval = TimeSpan.FromSeconds(3);
+
+    /// <summary>
     /// How often the brain re-reads sensors and re-evaluates the pet's state. The state machine counts time with the clock,
     /// not with ticks, so a longer interval only delays how soon the pet notices a change in what the user is doing; a few
     /// seconds is not noticed, and each tick costs a round of sensor queries on the UI thread.
@@ -120,6 +126,11 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
     /// Timer that re-evaluates the pet's state.
     /// </summary>
     private readonly DispatcherTimer _brainTimer = new() { Interval = BrainInterval };
+
+    /// <summary>
+    /// Timer that lifts the pet's windows to the top of the topmost ones; runs while the pet is on screen.
+    /// </summary>
+    private readonly DispatcherTimer _raiseTimer = new() { Interval = RaiseInterval };
 
     /// <summary>
     /// Timer that moves the window while walking; stopped in every other state.
@@ -233,6 +244,7 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
         _animationTimer.Interval = _player.Animation.FrameDuration;
         _animationTimer.Tick += OnAnimationTick;
         _brainTimer.Tick += OnBrainTick;
+        _raiseTimer.Tick += OnRaiseTick;
         _moveTimer.Tick += OnMoveTick;
         _pointerTimer.Tick += OnPointerTick;
         Loaded += (_, _) =>
@@ -244,6 +256,7 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
             _animationWatch.Restart();
             _animationTimer.Start();
             _brainTimer.Start();
+            _raiseTimer.Start();
             UpdatePointerTimer();
 
             PublishAutoSwitch();
@@ -256,6 +269,7 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
             _pointerTimer.Stop();
             _animationTimer.Stop();
             _brainTimer.Stop();
+            _raiseTimer.Stop();
             _moveTimer.Stop();
             _brain.MessageChanged -= OnMessageChanged;
             _brain.VisibilityChanged -= OnVisibilityChanged;

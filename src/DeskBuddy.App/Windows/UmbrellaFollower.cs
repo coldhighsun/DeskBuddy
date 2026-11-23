@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Media;
+using DeskBuddy.App.Interop;
 using DeskBuddy.Domain.Pets;
 
 namespace DeskBuddy.App.Windows;
@@ -37,6 +38,11 @@ public sealed class UmbrellaFollower(Window pet)
     public bool IsOpen => _canopy is { IsVisible: true };
 
     /// <summary>
+    /// Gets the canopy window while it is on screen, or <see langword="null"/>.
+    /// </summary>
+    public Window? OpenCanopy => _canopy is { IsVisible: true } canopy ? canopy : null;
+
+    /// <summary>
     /// Opens a canopy over the pet, an umbrella or a parachute by chance, held where the pet's Glide frames hold on.
     /// </summary>
     /// <param name="grips">
@@ -56,6 +62,18 @@ public sealed class UmbrellaFollower(Window pet)
     public void Fold()
     {
         _canopy?.Fold();
+    }
+
+    /// <summary>
+    /// Lifts the canopy to the top of the topmost windows, if it is open. The pet is lifted right after it, so the canopy
+    /// stays just behind the pet.
+    /// </summary>
+    public void Raise()
+    {
+        if (OpenCanopy is { } canopy)
+        {
+            WindowMover.RaiseToTopmost(canopy);
+        }
     }
 
     /// <summary>
