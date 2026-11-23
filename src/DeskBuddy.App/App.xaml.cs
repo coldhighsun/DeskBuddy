@@ -61,6 +61,16 @@ public partial class App
     private static readonly TimeSpan QuitTimeout = TimeSpan.FromSeconds(10);
 
     /// <summary>
+    /// How long after start-up memory is first given back, by which time everything that start-up loaded has been used.
+    /// </summary>
+    private static readonly TimeSpan HeapFirstCollection = TimeSpan.FromSeconds(45);
+
+    /// <summary>
+    /// How often memory is given back while the application runs.
+    /// </summary>
+    private static readonly TimeSpan HeapCollectionInterval = TimeSpan.FromMinutes(5);
+
+    /// <summary>
     /// The directory the log files are written to; <see langword="null"/> until startup.
     /// </summary>
     private string? _logDirectory;
@@ -161,6 +171,11 @@ public partial class App
     /// Decodes the pictures the pet previews of the panel and the pet list of the tray menu show, once for both.
     /// </summary>
     private readonly PetPreviewFrames _previewFrames = new();
+
+    /// <summary>
+    /// Gives memory back to the system when the panel closes and now and then while the application is idle.
+    /// </summary>
+    private readonly HeapCompactor _heap = new();
 
     /// <summary>
     /// The installed pets as the tray menu and the settings tab show them; <see langword="null"/> until startup completes.
@@ -445,6 +460,9 @@ public partial class App
 
             // The panel's list of pets takes a moment to load; do it while nothing else needs the thread.
             _ = Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.ApplicationIdle, () => PreparePanelViewModel());
+
+            // Once start-up is over, and then every few minutes: also covers what a switch of pet lets go of.
+            _ = _heap.RunPeriodicallyAsync(HeapFirstCollection, HeapCollectionInterval, _updatesStopping.Token, logger);
         }
         catch (Exception ex) when (PetLoadFailure.Is(ex))
         {

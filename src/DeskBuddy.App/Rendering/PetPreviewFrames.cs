@@ -15,6 +15,11 @@ namespace DeskBuddy.App.Rendering;
 public sealed class PetPreviewFrames : IDisposable
 {
     /// <summary>
+    /// The longest edge in device-independent pixels a preview is shown at (the size of the picture on a card of the panel).
+    /// </summary>
+    internal const double PreviewDipEdge = 80;
+
+    /// <summary>
     /// How long <see cref="Dispose"/> waits for the worker thread to finish what it is doing.
     /// </summary>
     private static readonly TimeSpan WorkerShutdownTimeout = TimeSpan.FromSeconds(2);
@@ -56,6 +61,18 @@ public sealed class PetPreviewFrames : IDisposable
     private readonly Func<string, BitmapSource> _load;
 
     /// <summary>
+    /// The longest edge in pixels a picture is cut out with; a larger area is scaled down to it.
+    /// </summary>
+    private readonly int _maxEdge;
+
+    /// <summary>
+    /// The pictures that are to be cut out ahead of time, as the last <see cref="Retain"/> and the requests since named
+    /// them; <see langword="null"/> before the first <see cref="Retain"/>, when every picture is wanted. Guarded by
+    /// <see cref="_gate"/>.
+    /// </summary>
+    private HashSet<string>? _wanted;
+
+    /// <summary>
     /// The requests for pictures to be cut out ahead of time, which the worker thread takes one at a time.
     /// </summary>
     private readonly BlockingCollection<(IReadOnlyList<string> Paths, TaskCompletionSource Done)> _requests = [];
@@ -78,10 +95,21 @@ public sealed class PetPreviewFrames : IDisposable
     private Thread? _worker;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="PetPreviewFrames"/> class.
+    /// Initializes a new instance of the <see cref="PetPreviewFrames"/> class, sharp on the monitor with the largest
+    /// scaling that is connected now.
     /// </summary>
     public PetPreviewFrames()
-        : this(FrameImages.Load)
+        : this(FrameImages.Load, DisplayScale.Current())
+    {
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PetPreviewFrames"/> class that decodes image files in its own way,
+    /// for a display at 100 %.
+    /// </summary>
+    /// <param name="load">Decodes an image file.</param>
+    internal PetPreviewFrames(Func<string, BitmapSource> load)
+        : this(load, DisplayScale.Minimum)
     {
     }
 
@@ -89,11 +117,25 @@ public sealed class PetPreviewFrames : IDisposable
     /// Initializes a new instance of the <see cref="PetPreviewFrames"/> class that decodes image files in its own way.
     /// </summary>
     /// <param name="load">Decodes an image file.</param>
-    internal PetPreviewFrames(Func<string, BitmapSource> load)
+    /// <param name="displayScale">The scaling of the largest monitor (1 is 100 %) the pictures have to be sharp at.</param>
+    internal PetPreviewFrames(Func<string, BitmapSource> load, double displayScale)
     {
         ArgumentNullException.ThrowIfNull(load);
 
         _load = load;
+        _maxEdge = PreviewEdge(displayScale);
+    }
+
+    /// <summary>
+    /// Works out the longest edge in pixels of a preview picture: the size it is shown at, at the scaling of the monitor
+    /// with the largest scaling. Keeping the cell size of the atlas (a pet may draw it several times larger than it is
+    /// shown) would cost several times the memory for no visible gain.
+    /// </summary>
+    /// <param name="displayScale">The scaling of the largest monitor (1 is 100 %); kept between 1 and 3.</param>
+    /// <returns>The longest edge in pixels.</returns>
+    internal static int PreviewEdge(double displayScale)
+    {
+        return (int)Math.Ceiling(PreviewDipEdge * DisplayScale.Clamp(displayScale));
     }
 
     /// <summary>
@@ -138,6 +180,9 @@ public sealed class PetPreviewFrames : IDisposable
         {
             foreach (var path in paths.Distinct(StringComparer.OrdinalIgnoreCase))
             {
+                // Asking for a picture ahead of time is asking to keep it, after a Retain that did not name it.
+                _wanted?.Add(path);
+
                 if (_cache.TryGetValue(path, out var cached))
                 {
                     if (cached is not null)
@@ -184,6 +229,43 @@ public sealed class PetPreviewFrames : IDisposable
         }
 
         return done.Task;
+    }
+
+    /// <summary>
+    /// Forgets every picture that is not in the given set, so that the memory of the pictures that are no longer shown is
+    /// given back. A forgotten picture is simply cut out again if it is asked for. Pictures that could not be read are
+    /// forgotten too, as they are tried again anyway. Pictures that the worker has not cut out yet, because a request is
+    /// still queued or under way, and that are not in the set, are no longer cut out ahead of time, so that they do not
+    /// come back into the cache after this call; a later <see cref="PreloadAsync"/> that names them asks for them again.
+    /// </summary>
+    /// <param name="keep">The names of the pictures to keep.</param>
+    public void Retain(IEnumerable<string> keep)
+    {
+        ArgumentNullException.ThrowIfNull(keep);
+
+        var kept = new HashSet<string>(keep, StringComparer.OrdinalIgnoreCase);
+        lock (_gate)
+        {
+            _wanted = kept;
+            foreach (var path in _cache.Keys.Where(path => !kept.Contains(path)).ToList())
+            {
+                _cache.Remove(path);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets the number of pictures in the cache, failures included; for tests.
+    /// </summary>
+    internal int CachedPictureCount
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return _cache.Count;
+            }
+        }
     }
 
     /// <summary>
@@ -250,6 +332,12 @@ public sealed class PetPreviewFrames : IDisposable
                         break;
                     }
 
+                    // A request is not worth the decoding of an atlas if none of its pictures is wanted any more.
+                    if (!file.Any(IsWanted))
+                    {
+                        continue;
+                    }
+
                     // The atlas is held in a variable while its pictures are cut out, as the cache holds it only weakly and
                     // it could otherwise be collected, and decoded again, between two pictures.
                     var atlas = HoldFile(file.Key);
@@ -258,6 +346,12 @@ public sealed class PetPreviewFrames : IDisposable
                         if (_stopping)
                         {
                             break;
+                        }
+
+                        // Decoding the atlas takes long enough for a Retain to come in; what it did not keep is not cut out.
+                        if (!IsWanted(path))
+                        {
+                            continue;
                         }
 
                         // A picture that an earlier request, or the UI thread, has cut out in the meantime is not cut again.
@@ -274,6 +368,19 @@ public sealed class PetPreviewFrames : IDisposable
                 // Not handled here: the error is handed on to whoever awaits the task.
                 done.SetException(ex);
             }
+        }
+    }
+
+    /// <summary>
+    /// Tells whether a picture is still to be cut out ahead of time: it is, unless a <see cref="Retain"/> has left it out.
+    /// </summary>
+    /// <param name="path">The name of the picture.</param>
+    /// <returns><see langword="true"/> if the picture is wanted.</returns>
+    private bool IsWanted(string path)
+    {
+        lock (_gate)
+        {
+            return _wanted is null || _wanted.Contains(path);
         }
     }
 
@@ -324,7 +431,7 @@ public sealed class PetPreviewFrames : IDisposable
 
         try
         {
-            picture = FrameImages.Cut(path, LoadFile);
+            picture = FrameImages.Cut(path, LoadFile, _maxEdge);
         }
         catch (Exception ex) when (IsUnreadable(ex))
         {

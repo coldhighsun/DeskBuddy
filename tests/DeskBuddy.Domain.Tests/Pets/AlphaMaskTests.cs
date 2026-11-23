@@ -236,4 +236,100 @@ public class AlphaMaskTests
         mask.IsOpaque(0, 1).Should().BeFalse();
         mask.IsOpaque(1, 1).Should().BeTrue();
     }
+
+    /// <summary>
+    /// A larger image is reduced to a mask no longer than the limit, and a single opaque pixel is not lost in the
+    /// reduction.
+    /// </summary>
+    [Fact]
+    public void FromBgra32_LargerThanMaxEdge_ReducesButKeepsASinglePixel()
+    {
+        // Arrange: 8x8 image with one opaque pixel at (5, 2).
+        var pixels = new byte[8 * 8 * 4];
+        pixels[(((2 * 8) + 5) * 4) + 3] = 255;
+
+        // Act
+        var mask = AlphaMask.FromBgra32(8, 8, pixels, stride: 8 * 4, maxEdge: 4);
+
+        // Assert
+        mask.Width.Should().Be(4);
+        mask.Height.Should().Be(4);
+        mask.IsOpaqueAtNormalized(5.5 / 8, 2.5 / 8).Should().BeTrue();
+        mask.IsOpaqueAtNormalized(0.1, 0.1).Should().BeFalse();
+    }
+
+    /// <summary>
+    /// The reduction keeps the proportions of an image that is not square, and rounds up so no edge pixel is dropped.
+    /// </summary>
+    [Fact]
+    public void FromBgra32_NonSquareNotDivisible_KeepsProportionsAndEdges()
+    {
+        // Arrange: 9x5 image, only the last pixel (8, 4) opaque; the limit 4 makes blocks of 3.
+        var pixels = new byte[9 * 5 * 4];
+        pixels[(((4 * 9) + 8) * 4) + 3] = 255;
+
+        // Act
+        var mask = AlphaMask.FromBgra32(9, 5, pixels, stride: 9 * 4, maxEdge: 4);
+
+        // Assert
+        mask.Width.Should().Be(3);
+        mask.Height.Should().Be(2);
+        mask.IsOpaqueAtNormalized(0.99, 0.99).Should().BeTrue();
+    }
+
+    /// <summary>
+    /// An image that is within the limit is not reduced.
+    /// </summary>
+    [Fact]
+    public void FromBgra32_WithinMaxEdge_KeepsResolution()
+    {
+        // Arrange
+        byte[] pixels = [0, 0, 0, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255];
+
+        // Act
+        var mask = AlphaMask.FromBgra32(2, 2, pixels, stride: 8, maxEdge: 64);
+
+        // Assert
+        mask.Width.Should().Be(2);
+        mask.IsOpaque(1, 0).Should().BeFalse();
+        mask.IsOpaque(1, 1).Should().BeTrue();
+    }
+
+    /// <summary>
+    /// The top and bottom of the sprite are the same fractions after a reduction whose blocks line up with the sprite.
+    /// </summary>
+    [Fact]
+    public void FromBgra32_Reduced_KeepsTopAndBottomFractions()
+    {
+        // Arrange: 8x8 image, opaque rows 2..5.
+        var pixels = new byte[8 * 8 * 4];
+        for (var y = 2; y <= 5; y++)
+        {
+            for (var x = 0; x < 8; x++)
+            {
+                pixels[(((y * 8) + x) * 4) + 3] = 255;
+            }
+        }
+
+        // Act
+        var full = AlphaMask.FromBgra32(8, 8, pixels, stride: 8 * 4);
+        var reduced = AlphaMask.FromBgra32(8, 8, pixels, stride: 8 * 4, maxEdge: 4);
+
+        // Assert
+        reduced.TopOpaqueFraction().Should().Be(full.TopOpaqueFraction());
+        reduced.BottomOpaqueFraction().Should().Be(full.BottomOpaqueFraction());
+    }
+
+    /// <summary>
+    /// A limit that is not a size is a programming error.
+    /// </summary>
+    [Fact]
+    public void FromBgra32_NonPositiveMaxEdge_Throws()
+    {
+        // Act
+        var act = () => AlphaMask.FromBgra32(2, 2, new byte[16], stride: 8, maxEdge: 0);
+
+        // Assert
+        act.Should().Throw<ArgumentOutOfRangeException>();
+    }
 }

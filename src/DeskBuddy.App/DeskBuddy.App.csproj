@@ -19,6 +19,11 @@
       ReadyToRun was measured earlier and did not add anything on top of this.
     -->
     <TieredCompilation>false</TieredCompilation>
+    <!--
+      Concurrent (background) garbage collection off: it keeps an extra thread and extra heap bookkeeping for a pause
+      that a desktop pet, which allocates little, does not notice.
+    -->
+    <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
   </PropertyGroup>
 
   <ItemGroup>

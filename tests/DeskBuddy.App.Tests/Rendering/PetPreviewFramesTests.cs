@@ -652,15 +652,278 @@ public class PetPreviewFramesTests
     }
 
     /// <summary>
-    /// Writes an atlas of cells of 2x2 pixels in a grid, every pixel opaque.
+    /// A picture larger than the preview limit is scaled down to it, as a preview is shown small; the atlas itself is not
+    /// touched. The limit follows the scaling of the largest monitor.
+    /// </summary>
+    /// <param name="displayScale">The scaling of the largest monitor.</param>
+    /// <param name="expectedEdge">The expected longest edge of a preview picture.</param>
+    [Theory]
+    [InlineData(1.0, 80)]
+    [InlineData(1.25, 100)]
+    [InlineData(2.0, 160)]
+    [InlineData(3.0, 240)]
+    public void Get_CellLargerThanPreviewLimit_IsScaledDown(double displayScale, int expectedEdge)
+    {
+        var directory = Directory.CreateTempSubdirectory("deskbuddy-scaled");
+        try
+        {
+            StaThread.Run(() =>
+            {
+                // Arrange
+                var atlas = Path.Combine(directory.FullName, "atlas.png");
+                WriteGrid(atlas, columns: 1, rows: 1, cell: 400);
+                using var frames = new PetPreviewFrames(FrameImages.Load, displayScale);
+
+                // Act
+                var picture = (BitmapSource)frames.Get(FrameId.Create(atlas, 0, 0, 400, 400))!;
+
+                // Assert
+                picture.PixelWidth.Should().Be(expectedEdge);
+                picture.PixelHeight.Should().Be(expectedEdge);
+            });
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
+
+    /// <summary>
+    /// Retaining some pictures forgets the others: a kept picture is the same one afterwards, a forgotten one is cut out
+    /// again when it is asked for.
+    /// </summary>
+    [Fact]
+    public void Retain_SomePictures_ForgetsTheOthers()
+    {
+        var directory = Directory.CreateTempSubdirectory("deskbuddy-retain");
+        try
+        {
+            StaThread.Run(() =>
+            {
+                // Arrange
+                var atlas = Path.Combine(directory.FullName, "atlas.png");
+                WriteAtlas(atlas);
+                using var frames = new PetPreviewFrames();
+                var red = FrameId.Create(atlas, 0, 0, 2, 2);
+                var blue = FrameId.Create(atlas, 2, 0, 2, 2);
+                var redBefore = frames.Get(red);
+                var blueBefore = frames.Get(blue);
+
+                // Act
+                frames.Retain([red]);
+
+                // Assert
+                frames.Get(red).Should().BeSameAs(redBefore);
+                var blueAfter = frames.Get(blue);
+                blueAfter.Should().NotBeNull();
+                blueAfter.Should().NotBeSameAs(blueBefore);
+                FirstPixel(blueAfter!).Should().Be((255, 0, 0));
+            });
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
+
+    /// <summary>
+    /// Retaining nothing empties the cache, and the names are compared without regard to case, like the cache's own.
+    /// </summary>
+    [Fact]
+    public void Retain_NothingOrOtherCase_EmptiesOrKeeps()
+    {
+        var directory = Directory.CreateTempSubdirectory("deskbuddy-retain-case");
+        try
+        {
+            StaThread.Run(() =>
+            {
+                // Arrange
+                var atlas = Path.Combine(directory.FullName, "atlas.png");
+                WriteAtlas(atlas);
+                using var frames = new PetPreviewFrames();
+                var red = FrameId.Create(atlas, 0, 0, 2, 2);
+                var blue = FrameId.Create(atlas, 2, 0, 2, 2);
+                var redBefore = frames.Get(red);
+                var blueBefore = frames.Get(blue);
+
+                // Act
+                frames.Retain([red.ToUpperInvariant()]);
+
+                // Assert
+                frames.Get(red).Should().BeSameAs(redBefore);
+                frames.Get(blue).Should().NotBeSameAs(blueBefore);
+                frames.Retain([]);
+                frames.Get(red).Should().NotBeSameAs(redBefore);
+            });
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
+
+    /// <summary>
+    /// Retaining while another thread cuts pictures out does not fail.
+    /// </summary>
+    [Fact]
+    public async Task Retain_WhilePreloading_DoesNotFail()
+    {
+        // Arrange
+        var directory = Directory.CreateTempSubdirectory("deskbuddy-retain-race");
+        try
+        {
+            var atlas = Path.Combine(directory.FullName, "atlas.png");
+            StaThread.Run(() => WriteGrid(atlas, columns: 8, rows: 8));
+            var ids = Enumerable.Range(0, 64).Select(i => FrameId.Create(atlas, i % 8 * 2, i / 8 * 2, 2, 2)).ToList();
+            using var frames = new PetPreviewFrames();
+
+            // Act
+            var preload = frames.PreloadAsync(ids);
+            for (var i = 0; i < 50; i++)
+            {
+                frames.Retain(ids.Take(i % 8));
+            }
+
+            // Assert
+            await preload;
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
+
+    /// <summary>
+    /// A request that is under way when a Retain comes in does not put back the pictures the Retain did not keep: the
+    /// worker leaves them out, so the memory that was given back stays given back.
+    /// </summary>
+    [Fact]
+    public async Task Retain_WhileARequestIsUnderWay_PicturesLeftOutAreNotCutOut()
+    {
+        // Arrange
+        var directory = Directory.CreateTempSubdirectory("deskbuddy-retain-queued");
+        try
+        {
+            var atlas = Path.Combine(directory.FullName, "atlas.png");
+            StaThread.Run(() => WriteAtlas(atlas));
+            var red = FrameId.Create(atlas, 0, 0, 2, 2);
+            var blue = FrameId.Create(atlas, 2, 0, 2, 2);
+            using var entered = new ManualResetEventSlim();
+            using var release = new ManualResetEventSlim();
+            using var frames = new PetPreviewFrames(path =>
+            {
+                entered.Set();
+                release.Wait(TimeSpan.FromSeconds(10));
+                return FrameImages.Load(path);
+            });
+            var preload = frames.PreloadAsync([red, blue]);
+            entered.Wait(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken).Should().BeTrue("the worker is decoding the atlas");
+
+            // Act
+            frames.Retain([red]);
+            release.Set();
+            await preload;
+
+            // Assert
+            frames.CachedPictureCount.Should().Be(1);
+            frames.Get(red).Should().NotBeNull();
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
+
+    /// <summary>
+    /// A request whose pictures are all left out by a Retain does not even decode the atlas.
+    /// </summary>
+    [Fact]
+    public async Task Retain_EverythingOfAQueuedRequestLeftOut_TheAtlasIsNotDecoded()
+    {
+        // Arrange
+        var directory = Directory.CreateTempSubdirectory("deskbuddy-retain-skip");
+        try
+        {
+            var first = Path.Combine(directory.FullName, "first.png");
+            var second = Path.Combine(directory.FullName, "second.png");
+            StaThread.Run(() =>
+            {
+                WriteAtlas(first);
+                WriteAtlas(second);
+            });
+            var inFirst = FrameId.Create(first, 0, 0, 2, 2);
+            var inSecond = FrameId.Create(second, 0, 0, 2, 2);
+            using var entered = new ManualResetEventSlim();
+            using var release = new ManualResetEventSlim();
+            List<string> decoded = [];
+            using var frames = new PetPreviewFrames(path =>
+            {
+                lock (decoded)
+                {
+                    decoded.Add(Path.GetFileName(path));
+                }
+
+                entered.Set();
+                release.Wait(TimeSpan.FromSeconds(10));
+                return FrameImages.Load(path);
+            });
+            var preload = frames.PreloadAsync([inFirst, inSecond]);
+            entered.Wait(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken).Should().BeTrue();
+
+            // Act
+            frames.Retain([]);
+            release.Set();
+            await preload;
+
+            // Assert
+            decoded.Should().Equal("first.png");
+            frames.CachedPictureCount.Should().Be(0);
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
+
+    /// <summary>
+    /// A picture that a Retain left out is wanted again once a later request names it.
+    /// </summary>
+    [Fact]
+    public async Task PreloadAsync_AfterARetainThatLeftItOut_CutsItOutAgain()
+    {
+        // Arrange
+        var directory = Directory.CreateTempSubdirectory("deskbuddy-retain-again");
+        try
+        {
+            var atlas = Path.Combine(directory.FullName, "atlas.png");
+            StaThread.Run(() => WriteAtlas(atlas));
+            var red = FrameId.Create(atlas, 0, 0, 2, 2);
+            using var frames = new PetPreviewFrames();
+            frames.Retain([]);
+
+            // Act
+            await frames.PreloadAsync([red]);
+
+            // Assert
+            frames.CachedPictureCount.Should().Be(1);
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
+
+    /// <summary>
+    /// Writes an atlas of square cells in a grid, every pixel opaque.
     /// </summary>
     /// <param name="path">Where to write it.</param>
     /// <param name="columns">The number of cells in a row.</param>
     /// <param name="rows">The number of rows of cells.</param>
-    private static void WriteGrid(string path, int columns, int rows)
+    /// <param name="cell">The width and height of a cell in pixels.</param>
+    private static void WriteGrid(string path, int columns, int rows, int cell = 2)
     {
-        var width = columns * 2;
-        var height = rows * 2;
+        var width = columns * cell;
+        var height = rows * cell;
         var pixels = new byte[width * height * 4];
         Array.Fill(pixels, (byte)200);
         var bitmap = BitmapSource.Create(width, height, 96, 96, PixelFormats.Bgra32, null, pixels, width * 4);
