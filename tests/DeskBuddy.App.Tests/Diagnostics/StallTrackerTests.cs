@@ -92,6 +92,97 @@ public sealed class StallTrackerTests
     }
 
     /// <summary>
+    /// A stall shorter than the severe threshold is not severe, however long it is past the ordinary threshold.
+    /// </summary>
+    [Fact]
+    public void CheckSevere_BeforeSevereThreshold_ReportsNothing()
+    {
+        // Arrange
+        var tracker = new StallTracker(Threshold, TimeSpan.FromSeconds(5));
+        tracker.TryBeginProbe(Start);
+
+        // Act
+        var severe = tracker.CheckSevere(Start.AddMilliseconds(4999));
+
+        // Assert
+        severe.Should().BeNull();
+    }
+
+    /// <summary>
+    /// A probe that waits for the severe threshold is reported once, however often it is checked.
+    /// </summary>
+    [Fact]
+    public void CheckSevere_PastSevereThreshold_ReportsOnce()
+    {
+        // Arrange
+        var tracker = new StallTracker(Threshold, TimeSpan.FromSeconds(5));
+        tracker.TryBeginProbe(Start);
+
+        // Act
+        var first = tracker.CheckSevere(Start.AddSeconds(5));
+        var second = tracker.CheckSevere(Start.AddSeconds(9));
+
+        // Assert
+        first.Should().Be(TimeSpan.FromSeconds(5));
+        second.Should().BeNull();
+    }
+
+    /// <summary>
+    /// Without a threshold of its own the severe stall starts at the default.
+    /// </summary>
+    [Fact]
+    public void CheckSevere_WithoutSevereThreshold_UsesTheDefault()
+    {
+        // Arrange
+        var tracker = new StallTracker(Threshold);
+        tracker.TryBeginProbe(Start);
+
+        // Act
+        var before = tracker.CheckSevere(Start + StallTracker.DefaultSevereThreshold - TimeSpan.FromMilliseconds(1));
+        var at = tracker.CheckSevere(Start + StallTracker.DefaultSevereThreshold);
+
+        // Assert
+        before.Should().BeNull();
+        at.Should().Be(StallTracker.DefaultSevereThreshold);
+    }
+
+    /// <summary>
+    /// Once the thread has answered, the next severe stall is reported again.
+    /// </summary>
+    [Fact]
+    public void CheckSevere_AfterAnswer_ReportsTheNextStall()
+    {
+        // Arrange
+        var tracker = new StallTracker(Threshold, TimeSpan.FromSeconds(5));
+        tracker.TryBeginProbe(Start);
+        tracker.CheckSevere(Start.AddSeconds(6)).Should().NotBeNull();
+        tracker.Answer(Start.AddSeconds(7));
+        tracker.TryBeginProbe(Start.AddSeconds(7));
+
+        // Act
+        var severe = tracker.CheckSevere(Start.AddSeconds(12));
+
+        // Assert
+        severe.Should().Be(TimeSpan.FromSeconds(5));
+    }
+
+    /// <summary>
+    /// Nothing is severe when no probe is outstanding.
+    /// </summary>
+    [Fact]
+    public void CheckSevere_WithoutProbe_ReportsNothing()
+    {
+        // Arrange
+        var tracker = new StallTracker(Threshold);
+
+        // Act
+        var severe = tracker.CheckSevere(Start.AddHours(1));
+
+        // Assert
+        severe.Should().BeNull();
+    }
+
+    /// <summary>
     /// Nothing is reported when no probe is outstanding.
     /// </summary>
     [Fact]

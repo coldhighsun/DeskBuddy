@@ -134,6 +134,7 @@ public static partial class WindowMover
     public static void MoveToPixels(Window window, int x, int y)
     {
         var handle = new WindowInteropHelper(window).EnsureHandle();
+        var startedAt = Win32Timing.Start();
         SetWindowPos(
             handle,
             0,
@@ -142,6 +143,7 @@ public static partial class WindowMover
             0,
             0,
             SwpNoSize | SwpNoZOrder | SwpNoRedraw | SwpNoActivate | SwpNoOwnerZOrder);
+        Win32Timing.Stop("SetWindowPos", startedAt);
     }
 
     /// <summary>

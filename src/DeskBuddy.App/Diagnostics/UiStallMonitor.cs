@@ -42,6 +42,16 @@ public sealed class UiStallMonitor : IDisposable
     private readonly Func<string> _describe;
 
     /// <summary>
+    /// What the watched thread is called in the log.
+    /// </summary>
+    private readonly string _name;
+
+    /// <summary>
+    /// Writes a dump when a stall is severe, or <see langword="null"/> to take none.
+    /// </summary>
+    private readonly StallDumpWriter? _dumpWriter;
+
+    /// <summary>
     /// Counts probes and decides when a stall is to be reported.
     /// </summary>
     private readonly StallTracker _tracker = new(StallThreshold);
@@ -81,12 +91,26 @@ public sealed class UiStallMonitor : IDisposable
     /// <param name="describe">
     /// Describes what the application is doing, for the log; it is called on the UI thread.
     /// </param>
-    public UiStallMonitor(Dispatcher dispatcher, ILogger logger, TimeProvider time, Func<string> describe)
+    /// <param name="dumpWriter">
+    /// Writes a dump of the process when the UI thread has been stuck for long; <see langword="null"/> to take none.
+    /// </param>
+    /// <param name="name">
+    /// What the thread is called in the log: "UI thread" for the application's, "pet thread" for the pet's.
+    /// </param>
+    public UiStallMonitor(
+        Dispatcher dispatcher,
+        ILogger logger,
+        TimeProvider time,
+        Func<string> describe,
+        StallDumpWriter? dumpWriter = null,
+        string name = "UI thread")
     {
         _dispatcher = dispatcher;
         _logger = logger;
         _time = time;
         _describe = describe;
+        _dumpWriter = dumpWriter;
+        _name = name;
     }
 
     /// <summary>
@@ -94,7 +118,7 @@ public sealed class UiStallMonitor : IDisposable
     /// </summary>
     public void Start()
     {
-        _thread = new Thread(Watch) { IsBackground = true, Name = "UI stall monitor" };
+        _thread = new Thread(Watch) { IsBackground = true, Name = $"{_name} stall monitor" };
         _thread.Start();
     }
 
@@ -126,10 +150,24 @@ public sealed class UiStallMonitor : IDisposable
             if (_tracker.CheckStalled(now) is { } waited)
             {
                 _logger.LogWarning(
-                    "The UI thread has not answered for {WaitedMs:F0} ms. What it was doing when it last answered: {LastKnown}. Since the probe: {Pressure}",
+                    "The {Thread} has not answered for {WaitedMs:F0} ms. What it was doing when it last answered: {LastKnown}. Since the probe: {Pressure}",
+                    _name,
                     waited.TotalMilliseconds,
                     _lastKnown,
                     DescribePressure(now));
+            }
+
+            if (_dumpWriter is not null && _tracker.CheckSevere(now) is { } severe)
+            {
+                var path = _dumpWriter.TryWrite();
+                if (path is not null)
+                {
+                    _logger.LogWarning(
+                        "The {Thread} has not answered for {WaitedMs:F0} ms; a dump of the process was written to {Path}.",
+                        _name,
+                        severe.TotalMilliseconds,
+                        path);
+                }
             }
         }
     }
@@ -146,7 +184,8 @@ public sealed class UiStallMonitor : IDisposable
         if (_tracker.Answer(now) is { } waited)
         {
             _logger.LogWarning(
-                "The UI thread answered again after {WaitedMs:F0} ms. What it is doing now: {State}. Since the probe: {Pressure}",
+                "The {Thread} answered again after {WaitedMs:F0} ms. What it is doing now: {State}. Since the probe: {Pressure}",
+                _name,
                 waited.TotalMilliseconds,
                 state,
                 DescribePressure(now));
