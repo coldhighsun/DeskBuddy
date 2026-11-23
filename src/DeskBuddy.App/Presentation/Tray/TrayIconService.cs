@@ -72,9 +72,9 @@ public sealed partial class TrayIconService : IDisposable
     private bool _disposed;
 
     /// <summary>
-    /// The brain whose visibility the menu controls.
+    /// What shows and hides the pet, and says whether it is hidden.
     /// </summary>
-    private readonly PetBrain _brain;
+    private readonly IPetVisibilityControl _brain;
 
     /// <summary>
     /// Opens the panel window.
@@ -130,7 +130,7 @@ public sealed partial class TrayIconService : IDisposable
     /// <summary>
     /// Initializes a new instance of the <see cref="TrayIconService"/> class and shows the icon.
     /// </summary>
-    /// <param name="brain">The brain whose visibility the menu controls.</param>
+    /// <param name="brain">What shows and hides the pet, and says whether it is hidden.</param>
     /// <param name="openPanel">Opens the panel window; called from the menu and on double-click of the icon.</param>
     /// <param name="onExit">Callback invoked when the user chooses Exit.</param>
     /// <param name="settings">The settings, which store the pet and its size.</param>
@@ -142,7 +142,7 @@ public sealed partial class TrayIconService : IDisposable
     /// Reports what went wrong when the pets could not be listed or a choice could not be saved.
     /// </param>
     internal TrayIconService(
-        PetBrain brain,
+        IPetVisibilityControl brain,
         Action<PanelTab?> openPanel,
         Action onExit,
         SettingsService settings,

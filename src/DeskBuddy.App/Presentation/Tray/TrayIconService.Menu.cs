@@ -83,7 +83,7 @@ public sealed partial class TrayIconService
         var settings = _settings.Current;
         return new TrayMenuState(settings.PetName,
             settings.Size,
-            _brain.Visibility.IsManuallyHidden,
+            _brain.IsManuallyHidden,
             _pets.Version,
             _updates is { CanInstall: true, Available: { } found } ? found.Version.ToString() : null,
             Strings.Current.Name);

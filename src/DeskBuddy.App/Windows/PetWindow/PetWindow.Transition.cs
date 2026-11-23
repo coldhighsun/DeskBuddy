@@ -30,6 +30,28 @@ public partial class PetWindow
         IsVisible && !_transitioning && !_pressed && AutoSwitchPolicy.CanSwitchIn(_shownState);
 
     /// <summary>
+    /// What <see cref="CanAutoSwitch"/> was when the window last changed in a way that matters to it. A field that any
+    /// thread may read, because the automatic pet change asks from the application's thread and the window's own
+    /// properties may be read only from the window's.
+    /// </summary>
+    private volatile bool _autoSwitchAllowed;
+
+    /// <summary>
+    /// Gets a value indicating whether the pet could be changed for another one by itself, as the window last knew. Safe to
+    /// read from any thread.
+    /// </summary>
+    public bool AutoSwitchAllowed => _autoSwitchAllowed;
+
+    /// <summary>
+    /// Writes <see cref="CanAutoSwitch"/> where <see cref="AutoSwitchAllowed"/> reads it. Call after anything that changes
+    /// it: the state shown, a press, an animation beginning or ending, the pet being shown or hidden.
+    /// </summary>
+    private void PublishAutoSwitch()
+    {
+        _autoSwitchAllowed = CanAutoSwitch;
+    }
+
+    /// <summary>
     /// Lets the pet on screen leave: it stops where it is and the animation of the user's choice takes it away. The new pet
     /// takes its place in <see cref="SetPet"/>, which also plays the second part of the animation.
     /// </summary>
@@ -49,6 +71,7 @@ public partial class PetWindow
         }
 
         _transitioning = true;
+        PublishAutoSwitch();
         BecomeIdle();
         _bubble?.Hide();
         _session = new EffectSession(this, SpriteHost, effect, CurrentEffectLayout, () => SpriteImage.Source, () => FlipTransform.ScaleX < 0);
@@ -135,6 +158,7 @@ public partial class PetWindow
         session?.Close();
         RestorePet();
         _transitioning = false;
+        PublishAutoSwitch();
     }
 
     /// <summary>
@@ -152,6 +176,7 @@ public partial class PetWindow
     private void EndTransition()
     {
         _transitioning = false;
+        PublishAutoSwitch();
         OnMessageChanged(this, EventArgs.Empty);
     }
 

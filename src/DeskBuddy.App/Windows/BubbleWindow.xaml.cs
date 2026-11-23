@@ -53,6 +53,8 @@ public partial class BubbleWindow : Window
     /// </summary>
     public BubbleWindow()
     {
+        // Its colors and button styles come from the styles of the thread this window lives on.
+        PetThreadTheme.Apply(this);
         InitializeComponent();
 
         SourceInitialized += OnSourceInitialized;

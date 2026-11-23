@@ -35,6 +35,16 @@ public partial class PetWindow
     /// <param name="state">The state to show.</param>
     private void ApplyState(PetState state)
     {
+        ApplyStateCore(state);
+        PublishAutoSwitch();
+    }
+
+    /// <summary>
+    /// Does the work of <see cref="ApplyState"/>.
+    /// </summary>
+    /// <param name="state">The state to show.</param>
+    private void ApplyStateCore(PetState state)
+    {
         if (state == _shownState)
         {
             return;
@@ -138,6 +148,8 @@ public partial class PetWindow
     {
         if (IsVisible)
         {
+            // A walk, fall or crawl starts from a work area that is read afresh.
+            _moveTicksSinceWorkAreaRefresh = 0;
             _moveWatch.Restart();
             _moveTimer.Start();
         }
@@ -196,6 +208,8 @@ public partial class PetWindow
 
             Hide();
         }
+
+        PublishAutoSwitch();
     }
 
     /// <summary>

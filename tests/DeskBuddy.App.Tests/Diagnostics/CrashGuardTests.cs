@@ -36,6 +36,27 @@ public sealed class CrashGuardTests
     /// A single error is survived and the user is told.
     /// </summary>
     [Fact]
+    public void HandleUiException_FromManyThreadsAtOnce_CountsEveryErrorOnce()
+    {
+        // Arrange: the application's thread and the pet's thread both report errors to the same guard.
+        var guard = CreateGuard();
+        var carriedOn = 0;
+
+        // Act
+        Parallel.For(0, 200, _ =>
+        {
+            if (guard.HandleUiException(new InvalidOperationException()))
+            {
+                Interlocked.Increment(ref carriedOn);
+            }
+        });
+
+        // Assert: the first four are survived, every one after the fifth is the burst that ends the process.
+        carriedOn.Should().Be(4);
+        _notices.Should().Be(1);
+    }
+
+    [Fact]
     public void HandleUiException_FirstError_CarriesOnAndNotifies()
     {
         // Arrange

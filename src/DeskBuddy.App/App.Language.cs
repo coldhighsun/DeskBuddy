@@ -70,7 +70,7 @@ public partial class App
         }
 
         _tray?.RefreshLanguage();
-        _petWindow?.RefreshLanguage();
+        _petHost?.Post(window => window.RefreshLanguage());
     }
 
     /// <summary>

@@ -40,18 +40,38 @@ public partial class PetWindow
             return;
         }
 
+        var bubble = EnsureBubble();
+        bubble.SetContent(MessagePresenter.Present(message));
+        PositionBubble(bubble);
+        if (!bubble.IsVisible)
+        {
+            bubble.Show();
+        }
+    }
+
+    /// <summary>
+    /// Gets the speech bubble, making it if it does not exist yet.
+    /// </summary>
+    /// <returns>The bubble, not necessarily shown.</returns>
+    private BubbleWindow EnsureBubble()
+    {
         if (_bubble is null)
         {
             _bubble = new BubbleWindow();
             _bubble.ActionInvoked += OnBubbleActionInvoked;
         }
 
-        _bubble.SetContent(MessagePresenter.Present(message));
-        PositionBubble(_bubble);
-        if (!_bubble.IsVisible)
-        {
-            _bubble.Show();
-        }
+        return _bubble;
+    }
+
+    /// <summary>
+    /// Makes the speech bubble and its native window while nothing else needs the thread, so that the first click on the
+    /// pet, which shows a remark, does not have to build a window in the middle of handling the mouse.
+    /// </summary>
+    private void PrepareBubble()
+    {
+        var bubble = EnsureBubble();
+        _ = new WindowInteropHelper(bubble).EnsureHandle();
     }
 
     /// <summary>
