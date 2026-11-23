@@ -205,6 +205,8 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
         ScenarioSwitches switches,
         PetSize size)
     {
+        // The tooltip of the pet reads its style from the styles of the thread this window lives on.
+        PetThreadTheme.Apply(this);
         InitializeComponent();
         _umbrella = new UmbrellaFollower(this);
 
@@ -243,6 +245,11 @@ public partial class PetWindow : Window, IScreenEdges, IPlacementTarget
             _animationTimer.Start();
             _brainTimer.Start();
             UpdatePointerTimer();
+
+            PublishAutoSwitch();
+
+            // The bubble is built when nothing else needs the thread, not at the first click.
+            Dispatcher.BeginInvoke(DispatcherPriority.ApplicationIdle, PrepareBubble);
         };
         Closed += (_, _) =>
         {

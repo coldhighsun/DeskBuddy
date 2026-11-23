@@ -42,6 +42,11 @@ public sealed class CrashGuard
     private readonly Action _flushLogs;
 
     /// <summary>
+    /// Guards the record of the recent errors, which the two UI threads (the application's and the pet's) both add to.
+    /// </summary>
+    private readonly Lock _gate = new();
+
+    /// <summary>
     /// When the recent UI-thread errors happened.
     /// </summary>
     private readonly Queue<DateTimeOffset> _recent = new();
@@ -76,25 +81,33 @@ public sealed class CrashGuard
     /// </returns>
     public bool HandleUiException(Exception exception)
     {
-        var now = _time.GetUtcNow();
-        _recent.Enqueue(now);
-        while (_recent.Count > 0 && now - _recent.Peek() > Window)
+        bool notify;
+        lock (_gate)
         {
-            _recent.Dequeue();
-        }
+            var now = _time.GetUtcNow();
+            _recent.Enqueue(now);
+            while (_recent.Count > 0 && now - _recent.Peek() > Window)
+            {
+                _recent.Dequeue();
+            }
 
-        if (_recent.Count >= MaxErrorsInWindow)
-        {
-            _logger.LogCritical(exception, "Repeated unhandled errors on the UI thread; the application will exit.");
-            _flushLogs();
-            return false;
+            if (_recent.Count >= MaxErrorsInWindow)
+            {
+                _logger.LogCritical(exception, "Repeated unhandled errors on the UI thread; the application will exit.");
+                _flushLogs();
+                return false;
+            }
+
+            notify = _lastNotice is not { } last || now - last >= NoticeInterval;
+            if (notify)
+            {
+                _lastNotice = now;
+            }
         }
 
         _logger.LogError(exception, "Unhandled error on the UI thread.");
-
-        if (_lastNotice is not { } last || now - last >= NoticeInterval)
+        if (notify)
         {
-            _lastNotice = now;
             _notifyUser();
         }
 

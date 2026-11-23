@@ -155,6 +155,27 @@ public sealed class ThemeService : IDisposable
         SystemEvents.UserPreferenceChanged += OnUserPreferenceChanged;
     }
 
+    /// <summary>
+    /// Raised, on the UI thread, when another palette has been put in the application resources. Windows that live on a
+    /// thread of their own and so cannot read those resources take the palette over from it.
+    /// </summary>
+    public event EventHandler<ThemePalette>? PaletteChanged;
+
+    /// <summary>
+    /// Gets the palette currently shown.
+    /// </summary>
+    public ThemePalette CurrentPalette => _palette ?? ThemePalette.Light;
+
+    /// <summary>
+    /// Gets where the color dictionary of a palette is.
+    /// </summary>
+    /// <param name="palette">The palette.</param>
+    /// <returns>The address of the dictionary in the assembly of the application.</returns>
+    public static Uri ColorsUri(ThemePalette palette)
+    {
+        return new Uri($"{ColorsUriPrefix}{ThemeResolver.ColorsFile(palette)}");
+    }
+
     /// <inheritdoc />
     public void Dispose()
     {
@@ -264,7 +285,7 @@ public sealed class ThemeService : IDisposable
 
         _palette = palette;
 
-        var colors = new ResourceDictionary { Source = new Uri($"{ColorsUriPrefix}{ThemeResolver.ColorsFile(palette)}") };
+        var colors = new ResourceDictionary { Source = ColorsUri(palette) };
         var merged = _applicationResources.MergedDictionaries;
         if (_colors is not null)
         {
@@ -273,6 +294,7 @@ public sealed class ThemeService : IDisposable
 
         merged.Add(colors);
         _colors = colors;
+        PaletteChanged?.Invoke(this, palette);
     }
 
     /// <summary>

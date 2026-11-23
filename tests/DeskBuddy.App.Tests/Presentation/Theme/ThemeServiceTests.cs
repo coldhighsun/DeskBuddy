@@ -172,6 +172,56 @@ public class ThemeServiceTests
     /// only when that theme is chosen.
     /// </summary>
     [Fact]
+    public void SettingsChanged_NewTheme_RaisesPaletteChangedWithThePalette()
+    {
+        StaThread.Run(() =>
+        {
+            // Arrange
+            using var fixture = new Fixture(AppTheme.Dark);
+            var palettes = new List<ThemePalette>();
+            fixture.Service.PaletteChanged += (_, palette) => palettes.Add(palette);
+
+            // Act
+            fixture.ChangeTheme(AppTheme.Light);
+
+            // Assert
+            palettes.Should().Equal(ThemePalette.Light);
+            fixture.Service.CurrentPalette.Should().Be(ThemePalette.Light);
+        });
+    }
+
+    [Fact]
+    public void SettingsChanged_ThemeUnchanged_DoesNotRaisePaletteChanged()
+    {
+        StaThread.Run(() =>
+        {
+            // Arrange
+            using var fixture = new Fixture(AppTheme.Dark);
+            var raised = 0;
+            fixture.Service.PaletteChanged += (_, _) => raised++;
+
+            // Act
+            fixture.Change(settings => settings with { Size = PetSize.Large });
+
+            // Assert
+            raised.Should().Be(0);
+        });
+    }
+
+    [Theory]
+    [InlineData(ThemePalette.Light, "Colors.Light.xaml")]
+    [InlineData(ThemePalette.Dark, "Colors.Dark.xaml")]
+    [InlineData(ThemePalette.HighContrast, "Colors.HighContrast.xaml")]
+    public void ColorsUri_EachPalette_PointsAtItsDictionaryInTheAssembly(ThemePalette palette, string file)
+    {
+        // Act
+        var uri = ThemeService.ColorsUri(palette);
+
+        // Assert
+        uri.OriginalString.Should().Be($"{ThemesPrefix}{file}");
+    }
+
+    [Fact]
     public void ColorFiles_LightDarkAndHighContrast_DefineTheSameKeys()
     {
         StaThread.Run(() =>

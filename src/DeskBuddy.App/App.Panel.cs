@@ -33,7 +33,7 @@ public partial class App
     /// <returns>The view model, or <see langword="null"/> if the application is not up yet.</returns>
     private PanelViewModel? PreparePanelViewModel()
     {
-        if (_panelViewModel is null && _host is not null && _petWindow is not null && _bossKey is not null && _petSwitcher is not null)
+        if (_panelViewModel is null && _host is not null && _petHost is not null && _bossKey is not null && _petSwitcher is not null)
         {
             var services = _host.Services;
             _panelViewModel = new PanelViewModel(

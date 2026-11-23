@@ -81,6 +81,11 @@ public partial class App
     private UiStallMonitor? _stallMonitor;
 
     /// <summary>
+    /// Logs when the thread of the pet stops answering; <see langword="null"/> until the pet window is up.
+    /// </summary>
+    private UiStallMonitor? _petStallMonitor;
+
+    /// <summary>
     /// Guard holding the single-instance mutex; <see langword="null"/> until startup.
     /// </summary>
     private SingleInstanceGuard? _instanceGuard;
@@ -107,9 +112,15 @@ public partial class App
     private Microsoft.Win32.SessionSwitchEventHandler? _sessionSwitched;
 
     /// <summary>
-    /// The pet window; <see langword="null"/> until startup completes.
+    /// The thread the pet window (and with it the umbrella and the speech bubble) lives on; <see langword="null"/> until
+    /// startup completes.
     /// </summary>
-    private PetWindow? _petWindow;
+    private UiThreadHost<PetWindow>? _petHost;
+
+    /// <summary>
+    /// Hides and shows the pet on behalf of the tray icon and the boss key; <see langword="null"/> until startup completes.
+    /// </summary>
+    private PetVisibilityControl? _petVisibility;
 
     /// <summary>
     /// The panel window; <see langword="null"/> until it is first opened.
@@ -263,6 +274,9 @@ public partial class App
 
         var logger = _host.Services.GetRequiredService<ILogger<App>>();
         StartupDiagnostics.LowerPriority(logger);
+
+        // A pet that stalls while the system is busy must not be ended by the next click on its ghost.
+        ProcessGhosting.TryDisable(logger);
         await InitializeUserDataAsync(logger);
 
         // The language must be set before any window or the tray icon reads a string.
@@ -299,56 +313,89 @@ public partial class App
 
             var brain = _host.Services.GetRequiredService<PetBrain>();
             brain.SensorTimed = _host.Services.GetRequiredService<SlowSensorLog>().Report;
+            var settingsService = _host.Services.GetRequiredService<SettingsService>();
+            Win32Timing.Timed = new SlowCallLog(logger).Report;
+            var stallDumps = new StallDumpWriter(Path.Combine(dataDirectory, "dumps"), keep: 3, TimeProvider.System, logger);
+
+            // The pet, its umbrella and its speech bubble live on a thread of their own, so that what blocks that thread
+            // (Windows can make a window call wait for a long time when the system is busy) stops the pet and nothing else.
+            // The brain belongs to that thread too: the rest of the application reaches it through the host only.
+            PetWindow? petWindow = null;
+            var petHost = new UiThreadHost<PetWindow>(
+                "Pet UI",
+                () =>
+                {
+                    var window = new PetWindow(
+                        pet,
+                        petFrames,
+                        brain,
+                        _host.Services.GetRequiredService<PetBehaviorOptions>(),
+                        tab => Dispatcher.BeginInvoke(() => OpenPanel(tab)),
+                        _host.Services.GetRequiredService<DockedMovement>(),
+                        _host.Services.GetRequiredService<ScenarioSwitches>(),
+                        settingsService.Current.Size);
+                    window.TickTimed = new SlowTickLog(logger).Report;
+                    window.Show();
+                    petWindow = window;
+                    return window;
+                },
+                exception => _crashGuard!.HandleUiException(exception),
+                () => PetThreadTheme.Install(themeService.CurrentPalette));
+            _petHost = petHost;
+            await petHost.Started;
+
+            // The pet's windows have colors of their own, made on their thread; they follow the palette from here on.
+            petHost.Post(() => PetThreadTheme.Current?.Show(themeService.CurrentPalette));
+            themeService.PaletteChanged += (_, palette) => petHost.Post(() => PetThreadTheme.Current?.Show(palette));
+
+            var petVisibility = new PetVisibilityControl(action => petHost.Post(action), brain, Dispatcher);
+            _petVisibility = petVisibility;
             _sessionSwitched = (_, args) =>
             {
                 if (SessionLock.IsLocked(args.Reason) is { } locked)
                 {
-                    // Raised on a thread of its own.
-                    Dispatcher.BeginInvoke(() => brain.SetSessionLocked(locked));
+                    // Raised on a thread of its own; the request is handed over to the pet's thread.
+                    petVisibility.SetSessionLocked(locked);
                 }
             };
             Microsoft.Win32.SystemEvents.SessionSwitch += _sessionSwitched;
-            _petWindow = new PetWindow(
-                pet,
-                petFrames,
-                brain,
-                _host.Services.GetRequiredService<PetBehaviorOptions>(),
-                OpenPanel,
-                _host.Services.GetRequiredService<DockedMovement>(),
-                _host.Services.GetRequiredService<ScenarioSwitches>(),
-                _host.Services.GetRequiredService<SettingsService>().Current.Size);
-            _petWindow.Show();
-            var petWindow = _petWindow;
-            petWindow.TickTimed = new SlowTickLog(logger).Report;
 
             // A full-screen program that came or went is acted on at once, not at the next tick of the brain. The detector
             // raises this on a thread of the thread pool, and only when the level really changed.
             _host.Services.GetRequiredService<BackgroundFullscreenDetector>().Changed +=
-                (_, _) => petWindow.Dispatcher.BeginInvoke(petWindow.TickBrainNow);
+                (_, _) => petHost.Post(window => window.TickBrainNow());
             _stallMonitor = new UiStallMonitor(
                 Dispatcher,
                 logger,
                 TimeProvider.System,
-                () => $"pet window: {petWindow.Describe()}; panel visible: {_panel?.IsVisible == true}");
+                () => $"panel visible: {_panel?.IsVisible == true}",
+                stallDumps);
             _stallMonitor.Start();
-            _host.Services.GetRequiredService<SettingsService>().Changed +=
-                (_, settings) => petWindow.Dispatcher.BeginInvoke(() => petWindow.SetSize(settings.Size));
+            _petStallMonitor = new UiStallMonitor(
+                petHost.Dispatcher,
+                logger,
+                TimeProvider.System,
+                () => $"pet window: {petWindow?.Describe()}",
+                stallDumps,
+                "pet thread");
+            _petStallMonitor.Start();
+            settingsService.Changed += (_, settings) => petHost.Post(window => window.SetSize(settings.Size));
 
             // Decoding all the pictures of a pet takes long enough to freeze the UI, so it is done on a thread of its own.
             var preparedFrames = new ConditionalWeakTable<Pet, PetFrameCache>();
             _petSwitcher = new PetSwitcher(
-                _host.Services.GetRequiredService<SettingsService>(),
+                settingsService,
                 _host.Services.GetRequiredService<IPetLoader>(),
                 _host.Services.GetRequiredService<IPetCatalog>(),
                 petName,
                 newPet =>
                 {
                     var frames = preparedFrames.TryGetValue(newPet, out var prepared) ? prepared : new PetFrameCache(newPet);
-                    petWindow.SetPet(newPet, frames);
+                    petHost.Post(window => window.SetPet(newPet, frames));
                 },
                 _host.Services.GetRequiredService<ILogger<PetSwitcher>>(),
                 async newPet => preparedFrames.AddOrUpdate(newPet, await PetFrameCache.CreateAsync(newPet)),
-                () => petWindow.PlayLeaveAsync(_host.Services.GetRequiredService<SettingsService>().Current.SwitchEffect));
+                () => petHost.InvokeAsync(window => window.PlayLeaveAsync(settingsService.Current.SwitchEffect)));
             _installedPets = new InstalledPets(
                 _host.Services.GetRequiredService<IPetCatalog>(),
                 _host.Services.GetRequiredService<IPetLoader>(),
@@ -360,10 +407,9 @@ public partial class App
                 _host.Services.GetRequiredService<SettingsService>(),
                 _host.Services.GetRequiredService<IPetCatalog>(),
                 _host.Services.GetRequiredService<IPetLoader>(),
-                () => petWindow.CanAutoSwitch,
+                () => petWindow?.AutoSwitchAllowed == true,
                 Random.Shared,
                 _host.Services.GetRequiredService<ILogger<AutoPetSwitcher>>());
-            var settingsService = _host.Services.GetRequiredService<SettingsService>();
             var updateLogger = _host.Services.GetRequiredService<ILogger<TrayUpdatePresenter>>();
             var updates = AppUpdates.Create(
                 AboutInfo.CurrentVersion(),
@@ -375,7 +421,7 @@ public partial class App
             _updates = updates;
             _updateLogger = updateLogger;
             _tray = new TrayIconService(
-                brain,
+                petVisibility,
                 OpenPanel,
                 ExitApplication,
                 settingsService,
@@ -388,7 +434,7 @@ public partial class App
             }
 
             _hotkeys = new Win32HotkeyService();
-            _bossKey = new BossKeyController(settingsService, _hotkeys, brain);
+            _bossKey = new BossKeyController(settingsService, _hotkeys, petVisibility);
             if (_bossKey.RegistrationError is { } hotkeyError)
             {
                 logger.LogWarning(
@@ -451,6 +497,7 @@ public partial class App
     {
         _host?.Services.GetRequiredService<ILogger<App>>().LogInformation("Exiting with code {ExitCode}.", e.ApplicationExitCode);
         _stallMonitor?.Dispose();
+        _petStallMonitor?.Dispose();
         _autoPetSwitcher?.Stop();
         _petSwitcher?.Dispose();
         _themeService?.Dispose();
@@ -459,6 +506,8 @@ public partial class App
         _updatesStopping.Cancel();
         _updatesStopping.Dispose();
         _tray?.Dispose();
+        _petVisibility?.Dispose();
+        _petHost?.Dispose();
         _previewFrames.Dispose();
 
         if (_host is not null)
@@ -487,7 +536,7 @@ public partial class App
         _crashGuard = new CrashGuard(
             _host!.Services.GetRequiredService<ILogger<App>>(),
             TimeProvider.System,
-            () => _tray?.ShowErrorNotice(Strings.CrashTitle, Strings.CrashMessage),
+            () => Dispatcher.BeginInvoke(() => _tray?.ShowErrorNotice(Strings.CrashTitle, Strings.CrashMessage)),
             () => _fileLog?.Dispose());
 
         DispatcherUnhandledException += (_, args) =>
@@ -508,12 +557,12 @@ public partial class App
     /// </summary>
     private void OnActivationRequested()
     {
-        if (_petWindow is null || _host is null)
+        if (_petVisibility is null || _host is null)
         {
             return;
         }
 
-        _host.Services.GetRequiredService<PetBrain>().SetManuallyHidden(false);
+        _petVisibility.SetManuallyHidden(false);
         OpenPanel(null);
     }
 

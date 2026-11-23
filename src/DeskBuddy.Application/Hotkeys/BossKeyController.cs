@@ -20,15 +20,15 @@ public sealed class BossKeyController : IDisposable
     /// <summary>
     /// The brain whose visibility the shortcut toggles.
     /// </summary>
-    private readonly PetBrain _brain;
+    private readonly IPetVisibilityToggle _brain;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="BossKeyController"/> class and registers the current shortcut.
     /// </summary>
     /// <param name="settings">The settings that name the shortcut.</param>
     /// <param name="hotkeys">Registers the shortcut with the system.</param>
-    /// <param name="brain">The brain whose visibility the shortcut toggles.</param>
-    public BossKeyController(SettingsService settings, IGlobalHotkeyService hotkeys, PetBrain brain)
+    /// <param name="brain">What shows or hides the pet when the shortcut is pressed.</param>
+    public BossKeyController(SettingsService settings, IGlobalHotkeyService hotkeys, IPetVisibilityToggle brain)
     {
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(hotkeys);

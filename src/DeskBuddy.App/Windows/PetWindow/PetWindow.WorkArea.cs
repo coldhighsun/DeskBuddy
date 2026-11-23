@@ -21,9 +21,11 @@ namespace DeskBuddy.App.Windows;
 public partial class PetWindow
 {
     /// <summary>
-    /// Number of movement ticks between refreshes of the cached work area (about one second).
+    /// Number of movement ticks between refreshes of the cached work area (about ten seconds). A change of the monitors or
+    /// of the taskbar is announced by Windows and refreshes it at once (<see cref="OnScreenLayoutChanged"/>), and so does
+    /// leaving the monitor it was made for or starting a walk; this is only the net under those.
     /// </summary>
-    private const int WorkAreaRefreshEveryTicks = 20;
+    private const int WorkAreaRefreshEveryTicks = 200;
 
     /// <summary>
     /// The range the pet may take, cached while walking: the work area of the monitor it is on, or, when it walks along
@@ -85,8 +87,8 @@ public partial class PetWindow
     }
 
     /// <summary>
-    /// The work area only changes when the taskbar or monitors change, so refresh it about once per second instead of
-    /// on every movement tick.
+    /// The work area only changes when the taskbar or monitors change, so refresh it every
+    /// <see cref="WorkAreaRefreshEveryTicks"/> movement ticks instead of on every one.
     /// </summary>
     private void RefreshWorkAreaPeriodically()
     {

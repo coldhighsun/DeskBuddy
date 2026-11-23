@@ -65,6 +65,7 @@ public partial class PetWindow
         }
 
         _pressed = true;
+        PublishAutoSwitch();
         _dragging = false;
         _pressPixel = MonitorHelper.GetCursorPositionPixels();
         _dragTracker.Begin(_pressPixel.X, _pressPixel.Y, MonitorHelper.GetWindowBoundsPixels(this));
@@ -148,6 +149,7 @@ public partial class PetWindow
     {
         // Clear the flag first: releasing the capture raises LostMouseCapture, which must find nothing to end.
         _pressed = false;
+        PublishAutoSwitch();
         if (IsMouseCaptured)
         {
             ReleaseMouseCapture();
@@ -178,8 +180,9 @@ public partial class PetWindow
             _brain.OnClicked(remark: _options.ReactionsEnabled);
             if (_options.ReactionsEnabled)
             {
-                // Show the remark now, not at the next tick of the brain.
-                TickBrainNow();
+                // Show the remark now, not at the next tick of the brain, but after the mouse message is done: reading the
+                // sensors and showing the bubble are not the business of the click handler.
+                Dispatcher.BeginInvoke(DispatcherPriority.Background, TickBrainNow);
             }
         }
 

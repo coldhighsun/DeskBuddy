@@ -22,7 +22,23 @@ public sealed class PetVisibility(TimeProvider timeProvider, TimeSpan restoreDel
     /// <summary>
     /// Gets a value indicating whether the user has hidden the pet.
     /// </summary>
-    public bool IsManuallyHidden { get; private set; }
+    public bool IsManuallyHidden
+    {
+        get => _isManuallyHidden;
+        private set => _isManuallyHidden = value;
+    }
+
+    /// <summary>
+    /// Whether the user has hidden the pet. Volatile, because the tray icon reads it from another thread than the one the
+    /// pet lives on.
+    /// </summary>
+    private volatile bool _isManuallyHidden;
+
+    /// <summary>
+    /// Whether a full-screen application may hide the pet. Volatile, because the settings are applied from another thread
+    /// than the one the pet lives on.
+    /// </summary>
+    private volatile bool _autoHideEnabled = true;
 
     /// <summary>
     /// Gets a value indicating whether the pet is hidden because a full-screen application is in front.
@@ -33,7 +49,11 @@ public sealed class PetVisibility(TimeProvider timeProvider, TimeSpan restoreDel
     /// Gets or sets a value indicating whether a full-screen application may hide the pet at all. Turning it off shows
     /// a pet that was hidden that way, without waiting for the restore delay.
     /// </summary>
-    public bool AutoHideEnabled { get; set; } = true;
+    public bool AutoHideEnabled
+    {
+        get => _autoHideEnabled;
+        set => _autoHideEnabled = value;
+    }
 
     /// <summary>
     /// Gets a value indicating whether the pet should be on screen.

@@ -44,7 +44,7 @@ public sealed class PetBrain(
     ChatterPolicy chatter,
     DevScenarios devScenarios,
     SystemScenarios systemScenarios,
-    ClickStreak? clickStreak = null)
+    ClickStreak? clickStreak = null) : IPetVisibilityToggle
 {
     /// <summary>
     /// Counts the clicks that follow each other closely.
