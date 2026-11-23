@@ -326,6 +326,7 @@
                                                                     <MultiDataTrigger.Conditions>
                                                                         <Condition Binding="{Binding IsSelected}" Value="True" />
                                                                         <Condition Binding="{Binding IsCurrent}" Value="False" />
+                                                                        <Condition Binding="{Binding IsShown}" Value="True" />
                                                                     </MultiDataTrigger.Conditions>
                                                                     <Setter Property="Visibility" Value="Visible" />
                                                                 </MultiDataTrigger>
