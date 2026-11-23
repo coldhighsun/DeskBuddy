@@ -167,6 +167,139 @@ public class PetFrameCacheTests
     }
 
     /// <summary>
+    /// The longest edge a frame needs is worked out from the frame size the pet declares: the biggest size, at the scaling
+    /// of the largest monitor.
+    /// </summary>
+    /// <param name="frameWidth">The declared frame width.</param>
+    /// <param name="frameHeight">The declared frame height.</param>
+    /// <param name="displayScale">The scaling of the largest monitor.</param>
+    /// <param name="expected">The expected longest edge in pixels.</param>
+    [Theory]
+    [InlineData(64, 64, 1.0, 96)]
+    [InlineData(64, 64, 1.25, 120)]
+    [InlineData(64, 64, 2.0, 192)]
+    [InlineData(64, 64, 3.0, 288)]
+    [InlineData(64, 32, 2.0, 192)]
+    [InlineData(32, 128, 2.0, 384)]
+    [InlineData(100, 100, 2.0, 300)]
+    [InlineData(2, 2, 2.0, 6)]
+    [InlineData(1, 1, 2.0, 4)]
+    public void DisplayEdgeCap_DeclaredFrameSize_IsTheBiggestSizeAtTheLargestScaling(
+        int frameWidth,
+        int frameHeight,
+        double displayScale,
+        int expected)
+    {
+        // Arrange
+        var pet = new Pet("test", frameWidth, frameHeight, new Dictionary<PetState, PetAnimation> { [PetState.Idle] = new PetAnimation(4, ["a"]) });
+
+        // Act
+        var cap = PetFrameCache.DisplayEdgeCap(pet, displayScale);
+
+        // Assert
+        cap.Should().Be(expected);
+    }
+
+    /// <summary>
+    /// A scaling that is out of range (no monitor reports one, or a broken driver does) is kept between 100 % and 300 %.
+    /// </summary>
+    /// <param name="displayScale">The scaling.</param>
+    /// <param name="expected">The expected longest edge in pixels.</param>
+    [Theory]
+    [InlineData(0.0, 96)]
+    [InlineData(-2.0, 96)]
+    [InlineData(10.0, 288)]
+    [InlineData(double.NaN, 96)]
+    public void DisplayEdgeCap_ScalingOutOfRange_IsKeptInRange(double displayScale, int expected)
+    {
+        // Arrange
+        var pet = new Pet("test", 64, 64, new Dictionary<PetState, PetAnimation> { [PetState.Idle] = new PetAnimation(4, ["a"]) });
+
+        // Act
+        var cap = PetFrameCache.DisplayEdgeCap(pet, displayScale);
+
+        // Assert
+        cap.Should().Be(expected);
+    }
+
+    /// <summary>
+    /// A cell much larger than the pet is ever shown comes out scaled down to the cap, in its own proportions; the hit
+    /// mask is made from the scaled picture and still covers the whole frame.
+    /// </summary>
+    [Fact]
+    public async Task CreateAsync_CellLargerThanNeeded_IsScaledDownToTheCap()
+    {
+        // Arrange
+        var directory = Directory.CreateTempSubdirectory("deskbuddy-cap");
+        try
+        {
+            var atlas = Path.Combine(directory.FullName, "atlas.png");
+            StaThread.Run(() => WriteSolidAtlas(atlas, cell: 40, cells: 2));
+            var frame = FrameId.Create(atlas, 0, 0, 40, 40);
+            var pet = new Pet("test", 2, 2, new Dictionary<PetState, PetAnimation> { [PetState.Idle] = new PetAnimation(4, [frame]) });
+
+            // Act
+            var cache = await PetFrameCache.CreateAsync(pet, displayScale: 2);
+
+            // Assert
+            var cap = PetFrameCache.DisplayEdgeCap(pet, 2);
+            ((BitmapSource)cache.Get(frame)).PixelWidth.Should().Be(cap);
+            ((BitmapSource)cache.Get(frame)).PixelHeight.Should().Be(cap);
+            cache.GetMask(frame).IsOpaqueAtNormalized(0.5, 0.5).Should().BeTrue();
+            cache.GetMask(frame).IsOpaqueAtNormalized(0.99, 0.99).Should().BeTrue();
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
+
+    /// <summary>
+    /// A cell that is no larger than the cap is kept as it is, so a pet drawn small is never enlarged.
+    /// </summary>
+    [Fact]
+    public async Task CreateAsync_CellWithinTheCap_KeepsItsSize()
+    {
+        // Arrange
+        var directory = Directory.CreateTempSubdirectory("deskbuddy-cap-small");
+        try
+        {
+            var atlas = Path.Combine(directory.FullName, "atlas.png");
+            StaThread.Run(() => WriteSolidAtlas(atlas, cell: 4, cells: 2));
+            var frame = FrameId.Create(atlas, 4, 0, 4, 4);
+            var pet = new Pet("test", 2, 2, new Dictionary<PetState, PetAnimation> { [PetState.Idle] = new PetAnimation(4, [frame]) });
+
+            // Act
+            var cache = await PetFrameCache.CreateAsync(pet, displayScale: 2);
+
+            // Assert
+            ((BitmapSource)cache.Get(frame)).PixelWidth.Should().Be(4);
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
+
+    /// <summary>
+    /// Writes an atlas of square cells side by side, every pixel opaque.
+    /// </summary>
+    /// <param name="path">Where to write it.</param>
+    /// <param name="cell">The width and height of a cell in pixels.</param>
+    /// <param name="cells">The number of cells.</param>
+    private static void WriteSolidAtlas(string path, int cell, int cells)
+    {
+        var width = cell * cells;
+        var pixels = new byte[width * cell * 4];
+        Array.Fill(pixels, (byte)255);
+        var bitmap = BitmapSource.Create(width, cell, 96, 96, PixelFormats.Bgra32, null, pixels, width * 4);
+        var encoder = new PngBitmapEncoder();
+        encoder.Frames.Add(BitmapFrame.Create(bitmap));
+        using var stream = File.Create(path);
+        encoder.Save(stream);
+    }
+
+    /// <summary>
     /// Writes a small picture file.
     /// </summary>
     /// <param name="path">Where to write it.</param>

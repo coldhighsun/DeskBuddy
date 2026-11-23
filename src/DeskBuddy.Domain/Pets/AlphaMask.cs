@@ -70,6 +70,47 @@ public sealed class AlphaMask
     }
 
     /// <summary>
+    /// Builds a mask from a 32-bit BGRA pixel buffer, at a lower resolution if the image is larger than
+    /// <paramref name="maxEdge"/>: each block of pixels becomes one mask pixel holding the highest alpha in the block, so
+    /// a thin part of the sprite is never lost, only widened by less than a block. The mask is addressed by fractions of the
+    /// frame, so its resolution does not change what a position hits beyond that.
+    /// </summary>
+    /// <param name="width">Image width in pixels.</param>
+    /// <param name="height">Image height in pixels.</param>
+    /// <param name="pixels">BGRA pixel data (4 bytes per pixel).</param>
+    /// <param name="stride">Number of bytes per image row in <paramref name="pixels"/>.</param>
+    /// <param name="maxEdge">The longest edge the mask may have, in mask pixels.</param>
+    /// <returns>The alpha mask, at most <paramref name="maxEdge"/> pixels on its longer edge.</returns>
+    public static AlphaMask FromBgra32(int width, int height, byte[] pixels, int stride, int maxEdge)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(maxEdge);
+
+        var block = (Math.Max(width, height) + maxEdge - 1) / maxEdge;
+        if (block <= 1)
+        {
+            return FromBgra32(width, height, pixels, stride);
+        }
+
+        var maskWidth = (width + block - 1) / block;
+        var maskHeight = (height + block - 1) / block;
+        var alpha = new byte[maskWidth * maskHeight];
+        for (var y = 0; y < height; y++)
+        {
+            for (var x = 0; x < width; x++)
+            {
+                var index = ((y / block) * maskWidth) + (x / block);
+                var value = pixels[(y * stride) + (x * 4) + 3];
+                if (value > alpha[index])
+                {
+                    alpha[index] = value;
+                }
+            }
+        }
+
+        return new AlphaMask(maskWidth, maskHeight, alpha);
+    }
+
+    /// <summary>
     /// Determines whether a pixel is opaque enough to count as part of the pet.
     /// </summary>
     /// <param name="x">Pixel column.</param>
