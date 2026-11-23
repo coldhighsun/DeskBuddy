@@ -15,6 +15,16 @@ public class TrayMenuModelTests
     ];
 
     /// <summary>
+    /// Makes pets named pet0, pet1 and so on.
+    /// </summary>
+    /// <param name="count">How many pets to make.</param>
+    /// <returns>The pets.</returns>
+    private static InstalledPet[] MakePets(int count)
+    {
+        return [.. Enumerable.Range(0, count).Select(index => new InstalledPet($"pet{index}", $"Pet {index}", null, 64, 64))];
+    }
+
+    /// <summary>
     /// Only the pet in use is marked as current, and the order of the pets is kept.
     /// </summary>
     [Fact]
@@ -56,20 +66,74 @@ public class TrayMenuModelTests
     }
 
     /// <summary>
-    /// The grid has four columns up to sixteen pets, five up to twenty-five and six beyond, and never fewer than four, even
-    /// with no pet at all.
+    /// Pets beyond the maximum are left out of the list, the first ones keeping their order.
+    /// </summary>
+    [Fact]
+    public void PetChoices_MoreThanMax_KeepsTheFirstOnes()
+    {
+        // Arrange
+        var pets = MakePets(10);
+
+        // Act
+        var choices = TrayMenuModel.PetChoices(pets, "pet0", maxPets: 4);
+
+        // Assert
+        choices.Select(choice => choice.FolderName).Should().Equal("pet0", "pet1", "pet2", "pet3");
+    }
+
+    /// <summary>
+    /// The pet in use is always listed, taking the place of the last pet when it would have been cut.
+    /// </summary>
+    [Fact]
+    public void PetChoices_PetInUseBeyondMax_TakesTheLastPlace()
+    {
+        // Arrange
+        var pets = MakePets(10);
+
+        // Act
+        var choices = TrayMenuModel.PetChoices(pets, "pet8", maxPets: 4);
+
+        // Assert
+        choices.Select(choice => choice.FolderName).Should().Equal("pet0", "pet1", "pet2", "pet8");
+        choices.Single(choice => choice.IsCurrent).FolderName.Should().Be("pet8");
+    }
+
+    /// <summary>
+    /// A pet that is switched off does not use up a place of the maximum.
+    /// </summary>
+    [Fact]
+    public void PetChoices_HiddenPetsDoNotCountTowardsMax()
+    {
+        // Arrange
+        var pets = MakePets(5);
+
+        // Act
+        var choices = TrayMenuModel.PetChoices(pets, "pet0", ["pet1", "pet2"], maxPets: 3);
+
+        // Assert
+        choices.Select(choice => choice.FolderName).Should().Equal("pet0", "pet3", "pet4");
+    }
+
+    /// <summary>
+    /// The grid is close to a square (the square root of the count, rounded up), but never has fewer than three columns,
+    /// even with no pet at all, nor more than eight.
     /// </summary>
     /// <param name="count">How many pets there are.</param>
     /// <param name="columns">The columns expected.</param>
     [Theory]
-    [InlineData(0, 4)]
-    [InlineData(1, 4)]
-    [InlineData(11, 4)]
+    [InlineData(0, 3)]
+    [InlineData(1, 3)]
+    [InlineData(9, 3)]
+    [InlineData(10, 4)]
     [InlineData(16, 4)]
     [InlineData(17, 5)]
     [InlineData(25, 5)]
     [InlineData(26, 6)]
-    [InlineData(200, 6)]
+    [InlineData(36, 6)]
+    [InlineData(37, 7)]
+    [InlineData(49, 7)]
+    [InlineData(50, 8)]
+    [InlineData(200, 8)]
     public void GridColumns_ByNumberOfPets_GrowsWiderBeforeItGrowsTaller(int count, int columns)
     {
         // Act
