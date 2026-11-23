@@ -26,16 +26,39 @@ internal static class TrayMenuModel
     /// The folder names of the pets the user has switched off, which are left out, or <see langword="null"/> for none. The
     /// pet in use is never left out.
     /// </param>
-    /// <returns>One choice per pet, in the order of <paramref name="entries"/>.</returns>
-    public static IReadOnlyList<PetChoice> PetChoices(IReadOnlyList<InstalledPet> entries, string currentPet, IReadOnlyList<string>? hidden = null)
+    /// <param name="maxPets">
+    /// The most pets to list, <see cref="MaxPetsShown"/> by default. When more pets are offered, the first ones in the order
+    /// of <paramref name="entries"/> are kept, and the pet in use takes the place of the last one if it would be cut, so the
+    /// menu always shows what is on the screen. The rest are reached from the panel's list of pets.
+    /// </param>
+    /// <returns>One choice per pet, in the order of <paramref name="entries"/>, at most <paramref name="maxPets"/>.</returns>
+    public static IReadOnlyList<PetChoice> PetChoices(
+        IReadOnlyList<InstalledPet> entries,
+        string currentPet,
+        IReadOnlyList<string>? hidden = null,
+        int maxPets = MaxPetsShown)
     {
         ArgumentNullException.ThrowIfNull(entries);
 
+        var offered = entries
+            .Where(entry => IsOffered(entry.FolderName, currentPet, hidden))
+            .ToList();
+        var limit = Math.Max(maxPets, 1);
+        if (offered.Count > limit)
+        {
+            var kept = offered.Take(limit).ToList();
+            var current = offered.Find(entry => string.Equals(entry.FolderName, currentPet, StringComparison.Ordinal));
+            if (current is not null && !kept.Contains(current))
+            {
+                kept[^1] = current;
+            }
+
+            offered = kept;
+        }
+
         return
         [
-            .. entries
-                .Where(entry => IsOffered(entry.FolderName, currentPet, hidden))
-                .Select(entry => new PetChoice(
+            .. offered.Select(entry => new PetChoice(
                 entry.FolderName,
                 entry.DisplayName,
                 entry.Picture,
@@ -44,19 +67,23 @@ internal static class TrayMenuModel
     }
 
     /// <summary>
-    /// Gets how many pets sit side by side in the grid of the submenu that switches the pet, so the grid grows wider before
-    /// it grows too tall: four columns up to sixteen pets, five up to twenty-five, six beyond that.
+    /// The most pets listed in the grid of the submenu that switches the pet; more pets than that are chosen from the
+    /// panel's list of pets, which the "All pets" entry opens. Random pet still picks from every pet that is offered.
+    /// </summary>
+    public const int MaxPetsShown = 36;
+
+    /// <summary>
+    /// Gets how many pets sit side by side in the grid of the submenu that switches the pet. The grid is sized to the number
+    /// of pets and kept close to a square (the square root of the count, rounded up), but never narrower than
+    /// <see cref="MinColumns"/>, so the full-width entries below the grid keep their text, and never wider than
+    /// <see cref="MaxColumns"/>.
     /// </summary>
     /// <param name="petCount">How many pets there are to show.</param>
     /// <returns>The number of columns.</returns>
     public static int GridColumns(int petCount)
     {
-        return petCount switch
-        {
-            <= MaxPetsInFourColumns => 4,
-            <= MaxPetsInFiveColumns => 5,
-            _ => 6,
-        };
+        var square = (int)Math.Ceiling(Math.Sqrt(Math.Max(petCount, 0)));
+        return Math.Clamp(square, MinColumns, MaxColumns);
     }
 
     /// <summary>
@@ -109,14 +136,14 @@ internal static class TrayMenuModel
     }
 
     /// <summary>
-    /// The most pets shown in a grid of four columns.
+    /// The fewest columns of the pet grid: wide enough for the text of the full-width entries below it.
     /// </summary>
-    private const int MaxPetsInFourColumns = 16;
+    private const int MinColumns = 3;
 
     /// <summary>
-    /// The most pets shown in a grid of five columns.
+    /// The most columns of the pet grid; more pets than that make the grid taller, and it scrolls.
     /// </summary>
-    private const int MaxPetsInFiveColumns = 25;
+    private const int MaxColumns = 8;
 }
 
 /// <summary>

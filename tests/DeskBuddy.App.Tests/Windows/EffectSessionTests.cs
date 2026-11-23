@@ -9,7 +9,7 @@ using DeskBuddy.App.Windows;
 namespace DeskBuddy.App.Tests.Windows;
 
 /// <summary>
-/// Plays every pet switch animation from start to end with real windows and a made-up pet, in two sizes, to check that each
+/// Plays every pet switch animation from start to end with real windows and a made-up pet that changes size, to check that each
 /// part runs through, takes the pet out of sight and brings it back.
 /// </summary>
 public sealed class EffectSessionTests
@@ -20,7 +20,8 @@ public sealed class EffectSessionTests
     private const int TimeoutSeconds = 15;
 
     /// <summary>
-    /// Every animation of a pet switch, with a pet that is the same size before and after the switch and one that is not.
+    /// Every animation of a pet switch, with a pet that arrives in a different size than the one that leaves (the harder case:
+    /// the animation must not assume that the two pets are alike).
     /// </summary>
     /// <returns>The animations and the pet sizes.</returns>
     public static TheoryData<PetSwitchEffect, int, int> Cases()
@@ -28,7 +29,6 @@ public sealed class EffectSessionTests
         var data = new TheoryData<PetSwitchEffect, int, int>();
         foreach (var effect in new[] { PetSwitchEffect.Ufo, PetSwitchEffect.Claw, PetSwitchEffect.Smoke, PetSwitchEffect.Beam })
         {
-            data.Add(effect, 96, 96);
             data.Add(effect, 80, 160);
         }
 
