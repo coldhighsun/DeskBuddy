@@ -86,7 +86,8 @@ public sealed partial class TrayIconService
             _brain.IsManuallyHidden,
             _pets.Version,
             _updates is { CanInstall: true, Available: { } found } ? found.Version.ToString() : null,
-            Strings.Current.Name);
+            Strings.Current.Name,
+            string.Join('|', settings.HiddenPets));
     }
 
     /// <summary>
@@ -101,7 +102,8 @@ public sealed partial class TrayIconService
     private MenuItem BuildPetsMenu(TrayMenuState state)
     {
         var menu = new MenuItem { Header = Strings.TraySwitchPet, Icon = Glyph("") };
-        var choices = TrayMenuModel.PetChoices(_pets.Entries, state.PetName);
+        var hidden = _settings.Current.HiddenPets;
+        var choices = TrayMenuModel.PetChoices(_pets.Entries, state.PetName, hidden);
         var gridWidth = TrayMenuModel.GridColumns(choices.Count) * PetGridCellWidth;
         var wrap = new FrameworkElementFactory(typeof(WrapPanel));
         wrap.SetValue(FrameworkElement.WidthProperty, gridWidth);
@@ -133,7 +135,7 @@ public sealed partial class TrayIconService
         {
             menu.Items.Add(new Separator { Width = gridWidth });
 
-            var random = new MenuItem { Header = Strings.TraySwitchRandom, Icon = Glyph(""), Width = gridWidth, IsEnabled = TrayMenuModel.HasAnotherPet(_pets.Entries, state.PetName) };
+            var random = new MenuItem { Header = Strings.TraySwitchRandom, Icon = Glyph(""), Width = gridWidth, IsEnabled = TrayMenuModel.HasAnotherPet(_pets.Entries, state.PetName, hidden) };
             random.Click += async (_, _) => await SwitchToRandomPetAsync();
             menu.Items.Add(random);
 
@@ -153,7 +155,7 @@ public sealed partial class TrayIconService
     /// <returns>A task that completes when the change has been made.</returns>
     private async Task SwitchToRandomPetAsync()
     {
-        if (TrayMenuModel.PickRandom(_pets.Entries, _settings.Current.PetName, Random.Shared) is { } pick)
+        if (TrayMenuModel.PickRandom(_pets.Entries, _settings.Current.PetName, Random.Shared, _settings.Current.HiddenPets) is { } pick)
         {
             await ChangeSettingsAsync(settings => settings with { PetName = pick });
         }

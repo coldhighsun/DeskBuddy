@@ -163,7 +163,10 @@ public sealed class AutoPetSwitcher
     private async Task<string?> ChooseAsync(string current)
     {
         // Listing the folders reads the disk, which should not hold up the UI thread.
-        var candidates = new List<string>(await Task.Run(_catalog.GetPetNames));
+        // A pet the user has switched off is not changed to.
+        var hidden = _settings.Current.HiddenPets;
+        var candidates = new List<string>(
+            (await Task.Run(_catalog.GetPetNames)).Where(name => !hidden.Contains(name, StringComparer.OrdinalIgnoreCase)));
         while (AutoSwitchPolicy.PickNext(candidates, current, _random) is { } name)
         {
             try

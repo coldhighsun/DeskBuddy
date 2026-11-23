@@ -173,6 +173,66 @@ internal static class Strings
     public static string PetsUse => Get();
 
     /// <summary>
+    /// Gets the tooltip of the switch that offers a pet in the tray menu, the random choice and the automatic change.
+    /// </summary>
+    public static string PetsShown => Get();
+
+    /// <summary>
+    /// Gets the tooltip of the switch of the pet in use, which cannot be switched off.
+    /// </summary>
+    public static string PetsShownInUse => Get();
+
+    /// <summary>
+    /// Gets the tooltip of the button that deletes a pet.
+    /// </summary>
+    public static string PetsDelete => Get();
+
+    /// <summary>
+    /// Gets the tooltip of the delete button of the pet in use, which is not available.
+    /// </summary>
+    public static string PetsDeleteInUse => Get();
+
+    /// <summary>
+    /// Gets the tooltip of the delete button of a pet that comes with the application, which is not available.
+    /// </summary>
+    public static string PetsDeleteShipped => Get();
+
+    /// <summary>
+    /// Gets the question asked before a pet's folder is moved to the Recycle Bin; <c>{0}</c> is the pet's name.
+    /// </summary>
+    public static string PetsDeleteConfirm => Get();
+
+    /// <summary>
+    /// Gets the question asked when the Recycle Bin cannot be used, before the folder is deleted for good; <c>{0}</c> is the pet's name.
+    /// </summary>
+    public static string PetsDeleteConfirmPermanent => Get();
+
+    /// <summary>
+    /// Gets the text that says a pet's folder could not be deleted.
+    /// </summary>
+    public static string PetsDeleteFailed => Get();
+
+    /// <summary>
+    /// Gets the label of a pet that comes with the application.
+    /// </summary>
+    public static string PetsOriginShipped => Get();
+
+    /// <summary>
+    /// Gets the label of a pet from the user's own pets folder.
+    /// </summary>
+    public static string PetsOriginUser => Get();
+
+    /// <summary>
+    /// Gets the tooltip of the label of a pet that comes with the application.
+    /// </summary>
+    public static string PetsOriginShippedTip => Get();
+
+    /// <summary>
+    /// Gets the tooltip of the label of a pet from the user's own pets folder.
+    /// </summary>
+    public static string PetsOriginUserTip => Get();
+
+    /// <summary>
     /// Gets the line about a pet's picture size and states; <c>{0}</c> and <c>{1}</c> are its width and height, <c>{2}</c>
     /// the number of states it draws itself and <c>{3}</c> the number of states there are.
     /// </summary>

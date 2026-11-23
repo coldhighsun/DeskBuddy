@@ -1,7 +1,10 @@
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
+using DeskBuddy.App.Presentation;
 using DeskBuddy.App.Rendering;
+using DeskBuddy.App.Resources;
 using DeskBuddy.App.ViewModels;
 using DeskBuddy.App.Windows;
 
@@ -20,7 +23,7 @@ public partial class App
     {
         if (_panel is null && PreparePanelViewModel() is { } viewModel)
         {
-            _panel = new PanelWindow(viewModel, _updates, _updateLogger);
+            _panel = new PanelWindow(viewModel, _updates, _updateLogger, _heap);
         }
 
         _panel?.ShowPanel(tab);
@@ -50,11 +53,30 @@ public partial class App
                     _petSwitcher,
                     _previewFrames.Get,
                     _previewFrames.PreloadAsync,
-                    () => OpenFolder(_userPetsDirectory, "The pets folder could not be opened.")));
+                    () => OpenFolder(_userPetsDirectory, "The pets folder could not be opened."),
+                    _previewFrames.Retain,
+                    ConfirmPetDeletion));
             _ = _panelViewModel.Pets.RefreshQuietlyAsync(services.GetRequiredService<ILogger<App>>());
         }
 
         return _panelViewModel;
+    }
+
+    /// <summary>
+    /// Asks the user whether to delete a pet.
+    /// </summary>
+    /// <param name="card">The pet.</param>
+    /// <param name="permanently">
+    /// <see langword="true"/> if the question is about deleting for good because the Recycle Bin cannot be used.
+    /// </param>
+    /// <returns><see langword="true"/> if the user agrees.</returns>
+    private bool ConfirmPetDeletion(PetCardViewModel card, bool permanently)
+    {
+        var message = string.Format(
+            CultureInfo.CurrentCulture,
+            permanently ? Strings.PetsDeleteConfirmPermanent : Strings.PetsDeleteConfirm,
+            card.DisplayName);
+        return Dialogs.Show(_panel, Strings.AppName, message, DialogKind.Warning, DialogModel.YesNoButtons()) == DialogChoice.Yes;
     }
 
     /// <summary>

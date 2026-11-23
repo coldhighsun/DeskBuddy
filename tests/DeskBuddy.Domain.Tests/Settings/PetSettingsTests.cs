@@ -566,4 +566,76 @@ public class PetSettingsTests
         // Assert
         normalized.DevProcesses.Should().BeEmpty();
     }
+
+    /// <summary>
+    /// No pet is switched off by default.
+    /// </summary>
+    [Fact]
+    public void Default_HiddenPets_IsEmpty()
+    {
+        // Assert
+        PetSettings.Default.HiddenPets.Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// The list of pets that are switched off is trimmed, de-duplicated ignoring case, and loses anything that is not a
+    /// plain folder name, as no pet can have such a name.
+    /// </summary>
+    [Fact]
+    public void Normalize_HiddenPets_AreTrimmedDistinctAndPlainFolderNames()
+    {
+        // Arrange
+        var settings = PetSettings.Default with
+        {
+            HiddenPets = [" cat ", "CAT", "dog", "", "  ", ".", "..", "a/b", "a\b", "c:d", "bad|name", "fox"],
+        };
+
+        // Act
+        var normalized = settings.Normalize();
+
+        // Assert
+        normalized.HiddenPets.Should().Equal("cat", "dog", "fox");
+    }
+
+    /// <summary>
+    /// A list that is missing (a <see langword="null"/> from a hand-edited file) becomes an empty one.
+    /// </summary>
+    [Fact]
+    public void Normalize_HiddenPetsNull_BecomesEmpty()
+    {
+        // Arrange
+        var settings = PetSettings.Default with { HiddenPets = null! };
+
+        // Act
+        var normalized = settings.Normalize();
+
+        // Assert
+        normalized.HiddenPets.Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// A plain folder name is accepted; an empty one, a path and names a file cannot have are not.
+    /// </summary>
+    /// <param name="name">The name.</param>
+    /// <param name="expected">Whether it counts as a plain folder name.</param>
+    [Theory]
+    [InlineData("cat", true)]
+    [InlineData("my pet 2", true)]
+    [InlineData("猫咪", true)]
+    [InlineData("", false)]
+    [InlineData(null, false)]
+    [InlineData(".", false)]
+    [InlineData("..", false)]
+    [InlineData("a/b", false)]
+    [InlineData("a\b", false)]
+    [InlineData("c:d", false)]
+    [InlineData("what?", false)]
+    public void IsPlainFolderName_Name_TellsWhetherItCanNameAFolder(string? name, bool expected)
+    {
+        // Act
+        var result = PetSettings.IsPlainFolderName(name);
+
+        // Assert
+        result.Should().Be(expected);
+    }
 }

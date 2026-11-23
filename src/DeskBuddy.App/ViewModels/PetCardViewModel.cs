@@ -55,7 +55,30 @@ public sealed partial class PetCardViewModel : ObservableObject
     /// Gets or sets a value indicating whether this is the pet in use.
     /// </summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanDeleteNow))]
+    [NotifyPropertyChangedFor(nameof(CanChangeShown))]
+    [NotifyPropertyChangedFor(nameof(DeleteToolTip))]
+    [NotifyPropertyChangedFor(nameof(ShownToolTip))]
     private bool _isCurrent;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the pet is offered when the user changes to another one (the tray menu, the
+    /// random choice and the automatic change). This is what the switch on the card shows; the pet in use is always shown
+    /// as offered.
+    /// </summary>
+    [ObservableProperty]
+    private bool _isShown = true;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the pet is in the user's own pets folder, so that it can be deleted; a
+    /// pet that comes with the application cannot, as an update puts it back.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanDeleteNow))]
+    [NotifyPropertyChangedFor(nameof(DeleteToolTip))]
+    [NotifyPropertyChangedFor(nameof(OriginText))]
+    [NotifyPropertyChangedFor(nameof(OriginToolTip))]
+    private bool _canDelete;
 
     /// <summary>
     /// Gets or sets a value indicating whether the user picked this pet to look at. Only the picked pet's preview moves;
@@ -98,6 +121,11 @@ public sealed partial class PetCardViewModel : ObservableObject
         _showcase = PetShowcase.NativeStatesOf(pet);
         _random = random ?? Random.Shared;
         _order = PetShowcase.RandomOrder(_showcase, _random, first: PetState.Idle);
+        RestFrameIds = pet.GetAnimation(PetState.Idle).FrameIds;
+        PreviewFrameIds = _showcase
+            .SelectMany(state => pet.GetAnimation(state).FrameIds)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
 
         var capabilities = PetCapabilities.Of(pet);
         InfoText = string.Format(
@@ -166,6 +194,17 @@ public sealed partial class PetCardViewModel : ObservableObject
     public string? Details { get; }
 
     /// <summary>
+    /// Gets the names of the pictures the card shows while its preview stands still (the Idle animation, which every pet
+    /// has); empty if the pet could not be loaded.
+    /// </summary>
+    public IReadOnlyList<string> RestFrameIds { get; } = [];
+
+    /// <summary>
+    /// Gets the names of the pictures of every state the preview goes through; empty if the pet could not be loaded.
+    /// </summary>
+    public IReadOnlyList<string> PreviewFrameIds { get; } = [];
+
+    /// <summary>
     /// Gets a value indicating whether the first picture of the preview could be read. A pet that was loaded but whose
     /// pictures could not be read (a corrupt or locked atlas) has none; the tab loads such a card again when it looks at the
     /// pets, as the atlas may have been repaired since.
@@ -181,6 +220,44 @@ public sealed partial class PetCardViewModel : ObservableObject
     /// Gets a value indicating whether the pet was loaded and can be chosen.
     /// </summary>
     public bool IsAvailable => _player is not null;
+
+    /// <summary>
+    /// Gets a value indicating whether the pet could not be loaded: the card then shows a picture of a broken pet, why, and
+    /// a button to delete it.
+    /// </summary>
+    public bool IsBroken => _player is null;
+
+    /// <summary>
+    /// Gets a value indicating whether the delete button works: the pet is in the user's folder and is not the pet in use.
+    /// </summary>
+    public bool CanDeleteNow => CanDelete && !IsCurrent;
+
+    /// <summary>
+    /// Gets a value indicating whether the switch works: the pet can be shown, and is not the pet in use, which is always
+    /// offered.
+    /// </summary>
+    public bool CanChangeShown => IsAvailable && !IsCurrent;
+
+    /// <summary>
+    /// Gets the tooltip of the delete button, which says why it does not work when it does not.
+    /// </summary>
+    public string DeleteToolTip => IsCurrent ? Strings.PetsDeleteInUse : CanDelete ? Strings.PetsDelete : Strings.PetsDeleteShipped;
+
+    /// <summary>
+    /// Gets the short text that says where the pet comes from: the user's own pets folder, or the application. It follows
+    /// <see cref="CanDelete"/>, which says the same thing, so no pet is named anywhere.
+    /// </summary>
+    public string OriginText => CanDelete ? Strings.PetsOriginUser : Strings.PetsOriginShipped;
+
+    /// <summary>
+    /// Gets the explanation of <see cref="OriginText"/>, for its tooltip.
+    /// </summary>
+    public string OriginToolTip => CanDelete ? Strings.PetsOriginUserTip : Strings.PetsOriginShippedTip;
+
+    /// <summary>
+    /// Gets the tooltip of the switch.
+    /// </summary>
+    public string ShownToolTip => IsCurrent ? Strings.PetsShownInUse : Strings.PetsShown;
 
     /// <summary>
     /// Gets the name of the picture the preview shows now (see <see cref="FrameId"/>); <see langword="null"/> if the pet could not be loaded.

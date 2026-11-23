@@ -5,6 +5,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
+using Microsoft.Extensions.Logging.Abstractions;
+using DeskBuddy.App.Rendering;
 using DeskBuddy.App.ViewModels;
 using GitHubReleaseUpdater.AutoUpdate;
 
@@ -45,6 +47,16 @@ public partial class PanelWindow
     private readonly Stopwatch _previewWatch = new();
 
     /// <summary>
+    /// Gives the memory of the preview pictures back once the previews stop.
+    /// </summary>
+    private readonly HeapCompactor _heap;
+
+    /// <summary>
+    /// Reports what went wrong when memory could not be given back.
+    /// </summary>
+    private readonly ILogger _logger;
+
+    /// <summary>
     /// Initializes a new instance of the <see cref="PanelWindow"/> class.
     /// </summary>
     /// <param name="viewModel">The view models behind the tabs.</param>
@@ -52,11 +64,20 @@ public partial class PanelWindow
     /// <param name="logger">
     /// Reports what went wrong when a check for updates fails; <see langword="null"/> reports nothing.
     /// </param>
-    internal PanelWindow(PanelViewModel viewModel, UpdateController? updates = null, ILogger? logger = null)
+    /// <param name="heap">
+    /// Gives memory back when the previews stop; <see langword="null"/> uses one of its own.
+    /// </param>
+    internal PanelWindow(
+        PanelViewModel viewModel,
+        UpdateController? updates = null,
+        ILogger? logger = null,
+        HeapCompactor? heap = null)
     {
         InitializeComponent();
         About.Attach(updates, logger);
 
+        _heap = heap ?? new HeapCompactor();
+        _logger = logger ?? NullLogger.Instance;
         _viewModel = viewModel;
         DataContext = viewModel;
 
@@ -64,6 +85,7 @@ public partial class PanelWindow
         StateChanged += (_, _) => UpdatePreviews();
         Tabs.SelectionChanged += OnTabsSelectionChanged;
         _previewTimer.Tick += OnPreviewTick;
+        viewModel.Pets.PropertyChanged += OnPetsPropertyChanged;
     }
 
     /// <summary>
@@ -271,13 +293,76 @@ public partial class PanelWindow
         {
             _previewTimer.Stop();
             _previewWatch.Reset();
+            _viewModel.Pets.TrimPreviews();
+
+            // A change of tab stops the previews too; the heap is only collected when the panel is out of sight, as the
+            // pages that are given up come back with a page fault each while the user is working in the panel.
+            if (!IsVisible || WindowState == WindowState.Minimized)
+            {
+                _ = GiveMemoryBackAsync();
+            }
+
             return;
         }
 
         _viewModel.Pets.RestartPreviews();
         _previewWatch.Restart();
         _previewTimer.Start();
+        BringSelectedPetIntoView();
         _ = RefreshPetsAsync();
+    }
+
+    /// <summary>
+    /// Gives memory back to the system, reporting a failure to the log instead of losing it with the discarded task.
+    /// </summary>
+    /// <returns>A task that completes when the memory has been given back; it does not fail.</returns>
+    private async Task GiveMemoryBackAsync()
+    {
+        try
+        {
+            await _heap.RequestAsync();
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            // Giving memory back is a nicety, so a failure is reported and nothing more.
+            _logger.LogWarning(ex, "Giving memory back to the system failed.");
+        }
+    }
+
+    /// <summary>
+    /// Scrolls the list to the pet that was picked when the pick changes: the row opens, which pushes it down, and the pet
+    /// in use is the one picked when the panel is opened.
+    /// </summary>
+    /// <param name="sender">The pets tab.</param>
+    /// <param name="e">Event data.</param>
+    private void OnPetsPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(PetsTabViewModel.SelectedCard))
+        {
+            BringSelectedPetIntoView();
+        }
+    }
+
+    /// <summary>
+    /// Scrolls the list so that the row of the picked pet is in view, once the layout has made it as tall as it is going to
+    /// be.
+    /// </summary>
+    private void BringSelectedPetIntoView()
+    {
+        if (_viewModel.Pets.SelectedCard is not { } card)
+        {
+            return;
+        }
+
+        _ = Dispatcher.BeginInvoke(
+            DispatcherPriority.Loaded,
+            () =>
+            {
+                if (PetCardList.ItemContainerGenerator.ContainerFromItem(card) is FrameworkElement row)
+                {
+                    row.BringIntoView();
+                }
+            });
     }
 
     /// <summary>

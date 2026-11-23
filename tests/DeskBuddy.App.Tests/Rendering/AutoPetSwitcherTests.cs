@@ -77,6 +77,42 @@ public class AutoPetSwitcherTests
     }
 
     /// <summary>
+    /// A pet the user has switched off is never chosen, whatever the case of its name in the list.
+    /// </summary>
+    [Fact]
+    public async Task OnTickAsync_OnePetSwitchedOff_ChoosesTheOther()
+    {
+        // Arrange
+        await _settings.UpdateAsync(s => s with { HiddenPets = ["TWO"] }, TestContext.Current.CancellationToken);
+        await _switcher.OnTickAsync();
+        _clock.Advance(Interval);
+
+        // Act
+        await _switcher.OnTickAsync();
+
+        // Assert
+        _settings.Current.PetName.Should().Be("three");
+    }
+
+    /// <summary>
+    /// With every other pet switched off the pet stays.
+    /// </summary>
+    [Fact]
+    public async Task OnTickAsync_AllOtherPetsSwitchedOff_Stays()
+    {
+        // Arrange
+        await _settings.UpdateAsync(s => s with { HiddenPets = ["two", "three"] }, TestContext.Current.CancellationToken);
+        await _switcher.OnTickAsync();
+        _clock.Advance(Interval);
+
+        // Act
+        await _switcher.OnTickAsync();
+
+        // Assert
+        _settings.Current.PetName.Should().Be("one");
+    }
+
+    /// <summary>
     /// A pet that cannot be loaded is never chosen; the next one is.
     /// </summary>
     [Fact]

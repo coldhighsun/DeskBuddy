@@ -96,9 +96,10 @@ internal static class AppServices
         services.AddSingleton(TimeProvider.System);
         services.AddSingleton<IPetLoader, FolderPetLoader>();
         services.AddSingleton<IAutoStartService>(_ => new RegistryAutoStartService());
-        services.AddSingleton<IPetCatalog>(_ => new FolderPetCatalog(
+        services.AddSingleton<IPetCatalog>(sp => new FolderPetCatalog(
             userPetsDirectory,
-            Path.Combine(AppContext.BaseDirectory, PetsFolderName)));
+            Path.Combine(AppContext.BaseDirectory, PetsFolderName),
+            sp.GetRequiredService<ILogger<FolderPetCatalog>>()));
 
         services.AddSensors();
         services.AddPolicies(sedentaryOptions, behaviorOptions);
