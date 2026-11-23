@@ -6,8 +6,17 @@ namespace DeskBuddy.App.Diagnostics;
 /// clock; <see cref="UiStallMonitor"/> does the posting. The watchdog thread and the UI thread both call it.
 /// </summary>
 /// <param name="threshold">How long a probe may go unanswered before the UI thread counts as stalled.</param>
-public sealed class StallTracker(TimeSpan threshold)
+/// <param name="severeThreshold">
+/// How long a probe may go unanswered before the stall counts as severe, which is when a dump is worth taking;
+/// <see cref="DefaultSevereThreshold"/> if omitted.
+/// </param>
+public sealed class StallTracker(TimeSpan threshold, TimeSpan? severeThreshold = null)
 {
+    /// <summary>
+    /// How long a probe waits before the stall is severe, unless told otherwise.
+    /// </summary>
+    public static readonly TimeSpan DefaultSevereThreshold = TimeSpan.FromSeconds(5);
+
     /// <summary>
     /// Guards the fields, which two threads touch.
     /// </summary>
@@ -22,6 +31,11 @@ public sealed class StallTracker(TimeSpan threshold)
     /// Whether the stall of the outstanding probe has been reported already.
     /// </summary>
     private bool _reported;
+
+    /// <summary>
+    /// Whether the outstanding probe has been reported as a severe stall already.
+    /// </summary>
+    private bool _severeReported;
 
     /// <summary>
     /// Registers that a probe is about to be posted.
@@ -68,6 +82,30 @@ public sealed class StallTracker(TimeSpan threshold)
     }
 
     /// <summary>
+    /// Asks whether the outstanding probe has gone unanswered for so long that the stall is severe. Independent of
+    /// <see cref="CheckStalled"/>, which reports a stall much earlier.
+    /// </summary>
+    /// <param name="now">The time.</param>
+    /// <returns>
+    /// How long the probe has been waiting, the first time that is at least the severe threshold; <see langword="null"/>
+    /// otherwise, including for a severe stall that was reported already, so one stall is reported once.
+    /// </returns>
+    public TimeSpan? CheckSevere(DateTimeOffset now)
+    {
+        lock (_gate)
+        {
+            var limit = severeThreshold ?? DefaultSevereThreshold;
+            if (_probeSentAt is not { } sentAt || _severeReported || now - sentAt < limit)
+            {
+                return null;
+            }
+
+            _severeReported = true;
+            return now - sentAt;
+        }
+    }
+
+    /// <summary>
     /// Registers that the UI thread answered the outstanding probe.
     /// </summary>
     /// <param name="now">The time.</param>
@@ -83,6 +121,7 @@ public sealed class StallTracker(TimeSpan threshold)
             var wasReported = _reported;
             _probeSentAt = null;
             _reported = false;
+            _severeReported = false;
             return wasReported ? waited : null;
         }
     }

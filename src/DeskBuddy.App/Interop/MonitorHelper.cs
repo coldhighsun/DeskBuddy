@@ -85,6 +85,7 @@ internal static partial class MonitorHelper
     {
         var areas = new List<MonitorArea>();
         var handle = GCHandle.Alloc(areas);
+        var startedAt = Win32Timing.Start();
         try
         {
             // A list that is not complete is worse than none: the caller then falls back to the monitor it is on.
@@ -96,6 +97,7 @@ internal static partial class MonitorHelper
         finally
         {
             handle.Free();
+            Win32Timing.Stop("EnumDisplayMonitors", startedAt);
         }
 
         return areas;
@@ -202,7 +204,10 @@ internal static partial class MonitorHelper
     public static PixelRect GetWindowBoundsPixels(Window window)
     {
         var handle = new WindowInteropHelper(window).Handle;
-        return GetWindowRect(handle, out var rect) ? new PixelRect(rect.Left, rect.Top, rect.Right, rect.Bottom) : default;
+        var startedAt = Win32Timing.Start();
+        var read = GetWindowRect(handle, out var rect);
+        Win32Timing.Stop("GetWindowRect", startedAt);
+        return read ? new PixelRect(rect.Left, rect.Top, rect.Right, rect.Bottom) : default;
     }
 
     /// <summary>
