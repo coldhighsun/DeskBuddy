@@ -19,9 +19,10 @@ namespace DeskBuddy.App;
 public sealed partial class TrayIconService : IDisposable
 {
     /// <summary>
-    /// The edge of the square the picture of a pet is shown in, in the list of pets.
+    /// The edge of the square the picture of a pet is shown in, in the list of pets: what a pet of the reference frame
+    /// edge measures at <see cref="PetSize.Small"/>.
     /// </summary>
-    private const double PetPictureEdge = 32;
+    private static readonly double PetPictureEdge = PetSize.Small.ToScale() * PetSizeExtensions.ReferenceEdge;
 
     /// <summary>
     /// The room around the picture of a pet in the grid of pets, on each side.
@@ -31,7 +32,7 @@ public sealed partial class TrayIconService : IDisposable
     /// <summary>
     /// The width of one pet in the grid of pets: the picture, its frame (two units each side) and the room around it.
     /// </summary>
-    private const double PetGridCellWidth = PetPictureEdge + 4 + (2 * PetGridCellPadding);
+    private static readonly double PetGridCellWidth = PetPictureEdge + 4 + (2 * PetGridCellPadding);
 
     /// <summary>
     /// The share of the height of the work area the grid of pets may take before the submenu scrolls.
