@@ -41,6 +41,23 @@ public sealed partial class PetsTabViewModel : ObservableObject
     private readonly Func<IEnumerable<string>, Task>? _preload;
 
     /// <summary>
+    /// Gives back the memory of every picture that is not in the set it is handed; <see langword="null"/> if the pictures
+    /// are not held on to.
+    /// </summary>
+    private readonly Action<IEnumerable<string>>? _retain;
+
+    /// <summary>
+    /// Asks whether to delete a pet; <see langword="null"/> if nothing may be deleted.
+    /// </summary>
+    private readonly Func<PetCardViewModel, bool, bool>? _confirmDelete;
+
+    /// <summary>
+    /// Whether the previews are running, which is when the pictures of the picked pet are wanted. While they are not (the
+    /// panel is hidden or on another tab) only the pictures the cards stand on are kept, as there are many pets.
+    /// </summary>
+    private bool _previewsRunning;
+
+    /// <summary>
     /// Lets one refresh at a time run, as a refresh is slow enough for the user to open the tab again during it.
     /// </summary>
     private readonly SemaphoreSlim _refreshGate = new(1, 1);
@@ -98,6 +115,15 @@ public sealed partial class PetsTabViewModel : ObservableObject
     /// <param name="openPetsFolder">
     /// Opens the folder where the user can put pets of their own, or <see langword="null"/> if there is none.
     /// </param>
+    /// <param name="retain">
+    /// Forgets the pictures that are not in the set it is given, so that only the picked pet's preview takes memory, or
+    /// <see langword="null"/> if the pictures are not held on to.
+    /// </param>
+    /// <param name="confirmDelete">
+    /// Asks the user whether to delete a pet (the card, and whether the question is about deleting for good because the
+    /// Recycle Bin cannot be used) and tells the answer; <see langword="null"/> never deletes anything, as a pet is not
+    /// deleted without asking.
+    /// </param>
     public PetsTabViewModel(
         SettingsService settings,
         IPetCatalog catalog,
@@ -105,7 +131,9 @@ public sealed partial class PetsTabViewModel : ObservableObject
         PetSwitcher petSwitcher,
         Func<string, ImageSource?> frames,
         Func<IEnumerable<string>, Task>? preload = null,
-        Action? openPetsFolder = null)
+        Action? openPetsFolder = null,
+        Action<IEnumerable<string>>? retain = null,
+        Func<PetCardViewModel, bool, bool>? confirmDelete = null)
     {
         ArgumentNullException.ThrowIfNull(settings);
         ArgumentNullException.ThrowIfNull(catalog);
@@ -119,6 +147,8 @@ public sealed partial class PetsTabViewModel : ObservableObject
         _frames = frames;
         _preload = preload;
         _openPetsFolder = openPetsFolder;
+        _retain = retain;
+        _confirmDelete = confirmDelete;
 
         _settings.Changed += OnSettingsChanged;
         petSwitcher.SwitchFailed += OnPetSwitchFailed;
@@ -179,19 +209,51 @@ public sealed partial class PetsTabViewModel : ObservableObject
             // The cards hold text in the language they were made in, so after a change of language none is kept.
             var language = Strings.Current.Name;
             var reusable = string.Equals(language, _cardsLanguage, StringComparison.Ordinal);
-            // Listing the folders reads the disk, which should not hold up the UI thread.
-            foreach (var name in await Task.Run(_catalog.GetPetNames))
+            // Listing the folders reads the disk, which should not hold up the UI thread; nor does finding out which of the
+            // pets are the user's own, which can be deleted.
+            var names = await Task.Run(_catalog.GetPetNames);
+            var removable = await Task.Run(() => names.Where(_catalog.CanRemove).ToHashSet(StringComparer.Ordinal));
+            foreach (var name in names)
             {
-                cards.Add(reusable && _known.TryGetValue(name, out var existing) && existing.IsAvailable && existing.HasPicture
-                    ? existing
-                    : await LoadCardAsync(name));
+                var known = reusable && _known.TryGetValue(name, out var existing) ? existing : null;
+                if (known is { IsAvailable: true, HasPicture: true })
+                {
+                    cards.Add(known);
+                    continue;
+                }
+
+                // A pet that did not work is loaded again, in case it has been repaired. If it still fails in the same way
+                // the card it had is kept, so that the list is not handed over (and every card built) anew each time.
+                var loaded = await LoadCardAsync(name);
+                cards.Add(known is not null && IsSameFailure(known, loaded) ? known : loaded);
             }
 
             _cardsLanguage = language;
             _known = cards.ToDictionary(card => card.FolderName, StringComparer.Ordinal);
+
+            // The cards say what they rest on from here on, so what the previews keep can be worked out (see Retain); the
+            // views are told in the finally block.
+            _isLoaded = true;
+            foreach (var card in cards)
+            {
+                card.CanDelete = removable.Contains(card.FolderName);
+            }
+
             MarkCurrent(_settings.Current.PetName);
-            Cards = cards;
+            ApplyHidden(_settings.Current);
+
+            // The same cards in the same order are not handed over again: replacing the list makes the tab build every card
+            // anew, which is slow enough to be seen as a flash each time the tab comes into view.
+            if (!Cards.SequenceEqual(cards))
+            {
+                Cards = cards;
+            }
+
             SelectCard(PickSelection(cards, SelectedCard?.FolderName));
+
+            // The picked pet may have stayed the same, in which case SelectCard did nothing; its pictures still have to be
+            // ready if the previews are running by now.
+            PreparePreview(SelectedCard);
         }
         finally
         {
@@ -256,16 +318,84 @@ public sealed partial class PetsTabViewModel : ObservableObject
             card.IsSelected = true;
             card.Restart();
         }
+
+        PreparePreview(card);
     }
 
     /// <summary>
-    /// Puts all previews back on their first picture, so none is left in the middle of a state when the tab comes back.
+    /// Puts all previews back on their first picture, so none is left in the middle of a state when the tab comes back, and
+    /// gets the pictures of the picked pet ready. Call when the previews start running.
     /// </summary>
     public void RestartPreviews()
     {
+        _previewsRunning = true;
         foreach (var card in Cards)
         {
             card.Restart();
+        }
+
+        PreparePreview(SelectedCard);
+    }
+
+    /// <summary>
+    /// Gives back the memory of the pictures the previews do not need while they stand still: all that is kept is the
+    /// picture each card rests on. Call when the previews stop running.
+    /// </summary>
+    public void TrimPreviews()
+    {
+        _previewsRunning = false;
+        Retain([]);
+    }
+
+    /// <summary>
+    /// Keeps the pictures of the picked pet's preview, besides the ones every card rests on, and cuts them out ahead of
+    /// time; the pictures of the pet that was picked before are given back.
+    /// </summary>
+    /// <param name="card">The pet that is previewed, or <see langword="null"/> if there is none.</param>
+    private void PreparePreview(PetCardViewModel? card)
+    {
+        if (!_previewsRunning || card is not { IsAvailable: true })
+        {
+            return;
+        }
+
+        Retain(card.PreviewFrameIds);
+        if (_preload is not null)
+        {
+            _ = PreloadQuietlyAsync(card.PreviewFrameIds);
+        }
+    }
+
+    /// <summary>
+    /// Gives back the memory of every picture except the ones the cards rest on and the given ones. Does nothing until the
+    /// first look at the pets is over, as the cards that are still being made have not said what they rest on yet.
+    /// </summary>
+    /// <param name="extra">The names of the pictures to keep besides those.</param>
+    private void Retain(IEnumerable<string> extra)
+    {
+        if (_retain is null || !_isLoaded)
+        {
+            return;
+        }
+
+        _retain(_known.Values.SelectMany(card => card.RestFrameIds).Concat(extra).ToList());
+    }
+
+    /// <summary>
+    /// Cuts pictures out ahead of time. Nothing depends on it: a picture that is not ready is cut out when it is asked
+    /// for, so a failure here is not worth reporting.
+    /// </summary>
+    /// <param name="frameIds">The names of the pictures.</param>
+    /// <returns>A task that completes when the pictures are ready or the attempt has failed; it does not fail.</returns>
+    private async Task PreloadQuietlyAsync(IReadOnlyList<string> frameIds)
+    {
+        try
+        {
+            await _preload!(frameIds);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            // Only a head start: the preview cuts the pictures out itself when it needs them.
         }
     }
 
@@ -307,6 +437,150 @@ public sealed partial class PetsTabViewModel : ObservableObject
     }
 
     /// <summary>
+    /// Switches a pet on or off: whether it is offered when the user changes to another pet. The switch on the card has
+    /// already taken the value the user wants.
+    /// </summary>
+    /// <param name="card">The pet whose switch the user flipped.</param>
+    /// <returns>A task that completes when the choice has been saved.</returns>
+    [RelayCommand]
+    private async Task ToggleShownAsync(PetCardViewModel? card)
+    {
+        if (card is not { CanChangeShown: true })
+        {
+            return;
+        }
+
+        var offered = card.IsShown;
+        PetError = string.Empty;
+        try
+        {
+            await _settings.UpdateAsync(settings => settings with { HiddenPets = WithHidden(settings.HiddenPets, card.FolderName, hidden: !offered) });
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            PetError = string.Format(CultureInfo.CurrentCulture, Strings.SettingsSaveFailed, ErrorText.For(ex));
+        }
+        finally
+        {
+            // Whatever came of it, the switch shows what the settings say (it already took the user's value).
+            ApplyHidden(_settings.Current);
+        }
+    }
+
+    /// <summary>
+    /// Deletes a pet after asking: its folder goes to the Recycle Bin, or, if that cannot be used and the user agrees, is
+    /// deleted for good. Only a pet in the user's own folder can be deleted, and not the pet in use.
+    /// </summary>
+    /// <param name="card">The pet whose delete button the user pressed.</param>
+    /// <returns>A task that completes when the pet is deleted, or it is clear that it is not to be.</returns>
+    [RelayCommand]
+    private async Task DeleteAsync(PetCardViewModel? card)
+    {
+        if (card is not { CanDeleteNow: true } || _confirmDelete is null)
+        {
+            return;
+        }
+
+        PetError = string.Empty;
+        if (!_confirmDelete(card, false))
+        {
+            return;
+        }
+
+        var result = await _catalog.RemoveAsync(card.FolderName);
+        if (result == PetRemoval.RecycleUnavailable)
+        {
+            if (!_confirmDelete(card, true))
+            {
+                return;
+            }
+
+            result = await _catalog.RemoveAsync(card.FolderName, permanently: true);
+        }
+
+        switch (result)
+        {
+            case PetRemoval.Removed:
+                await ForgetHiddenAsync(card.FolderName);
+
+                // The card is dropped so that the refresh loads the pet again: a shipped pet the deleted copy stood in for
+                // comes back under the same name, and the card of the copy would be reused for it.
+                _known.Remove(card.FolderName);
+                await RefreshAsync();
+                break;
+            case PetRemoval.NotRemovable:
+                PetError = Strings.PetsDeleteShipped;
+                break;
+            default:
+                PetError = Strings.PetsDeleteFailed;
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Takes a pet that has been deleted out of the list of pets that are switched off, so that a pet that is put back
+    /// under the same name starts as offered.
+    /// </summary>
+    /// <param name="name">The folder name of the pet.</param>
+    /// <returns>A task that completes when the settings have been saved.</returns>
+    private async Task ForgetHiddenAsync(string name)
+    {
+        if (!_settings.Current.HiddenPets.Contains(name, StringComparer.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        try
+        {
+            await _settings.UpdateAsync(settings => settings with { HiddenPets = WithHidden(settings.HiddenPets, name, hidden: false) });
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            PetError = string.Format(CultureInfo.CurrentCulture, Strings.SettingsSaveFailed, ErrorText.For(ex));
+        }
+    }
+
+    /// <summary>
+    /// Adds a pet to the list of pets that are switched off, or takes it out.
+    /// </summary>
+    /// <param name="hiddenPets">The list as it is.</param>
+    /// <param name="name">The folder name of the pet.</param>
+    /// <param name="hidden">Whether the pet is to be on the list.</param>
+    /// <returns>The new list.</returns>
+    private static string[] WithHidden(IReadOnlyList<string> hiddenPets, string name, bool hidden)
+    {
+        var others = hiddenPets.Where(entry => !string.Equals(entry, name, StringComparison.OrdinalIgnoreCase));
+        return hidden ? [.. others, name] : [.. others];
+    }
+
+    /// <summary>
+    /// Shows which pets are offered, as the settings say; the pet in use always is.
+    /// </summary>
+    /// <param name="settings">The settings.</param>
+    private void ApplyHidden(PetSettings settings)
+    {
+        foreach (var card in _known.Values)
+        {
+            card.IsShown = card.IsCurrent || !settings.HiddenPets.Contains(card.FolderName, StringComparer.OrdinalIgnoreCase);
+        }
+    }
+
+    /// <summary>
+    /// Tells whether two cards of a pet that does not work are the same: they have no picture, and say the same.
+    /// </summary>
+    /// <param name="earlier">The card the tab had.</param>
+    /// <param name="later">The card made by loading the pet again.</param>
+    /// <returns><see langword="true"/> if nothing about the pet has changed for the user.</returns>
+    private static bool IsSameFailure(PetCardViewModel earlier, PetCardViewModel later)
+    {
+        return !earlier.HasPicture
+            && !later.HasPicture
+            && earlier.IsAvailable == later.IsAvailable
+            && string.Equals(earlier.LoadError, later.LoadError, StringComparison.Ordinal)
+            && string.Equals(earlier.DisplayName, later.DisplayName, StringComparison.Ordinal);
+    }
+
+    /// <summary>
     /// Chooses which pet to preview after the list was refreshed: the one that was being previewed if it is still there,
     /// otherwise the pet in use, otherwise the first pet that could be loaded.
     /// </summary>
@@ -333,7 +607,9 @@ public sealed partial class PetsTabViewModel : ObservableObject
             var pet = await _loader.LoadAsync(_catalog.GetPetDirectory(name));
             if (_preload is not null)
             {
-                await _preload(PetShowcase.NativeStatesOf(pet).SelectMany(state => pet.GetAnimation(state).FrameIds));
+                // Only what the card shows while it stands still: all pets are listed at once, and the pictures of the
+                // rest of the states are cut out when the pet is picked (see PreparePreview).
+                await _preload(pet.GetAnimation(PetState.Idle).FrameIds);
             }
 
             return new PetCardViewModel(name, pet, _frames);
@@ -357,13 +633,15 @@ public sealed partial class PetsTabViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Shows which pet is in use after the settings changed, also when a pet that could not be loaded was put back.
+    /// Shows which pet is in use and which pets are switched off after the settings changed, also when a pet that could not
+    /// be loaded was put back.
     /// </summary>
     /// <param name="sender">The event source.</param>
     /// <param name="settings">The new settings.</param>
     private void OnSettingsChanged(object? sender, PetSettings settings)
     {
         MarkCurrent(settings.PetName);
+        ApplyHidden(settings);
     }
 
     /// <summary>

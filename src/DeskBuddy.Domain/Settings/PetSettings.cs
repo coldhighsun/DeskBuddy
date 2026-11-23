@@ -92,6 +92,13 @@ public sealed record PetSettings
     public TimeSpan AutoSwitchPetInterval { get; init; } = AutoSwitchIntervals[0];
 
     /// <summary>
+    /// Gets the folder names of the pets the user has switched off: they are left out of the pets that can be changed to
+    /// (the tray menu, the random choice and the automatic change) but stay in the list of the panel, where they can be
+    /// switched on again. The pet in use is never left out, whatever this holds. Empty by default.
+    /// </summary>
+    public IReadOnlyList<string> HiddenPets { get; init; } = [];
+
+    /// <summary>
     /// Gets how long the user must be inactive before the pet falls asleep.
     /// </summary>
     public TimeSpan SleepAfter { get; init; } = TimeSpan.FromMinutes(5);
@@ -211,6 +218,7 @@ public sealed record PetSettings
         var normalized = this with
         {
             PetName = NormalizePetName(PetName),
+            HiddenPets = NormalizePetNames(HiddenPets),
             AutoSwitchPetInterval = AutoSwitchIntervals.Contains(AutoSwitchPetInterval)
                 ? AutoSwitchPetInterval
                 : defaults.AutoSwitchPetInterval,
@@ -264,16 +272,45 @@ public sealed record PetSettings
     /// <returns>The trimmed name, or <see cref="DefaultPetName"/> if it is not a plain folder name.</returns>
     private static string NormalizePetName(string? name)
     {
-        var trimmed = name?.Trim();
-        if (string.IsNullOrEmpty(trimmed)
-            || trimmed is "." or ".."
-            || trimmed.IndexOfAny(['/', '\\', ':']) >= 0
-            || trimmed.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+        var trimmed = name?.Trim() ?? string.Empty;
+        return IsPlainFolderName(trimmed) ? trimmed : DefaultPetName;
+    }
+
+    /// <summary>
+    /// Cleans up a list of pet names.
+    /// </summary>
+    /// <param name="names">The names as stored, possibly <see langword="null"/>.</param>
+    /// <returns>
+    /// The distinct (ignoring case) names that are plain folder names, trimmed; the others are dropped, as there is no pet
+    /// they could stand for.
+    /// </returns>
+    private static string[] NormalizePetNames(IReadOnlyList<string>? names)
+    {
+        if (names is null)
         {
-            return DefaultPetName;
+            return [];
         }
 
-        return trimmed;
+        return
+        [
+            .. names
+                .Select(name => name?.Trim() ?? string.Empty)
+                .Where(IsPlainFolderName)
+                .Distinct(StringComparer.OrdinalIgnoreCase),
+        ];
+    }
+
+    /// <summary>
+    /// Tells whether a name is a plain folder name: not empty, not a path and without characters a file name cannot have.
+    /// </summary>
+    /// <param name="name">The name, already trimmed.</param>
+    /// <returns><see langword="true"/> if it can name a folder directly under the pets folder.</returns>
+    public static bool IsPlainFolderName(string? name)
+    {
+        return !string.IsNullOrEmpty(name)
+            && name is not ("." or "..")
+            && name.IndexOfAny(['/', '\\', ':']) < 0
+            && name.IndexOfAny(Path.GetInvalidFileNameChars()) < 0;
     }
 
     /// <summary>

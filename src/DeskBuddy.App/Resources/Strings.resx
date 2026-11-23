@@ -51,6 +51,22 @@
   <data name="TabPets" xml:space="preserve"><value>宠物</value></data>
   <data name="PetsCurrent" xml:space="preserve"><value>当前</value></data>
   <data name="PetsUse" xml:space="preserve"><value>使用</value></data>
+  <data name="PetsShown" xml:space="preserve"><value>参与切换：关闭后，托盘菜单、随机选择和自动换宠物里不再出现这只宠物</value></data>
+  <data name="PetsShownInUse" xml:space="preserve"><value>正在使用的宠物始终参与切换</value></data>
+  <data name="PetsDelete" xml:space="preserve"><value>删除这只宠物（移到回收站）</value></data>
+  <data name="PetsDeleteInUse" xml:space="preserve"><value>正在使用的宠物不能删除</value></data>
+  <data name="PetsDeleteShipped" xml:space="preserve"><value>随程序安装的宠物不能删除；如果它坏了，请重新安装程序</value></data>
+  <data name="PetsDeleteConfirm" xml:space="preserve"><value>把宠物“{0}”的文件夹移到回收站吗？
+
+可以在回收站里还原。</value></data>
+  <data name="PetsDeleteConfirmPermanent" xml:space="preserve"><value>无法把宠物“{0}”移到回收站。要永久删除它的文件夹吗？
+
+这个操作不能撤销。</value></data>
+  <data name="PetsDeleteFailed" xml:space="preserve"><value>无法删除这只宠物的文件夹：它可能正在被使用，或者没有权限。</value></data>
+  <data name="PetsOriginShipped" xml:space="preserve"><value>自带</value></data>
+  <data name="PetsOriginUser" xml:space="preserve"><value>我的</value></data>
+  <data name="PetsOriginShippedTip" xml:space="preserve"><value>随程序安装的宠物</value></data>
+  <data name="PetsOriginUserTip" xml:space="preserve"><value>放在你的宠物文件夹里的宠物</value></data>
   <data name="PetsInfo" xml:space="preserve"><value>画面 {0}×{1} · 动作 {2}/{3}</value></data>
   <data name="PetsCapLookAround" xml:space="preserve"><value>眼睛跟随鼠标</value></data>
   <data name="PetsCapEdges" xml:space="preserve"><value>攀爬屏幕边缘 {0}/{1}</value></data>

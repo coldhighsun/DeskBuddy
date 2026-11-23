@@ -82,6 +82,7 @@
     <Style x:Key="BorderlessWindowStyle" TargetType="Window" BasedOn="{StaticResource AppWindow}">
         <Setter Property="WindowStyle" Value="None" />
         <Setter Property="interop:WindowCornerHelper.UseNativeCorners" Value="True" />
+        <Setter Property="interop:WindowRenderingHelper.UseSoftwareRendering" Value="True" />
         <Setter Property="WindowChrome.WindowChrome">
             <Setter.Value>
                 <WindowChrome CaptionHeight="48"
@@ -152,6 +153,47 @@
                 <Setter Property="Foreground" Value="{DynamicResource AppCloseForeground}" />
             </Trigger>
         </Style.Triggers>
+    </Style>
+
+    <!-- An on/off switch: a rounded track with a round thumb that sits on the right when it is on. -->
+    <Style x:Key="SwitchToggle" TargetType="ToggleButton">
+        <Setter Property="Width" Value="40" />
+        <Setter Property="Height" Value="22" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Border x:Name="Track"
+                            CornerRadius="11"
+                            Background="{DynamicResource AppDivider}"
+                            BorderBrush="{DynamicResource AppForegroundMuted}"
+                            BorderThickness="1">
+                        <Ellipse x:Name="Thumb"
+                                 Width="14"
+                                 Height="14"
+                                 Margin="3,0"
+                                 HorizontalAlignment="Left"
+                                 VerticalAlignment="Center"
+                                 Fill="{DynamicResource AppForegroundMuted}" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Track" Property="Background" Value="{DynamicResource AppPrimary}" />
+                            <Setter TargetName="Track" Property="BorderBrush" Value="{DynamicResource AppPrimary}" />
+                            <Setter TargetName="Thumb" Property="Fill" Value="{DynamicResource AppPrimaryForeground}" />
+                            <Setter TargetName="Thumb" Property="HorizontalAlignment" Value="Right" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Track" Property="Opacity" Value="0.85" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.45" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <!-- Text only, no background. -->

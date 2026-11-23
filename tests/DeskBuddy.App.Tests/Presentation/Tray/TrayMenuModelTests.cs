@@ -291,4 +291,93 @@ public class TrayMenuModelTests
         // Assert
         result.Should().BeFalse();
     }
+
+    /// <summary>
+    /// A pet the user has switched off is left out of the grid of pets to change to.
+    /// </summary>
+    [Fact]
+    public void PetChoices_HiddenPets_AreLeftOut()
+    {
+        // Arrange
+        InstalledPet[] pets = [.. new[] { "cat", "dog", "fox" }.Select(name => new InstalledPet(name, name, null, 64, 64))];
+
+        // Act
+        var choices = TrayMenuModel.PetChoices(pets, "cat", ["DOG"]);
+
+        // Assert
+        choices.Select(choice => choice.FolderName).Should().Equal("cat", "fox");
+    }
+
+    /// <summary>
+    /// The pet in use stays in the grid, even when it is on the list of pets that are switched off, so the menu shows what
+    /// is on the screen.
+    /// </summary>
+    [Fact]
+    public void PetChoices_PetInUseIsHidden_StaysInTheGrid()
+    {
+        // Arrange
+        InstalledPet[] pets = [.. new[] { "cat", "dog" }.Select(name => new InstalledPet(name, name, null, 64, 64))];
+
+        // Act
+        var choices = TrayMenuModel.PetChoices(pets, "cat", ["cat", "dog"]);
+
+        // Assert
+        choices.Select(choice => choice.FolderName).Should().Equal("cat");
+        choices.Single().IsCurrent.Should().BeTrue();
+    }
+
+    /// <summary>
+    /// A random pick never lands on a pet that is switched off.
+    /// </summary>
+    [Fact]
+    public void PickRandom_HiddenPets_AreNeverPicked()
+    {
+        // Arrange
+        InstalledPet[] pets = [.. Enumerable.Range(0, 8).Select(i => new InstalledPet($"pet{i}", $"Pet {i}", null, 64, 64))];
+        var random = new Random(3);
+        string[] hidden = ["pet1", "pet2", "pet4", "pet5", "pet6"];
+
+        // Act
+        var picks = Enumerable.Range(0, 200).Select(_ => TrayMenuModel.PickRandom(pets, "pet0", random, hidden)).ToList();
+
+        // Assert
+        picks.Should().OnlyContain(pick => pick == "pet3" || pick == "pet7");
+        picks.Distinct().Should().BeEquivalentTo(["pet3", "pet7"]);
+    }
+
+    /// <summary>
+    /// When every other pet is switched off there is nothing to pick and no other pet to change to.
+    /// </summary>
+    [Fact]
+    public void PickRandomAndHasAnotherPet_AllOthersHidden_NothingToChangeTo()
+    {
+        // Arrange
+        InstalledPet[] pets = [.. new[] { "cat", "dog", "fox" }.Select(name => new InstalledPet(name, name, null, 64, 64))];
+        string[] hidden = ["dog", "fox"];
+
+        // Act
+        var pick = TrayMenuModel.PickRandom(pets, "cat", new Random(1), hidden);
+        var hasAnother = TrayMenuModel.HasAnotherPet(pets, "cat", hidden);
+
+        // Assert
+        pick.Should().BeNull();
+        hasAnother.Should().BeFalse();
+    }
+
+    /// <summary>
+    /// Switching a pet on or off makes the menu build again, as the pets it lists have changed.
+    /// </summary>
+    [Fact]
+    public void ShouldRebuild_HiddenPetsChanged_IsTrue()
+    {
+        // Arrange
+        var policy = new TrayMenuRebuildPolicy();
+        policy.MarkBuilt(new TrayMenuState("cat", PetSize.Medium, false, 1, HiddenPets: "dog"));
+
+        // Act
+        var result = policy.ShouldRebuild(new TrayMenuState("cat", PetSize.Medium, false, 1, HiddenPets: "dog|fox"), menuOpen: false);
+
+        // Assert
+        result.Should().BeTrue();
+    }
 }

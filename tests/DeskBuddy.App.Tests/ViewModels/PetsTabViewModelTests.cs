@@ -33,6 +33,26 @@ public class PetsTabViewModelTests
     private readonly List<string> _preloaded = [];
 
     /// <summary>
+    /// The sets of picture names the tab asked to keep, one for each time it did.
+    /// </summary>
+    private readonly List<string[]> _retained = [];
+
+    /// <summary>
+    /// The questions the tab asked before deleting a pet: the pet, and whether the question was about deleting for good.
+    /// </summary>
+    private readonly List<(string Name, bool Permanently)> _confirmations = [];
+
+    /// <summary>
+    /// The answers to give to the questions one after the other; once they are used up, <see cref="_confirmAnswer"/>.
+    /// </summary>
+    private readonly Queue<bool> _confirmAnswers = new();
+
+    /// <summary>
+    /// The answer the user gives to the question about deleting a pet, unless <see cref="_confirmAnswers"/> says otherwise.
+    /// </summary>
+    private bool _confirmAnswer = true;
+
+    /// <summary>
     /// What the preload fails with, or <see langword="null"/> if it works.
     /// </summary>
     private Exception? _preloadFailure;
@@ -600,6 +620,274 @@ public class PetsTabViewModelTests
     }
 
     /// <summary>
+    /// A refresh that finds the same pets does not hand the list over again, as that makes the tab build every card anew,
+    /// which shows as a flash each time the panel is opened.
+    /// </summary>
+    [Fact]
+    public async Task RefreshAsync_SamePets_DoesNotReplaceTheList()
+    {
+        // Arrange
+        await CreateAsync("cat", "dog");
+        await _viewModel.RefreshAsync();
+        var list = _viewModel.Cards;
+        var changes = new List<string?>();
+        _viewModel.PropertyChanged += (_, e) => changes.Add(e.PropertyName);
+
+        // Act
+        await _viewModel.RefreshAsync();
+
+        // Assert
+        _viewModel.Cards.Should().BeSameAs(list);
+        changes.Should().NotContain(nameof(PetsTabViewModel.Cards));
+    }
+
+    /// <summary>
+    /// A pet that still fails in the same way when it is loaded again keeps its card, so a broken pet does not make the
+    /// panel build every card anew each time it is opened.
+    /// </summary>
+    [Fact]
+    public async Task RefreshAsync_BrokenPetStillBroken_KeepsTheListAndItsCard()
+    {
+        // Arrange
+        await CreateAsync("cat", "broken");
+        await _viewModel.RefreshAsync();
+        var list = _viewModel.Cards;
+        var brokenCard = _viewModel.Cards.Single(card => card.FolderName == "broken");
+        var changes = new List<string?>();
+        _viewModel.PropertyChanged += (_, e) => changes.Add(e.PropertyName);
+
+        // Act
+        await _viewModel.RefreshAsync();
+
+        // Assert
+        _viewModel.Cards.Should().BeSameAs(list);
+        _viewModel.Cards.Single(card => card.FolderName == "broken").Should().BeSameAs(brokenCard);
+        changes.Should().NotContain(nameof(PetsTabViewModel.Cards));
+    }
+
+    /// <summary>
+    /// A broken pet that has been repaired gets a new card, and the list is handed over so that it shows.
+    /// </summary>
+    [Fact]
+    public async Task RefreshAsync_BrokenPetRepaired_GetsANewWorkingCard()
+    {
+        // Arrange
+        await CreateAsync("cat", "broken");
+        await _viewModel.RefreshAsync();
+        var brokenCard = _viewModel.Cards.Single(card => card.FolderName == "broken");
+        brokenCard.IsAvailable.Should().BeFalse();
+        _loader.Available.Add("broken");
+
+        // Act
+        await _viewModel.RefreshAsync();
+
+        // Assert
+        var repaired = _viewModel.Cards.Single(card => card.FolderName == "broken");
+        repaired.Should().NotBeSameAs(brokenCard);
+        repaired.IsAvailable.Should().BeTrue();
+    }
+
+    /// <summary>
+    /// A pet that fails for another reason than before gets a card that says so.
+    /// </summary>
+    [Fact]
+    public async Task RefreshAsync_BrokenPetFailsDifferently_GetsANewCard()
+    {
+        // Arrange
+        await CreateAsync("cat", "broken");
+        await _viewModel.RefreshAsync();
+        var brokenCard = _viewModel.Cards.Single(card => card.FolderName == "broken");
+        _picturesAvailable = false;
+        _loader.Available.Add("broken");
+
+        // Act
+        await _viewModel.RefreshAsync();
+
+        // Assert
+        _viewModel.Cards.Single(card => card.FolderName == "broken").Should().NotBeSameAs(brokenCard);
+    }
+
+    /// <summary>
+    /// On the first look at the pets, with the previews already running, what the previews keep is worked out at once:
+    /// the cache is not left holding pictures of pets that are not picked.
+    /// </summary>
+    [Fact]
+    public async Task RefreshAsync_PreviewsRunningOnTheFirstLook_RetainsThePickedPetsPictures()
+    {
+        // Arrange
+        _loader.ExtraStates["cat"] = [PetState.Walk];
+        await CreateAsync("cat");
+        _viewModel.RestartPreviews();
+
+        // Act
+        await _viewModel.RefreshAsync();
+
+        // Assert
+        _retained.Should().NotBeEmpty();
+        _retained.Last().Distinct().Should().BeEquivalentTo("idle.png", "Walk_0.png", "Walk_1.png");
+    }
+
+    /// <summary>
+    /// A refresh that finds a pet more does hand the new list over.
+    /// </summary>
+    [Fact]
+    public async Task RefreshAsync_PetAdded_ReplacesTheList()
+    {
+        // Arrange
+        await CreateAsync("cat");
+        await _viewModel.RefreshAsync();
+        _loader.Available.Add("dog");
+        _catalog.Names = ["cat", "dog"];
+
+        // Act
+        await _viewModel.RefreshAsync();
+
+        // Assert
+        _viewModel.Cards.Select(card => card.FolderName).Should().Equal("cat", "dog");
+    }
+
+    /// <summary>
+    /// When the previews run while the pets are being looked at (the panel is opened for the first time), the picked pet's
+    /// pictures are got ready once the list is made, though the pet that is picked has not changed.
+    /// </summary>
+    [Fact]
+    public async Task RefreshAsync_PreviewsRunning_PreparesThePickedPetsPictures()
+    {
+        // Arrange
+        _loader.ExtraStates["cat"] = [PetState.Walk];
+        await CreateAsync("cat");
+        _viewModel.RestartPreviews();
+
+        // Act
+        await _viewModel.RefreshAsync();
+
+        // Assert
+        await EventuallyAsync(() => _preloaded.Contains("Walk_0.png"));
+        _preloaded.Should().Contain("Walk_0.png");
+    }
+
+    /// <summary>
+    /// Listing the pets cuts out only the pictures each card rests on, not those of every state of every pet: the panel may
+    /// list many pets, and only the picked one moves.
+    /// </summary>
+    [Fact]
+    public async Task RefreshAsync_PetWithMoreStates_PreloadsOnlyTheRestingPictures()
+    {
+        // Arrange
+        _loader.ExtraStates["cat"] = [PetState.Walk];
+        await CreateAsync("cat");
+
+        // Act
+        await _viewModel.RefreshAsync();
+
+        // Assert
+        _preloaded.Should().Equal("idle.png");
+    }
+
+    /// <summary>
+    /// Once the previews run, the picked pet's pictures of every state are cut out ahead of time and kept, besides the
+    /// pictures every card rests on.
+    /// </summary>
+    [Fact]
+    public async Task RestartPreviews_PickedPet_PreloadsAndKeepsItsPictures()
+    {
+        // Arrange
+        _loader.ExtraStates["cat"] = [PetState.Walk];
+        await CreateAsync("cat", "dog");
+        await _viewModel.RefreshAsync();
+        _preloaded.Clear();
+
+        // Act
+        _viewModel.RestartPreviews();
+
+        // Assert
+        await EventuallyAsync(() => _preloaded.Count > 0);
+        _preloaded.Should().BeEquivalentTo("idle.png", "Walk_0.png", "Walk_1.png");
+        _retained.Last().Distinct().Should().BeEquivalentTo("idle.png", "Walk_0.png", "Walk_1.png");
+    }
+
+    /// <summary>
+    /// Picking another pet gives back the pictures of the pet that was picked before.
+    /// </summary>
+    [Fact]
+    public async Task SelectCard_PreviewsRunning_KeepsOnlyThePickedPetsPictures()
+    {
+        // Arrange
+        _loader.ExtraStates["cat"] = [PetState.Walk];
+        _loader.ExtraStates["dog"] = [PetState.Sleep];
+        await CreateAsync("cat", "dog");
+        await _viewModel.RefreshAsync();
+        _viewModel.RestartPreviews();
+
+        // Act
+        _viewModel.SelectCard(_viewModel.Cards.Single(card => card.FolderName == "dog"));
+
+        // Assert
+        _retained.Last().Distinct().Should().BeEquivalentTo("idle.png", "Sleep_0.png", "Sleep_1.png");
+    }
+
+    /// <summary>
+    /// When the previews stop, only the pictures the cards rest on are kept.
+    /// </summary>
+    [Fact]
+    public async Task TrimPreviews_AfterPreviewsRan_KeepsOnlyTheRestingPictures()
+    {
+        // Arrange
+        _loader.ExtraStates["cat"] = [PetState.Walk];
+        await CreateAsync("cat");
+        await _viewModel.RefreshAsync();
+        _viewModel.RestartPreviews();
+
+        // Act
+        _viewModel.TrimPreviews();
+
+        // Assert
+        _retained.Last().Distinct().Should().BeEquivalentTo("idle.png");
+    }
+
+    /// <summary>
+    /// While the previews are not running (the panel is hidden), picking a pet does not cut anything out or keep anything.
+    /// </summary>
+    [Fact]
+    public async Task SelectCard_PreviewsNotRunning_DoesNotPreloadOrRetain()
+    {
+        // Arrange
+        _loader.ExtraStates["dog"] = [PetState.Sleep];
+        await CreateAsync("cat", "dog");
+        await _viewModel.RefreshAsync();
+        _preloaded.Clear();
+        _retained.Clear();
+
+        // Act
+        _viewModel.SelectCard(_viewModel.Cards.Single(card => card.FolderName == "dog"));
+
+        // Assert
+        _preloaded.Should().BeEmpty();
+        _retained.Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// A preload that fails is only a lost head start: the preview still works and nothing is thrown.
+    /// </summary>
+    [Fact]
+    public async Task RestartPreviews_PreloadFails_DoesNotThrow()
+    {
+        // Arrange
+        await CreateAsync("cat");
+        await _viewModel.RefreshAsync();
+        _preloaded.Clear();
+        _preloadFailure = new IOException("atlas unreadable");
+
+        // Act
+        var act = () => _viewModel.RestartPreviews();
+
+        // Assert
+        act.Should().NotThrow();
+        await EventuallyAsync(() => _preloaded.Count > 0);
+        _preloaded.Should().NotBeEmpty();
+    }
+
+    /// <summary>
     /// A pet whose pictures cannot be read ahead of time is shown as one that cannot be used, with the reason.
     /// </summary>
     [Fact]
@@ -618,6 +906,478 @@ public class PetsTabViewModelTests
     }
 
     /// <summary>
+    /// Pets that the user has switched off in the settings show as switched off, and the pet in use shows as offered
+    /// whatever the settings say.
+    /// </summary>
+    [Fact]
+    public async Task RefreshAsync_HiddenPetsInSettings_ShowsThemSwitchedOffExceptThePetInUse()
+    {
+        // Arrange
+        await CreateAsync("cat", "dog", "fox");
+        await _settings.UpdateAsync(settings => settings with { PetName = "cat", HiddenPets = ["dog", "cat"] }, TestContext.Current.CancellationToken);
+
+        // Act
+        await _viewModel.RefreshAsync();
+
+        // Assert
+        _viewModel.Cards.Single(card => card.FolderName == "dog").IsShown.Should().BeFalse();
+        _viewModel.Cards.Single(card => card.FolderName == "fox").IsShown.Should().BeTrue();
+        _viewModel.Cards.Single(card => card.FolderName == "cat").IsShown.Should().BeTrue("the pet in use is always offered");
+    }
+
+    /// <summary>
+    /// Flipping the switch of a pet off puts it on the list of pets that are switched off, and flipping it on takes it off.
+    /// </summary>
+    [Fact]
+    public async Task ToggleShownCommand_SwitchFlipped_UpdatesTheSettings()
+    {
+        // Arrange
+        await CreateAsync("cat", "dog");
+        await _viewModel.RefreshAsync();
+        var dog = _viewModel.Cards.Single(card => card.FolderName == "dog");
+
+        // Act
+        dog.IsShown = false;
+        await _viewModel.ToggleShownCommand.ExecuteAsync(dog);
+        var hiddenAfterSwitchingOff = _settings.Current.HiddenPets;
+        dog.IsShown = true;
+        await _viewModel.ToggleShownCommand.ExecuteAsync(dog);
+
+        // Assert
+        hiddenAfterSwitchingOff.Should().Equal("dog");
+        _settings.Current.HiddenPets.Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// Switching a pet off twice (or on twice) does not put it on the list twice.
+    /// </summary>
+    [Fact]
+    public async Task ToggleShownCommand_SwitchedOffTwice_IsOnTheListOnce()
+    {
+        // Arrange
+        await CreateAsync("cat", "dog");
+        await _viewModel.RefreshAsync();
+        var dog = _viewModel.Cards.Single(card => card.FolderName == "dog");
+        dog.IsShown = false;
+
+        // Act
+        await _viewModel.ToggleShownCommand.ExecuteAsync(dog);
+        await _viewModel.ToggleShownCommand.ExecuteAsync(dog);
+
+        // Assert
+        _settings.Current.HiddenPets.Should().Equal("dog");
+    }
+
+    /// <summary>
+    /// The switch of the pet in use does nothing: the pet in use is always offered, and the switch is disabled.
+    /// </summary>
+    [Fact]
+    public async Task ToggleShownCommand_PetInUse_ChangesNothing()
+    {
+        // Arrange
+        await CreateAsync("cat", "dog");
+        await _settings.UpdateAsync(settings => settings with { PetName = "cat" }, TestContext.Current.CancellationToken);
+        await _viewModel.RefreshAsync();
+        var cat = _viewModel.Cards.Single(card => card.FolderName == "cat");
+
+        // Act
+        cat.IsShown = false;
+        await _viewModel.ToggleShownCommand.ExecuteAsync(cat);
+
+        // Assert
+        cat.CanChangeShown.Should().BeFalse();
+        _settings.Current.HiddenPets.Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// A pet that could not be loaded is shown as broken, cannot be offered, and has no switch to flip.
+    /// </summary>
+    [Fact]
+    public async Task RefreshAsync_BrokenPet_IsBrokenAndCannotBeOffered()
+    {
+        // Arrange
+        await CreateAsync("cat", "broken");
+
+        // Act
+        await _viewModel.RefreshAsync();
+
+        // Assert
+        var broken = _viewModel.Cards.Single(card => card.FolderName == "broken");
+        broken.IsBroken.Should().BeTrue();
+        broken.CanChangeShown.Should().BeFalse();
+        _viewModel.Cards.Single(card => card.FolderName == "cat").IsBroken.Should().BeFalse();
+    }
+
+    /// <summary>
+    /// A change of the pet in use (or of the list) in the settings shows on the switches at once.
+    /// </summary>
+    [Fact]
+    public async Task SettingsChanged_PetSwitchedOffElsewhere_ShowsOnTheCard()
+    {
+        // Arrange
+        await CreateAsync("cat", "dog");
+        await _viewModel.RefreshAsync();
+        var dog = _viewModel.Cards.Single(card => card.FolderName == "dog");
+
+        // Act
+        await _settings.UpdateAsync(settings => settings with { HiddenPets = ["dog"] }, TestContext.Current.CancellationToken);
+
+        // Assert
+        dog.IsShown.Should().BeFalse();
+    }
+
+    /// <summary>
+    /// A pet in the user's folder can be deleted; one that comes with the application, and the pet in use, cannot, and say why.
+    /// </summary>
+    [Fact]
+    public async Task RefreshAsync_Pets_SetWhichCanBeDeletedAndTheReasonForTheOthers()
+    {
+        // Arrange
+        await CreateAsync("cat", "dog", "fox");
+        _catalog.Removable.Add("cat");
+        _catalog.Removable.Add("dog");
+        await _settings.UpdateAsync(settings => settings with { PetName = "cat" }, TestContext.Current.CancellationToken);
+
+        // Act
+        await _viewModel.RefreshAsync();
+
+        // Assert
+        var cat = _viewModel.Cards.Single(card => card.FolderName == "cat");
+        var dog = _viewModel.Cards.Single(card => card.FolderName == "dog");
+        var fox = _viewModel.Cards.Single(card => card.FolderName == "fox");
+        dog.CanDeleteNow.Should().BeTrue();
+        dog.DeleteToolTip.Should().Be(Strings.PetsDelete);
+        cat.CanDeleteNow.Should().BeFalse();
+        cat.DeleteToolTip.Should().Be(Strings.PetsDeleteInUse);
+        fox.CanDeleteNow.Should().BeFalse();
+        fox.DeleteToolTip.Should().Be(Strings.PetsDeleteShipped);
+    }
+
+    /// <summary>
+    /// After the user agrees, the pet's folder is removed (to the Recycle Bin) and the pet leaves the list.
+    /// </summary>
+    [Fact]
+    public async Task DeleteCommand_UserAgrees_RemovesThePetAndRefreshesTheList()
+    {
+        // Arrange
+        await CreateAsync("cat", "dog");
+        _catalog.Removable.Add("dog");
+        await _viewModel.RefreshAsync();
+        var dog = _viewModel.Cards.Single(card => card.FolderName == "dog");
+
+        // Act
+        await _viewModel.DeleteCommand.ExecuteAsync(dog);
+
+        // Assert
+        _confirmations.Should().Equal(("dog", false));
+        _catalog.Removals.Should().Equal(("dog", false));
+        _viewModel.Cards.Select(card => card.FolderName).Should().Equal("cat");
+        _viewModel.PetError.Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// Deleting the user's copy of a pet that also comes with the application shows the shipped pet again: its card is made
+    /// anew instead of the card of the deleted copy being kept under the same name.
+    /// </summary>
+    [Fact]
+    public async Task DeleteCommand_CopyStoodInForAShippedPet_ShowsANewCardForTheShippedOne()
+    {
+        // Arrange
+        await CreateAsync("cat", "dog");
+        _catalog.Removable.Add("dog");
+        _catalog.NamesStayWhenRemoved = true;
+        await _viewModel.RefreshAsync();
+        var copy = _viewModel.Cards.Single(card => card.FolderName == "dog");
+        _loader.Requested.Clear();
+
+        // Act
+        await _viewModel.DeleteCommand.ExecuteAsync(copy);
+
+        // Assert
+        var shipped = _viewModel.Cards.Single(card => card.FolderName == "dog");
+        shipped.Should().NotBeSameAs(copy);
+        shipped.CanDelete.Should().BeFalse();
+        _loader.Requested.Should().ContainSingle(path => path.EndsWith("dog", StringComparison.Ordinal));
+    }
+
+    /// <summary>
+    /// When the choice cannot be saved, whatever the reason, the switch goes back to what the settings say.
+    /// </summary>
+    [Fact]
+    public async Task ToggleShownCommand_SettingsRefuseTheChange_SwitchShowsTheSettingsAgain()
+    {
+        // Arrange
+        _store.LoadException = new IOException("unreadable");
+        await CreateAsync("cat", "dog");
+        await _viewModel.RefreshAsync();
+        var dog = _viewModel.Cards.Single(card => card.FolderName == "dog");
+        dog.IsShown = false;
+
+        // Act
+        var act = () => _viewModel.ToggleShownCommand.ExecuteAsync(dog);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>();
+        dog.IsShown.Should().BeTrue();
+    }
+
+    /// <summary>
+    /// When the user says no, nothing is removed.
+    /// </summary>
+    [Fact]
+    public async Task DeleteCommand_UserDeclines_RemovesNothing()
+    {
+        // Arrange
+        await CreateAsync("cat", "dog");
+        _catalog.Removable.Add("dog");
+        _confirmAnswer = false;
+        await _viewModel.RefreshAsync();
+        var dog = _viewModel.Cards.Single(card => card.FolderName == "dog");
+
+        // Act
+        await _viewModel.DeleteCommand.ExecuteAsync(dog);
+
+        // Assert
+        _confirmations.Should().Equal(("dog", false));
+        _catalog.Removals.Should().BeEmpty();
+        _viewModel.Cards.Select(card => card.FolderName).Should().Equal("cat", "dog");
+    }
+
+    /// <summary>
+    /// When the Recycle Bin cannot be used the user is asked again, about deleting for good, and the pet goes if they agree.
+    /// </summary>
+    [Fact]
+    public async Task DeleteCommand_RecycleBinUnavailableAndUserAgrees_DeletesForGood()
+    {
+        // Arrange
+        await CreateAsync("cat", "dog");
+        _catalog.Removable.Add("dog");
+        _catalog.RecycleFails = true;
+        await _viewModel.RefreshAsync();
+        var dog = _viewModel.Cards.Single(card => card.FolderName == "dog");
+
+        // Act
+        await _viewModel.DeleteCommand.ExecuteAsync(dog);
+
+        // Assert
+        _confirmations.Should().Equal(("dog", false), ("dog", true));
+        _catalog.Removals.Should().Equal(("dog", false), ("dog", true));
+        _viewModel.Cards.Select(card => card.FolderName).Should().Equal("cat");
+    }
+
+    /// <summary>
+    /// When the Recycle Bin cannot be used and the user does not want a permanent deletion, the pet stays.
+    /// </summary>
+    [Fact]
+    public async Task DeleteCommand_RecycleBinUnavailableAndUserDeclinesTheSecondQuestion_KeepsThePet()
+    {
+        // Arrange
+        await CreateAsync("cat", "dog");
+        _catalog.Removable.Add("dog");
+        _catalog.RecycleFails = true;
+        _confirmAnswers.Enqueue(true);
+        _confirmAnswers.Enqueue(false);
+        await _viewModel.RefreshAsync();
+        var dog = _viewModel.Cards.Single(card => card.FolderName == "dog");
+
+        // Act
+        await _viewModel.DeleteCommand.ExecuteAsync(dog);
+
+        // Assert
+        _catalog.Removals.Should().Equal(("dog", false));
+        _viewModel.Cards.Select(card => card.FolderName).Should().Equal("cat", "dog");
+    }
+
+    /// <summary>
+    /// The pet in use and a pet that comes with the application are not deleted, and the user is not even asked.
+    /// </summary>
+    [Fact]
+    public async Task DeleteCommand_PetInUseOrShippedPet_DoesNothing()
+    {
+        // Arrange
+        await CreateAsync("cat", "dog");
+        _catalog.Removable.Add("cat");
+        await _settings.UpdateAsync(settings => settings with { PetName = "cat" }, TestContext.Current.CancellationToken);
+        await _viewModel.RefreshAsync();
+
+        // Act
+        await _viewModel.DeleteCommand.ExecuteAsync(_viewModel.Cards.Single(card => card.FolderName == "cat"));
+        await _viewModel.DeleteCommand.ExecuteAsync(_viewModel.Cards.Single(card => card.FolderName == "dog"));
+
+        // Assert
+        _confirmations.Should().BeEmpty();
+        _catalog.Removals.Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// A pet that could not be loaded can be deleted when it is in the user's folder.
+    /// </summary>
+    [Fact]
+    public async Task DeleteCommand_BrokenPetInUsersFolder_IsDeleted()
+    {
+        // Arrange
+        await CreateAsync("cat", "broken");
+        _catalog.Removable.Add("broken");
+        await _viewModel.RefreshAsync();
+        var broken = _viewModel.Cards.Single(card => card.FolderName == "broken");
+
+        // Act
+        await _viewModel.DeleteCommand.ExecuteAsync(broken);
+
+        // Assert
+        _viewModel.Cards.Select(card => card.FolderName).Should().Equal("cat");
+    }
+
+    /// <summary>
+    /// A folder that could not be removed is reported and the pet stays in the list.
+    /// </summary>
+    [Fact]
+    public async Task DeleteCommand_RemovalFails_ReportsItAndKeepsThePet()
+    {
+        // Arrange
+        await CreateAsync("cat", "dog");
+        _catalog.Removable.Add("dog");
+        _catalog.RemoveResult = PetRemoval.Failed;
+        await _viewModel.RefreshAsync();
+        var dog = _viewModel.Cards.Single(card => card.FolderName == "dog");
+
+        // Act
+        await _viewModel.DeleteCommand.ExecuteAsync(dog);
+
+        // Assert
+        _viewModel.PetError.Should().Be(Strings.PetsDeleteFailed);
+        _viewModel.Cards.Select(card => card.FolderName).Should().Equal("cat", "dog");
+    }
+
+    /// <summary>
+    /// A pet that is no longer removable when the removal is tried (the folder is gone from the user's folder) says so.
+    /// </summary>
+    [Fact]
+    public async Task DeleteCommand_NotRemovableAnyMore_ReportsThatItCannotBeDeleted()
+    {
+        // Arrange
+        await CreateAsync("cat", "dog");
+        _catalog.Removable.Add("dog");
+        _catalog.RemoveResult = PetRemoval.NotRemovable;
+        await _viewModel.RefreshAsync();
+        var dog = _viewModel.Cards.Single(card => card.FolderName == "dog");
+
+        // Act
+        await _viewModel.DeleteCommand.ExecuteAsync(dog);
+
+        // Assert
+        _viewModel.PetError.Should().Be(Strings.PetsDeleteShipped);
+    }
+
+    /// <summary>
+    /// A pet that is deleted is taken off the list of pets that are switched off, so a pet put back under the same name
+    /// starts as offered.
+    /// </summary>
+    [Fact]
+    public async Task DeleteCommand_PetWasSwitchedOff_IsTakenOffTheList()
+    {
+        // Arrange
+        await CreateAsync("cat", "dog", "fox");
+        _catalog.Removable.Add("dog");
+        await _settings.UpdateAsync(settings => settings with { HiddenPets = ["dog", "fox"] }, TestContext.Current.CancellationToken);
+        await _viewModel.RefreshAsync();
+
+        // Act
+        await _viewModel.DeleteCommand.ExecuteAsync(_viewModel.Cards.Single(card => card.FolderName == "dog"));
+
+        // Assert
+        _settings.Current.HiddenPets.Should().Equal("fox");
+    }
+
+    /// <summary>
+    /// Without a way to ask the user nothing is deleted: a pet is not deleted without asking.
+    /// </summary>
+    [Fact]
+    public async Task DeleteCommand_NoWayToAsk_RemovesNothing()
+    {
+        // Arrange
+        await CreateAsync("cat", "dog");
+        _catalog.Removable.Add("dog");
+        var tab = new PetsTabViewModel(
+            _settings,
+            _catalog,
+            _loader,
+            new PetSwitcher(_settings, _loader, _catalog, _settings.Current.PetName, _ => { }, NullLogger<PetSwitcher>.Instance),
+            _ => null);
+        await tab.RefreshAsync();
+
+        // Act
+        await tab.DeleteCommand.ExecuteAsync(tab.Cards.Single(card => card.FolderName == "dog"));
+
+        // Assert
+        _catalog.Removals.Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// Each row says where its pet comes from: the user's own folder, or the application.
+    /// </summary>
+    [Fact]
+    public async Task RefreshAsync_UsersPetAndShippedPet_ShowTheirOrigin()
+    {
+        // Arrange
+        await CreateAsync("cat", "dog");
+        _catalog.Removable.Add("dog");
+
+        // Act
+        await _viewModel.RefreshAsync();
+
+        // Assert
+        var cat = _viewModel.Cards.Single(card => card.FolderName == "cat");
+        var dog = _viewModel.Cards.Single(card => card.FolderName == "dog");
+        cat.OriginText.Should().Be(Strings.PetsOriginShipped);
+        cat.OriginToolTip.Should().Be(Strings.PetsOriginShippedTip);
+        dog.OriginText.Should().Be(Strings.PetsOriginUser);
+        dog.OriginToolTip.Should().Be(Strings.PetsOriginUserTip);
+    }
+
+    /// <summary>
+    /// A pet that turns out to be in the user's folder when the list is looked at again (the user put a copy of it there)
+    /// gets the label of a pet of the user's, and the card is told, so the row changes without being made anew.
+    /// </summary>
+    [Fact]
+    public async Task RefreshAsync_PetNowInUsersFolder_OriginChangesOnTheSameCard()
+    {
+        // Arrange
+        await CreateAsync("cat");
+        await _viewModel.RefreshAsync();
+        var cat = _viewModel.Cards.Single();
+        var changed = new List<string?>();
+        cat.PropertyChanged += (_, e) => changed.Add(e.PropertyName);
+        _catalog.Removable.Add("cat");
+
+        // Act
+        await _viewModel.RefreshAsync();
+
+        // Assert
+        _viewModel.Cards.Single().Should().BeSameAs(cat);
+        cat.OriginText.Should().Be(Strings.PetsOriginUser);
+        changed.Should().Contain([nameof(PetCardViewModel.OriginText), nameof(PetCardViewModel.OriginToolTip)]);
+    }
+
+    /// <summary>
+    /// A pet that was loaded has the line about the size of its pictures and its states, which every row shows; a pet that
+    /// could not be loaded has none.
+    /// </summary>
+    [Fact]
+    public async Task RefreshAsync_LoadedAndBrokenPet_OnlyTheLoadedOneHasInfoText()
+    {
+        // Arrange
+        await CreateAsync("cat", "broken");
+
+        // Act
+        await _viewModel.RefreshAsync();
+
+        // Assert
+        _viewModel.Cards.Single(card => card.FolderName == "cat").InfoText.Should().NotBeNullOrWhiteSpace();
+        _viewModel.Cards.Single(card => card.FolderName == "broken").InfoText.Should().BeEmpty();
+    }
+
+    /// <summary>
     /// A catalog that cannot be read.
     /// </summary>
     private sealed class FailingCatalog : IPetCatalog
@@ -632,6 +1392,18 @@ public class PetsTabViewModelTests
         public string GetPetDirectory(string name)
         {
             return Path.Combine("pets", name);
+        }
+
+        /// <inheritdoc />
+        public bool CanRemove(string name)
+        {
+            return false;
+        }
+
+        /// <inheritdoc />
+        public Task<PetRemoval> RemoveAsync(string name, bool permanently = false)
+        {
+            return Task.FromResult(PetRemoval.NotRemovable);
         }
     }
 
@@ -668,6 +1440,12 @@ public class PetsTabViewModelTests
             {
                 _preloaded.AddRange(names);
                 return _preloadFailure is null ? Task.CompletedTask : Task.FromException(_preloadFailure);
+            },
+            retain: names => _retained.Add([.. names]),
+            confirmDelete: (card, permanently) =>
+            {
+                _confirmations.Add((card.FolderName, permanently));
+                return _confirmAnswers.Count > 0 ? _confirmAnswers.Dequeue() : _confirmAnswer;
             });
     }
 

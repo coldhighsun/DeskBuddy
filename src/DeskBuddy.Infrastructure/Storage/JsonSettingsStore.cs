@@ -219,6 +219,12 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
         public TimeSpan? AutoSwitchPetInterval { get; init; }
 
         /// <summary>
+        /// Gets the folder names of the pets that are switched off; <see langword="null"/> in files from before the
+        /// option existed.
+        /// </summary>
+        public List<string>? HiddenPets { get; init; }
+
+        /// <summary>
         /// Creates the file shape from settings.
         /// </summary>
         /// <param name="settings">The settings to store.</param>
@@ -250,6 +256,7 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
                 AutoCheckUpdates = settings.AutoCheckUpdates,
                 AutoSwitchPet = settings.AutoSwitchPet,
                 AutoSwitchPetInterval = settings.AutoSwitchPetInterval,
+                HiddenPets = [.. settings.HiddenPets],
             };
         }
 
@@ -296,6 +303,7 @@ public sealed class JsonSettingsStore(string directory, ILogger<JsonSettingsStor
                 AutoCheckUpdates = AutoCheckUpdates ?? defaults.AutoCheckUpdates,
                 AutoSwitchPet = AutoSwitchPet ?? defaults.AutoSwitchPet,
                 AutoSwitchPetInterval = AutoSwitchPetInterval ?? defaults.AutoSwitchPetInterval,
+                HiddenPets = HiddenPets ?? [],
             };
         }
 

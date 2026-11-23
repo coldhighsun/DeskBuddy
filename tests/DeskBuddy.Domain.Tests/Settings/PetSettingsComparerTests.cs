@@ -87,6 +87,7 @@ public class PetSettingsComparerTests
         var changes = new Dictionary<string, PetSettings>
         {
             [nameof(PetSettings.PetName)] = baseline with { PetName = "other" },
+            [nameof(PetSettings.HiddenPets)] = baseline with { HiddenPets = ["x"] },
             [nameof(PetSettings.SleepAfter)] = baseline with { SleepAfter = baseline.SleepAfter + TimeSpan.FromMinutes(1) },
             [nameof(PetSettings.SedentaryReminderAfter)] = baseline with { SedentaryReminderAfter = baseline.SedentaryReminderAfter + TimeSpan.FromMinutes(1) },
             [nameof(PetSettings.BossKey)] = baseline with { BossKey = new HotkeyGesture(HotkeyModifiers.Control, 'J') },

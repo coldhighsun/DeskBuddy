@@ -92,20 +92,16 @@
                                    Visibility="{Binding IsEmpty, Converter={StaticResource BooleanToVisibility}}"
                                    Style="{StaticResource SecondaryTextStyle}"
                                    TextWrapping="Wrap" />
-                        <ItemsControl ItemsSource="{Binding Cards}" AutomationProperties.AutomationId="PetCards">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <WrapPanel />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
+                        <!-- One pet to a row. A row is short (a small picture, the name and the "current" mark) until it is
+                             picked, and then opens to show the moving preview, what the pet can do and the button to use it, so
+                             that many pets fit in a short list and every row has the whole width, whatever the scaling is. -->
+                        <ItemsControl x:Name="PetCardList" ItemsSource="{Binding Cards}" AutomationProperties.AutomationId="PetCards">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Width="124"
-                                            MinHeight="184"
-                                            ToolTip="{Binding Details}"
+                                    <Border ToolTip="{Binding Details}"
                                             AutomationProperties.Name="{Binding DisplayName}"
                                             AutomationProperties.HelpText="{Binding Details}"
-                                            Margin="0,0,6,6"
+                                            Margin="0,0,0,6"
                                             MouseLeftButtonUp="OnPetCardMouseLeftButtonUp"
                                             AutomationProperties.AutomationId="{Binding FolderName, StringFormat=PetCard_{0}}">
                                         <Border.Style>
@@ -127,80 +123,189 @@
                                                 </Style.Triggers>
                                             </Style>
                                         </Border.Style>
-                                        <StackPanel>
-                                            <Image Width="80"
-                                                   Height="80"
-                                                   HorizontalAlignment="Center"
-                                                   Source="{Binding CurrentFrame}"
-                                                   Stretch="Uniform"
-                                                   RenderOptions.BitmapScalingMode="HighQuality">
-                                                <Image.Style>
-                                                    <Style TargetType="Image">
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding IsAvailable}" Value="False">
-                                                                <Setter Property="Opacity" Value="0.6" />
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </Image.Style>
-                                            </Image>
-                                            <TextBlock Text="{Binding StateCaption}"
-                                                       HorizontalAlignment="Center"
-                                                       Style="{StaticResource SecondaryTextStyle}"
-                                                       FontSize="{StaticResource SettingsCaptionSize}"
-                                                       MinHeight="16"
-                                                       Margin="0,2,0,4" />
-                                            <!-- The name is in the tooltip; a pet that could not be loaded has no tooltip, so it shows it. -->
-                                            <TextBlock Text="{Binding DisplayName}"
-                                                       FontWeight="SemiBold"
-                                                       TextTrimming="CharacterEllipsis">
-                                                <TextBlock.Style>
-                                                    <Style TargetType="TextBlock" BasedOn="{StaticResource SecondaryTextStyle}">
-                                                        <Setter Property="Visibility" Value="Collapsed" />
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding IsAvailable}" Value="False">
-                                                                <Setter Property="Visibility" Value="Visible" />
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </TextBlock.Style>
-                                            </TextBlock>
-                                            <TextBlock Text="{Binding LoadError}"
-                                                       ToolTip="{Binding LoadError}"
-                                                       Style="{StaticResource ErrorTextStyle}"
-                                                       MaxHeight="48"
-                                                       FontSize="{StaticResource SettingsCaptionSize}" />
-                                            <!-- What the pet can do: one chip per supported ability. -->
-                                            <ItemsControl ItemsSource="{Binding Tags}" Margin="0,4,0,0" Focusable="False" IsTabStop="False">
-                                                <ItemsControl.ItemsPanel>
-                                                    <ItemsPanelTemplate>
-                                                        <WrapPanel HorizontalAlignment="Center" />
-                                                    </ItemsPanelTemplate>
-                                                </ItemsControl.ItemsPanel>
-                                                <ItemsControl.ItemTemplate>
-                                                    <DataTemplate>
-                                                        <Border>
-                                                            <Border.Style>
-                                                                <Style TargetType="Border" BasedOn="{StaticResource SettingsChipBorderStyle}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <!-- The picture, small until the row is picked, and the name of the state it shows. -->
+                                            <StackPanel Grid.Column="0" Margin="0,0,12,0" VerticalAlignment="Center">
+                                                <Image HorizontalAlignment="Center"
+                                                       Source="{Binding CurrentFrame}"
+                                                       Stretch="Uniform"
+                                                       RenderOptions.BitmapScalingMode="HighQuality">
+                                                    <Image.Style>
+                                                        <Style TargetType="Image">
+                                                            <Setter Property="Width" Value="40" />
+                                                            <Setter Property="Height" Value="40" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                                    <Setter Property="Width" Value="80" />
+                                                                    <Setter Property="Height" Value="80" />
+                                                                </DataTrigger>
+                                                                <!-- A pet that is switched off is shown dimmed, but still readable. -->
+                                                                <DataTrigger Binding="{Binding IsShown}" Value="False">
+                                                                    <Setter Property="Opacity" Value="0.45" />
+                                                                </DataTrigger>
+                                                                <!-- A pet that could not be loaded has no picture: a broken-pet mark stands in for it. -->
+                                                                <DataTrigger Binding="{Binding IsBroken}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Image.Style>
+                                                </Image>
+                                                <Border Width="40"
+                                                        Height="40"
+                                                        CornerRadius="8"
+                                                        Background="{DynamicResource AppDangerSoft}"
+                                                        Visibility="{Binding IsBroken, Converter={StaticResource BooleanToVisibility}}"
+                                                        AutomationProperties.AutomationId="{Binding FolderName, StringFormat=PetBroken_{0}}">
+                                                    <TextBlock Style="{StaticResource IconText}"
+                                                               Text="&#xE7BA;"
+                                                               FontSize="20"
+                                                               Foreground="{DynamicResource AppDanger}" />
+                                                </Border>
+                                                <TextBlock Text="{Binding StateCaption}"
+                                                           HorizontalAlignment="Center"
+                                                           FontSize="{StaticResource SettingsCaptionSize}"
+                                                           MinHeight="16"
+                                                           Margin="0,2,0,0">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock" BasedOn="{StaticResource SecondaryTextStyle}">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </StackPanel>
+
+                                            <!-- The name, why a pet that could not be loaded cannot be used, and, once the row is picked,
+                                                 what the pet can do. -->
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <!-- The name, with a small label for where the pet comes from. -->
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0"
+                                                               Text="{Binding DisplayName}"
+                                                               FontWeight="SemiBold"
+                                                               MaxWidth="220"
+                                                               TextTrimming="CharacterEllipsis">
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock">
+                                                                <Setter Property="Foreground" Value="{DynamicResource AppForeground}" />
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsShown}" Value="False">
+                                                                        <Setter Property="Foreground" Value="{DynamicResource AppForegroundMuted}" />
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
+                                                    <Border Grid.Column="1"
+                                                            Style="{StaticResource SettingsChipBorderStyle}"
+                                                            Margin="8,0,0,0"
+                                                            HorizontalAlignment="Left"
+                                                            VerticalAlignment="Center"
+                                                            ToolTip="{Binding OriginToolTip}"
+                                                            AutomationProperties.AutomationId="{Binding FolderName, StringFormat=PetOrigin_{0}}">
+                                                        <TextBlock Text="{Binding OriginText}"
+                                                                   FontSize="{StaticResource SettingsCaptionSize}">
+                                                            <TextBlock.Style>
+                                                                <Style TargetType="TextBlock">
+                                                                    <Setter Property="Foreground" Value="{DynamicResource AppForegroundMuted}" />
                                                                     <Style.Triggers>
-                                                                        <DataTrigger Binding="{Binding IsSupported}" Value="False">
-                                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                                        <!-- The user's own pets stand out from the ones that come with the application. -->
+                                                                        <DataTrigger Binding="{Binding CanDelete}" Value="True">
+                                                                            <Setter Property="Foreground" Value="{DynamicResource AppPrimary}" />
                                                                         </DataTrigger>
                                                                     </Style.Triggers>
                                                                 </Style>
-                                                            </Border.Style>
-                                                            <TextBlock Text="{Binding Text}"
-                                                                       Foreground="{DynamicResource AppForeground}"
-                                                                       TextTrimming="CharacterEllipsis"
-                                                                       FontSize="{StaticResource SettingsCaptionSize}" />
-                                                        </Border>
-                                                    </DataTemplate>
-                                                </ItemsControl.ItemTemplate>
-                                            </ItemsControl>
-                                            <!-- One slot holds either the "current" mark or the "use" button, so the cards keep one height.
-                                                 The visibility style sits on a wrapper: a style on the Button itself would replace the
-                                                 themed button style. -->
-                                            <Grid MinHeight="28" Margin="0,4,0,0">
+                                                            </TextBlock.Style>
+                                                        </TextBlock>
+                                                    </Border>
+                                                </Grid>
+                                                <!-- The size of the pictures and the number of states, on every row: a pet that could not be loaded
+                                                     has none to tell. -->
+                                                <TextBlock Text="{Binding InfoText}"
+                                                           FontSize="{StaticResource SettingsCaptionSize}"
+                                                           TextTrimming="CharacterEllipsis"
+                                                           Margin="0,2,0,0">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock" BasedOn="{StaticResource SecondaryTextStyle}">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsAvailable}" Value="False">
+                                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                                <TextBlock Text="{Binding LoadError}"
+                                                           ToolTip="{Binding LoadError}"
+                                                           Style="{StaticResource ErrorTextStyle}"
+                                                           MaxHeight="48"
+                                                           FontSize="{StaticResource SettingsCaptionSize}" />
+                                                <StackPanel>
+                                                    <StackPanel.Style>
+                                                        <Style TargetType="StackPanel">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                            <Style.Triggers>
+                                                                <MultiDataTrigger>
+                                                                    <MultiDataTrigger.Conditions>
+                                                                        <Condition Binding="{Binding IsSelected}" Value="True" />
+                                                                        <Condition Binding="{Binding IsAvailable}" Value="True" />
+                                                                    </MultiDataTrigger.Conditions>
+                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                </MultiDataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </StackPanel.Style>
+                                                    <!-- What the pet can do: one chip per supported ability. -->
+                                                    <ItemsControl ItemsSource="{Binding Tags}" Margin="0,4,0,0" Focusable="False" IsTabStop="False">
+                                                        <ItemsControl.ItemsPanel>
+                                                            <ItemsPanelTemplate>
+                                                                <WrapPanel />
+                                                            </ItemsPanelTemplate>
+                                                        </ItemsControl.ItemsPanel>
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <Border>
+                                                                    <Border.Style>
+                                                                        <Style TargetType="Border" BasedOn="{StaticResource SettingsChipBorderStyle}">
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding IsSupported}" Value="False">
+                                                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </Border.Style>
+                                                                    <TextBlock Text="{Binding Text}"
+                                                                               Foreground="{DynamicResource AppForeground}"
+                                                                               TextTrimming="CharacterEllipsis"
+                                                                               FontSize="{StaticResource SettingsCaptionSize}" />
+                                                                </Border>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </StackPanel>
+                                            </StackPanel>
+
+                                            <!-- On the right of every row, whether it is picked or not: the "current" mark or the "use" button,
+                                                 the switch that offers the pet when the user changes to another one, and the delete button. -->
+                                            <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="12,0,0,0" VerticalAlignment="Center">
+                                            <!-- One slot holds either the "current" mark or the "use" button. The visibility style sits on a
+                                                 wrapper: a style on the Button itself would replace the themed button style. -->
+                                            <Grid VerticalAlignment="Center">
                                                 <Border Background="{DynamicResource AppPrimary}"
                                                         CornerRadius="{StaticResource SettingsPillRadius}"
                                                         Padding="12,2"
@@ -228,16 +333,49 @@
                                                         </Style>
                                                     </Grid.Style>
                                                     <Button Content="{res:Loc PetsUse}"
-                                                            Padding="0,3"
+                                                            Padding="16,3"
                                                             MinHeight="28"
+                                                            MinWidth="72"
                                                             Style="{StaticResource RaisedButton}"
-                                                            HorizontalAlignment="Stretch"
                                                             Command="{Binding DataContext.UseCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                             CommandParameter="{Binding}"
                                                             AutomationProperties.AutomationId="{Binding FolderName, StringFormat=PetUse_{0}}" />
                                                 </Grid>
                                             </Grid>
-                                        </StackPanel>
+
+                                            <!-- Offered when changing pet. IsChecked is two-way, so the switch has the value the user wants
+                                                 when the command runs. A pet that could not be loaded cannot be offered, so it has none. -->
+                                            <ToggleButton Style="{StaticResource SwitchToggle}"
+                                                          Margin="12,0,0,0"
+                                                          IsChecked="{Binding IsShown, Mode=TwoWay}"
+                                                          IsEnabled="{Binding CanChangeShown}"
+                                                          ToolTip="{Binding ShownToolTip}"
+                                                          ToolTipService.ShowOnDisabled="True"
+                                                          Command="{Binding DataContext.ToggleShownCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                          CommandParameter="{Binding}"
+                                                          AutomationProperties.AutomationId="{Binding FolderName, StringFormat=PetShown_{0}}">
+                                                <ToggleButton.Visibility>
+                                                    <Binding Path="IsAvailable" Converter="{StaticResource BooleanToVisibility}" />
+                                                </ToggleButton.Visibility>
+                                            </ToggleButton>
+
+                                            <Button Style="{StaticResource IconButton}"
+                                                    Width="32"
+                                                    Height="32"
+                                                    Margin="6,0,0,0"
+                                                    IsEnabled="{Binding CanDeleteNow}"
+                                                    ToolTip="{Binding DeleteToolTip}"
+                                                    ToolTipService.ShowOnDisabled="True"
+                                                    Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    AutomationProperties.AutomationId="{Binding FolderName, StringFormat=PetDelete_{0}}">
+                                                <TextBlock Style="{StaticResource IconText}"
+                                                           Text="&#xE74D;"
+                                                           FontSize="14"
+                                                           Foreground="{DynamicResource AppForegroundMuted}" />
+                                            </Button>
+                                            </StackPanel>
+                                        </Grid>
                                     </Border>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>

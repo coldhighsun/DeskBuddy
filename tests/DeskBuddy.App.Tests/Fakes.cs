@@ -195,6 +195,60 @@ internal sealed class FakePetCatalog(params string[] names) : IPetCatalog
     {
         return Path.Combine(Root, name);
     }
+
+    /// <summary>
+    /// Gets the names of the pets that count as the user's own, which can be removed.
+    /// </summary>
+    public HashSet<string> Removable { get; } = [];
+
+    /// <summary>
+    /// Gets or sets what removing a pet comes to when nothing else is arranged.
+    /// </summary>
+    public PetRemoval RemoveResult { get; set; } = PetRemoval.Removed;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether moving a pet to the Recycle Bin fails, so that only a permanent removal works.
+    /// </summary>
+    public bool RecycleFails { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether a removed pet stays in the list of names, as a pet that comes with the
+    /// application does when the user's copy of it is removed.
+    /// </summary>
+    public bool NamesStayWhenRemoved { get; set; }
+
+    /// <summary>
+    /// Gets the removals that were asked for: the name, and whether it was to be permanent.
+    /// </summary>
+    public List<(string Name, bool Permanently)> Removals { get; } = [];
+
+    /// <inheritdoc />
+    public bool CanRemove(string name)
+    {
+        return Removable.Contains(name);
+    }
+
+    /// <inheritdoc />
+    public Task<PetRemoval> RemoveAsync(string name, bool permanently = false)
+    {
+        Removals.Add((name, permanently));
+        if (RecycleFails && !permanently)
+        {
+            return Task.FromResult(PetRemoval.RecycleUnavailable);
+        }
+
+        if (RemoveResult == PetRemoval.Removed)
+        {
+            if (!NamesStayWhenRemoved)
+            {
+                Names = [.. Names.Where(entry => entry != name)];
+            }
+
+            Removable.Remove(name);
+        }
+
+        return Task.FromResult(RemoveResult);
+    }
 }
 
 /// <summary>

@@ -22,14 +22,20 @@ internal static class TrayMenuModel
     /// </summary>
     /// <param name="entries">The pets that can be chosen.</param>
     /// <param name="currentPet">The folder name of the pet in use.</param>
+    /// <param name="hidden">
+    /// The folder names of the pets the user has switched off, which are left out, or <see langword="null"/> for none. The
+    /// pet in use is never left out.
+    /// </param>
     /// <returns>One choice per pet, in the order of <paramref name="entries"/>.</returns>
-    public static IReadOnlyList<PetChoice> PetChoices(IReadOnlyList<InstalledPet> entries, string currentPet)
+    public static IReadOnlyList<PetChoice> PetChoices(IReadOnlyList<InstalledPet> entries, string currentPet, IReadOnlyList<string>? hidden = null)
     {
         ArgumentNullException.ThrowIfNull(entries);
 
         return
         [
-            .. entries.Select(entry => new PetChoice(
+            .. entries
+                .Where(entry => IsOffered(entry.FolderName, currentPet, hidden))
+                .Select(entry => new PetChoice(
                 entry.FolderName,
                 entry.DisplayName,
                 entry.Picture,
@@ -58,12 +64,14 @@ internal static class TrayMenuModel
     /// </summary>
     /// <param name="entries">The pets that can be chosen.</param>
     /// <param name="currentPet">The folder name of the pet in use.</param>
-    /// <returns><see langword="true"/> if at least one pet is not the pet in use.</returns>
-    public static bool HasAnotherPet(IReadOnlyList<InstalledPet> entries, string currentPet)
+    /// <param name="hidden">The folder names of the pets the user has switched off, or <see langword="null"/> for none.</param>
+    /// <returns><see langword="true"/> if at least one pet that is not switched off is not the pet in use.</returns>
+    public static bool HasAnotherPet(IReadOnlyList<InstalledPet> entries, string currentPet, IReadOnlyList<string>? hidden = null)
     {
         ArgumentNullException.ThrowIfNull(entries);
 
-        return entries.Any(entry => !string.Equals(entry.FolderName, currentPet, StringComparison.OrdinalIgnoreCase));
+        return entries.Any(entry => !string.Equals(entry.FolderName, currentPet, StringComparison.OrdinalIgnoreCase)
+            && IsOffered(entry.FolderName, currentPet, hidden));
     }
 
     /// <summary>
@@ -72,13 +80,32 @@ internal static class TrayMenuModel
     /// <param name="entries">The pets that can be chosen.</param>
     /// <param name="currentPet">The folder name of the pet in use.</param>
     /// <param name="random">The random source.</param>
+    /// <param name="hidden">The folder names of the pets the user has switched off, or <see langword="null"/> for none.</param>
     /// <returns>The folder name of the pet to change to, or <see langword="null"/> if there is no other pet.</returns>
-    public static string? PickRandom(IReadOnlyList<InstalledPet> entries, string currentPet, Random random)
+    public static string? PickRandom(IReadOnlyList<InstalledPet> entries, string currentPet, Random random, IReadOnlyList<string>? hidden = null)
     {
         ArgumentNullException.ThrowIfNull(entries);
         ArgumentNullException.ThrowIfNull(random);
 
-        return AutoSwitchPolicy.PickNext([.. entries.Select(entry => entry.FolderName)], currentPet, random);
+        return AutoSwitchPolicy.PickNext(
+            [.. entries.Select(entry => entry.FolderName).Where(name => IsOffered(name, currentPet, hidden))],
+            currentPet,
+            random);
+    }
+
+    /// <summary>
+    /// Tells whether a pet is one the user can change to: it is, unless the user has switched it off; the pet in use always
+    /// is, so that the menu still shows what is on the screen.
+    /// </summary>
+    /// <param name="folderName">The folder name of the pet.</param>
+    /// <param name="currentPet">The folder name of the pet in use.</param>
+    /// <param name="hidden">The folder names of the pets the user has switched off, or <see langword="null"/> for none.</param>
+    /// <returns><see langword="true"/> if the pet is offered.</returns>
+    internal static bool IsOffered(string folderName, string currentPet, IReadOnlyList<string>? hidden)
+    {
+        return string.Equals(folderName, currentPet, StringComparison.Ordinal)
+            || hidden is null
+            || !hidden.Contains(folderName, StringComparer.OrdinalIgnoreCase);
     }
 
     /// <summary>
@@ -99,13 +126,24 @@ internal static class TrayMenuModel
 /// <param name="Size">The size in use.</param>
 /// <param name="PetHidden">Whether the user hid the pet.</param>
 /// <param name="PetsVersion">The version of the list of pets that can be chosen.</param>
+/// <param name="HiddenPets">
+/// The folder names of the pets the user has switched off, joined into one text, so that switching one on or off builds the
+/// menu again.
+/// </param>
 /// <param name="UpdateVersion">
 /// The newer version of the application waiting to be installed, or <see langword="null"/> if there is none.
 /// </param>
 /// <param name="Language">
 /// The name of the interface language the menu is written in, so a change of language builds the menu again.
 /// </param>
-internal sealed record TrayMenuState(string PetName, PetSize Size, bool PetHidden, int PetsVersion, string? UpdateVersion = null, string Language = "");
+internal sealed record TrayMenuState(
+    string PetName,
+    PetSize Size,
+    bool PetHidden,
+    int PetsVersion,
+    string? UpdateVersion = null,
+    string Language = "",
+    string HiddenPets = "");
 
 /// <summary>
 /// Decides when the tray menu has to be built again: only when what it shows has changed, and never while it is open,

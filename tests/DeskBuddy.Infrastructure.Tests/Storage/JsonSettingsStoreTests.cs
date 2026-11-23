@@ -97,6 +97,7 @@ public sealed class JsonSettingsStoreTests : IDisposable
             AutoCheckUpdates = false,
             AutoSwitchPet = true,
             AutoSwitchPetInterval = TimeSpan.FromHours(3),
+            HiddenPets = ["dog", "fox"],
         };
 
         // Act
@@ -105,6 +106,40 @@ public sealed class JsonSettingsStoreTests : IDisposable
 
         // Assert
         loaded.Should().BeEquivalentTo(settings);
+    }
+
+    /// <summary>
+    /// A file from before pets could be switched off has no such list, which means none is switched off.
+    /// </summary>
+    [Fact]
+    public async Task LoadAsync_FileWithoutHiddenPets_HasNoneSwitchedOff()
+    {
+        // Arrange
+        await WriteRawAsync("{ \"petName\": \"cat\" }");
+
+        // Act
+        var loaded = await _store.LoadAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        loaded.PetName.Should().Be("cat");
+        loaded.HiddenPets.Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// A list of pets that are switched off is normalized when it is loaded: names that cannot be folder names are dropped
+    /// and repeats (ignoring case) are merged.
+    /// </summary>
+    [Fact]
+    public async Task LoadAsync_HiddenPetsWithBadNames_AreCleanedUp()
+    {
+        // Arrange
+        await WriteRawAsync("{ \"hiddenPets\": [\"dog\", \"DOG\", \"..\", \"a/b\", \" fox \", \"\"] }");
+
+        // Act
+        var loaded = await _store.LoadAsync(TestContext.Current.CancellationToken);
+
+        // Assert
+        loaded.HiddenPets.Should().Equal("dog", "fox");
     }
 
     /// <summary>

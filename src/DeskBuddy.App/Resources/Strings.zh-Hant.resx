@@ -44,6 +44,22 @@
   <data name="TabPets" xml:space="preserve"><value>寵物</value></data>
   <data name="PetsCurrent" xml:space="preserve"><value>目前</value></data>
   <data name="PetsUse" xml:space="preserve"><value>使用</value></data>
+  <data name="PetsShown" xml:space="preserve"><value>參與切換：關閉後，系統匣選單、隨機選擇和自動換寵物裡不再出現這隻寵物</value></data>
+  <data name="PetsShownInUse" xml:space="preserve"><value>正在使用的寵物一律參與切換</value></data>
+  <data name="PetsDelete" xml:space="preserve"><value>刪除這隻寵物（移到資源回收筒）</value></data>
+  <data name="PetsDeleteInUse" xml:space="preserve"><value>正在使用的寵物不能刪除</value></data>
+  <data name="PetsDeleteShipped" xml:space="preserve"><value>隨程式安裝的寵物不能刪除；如果它壞了，請重新安裝程式</value></data>
+  <data name="PetsDeleteConfirm" xml:space="preserve"><value>要把寵物「{0}」的資料夾移到資源回收筒嗎？
+
+可以在資源回收筒裡還原。</value></data>
+  <data name="PetsDeleteConfirmPermanent" xml:space="preserve"><value>無法把寵物「{0}」移到資源回收筒。要永久刪除它的資料夾嗎？
+
+這個操作無法復原。</value></data>
+  <data name="PetsDeleteFailed" xml:space="preserve"><value>無法刪除這隻寵物的資料夾：它可能正在使用中，或沒有權限。</value></data>
+  <data name="PetsOriginShipped" xml:space="preserve"><value>內建</value></data>
+  <data name="PetsOriginUser" xml:space="preserve"><value>我的</value></data>
+  <data name="PetsOriginShippedTip" xml:space="preserve"><value>隨程式安裝的寵物</value></data>
+  <data name="PetsOriginUserTip" xml:space="preserve"><value>放在你的寵物資料夾裡的寵物</value></data>
   <data name="PetsInfo" xml:space="preserve"><value>畫面 {0}×{1} · 動作 {2}/{3}</value></data>
   <data name="PetsCapLookAround" xml:space="preserve"><value>眼睛跟隨滑鼠</value></data>
   <data name="PetsCapEdges" xml:space="preserve"><value>攀爬螢幕邊緣 {0}/{1}</value></data>
