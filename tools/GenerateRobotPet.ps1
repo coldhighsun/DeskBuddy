@@ -535,7 +535,7 @@ foreach ($f in 0..3) {
 }
 
 # Climb: the robot rolls up the left edge of the screen, which is the wall, with its tread against it, reaching up hand over
-# hand. Mirrored for the right edge.
+# hand. Mirrored for the right edge. ClimbDown is the same frames flipped vertically.
 $climbPoses = @(
     @(@(10, 40), @(22, 47), 0, 'Orange'),
     @(@(14, 44), @(17, 44), 1, 'SteelDark'),
@@ -546,8 +546,8 @@ foreach ($i in 0..3) {
     $pose = $climbPoses[$i]
     $draw = { Add-RobotClimb -NearHand $pose[0] -FarHand $pose[1] -Roll $pose[2] -Lamp $pose[3] }.GetNewClosure()
     Save-Frame "climb_$i.png" -Air -Dy 3 -Tilt 90 $draw
-    # ClimbDown: the climb played backwards, so the robot rolls down the wall with its head still up.
-    Save-Frame "climbdown_$(3 - $i).png" -Air -Dy 3 -Tilt 90 $draw
+    # ClimbDown: the same climb upside down (flipped vertically, as for the other pets), so the robot goes down the wall head first.
+    Save-Frame "climbdown_$i.png" -Air -Dy 3 -Tilt 90 -Flip $draw
 }
 
 # Ceiling: walks along the top of the screen upside down, in the same side view as walking on the ground.
