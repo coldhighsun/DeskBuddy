@@ -20,6 +20,12 @@ internal sealed class EffectStage
     private const int Patience = 300;
 
     /// <summary>
+    /// The pace of every switch animation: the durations the effects ask for are multiplied by this, so a value above one
+    /// makes all of them slower.
+    /// </summary>
+    internal const double Pace = 1.7;
+
+    /// <summary>
     /// Starts fast and slows down towards the end.
     /// </summary>
     public static readonly IEasingFunction EaseOut = Freeze(new CubicEase { EasingMode = EasingMode.EaseOut });
@@ -184,7 +190,7 @@ internal sealed class EffectStage
         IEasingFunction? easing = null,
         double? from = null)
     {
-        var duration = Motion.Resolve(TimeSpan.FromMilliseconds(milliseconds), Motion.AnimationsEnabled);
+        var duration = Duration(milliseconds, Motion.AnimationsEnabled);
         if (duration == TimeSpan.Zero)
         {
             ((DependencyObject)target).SetValue(property, to);
@@ -213,7 +219,7 @@ internal sealed class EffectStage
     /// <returns>A task that completes when the rectangle has arrived.</returns>
     public Task AnimateRectAsync(RectangleGeometry target, Rect from, Rect to, int milliseconds)
     {
-        var duration = Motion.Resolve(TimeSpan.FromMilliseconds(milliseconds), Motion.AnimationsEnabled);
+        var duration = Duration(milliseconds, Motion.AnimationsEnabled);
         if (duration == TimeSpan.Zero)
         {
             target.Rect = to;
@@ -234,8 +240,20 @@ internal sealed class EffectStage
     /// <returns>A task that completes after the wait; at once when motion is not allowed.</returns>
     public static Task PauseAsync(int milliseconds)
     {
-        var duration = Motion.Resolve(TimeSpan.FromMilliseconds(milliseconds), Motion.AnimationsEnabled);
+        var duration = Duration(milliseconds, Motion.AnimationsEnabled);
         return duration == TimeSpan.Zero ? Task.CompletedTask : Task.Delay(duration);
+    }
+
+    /// <summary>
+    /// Works out how long a step of an animation lasts: the time the effect asked for, slowed by <see cref="Pace"/>, or none
+    /// at all when motion is not allowed.
+    /// </summary>
+    /// <param name="milliseconds">How long the effect asked for.</param>
+    /// <param name="animationsEnabled">Whether motion is allowed.</param>
+    /// <returns>The time the step takes.</returns>
+    internal static TimeSpan Duration(int milliseconds, bool animationsEnabled)
+    {
+        return Motion.Resolve(TimeSpan.FromMilliseconds(milliseconds * Pace), animationsEnabled);
     }
 
     /// <summary>
