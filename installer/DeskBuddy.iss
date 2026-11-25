@@ -44,7 +44,8 @@ Compression=lzma2/ultra
 SolidCompression=yes
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
-WizardStyle=modern
+; "dynamic" makes the wizard follow the system's light/dark mode, and switch when it changes.
+WizardStyle=modern dynamic
 ; The running pet is closed by the [Code] section below, not by the Restart Manager.
 CloseApplications=no
 
