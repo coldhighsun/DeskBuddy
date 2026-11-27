@@ -8,11 +8,13 @@
 function Add-Laptop([int]$Typing) {
     Add-HdRoundRect 'ScreenDark' 12 53 40 7 2.5 'PropEdge' 1
     Add-HdRoundRect 'ScreenGray' 16 38 32 16 2.5 'PropEdge' 1
-    Add-HdOval 'White' 32 46 2.2 2.2 ''
-    $left = if ($Typing % 2 -eq 0) { 50 } else { 52 }
-    $right = if ($Typing % 2 -eq 0) { 52 } else { 50 }
-    Add-HdOval $script:pawKey 24 $left 4 2.6 'Outline' 1
-    Add-HdOval $script:pawKey 40 $right 4 2.6 'Outline' 1
+    # The pet faces the user, so its hands are behind the lid and never drawn; typing shows as the logo flickering and key sparks.
+    Add-HdOval $(if ($Typing % 2 -eq 0) { 'White' } else { 'PropEdge' }) 32 46 2.2 2.2 ''
+    $sparks = @(@(11, 51), @(53, 49), @(14, 47), @(50, 54))
+    foreach ($i in 0..1) {
+        $spark = $sparks[($Typing % 2) * 2 + $i]
+        Add-HdSparkle 'Yellow' $spark[0] $spark[1] 1.6
+    }
 }
 
 # An open book in front of the pet. Page 0-3 changes the lines of text, as if reading on.
