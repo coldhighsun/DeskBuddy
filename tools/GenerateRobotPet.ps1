@@ -562,12 +562,9 @@ Save-Frame 'idle_right.png' { Add-Robot -Eyes open -EyeShift 1.5 }
 Save-Frame 'idle_up.png'    { Add-Robot -Eyes open -EyeDy -1 }
 Save-Frame 'idle_down.png'  { Add-Robot -Eyes open -EyeDy 1 }
 
-# Coding: the robot sits in a chair at a desk, typing while code scrolls on the monitor. Each line of code is its indent,
-# its length (in 2-unit steps) and its color.
-$codeLines = @(
-    @(0, 5, 'Green'), @(2, 3, 'Cyan'), @(2, 6, 'Orange'), @(0, 2, 'Green'),
-    @(2, 5, 'Green'), @(4, 3, 'Cyan'), @(2, 4, 'Orange'), @(0, 6, 'Green')
-)
+# Coding: the robot sits in a chair at a desk, typing at a keyboard. The scene is a side view, so the monitor in front of it is
+# seen edge-on (a thin slab whose lit face points at the robot) and nothing on its screen can be seen.
+$codeGlyphs = @('{', '{}', '{;}', '{}')
 
 # Night: heavy eyes, a moon and stars, a steaming coffee and a sleepy 'zZ' now and then.
 function Add-CodingScene([int]$Frame, [switch]$Night) {
@@ -588,21 +585,16 @@ function Add-CodingScene([int]$Frame, [switch]$Night) {
     Add-HdRoundRect 'Wood' 22 40 42 4 1.4 'Outline' 1
     Add-HdRoundRect 'WoodDark' 24 43.6 38 1.8 0.8 '' 0
 
-    # Monitor showing scrolling code and a blinking cursor.
-    Add-HdRoundRect 'SteelDark' 48 32 4 8 1 'Outline' 0.9
-    Add-HdRoundRect 'SteelDark' 44 38 12 2.4 1 'Outline' 0.9
-    Add-HdRoundRect 'SteelDark' 38 12 24 20 2.6 'Outline' 1.1
-    Add-HdRoundRect 'Screen' 40 14.4 20 15.2 1.6 '' 0
-    for ($i = 0; $i -lt 4; $i++) {
-        $line = $codeLines[($Frame + $i) % $codeLines.Count]
-        Add-HdRoundRect $line[2] (41.6 + 1.6 * $line[0]) (16.4 + 3.4 * $i) (1.9 * $line[1]) 1.5 0.7 '' 0
-        if ($i -eq 3 -and $Frame % 2 -eq 0) {
-            Add-HdRoundRect 'White' ([Math]::Min(41.6 + 1.6 * $line[0] + 1.9 * $line[1] + 1.4, 57)) 26.6 1.6 2.4 0.4 '' 0
-        }
-    }
+    # Monitor seen from the side: a thin slab on a neck and a flat foot. Its lit face (the left edge) glows in step with the typing.
+    Add-HdRoundRect 'SteelDark' 44 38 14 2.4 1 'Outline' 0.9
+    Add-HdRoundRect 'SteelDark' 51 30 3 8.4 0.8 'Outline' 0.9
+    Add-HdRoundRect 'SteelDark' 50 12 6 20 2 'Outline' 1.1
+    Add-HdRoundRect $(if ($Frame % 2 -eq 0) { 'Cyan' } else { 'CyanDim' }) 50.4 14.2 1.3 15.6 0.6 '' 0
+    if (-not $Night) { Add-HdLabel $codeGlyphs[$Frame] 'White' 45 3 }
 
     # Keyboard and a mug of coffee.
     Add-HdRoundRect 'Gray' 24 37.6 12 2.4 1 'Outline' 0.7
+    Add-HdRoundRect 'White' $(if ($Frame % 2 -eq 1) { 28.2 } else { 32.2 }) 37.8 1.8 1 0.4 '' 0
     Add-HdRoundRect 'Brown' 38 35.4 5 4.6 1.2 'Outline' 0.8
     Add-HdStroke @((40 + 1.4 * ($Frame % 2)), 33.6, (39.4 + 1.4 * ($Frame % 2)), 31.6) 'White' 1
 
@@ -632,18 +624,21 @@ function Add-CodingScene([int]$Frame, [switch]$Night) {
         Add-HdRoundRect 'SteelDark' 15.4 20.8 4 1.2 0.5 '' 0
         Add-HdRoundRect 'SteelDark' 21.4 20.8 4 1.2 0.5 '' 0
     } elseif ($Frame -eq 3) {
-        Add-HdRoundRect 'Cyan' 15.6 18.2 4 1.8 0.8 '' 0
-        Add-HdRoundRect 'Cyan' 21.6 18.2 4 1.8 0.8 '' 0
+        Add-HdRoundRect 'Cyan' 16.4 18.2 4 1.8 0.8 '' 0
+        Add-HdRoundRect 'Cyan' 22.4 18.2 4 1.8 0.8 '' 0
     } else {
-        Add-HdRoundRect 'Cyan' 15.6 16.2 4 4 1.6 '' 0
-        Add-HdRoundRect 'Cyan' 21.6 16.2 4 4 1.6 '' 0
+        # Looking right, at the monitor.
+        Add-HdRoundRect 'Cyan' 16.4 16.2 4 4 1.6 '' 0
+        Add-HdRoundRect 'Cyan' 22.4 16.2 4 4 1.6 '' 0
     }
 
     # Arms reaching the keyboard; the hands take turns pressing keys.
+    # The far arm comes out from behind the torso (drawn first, in the dark steel), the near one from the shoulder at its front edge.
     $a = $Frame % 2
-    Add-HdLimb @(17, 33, 23, 36, 29, 37.4) 'Steel' 3.2
-    Add-HdOval 'SteelLight' 29 (36.6 + 2 * $a) 1.7 1.5 ''
+    Add-HdLimb @(20, 32.4, 26, 35.4, 33, (38.2 - 2 * $a)) 'SteelDark' 2.6
     Add-HdOval 'SteelLight' 33 (38.2 - 2 * $a) 1.7 1.5 ''
+    Add-HdLimb @(21, 32.6, 25, 35.6, 29, (36.6 + 2 * $a)) 'Steel' 3.2
+    Add-HdOval 'SteelLight' 29 (36.6 + 2 * $a) 1.7 1.5 ''
 
     if ($Night) {
         # A second wisp of steam over the coffee.
