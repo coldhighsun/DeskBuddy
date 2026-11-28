@@ -4,12 +4,15 @@
 # sitting pet seen from the front, taking -Eyes, -Tail, -EyeShift and -EyeLift like Add-Pet), and adds $ScenarioManifest to
 # the "states" of its manifest. Everything is in drawing units (see PetVectorDrawing.ps1).
 
+# The top edge of the laptop lid. A pet whose face sits low sets it further down so the lid does not hide the face.
+if ($null -eq $LaptopTop) { $LaptopTop = 38 }
+
 # An open laptop in front of the pet, seen from the back of its screen. Typing 0 or 1 moves the paws on it.
 function Add-Laptop([int]$Typing) {
     Add-HdRoundRect 'ScreenDark' 12 53 40 7 2.5 'PropEdge' 1
-    Add-HdRoundRect 'ScreenGray' 16 38 32 16 2.5 'PropEdge' 1
+    Add-HdRoundRect 'ScreenGray' 16 $LaptopTop 32 (54 - $LaptopTop) 2.5 'PropEdge' 1
     # The pet faces the user, so its hands are behind the lid and never drawn; typing shows as the logo flickering and key sparks.
-    Add-HdOval $(if ($Typing % 2 -eq 0) { 'White' } else { 'PropEdge' }) 32 46 2.2 2.2 ''
+    Add-HdOval $(if ($Typing % 2 -eq 0) { 'White' } else { 'PropEdge' }) 32 (($LaptopTop + 54) / 2) 2.2 2.2 ''
     $sparks = @(@(11, 51), @(53, 49), @(14, 47), @(50, 54))
     foreach ($i in 0..1) {
         $spark = $sparks[($Typing % 2) * 2 + $i]

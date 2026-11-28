@@ -25,6 +25,7 @@ $pal = @{
 $SitEyes = @{ Lx = 24.5; Rx = 39.5; Y = 40.5 }
 $LieEyes = @{ Lx = 22; Rx = 36; Y = 53 }
 $LieDrop = @(45, 45)
+$LaptopTop = 48  # a low lid, below the eyes and the smile
 $script:breath = 0
 
 # A slime has nothing behind it; the breathing phase (0-3) is kept for the body.
