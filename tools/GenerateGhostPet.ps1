@@ -5,6 +5,8 @@
 
 $PetName = 'ghost'
 $HasHop = $false
+$WalkFloats = $true  # no feet: it drifts along without bouncing
+$WalkFps = 6
 $NoArms = $true  # a ghost has no arms or hands, just the sheet
 # With no hands, the umbrella or the parachute is held at the top of the head (the manifest's Glide grip), just inside the
 # sheet so it covers the ends of the shaft and the strings.
@@ -34,24 +36,37 @@ function Add-PetBack([int]$Phase) {
 }
 
 # The wavy hem as Bezier segments from the point (X0, Base) to the right: Count scallops of the same length up to X1. Sway
-# leans every tip sideways by the same amount (the hem swinging gently). Wave, an angle in radians, is for drifting: a wave
-# runs along the hem and the tips trail behind (to the right, as the side view faces left), each a little out of step with
-# the next, so a loop of frames with the angle going round looks like cloth fluttering. Returns the numbers of the segments.
-function Get-GhostHem([double]$X0, [double]$X1, [int]$Count, [double]$Base, [double]$Drop, [double]$Sway = 0, $Wave = $null) {
+# leans every tip sideways by the same amount (the hem swinging gently). Returns the numbers of the segments.
+function Get-GhostHem([double]$X0, [double]$X1, [int]$Count, [double]$Base, [double]$Drop, [double]$Sway = 0) {
     $width = ($X1 - $X0) / $Count
+    $y = $Base + $Drop * 1.333
     $result = New-Object 'System.Collections.Generic.List[double]'
     for ($i = 0; $i -lt $Count; $i++) {
         $xa = $X0 + $i * $width
         $xb = $xa + $width
-        $shift = $Sway
-        $depth = $Drop
-        if ($null -ne $Wave) {
-            $angle = [double]$Wave - 2 * [Math]::PI * $i / $Count
-            $shift += $width * (0.15 + 0.2 * [Math]::Cos($angle))
-            $depth = $Drop * (0.92 + 0.08 * [Math]::Sin($angle))
-        }
-        $y = $Base + $depth * 1.333
-        $result.AddRange([double[]]@(($xa + $shift), $y, ($xb + $shift), $y, $xb, $Base))
+        $result.AddRange([double[]]@(($xa + $Sway), $y, ($xb + $Sway), $y, $xb, $Base))
+    }
+    return , $result.ToArray()
+}
+
+# The hem of a drifting ghost, which faces left, so it streams out behind to the right: scallops from (15, 57) along a line
+# that lifts towards the tip of the tail, their tips leaning backwards. A wave (Wave is its angle in radians) runs from the
+# front to the tail and grows on the way, so a loop of frames with the angle going round looks like cloth fluttering in the
+# wind. Returns the numbers of the Bezier segments; the last two of them are the tip of the tail.
+function Get-GhostTrail([double]$Wave) {
+    $xs = @(15, 24, 33.5, 44, 60)
+    $ys = @(57, 57.2, 56, 53.5, 48)
+    $swing = @(0, 0.4, 1.1, 2, 3.4)
+    $drops = @(6.2, 6, 5.2, 2.6)
+    $y = foreach ($i in 0..4) { $ys[$i] + $swing[$i] * [Math]::Sin($Wave - $i * [Math]::PI / 2) }
+    $result = New-Object 'System.Collections.Generic.List[double]'
+    foreach ($i in 0..3) {
+        $width = $xs[$i + 1] - $xs[$i]
+        $drop = $drops[$i] * (0.9 + 0.1 * [Math]::Sin($Wave - $i * [Math]::PI / 2))
+        $result.AddRange([double[]]@(
+                ($xs[$i] + $width * 0.35), ($y[$i] + $drop),
+                ($xs[$i + 1] + $width * 0.2), ($y[$i + 1] + $drop),
+                $xs[$i + 1], $y[$i + 1]))
     }
     return , $result.ToArray()
 }
@@ -82,11 +97,14 @@ function Add-PetLie {
     Add-HdOval 'Black' 19 54 1.6 2 ''
 }
 
-# The ghost seen from the side, facing left, drifting: the bell stays as it is and only the hem flutters. D (-3 to 3) and
-# Lift (-2 to 2) together give the angle of the flutter, so the four walk poses go once round it.
+# The ghost seen from the side, facing left, drifting: the head stays where it is while the sheet streams out behind into a
+# fluttering tail. D (-3 to 3) and Lift (-2 to 2) together give the angle of the flutter, so the four walk poses go once
+# round it.
 function Add-PetSide([double]$D, [double]$Lift) {
     $wave = [Math]::Atan2(-$Lift / 2, -$D / 3)
-    $shape = @(13.5, 57) + (Get-GhostHem 13.5 45 3 57 5.5 0 $wave) + @(46.5, 46, 43.5, 29, 35, 19.5, 30, 14.5, 20, 14.5, 16.5, 21, 13.5, 26, 12.5, 44, 13.5, 57)
+    $trail = Get-GhostTrail $wave
+    $tipY = $trail[$trail.Count - 1]
+    $shape = @(15, 57) + $trail + @(54, ($tipY - 2), 47, 45, 44, 37, 42, 29, 39, 22.5, 35, 19.5, 30, 14.5, 20, 14.5, 16.5, 21, 13.5, 26, 11.5, 43, 15, 57)
     Add-HdShape 'Body' $shape
     Add-HdOval 'Belly' 22 47 6.5 9 ''
     Add-HdOval 'Belly' 22 21.5 3.6 1.7 '' 0 -20

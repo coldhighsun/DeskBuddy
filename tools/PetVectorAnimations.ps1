@@ -9,7 +9,8 @@
 # Required: $PetName, $PetNames (@{ En = ...; Zh = ...; ZhHant = ... }, the name in English, in Simplified and in Traditional Chinese; ZhHant may be left out when it reads like Zh), $IconBox (the head in the idle
 # frame, x y width height in drawing units, for the tray icon), $pal.
 # Optional settings: $HasHop (a hop animation for the walk), $WalkHops (the walk is a series of hops; so is the climb, and the
-#   ceiling walk is the hops upside down), $WalkFps (frames per second of the walk), $NoArms (no arms: nothing is raised, held
+#   ceiling walk is the hops upside down), $WalkFps (frames per second of the walk), $WalkFloats (the pet has no feet and
+#   drifts: the walk and the ceiling walk stay level instead of bouncing), $NoArms (no arms: nothing is raised, held
 #   or reached out), $HeadBox (x0 y0 x1 y1 of the head, for the headband and the headset), $SitEyes / $LieEyes (@{ Lx; Rx; Y }
 #   the eyes of the sitting and of the lying pet), $LieDrop (x y of the sweat drop of a tired lying pet), $EyeKeys (palette keys
 #   of the eyes: Fill, Pupil (empty for none), Lid, Brow), $Arms (overrides for the defaults of $armSpec below: Color, Paw,
@@ -161,11 +162,12 @@ Save-Frame 'idle_2.png' { Add-Pet -Tail 2 }
 Save-Frame 'idle_3.png' { Add-Pet -Tail 1 -Eyes closed }
 
 # Walk: seen from the side, drawn facing left and mirrored. A pet that moves by hopping ($WalkHops) crouches, springs up,
-# floats and lands again; any other pet bounces a little as its legs swing.
+# floats and lands again; a floating pet ($WalkFloats) stays level; any other pet bounces a little as its legs swing.
 # The poses of a hopping walk: pose D, tail lift, tilt in degrees and the vertical offset of the frame.
 $hopPoses = @(@(0, -4, -4, 0), @(-3, 4, 14, -8), @(-3, 2, 0, -10), @(3, 0, -14, -6))
 # The poses of a normal walk: pose D, tail lift and the vertical offset of the frame.
 $walkPoses = @(@(-3, 0, 0), @(0, -2, -1), @(3, 0, 0), @(0, 2, -1))
+if ($WalkFloats) { foreach ($pose in $walkPoses) { $pose[2] = 0 } }
 foreach ($i in 0..3) {
     if ($WalkHops) {
         $pose = $hopPoses[$i]
