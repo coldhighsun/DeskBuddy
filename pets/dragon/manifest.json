@@ -17,17 +17,17 @@
     "Climb":   { "fps": 6, "frames": [32, 33, 34, 35] },
     "ClimbDown": { "fps": 6, "frames": [36, 37, 38, 39] },
     "Ceiling": { "fps": 6, "frames": [40, 41, 42, 43] },
-    "Coding":  { "fps": 4, "frames": [44, 45, 46, 45] },
-    "NightCoding": { "fps": 3, "frames": [47, 48, 49, 48] },
-    "Building": { "fps": 4, "frames": [50, 51, 52, 53] },
-    "Focus":   { "fps": 3, "frames": [54, 55] },
-    "Reading": { "fps": 2, "frames": [56, 57, 58, 57] },
-    "Meeting": { "fps": 3, "frames": [59, 60, 61, 62] },
-    "Chatting": { "fps": 3, "frames": [63, 64, 65, 66] },
-    "Idle.Left":  { "fps": 1, "frames": [67] },
-    "Idle.Right": { "fps": 1, "frames": [68] },
-    "Idle.Up":    { "fps": 1, "frames": [69] },
-    "Idle.Down":  { "fps": 1, "frames": [70] }
+    "Coding":  { "fps": 4, "frames": [44, 45, 46, 47] },
+    "NightCoding": { "fps": 3, "frames": [48, 49, 50, 51] },
+    "Building": { "fps": 4, "frames": [52, 53, 54, 55] },
+    "Focus":   { "fps": 3, "frames": [56, 57] },
+    "Reading": { "fps": 2, "frames": [58, 59, 60, 59] },
+    "Meeting": { "fps": 3, "frames": [61, 62, 63, 64] },
+    "Chatting": { "fps": 3, "frames": [65, 66, 67, 68] },
+    "Idle.Left":  { "fps": 1, "frames": [69] },
+    "Idle.Right": { "fps": 1, "frames": [70] },
+    "Idle.Up":    { "fps": 1, "frames": [71] },
+    "Idle.Down":  { "fps": 1, "frames": [72] }
   }
 }
 
