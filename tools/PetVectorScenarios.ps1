@@ -32,19 +32,27 @@ function Add-Book([int]$Page) {
     Add-HdPoly 'Red' @(34.5, 56, 37.5, 56, 37.5, 61, 36, 59.6, 34.5, 61) '' 0
 }
 
-# Coding: sits at a laptop, typing, with braces floating up.
+# Coding: sits at a laptop, typing, with braces floating up. The eyes scan the screen and blink on the last frame, as the
+# hidden paws leave the face to carry the motion.
 $codeTexts = @('{', '{}', '{;}', '{}')
 foreach ($f in 0..3) {
     $text = $codeTexts[$f]
-    $draw = { Add-ScenarioPet -Eyes open -EyeLift 1 -Tail $f; Add-Laptop $f; Add-HdLabel $text 'White' 45 2 }.GetNewClosure()
+    $eyes = if ($f -eq 3) { 'closed' } else { 'open' }
+    $shift = @(-1.2, 0, 1.2, 0)[$f]
+    $draw = {
+        Add-ScenarioPet -Eyes $eyes -EyeLift 1 -EyeShift $shift -Tail $f
+        Add-Laptop $f
+        Add-HdLabel $text 'White' 45 2
+    }.GetNewClosure()
     Save-Frame "coding_$f.png" $draw
 }
 
-# NightCoding: the same, sleepy, under a moon and stars.
+# NightCoding: the same, sleepy, under a moon and stars, nodding off on the last frame.
 foreach ($f in 0..3) {
     $text = $codeTexts[$f]
+    $eyes = if ($f -eq 3) { 'closed' } else { 'tired' }
     $draw = {
-        Add-ScenarioPet -Eyes tired -Tail $f
+        Add-ScenarioPet -Eyes $eyes -Tail $f
         Add-Laptop $f
         Add-HdLabel $text 'White' 45 12
         Add-HdMoon 'Yellow' 56 7 5
