@@ -14,7 +14,8 @@
 #   or reached out), $HeadBox (x0 y0 x1 y1 of the head, for the headband and the headset), $SitEyes / $LieEyes (@{ Lx; Rx; Y }
 #   the eyes of the sitting and of the lying pet), $LieDrop (x y of the sweat drop of a tired lying pet), $EyeKeys (palette keys
 #   of the eyes: Fill, Pupil (empty for none), Lid, Brow), $Arms (overrides for the defaults of $armSpec below: Color, Paw,
-#   Width, ShoulderL, ShoulderR, UpL, UpR, ...).
+#   Width, ShoulderL, ShoulderR, UpL, UpR, ...), $LaptopTop (top edge of the laptop lid in the Coding scenes, default 38;
+#   further down for a face that sits low).
 # Functions the generator supplies (a pet is drawn facing front when sitting and facing left from the side):
 #   Add-PetBack $Phase                  Tail or anything behind the sitting pet (Phase 0-3).
 #   Add-PetBody $LeftDown $RightDown    Torso, and the front legs or flippers that are not raised (they are the arms when raised).
